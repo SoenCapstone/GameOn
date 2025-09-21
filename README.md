@@ -1,8 +1,25 @@
 # Game-On
 
+(CI Information)
+
+# Release Demos
+
+| Release \#              | Link to Demo |
+|-------------------|------------|
+| Release 1  |    |
+| Release 2  |    |
+| Release 3  |    |
+
+
 # Project Summary
 
 GameOn is a mobile app that solves the biggest issues in amateur sport leagues like last-minute player absences, complex scheduling, messy payments and communication scattered into diffrennt platforms. Unlike existing tools that only focus on one problem, GameOn puts together roster management, real-time substitutions, secure payments, scheduling and team messaging into a one platform. By supporting multiple sports and offering smart features like a substitution system, an attendance-aware payment, and a customizable sport template, GameOn makes organising and playing in leagues easier, fairer and more reliable for organizers, coaches, and players.
+
+# Developer Getting Started Guide
+
+(Guide to setup system.)
+
+(Link to project's board.)
 
 # 👥 Team Members
 
