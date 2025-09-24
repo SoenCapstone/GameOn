@@ -1,7 +1,7 @@
-## 🚀 User Story: [Title]
+## User Story: [Title]
 <!-- Briefly describe the feature or functionality being implemented. -->
 
-### ✅ **Changes Made**
+### **Changes Made**
 <!-- List all key changes introduced in this PR. -->
 - [ ] Implemented [Feature/Functionality]
 - [ ] Updated [Relevant Component/File]
@@ -10,7 +10,7 @@
 
 ---
 
-### 🔬 **How to Test**
+### **How to Test**
 <!-- Provide clear steps to test the implementation. -->
 1. [Step 1: Provide steps to test]
 
@@ -18,11 +18,11 @@
 ---
 
 
-### 📸 **Screenshots/Logs**
+### **Screenshots/Logs**
 <!-- Attach any relevant screenshots or logs for verification. -->
 [Attach screenshots or logs here]
 
-### 🔍 **Checkout**
+### **Checkout**
 <!-- Attach any relevant checkouts to complete in order for the PR to be merged. -->
 
 - [ ] SonarQube Pass
