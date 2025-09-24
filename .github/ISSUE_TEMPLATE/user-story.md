@@ -2,7 +2,7 @@
 name: User Story
 about: Propose new functionality in the form of a user story
 title: "[Story]"
-labels: ''
+labels: user story
 assignees: ''
 
 ---
