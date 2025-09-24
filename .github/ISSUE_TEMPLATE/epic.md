@@ -1,13 +1,13 @@
 ---
-name: User Story
-about: Propose new functionality in the form of a user story
-title: "[Story]"
-labels: user story
+name: Epic
+about: Create an epic for a large and core feature
+title: "[Epic]"
+labels: epic
 assignees: ''
 
 ---
 
-### **User Story**
+### **Epic Description**
 
 As a **[type of user]**, I want **[goal]** so that **[benefit]**.
 
