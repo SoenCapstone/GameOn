@@ -1,10 +1,10 @@
-## 🏗️ Task Implementation: [Title]
+## Task Implementation: [Title]
 
 <!-- Briefly describe the purpose of this PR and what it accomplishes. -->
 
 ---
 
-### ✅ **Changes Made**
+### **Changes Made**
 <!-- List all key changes in this PR. -->
 - [ ] Implemented [Feature/Functionality]
 - [ ] Refactored [Code Section]
@@ -15,19 +15,19 @@
 <!-- Add more to the list if you did something else. -->
 
 ---
-### 🔬 **How to Test**
+### **How to Test**
 <!-- Provide clear steps to test the implementation. -->
 1. [Step 1: Provide steps to test]
 
 ---
 
-### 📸 **Screenshots/Logs**
+### **Screenshots/Logs**
 <!-- Attach any relevant screenshots or logs for verification. -->
 - [Attach screenshots or logs here]
 
 ---
 
-### 🔍 **Checkout**
+### **Checkout**
 <!-- Attach any relevant checkouts to complete in order for the PR to be merged. -->
 
 - [ ] SonarQube Pass
@@ -35,7 +35,7 @@
 
 ---
 
-### 📝 **Additional Notes (Optional)**
+### **Additional Notes (Optional)**
 <!-- Any extra information or future considerations for this task. -->
 - [Add notes here]
 
