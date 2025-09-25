@@ -1,0 +1,42 @@
+### IntelliJ IDEA ###
+.idea/
+*.iml
+out/
+*.ipr
+*.iws
+
+### Maven ###
+target/
+!.mvn/wrapper/maven-wrapper.jar
+.mvn/wrapper/maven-wrapper.properties
+
+### Logs ###
+*.log
+logs/
+*.out
+
+### OS files ###
+.DS_Store
+Thumbs.db
+
+### Env files & secrets ###
+.env
+*.env
+*.local
+
+### Build artifacts ###
+*.class
+*.jar
+*.war
+*.ear
+
+### Spring Boot config (keep shared configs, ignore local overrides) ###
+# Ignore application-local.yml or application-local.properties
+application-local.yml
+application-local.properties
+
+### Others ###
+/bin/
+/build/
+/tmp/
+/hs_err_pid*
