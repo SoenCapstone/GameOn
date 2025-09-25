@@ -1,0 +1,11 @@
+spring:
+  application:
+    name: go-user-service
+  config:
+    import: optional:configserver:http://localhost:8889
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,refresh
