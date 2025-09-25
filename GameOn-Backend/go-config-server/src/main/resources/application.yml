@@ -1,0 +1,20 @@
+spring:
+  application:
+    name: go-config-server
+  profiles:
+    active: native
+  cloud: # Where the go-config-server should look for the config files for each microservice
+    config:
+      server:
+        native:
+          search-locations: classpath:/configurations, file:./configurations
+
+server:
+  port: 8889
+
+# Actuator configuration
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
