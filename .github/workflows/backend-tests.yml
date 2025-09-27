@@ -4,12 +4,12 @@ on:
   pull_request:
     branches: [main]
     paths:
-      - "GameOn-Backend/**"
+      - "GameOn-Backend/go-user-service/**"
       - ".github/workflows/backend-tests.yml"
   push:
     branches: [main]
     paths:
-      - "GameOn-Backend/**"
+      - "GameOn-Backend/go-user-service/**"
       - ".github/workflows/backend-tests.yml"
 
 jobs:
@@ -17,7 +17,7 @@ jobs:
     runs-on: ubuntu-latest
     defaults:
       run:
-        working-directory: GameOn-Backend
+        working-directory: GameOn-Backend/go-user-service
 
     steps:
       - name: Checkout repository
@@ -31,12 +31,18 @@ jobs:
           cache: maven
 
       - name: Build & run unit tests
-        run: mvn -B -DskipITs verify
+        run: |
+          if [ -f mvnw ]; then
+            chmod +x mvnw
+            ./mvnw -B -DskipITs verify
+          else
+            mvn -B -DskipITs verify
+          fi
 
       - name: Upload surefire reports
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: backend-surefire-reports
-          path: GameOn-Backend/target/surefire-reports/**
+          path: GameOn-Backend/go-user-service/target/surefire-reports/**
           if-no-files-found: ignore
