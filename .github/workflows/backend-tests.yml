@@ -1,0 +1,42 @@
+name: Backend Tests (Java)
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - "GameOn-Backend/**"
+      - ".github/workflows/backend-tests.yml"
+  push:
+    branches: [main]
+    paths:
+      - "GameOn-Backend/**"
+      - ".github/workflows/backend-tests.yml"
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: GameOn-Backend
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Temurin JDK
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "21"
+          cache: maven
+
+      - name: Build & run unit tests
+        run: mvn -B -DskipITs verify
+
+      - name: Upload surefire reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: backend-surefire-reports
+          path: GameOn-Backend/target/surefire-reports/**
+          if-no-files-found: ignore
