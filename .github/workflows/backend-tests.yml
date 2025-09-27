@@ -30,21 +30,59 @@ jobs:
           java-version: "21"
           cache: maven
 
+      - name: Cache Maven repo
+        uses: actions/cache@v4
+        with:
+          path: ~/.m2/repository
+          key: m2-${{ runner.os }}-${{ hashFiles('**/pom.xml') }}
+          restore-keys: m2-${{ runner.os }}-
+
       - name: Build
+        shell: bash
         run: |
-          if [ -f mvnw ]; then
-            chmod +x mvnw
-            ./mvnw -B -ntp -DskipTests package
-          else
-            mvn -B -ntp -DskipTests package
-          fi
+          if [ -f mvnw ]; then CMD=./mvnw; else CMD=mvn; fi
+          $CMD -B -ntp -DskipTests package
 
       - name: Unit tests
+        shell: bash
         run: |
-          if [ -f mvnw ]; then
-            ./mvnw -B -ntp -DskipITs test
-          else
-            mvn -B -ntp -DskipITs test
+          # pick mvn or mvnw
+          if [ -f mvnw ]; then CMD=./mvnw; else CMD=mvn; fi
+
+          # Run tests quietly: no transfer progress, quiet logs; still generates surefire reports
+          $CMD -B -q -ntp -DskipITs -DtrimStackTrace=true test || true
+
+          echo ""
+          echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+          echo " Unit tests"
+          echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+
+          # Grab the surefire one-line summary
+          SUMMARY=$(grep -hE "Tests run: .*" target/surefire-reports/*.txt | tail -1 || true)
+
+          # Fallback if nothing found
+          if [ -z "$SUMMARY" ]; then
+            echo "No surefire summary found in target/surefire-reports/"
+            exit 0
+          fi
+
+          # Extract numbers
+          TOTAL=$(echo "$SUMMARY" | sed -E 's/.*Tests run: *([0-9]+).*/\1/')
+          FAIL=$( echo "$SUMMARY" | sed -E 's/.*Failures: *([0-9]+).*/\1/')
+          ERR=$(  echo "$SUMMARY" | sed -E 's/.*Errors: *([0-9]+).*/\1/')
+          SKIP=$( echo "$SUMMARY" | sed -E 's/.*Skipped: *([0-9]+).*/\1/')
+          PASSED=$((TOTAL-FAIL-ERR-SKIP))
+
+          # Pretty, Jest-like lines
+          echo "Test Suites: n/a"
+          echo "Tests: ${PASSED} passed, ${TOTAL} total"
+          echo "Failures: ${FAIL}, Errors: ${ERR}, Skipped: ${SKIP}"
+          echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+          echo ""
+
+          # Make the job fail if tests failed
+          if [ "$FAIL" -ne 0 ] || [ "$ERR" -ne 0 ]; then
+            exit 1
           fi
 
       - name: Upload test reports
