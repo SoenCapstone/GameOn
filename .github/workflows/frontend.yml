@@ -1,0 +1,54 @@
+name: Frontend CI (Expo)
+
+on:
+  push:
+    paths: ["GameOn-Frontend/**", ".github/workflows/frontend.yml"]
+  pull_request:
+    paths: ["GameOn-Frontend/**", ".github/workflows/frontend.yml"]
+
+concurrency:
+  group: frontend-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: GameOn-Frontend
+    env:
+      CI: true
+      EXPO_NO_TELEMETRY: 1
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: "GameOn-Frontend/.nvmrc"
+          cache: npm
+          cache-dependency-path: GameOn-Frontend/package-lock.json
+
+      - name: Cache Expo/Metro
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.expo
+            ~/.cache/expo
+            ~/.cache/metro
+          key: expo-${{ runner.os }}-${{ hashFiles('GameOn-Frontend/package-lock.json') }}
+
+      - name: Install deps
+        run: npm ci
+
+      - name: Expo doctor
+        run: npx expo doctor --fix
+
+      - name: Type check
+        run: npm run typecheck --if-present   
+
+      - name: Lint
+        run: npm run lint --if-present       
+
+      - name: Unit tests
+        run: npm test -- --ci                
