@@ -42,7 +42,7 @@ jobs:
         run: npm ci
 
       - name: Expo doctor
-        run: npx expo doctor --fix
+        run: npx -y expo-doctor --fix
 
       - name: Type check
         run: npm run typecheck --if-present   
