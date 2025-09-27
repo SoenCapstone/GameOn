@@ -27,7 +27,7 @@ jobs:
 
       - name: Tag & push
         run: |
-          IMAGE=ghcr.io/${{ github.repository }}/gameon-frontend:${GITHUB_SHA::7}
+          IMAGE="ghcr.io/${GITHUB_REPOSITORY,,}/gameon-frontend:${GITHUB_SHA::7}"
           echo "IMAGE=$IMAGE" >> $GITHUB_ENV
           docker tag gameon-frontend:ci "$IMAGE"
           docker push "$IMAGE"
