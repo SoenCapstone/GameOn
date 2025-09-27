@@ -20,26 +20,34 @@ jobs:
         working-directory: GameOn-Backend/go-user-service
 
     steps:
-      - name: Checkout repository
+      - name: Set up job
         uses: actions/checkout@v4
 
-      - name: Set up Temurin JDK
+      - name: Set up Java
         uses: actions/setup-java@v4
         with:
           distribution: temurin
           java-version: "21"
           cache: maven
 
-      - name: Build & run unit tests
+      - name: Build
         run: |
           if [ -f mvnw ]; then
             chmod +x mvnw
-            ./mvnw -B -DskipITs verify
+            ./mvnw -B -ntp -DskipTests package
           else
-            mvn -B -DskipITs verify
+            mvn -B -ntp -DskipTests package
           fi
 
-      - name: Upload surefire reports
+      - name: Unit tests
+        run: |
+          if [ -f mvnw ]; then
+            ./mvnw -B -ntp -DskipITs test
+          else
+            mvn -B -ntp -DskipITs test
+          fi
+
+      - name: Upload test reports
         if: always()
         uses: actions/upload-artifact@v4
         with:
