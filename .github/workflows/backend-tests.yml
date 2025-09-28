@@ -1,0 +1,56 @@
+name: Backend Tests (Java)
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - "GameOn-Backend/go-user-service/**"
+      - ".github/workflows/backend-tests.yml"
+  push:
+    branches: [main]
+    paths:
+      - "GameOn-Backend/go-user-service/**"
+      - ".github/workflows/backend-tests.yml"
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: GameOn-Backend/go-user-service
+
+    steps:
+      - name: Set up job
+        uses: actions/checkout@v4
+
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "21"
+          cache: maven
+
+      - name: Build
+        run: |
+          if [ -f mvnw ]; then
+            chmod +x mvnw
+            ./mvnw -B -ntp -DskipTests package
+          else
+            mvn -B -ntp -DskipTests package
+          fi
+
+      - name: Unit tests
+        run: |
+          if [ -f mvnw ]; then
+            ./mvnw -B -ntp -DskipITs test
+          else
+            mvn -B -ntp -DskipITs test
+          fi
+
+      - name: Upload test reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: backend-surefire-reports
+          path: GameOn-Backend/go-user-service/target/surefire-reports/**
+          if-no-files-found: ignore
