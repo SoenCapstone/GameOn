@@ -6,8 +6,13 @@ import ParallaxScrollView from '@/components/parallax-scroll-view';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { Link } from 'expo-router';
+import { useAuth } from '../../contexts/auth';   
+import {  Button} from 'react-native';
 
 export default function HomeScreen() {
+
+  const { signOut } = useAuth(); 
+
   return (
     <ParallaxScrollView
       headerBackgroundColor={{ light: '#A1CEDC', dark: '#1D3D47' }}
@@ -74,6 +79,12 @@ export default function HomeScreen() {
           <ThemedText type="defaultSemiBold">app-example</ThemedText>.
         </ThemedText>
       </ThemedView>
+
+      {/* for testing sign-in*/}
+      <ThemedView style={styles.stepContainer}>
+        <Button title="Sign out" onPress={signOut} />
+      </ThemedView>
+
     </ParallaxScrollView>
   );
 }
