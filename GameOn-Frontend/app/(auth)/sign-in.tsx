@@ -97,7 +97,7 @@ export default function SignInScreen() {
                       setStatus(undefined);        
                       setFieldValue('email', t);
                     }}
-                    onBlur={handleBlur('email')}
+                    onBlur={() => handleBlur('email')}
                     keyboardType="email-address"
                     autoCapitalize="none"
                     error={touched.email && errors.email ? errors.email : undefined}
@@ -111,7 +111,7 @@ export default function SignInScreen() {
                       setStatus(undefined);        
                       setFieldValue('pwd', t);
                     }}
-                    onBlur={handleBlur('pwd')}
+                    onBlur={() => handleBlur('pwd')}
                     secureTextEntry={!showPwd}
                     rightIcon={
                       <Pressable onPress={() => setShowPwd((s) => !s)} hitSlop={8}>
