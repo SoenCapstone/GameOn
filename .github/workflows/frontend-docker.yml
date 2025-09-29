@@ -1,9 +1,8 @@
-name: Frontend Docker
-
 on:
   push:
-    branches: ["**"]
-  pull_request:
+    branches: ["main"]
+    paths: ["GameOn-Frontend/**", ".github/workflows/frontend-docker.yml"]
+  workflow_dispatch:
 
 jobs:
   build-and-push:
