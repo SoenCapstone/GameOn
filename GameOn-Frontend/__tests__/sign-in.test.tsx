@@ -1,62 +1,70 @@
-// __tests__/sign-in.test.tsx
 import React from 'react';
 import { render, fireEvent, waitFor } from '@testing-library/react-native';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import SignInScreen from '@/app/(auth)/sign-in';
 
-// --- Mocks ---
+// Silence noisy warnings
+jest.spyOn(console, 'warn').mockImplementation(() => {});
+
+// AsyncStorage official mock
 jest.mock('@react-native-async-storage/async-storage', () =>
   require('@react-native-async-storage/async-storage/jest/async-storage-mock')
 );
 
-jest.mock('expo-linear-gradient', () => {
-  const { View } = require('react-native');
-  return { LinearGradient: View };
+// Keep LinearGradient simple
+jest.mock('expo-linear-gradient', () => ({
+  LinearGradient: ({ children }: any) => children ?? null,
+}));
+
+// Icons: render a stub node
+jest.mock('@expo/vector-icons', () => {
+  const React = require('react');
+  return { Ionicons: (p: any) => React.createElement('Icon', p) };
 });
 
+// Router Link: pass-through
 jest.mock('expo-router', () => ({
-  Link: ({ children }: any) => children,
-  useRouter: () => ({ replace: jest.fn(), push: jest.fn(), back: jest.fn() }),
+  Link: ({ children }: any) => children ?? null,
 }));
 
-// Name starts with "mock" so it can be referenced inside jest.mock factory
+// Mock path MUST match your app's import alias
 const mockSignIn = jest.fn();
 jest.mock('@/contexts/auth', () => ({
-  useAuth: () => ({ signIn: mockSignIn, user: null, loading: false }),
+  useAuth: () => ({ signIn: mockSignIn }),
 }));
 
-type User = { name: string; birth: string; email: string; pwd: string };
+// Logo
+jest.mock('@/constants/images', () => ({ images: { logo: 1 } }));
+
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import SignInScreen from '@/app/(auth)/sign-in';
+
+beforeEach(async () => {
+  jest.clearAllMocks();
+  // Seed a valid user
+  await AsyncStorage.setItem(
+    'users',
+    JSON.stringify([{ name: 'Jane', birth: '01/01/1990', email: 'jane@example.com', pwd: 'secret12' }])
+  );
+});
 
 describe('SignInScreen', () => {
-  beforeEach(() => {
-    jest.clearAllMocks();
-  });
-
-  it('shows error for wrong credentials', async () => {
-    (AsyncStorage.getItem as jest.Mock).mockResolvedValue(JSON.stringify([] as User[]));
-
-    const { getByPlaceholderText, getByText, findByText } = render(<SignInScreen />);
-
-    fireEvent.changeText(getByPlaceholderText(/example@example\.com/i), 'nouser@mail.com');
-    fireEvent.changeText(getByPlaceholderText(/•+/), 'badpass'); // password input
-    fireEvent.press(getByText(/log in/i));
-
-    expect(await findByText(/invalid email or password/i)).toBeTruthy();
-    expect(mockSignIn).not.toHaveBeenCalled();
-  });
-
-  it('calls signIn for matching credentials', async () => {
-    const users: User[] = [
-      { name: 'Jane', birth: '01/01/2000', email: 'jane@mail.com', pwd: 'secret123' },
-    ];
-    (AsyncStorage.getItem as jest.Mock).mockResolvedValue(JSON.stringify(users));
-
+  it('signs in with valid credentials', async () => {
     const { getByPlaceholderText, getByText } = render(<SignInScreen />);
 
-    fireEvent.changeText(getByPlaceholderText(/example@example\.com/i), 'jane@mail.com');
-    fireEvent.changeText(getByPlaceholderText(/•+/), 'secret123');
-    fireEvent.press(getByText(/log in/i));
+    fireEvent.changeText(getByPlaceholderText('example@example.com'), 'jane@example.com');
+    fireEvent.changeText(getByPlaceholderText('**********'), 'secret12');
+    fireEvent.press(getByText('Log In'));
 
     await waitFor(() => expect(mockSignIn).toHaveBeenCalledWith('demo-token'));
+  });
+
+  it('shows an error with invalid credentials', async () => {
+    const { getByPlaceholderText, getByText, findByText } = render(<SignInScreen />);
+
+    fireEvent.changeText(getByPlaceholderText('example@example.com'), 'jane@example.com');
+    fireEvent.changeText(getByPlaceholderText('**********'), 'wrongpass');
+    fireEvent.press(getByText('Log In'));
+
+    expect(await findByText('Invalid email or password')).toBeTruthy();
+    expect(mockSignIn).not.toHaveBeenCalled();
   });
 });

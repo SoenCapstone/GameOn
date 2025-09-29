@@ -1,3 +1,4 @@
+import { authStyles } from './auth-styles';
 import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -6,7 +7,6 @@ import { Formik } from 'formik';
 import React, { useState } from 'react';
 import {
   ActivityIndicator,
-  Dimensions,
   Image,
   KeyboardAvoidingView,
   Platform,
@@ -17,23 +17,14 @@ import {
   TextInput,
   View,
 } from 'react-native';
+import { getAuthHeroLayout } from './auth-layout';
 import * as Yup from 'yup';
 
 import { images } from '@/constants/images';
 import { useAuth } from '../../contexts/auth';
 
 type User = { name: string; birth: string; email: string; pwd: string };
-
-const { width: SCREEN_W } = Dimensions.get('window');
-const LOGO_W = 2000;
-const LOGO_H = 1900;
-const SCALE = Math.min((SCREEN_W * 0.8) / LOGO_W, 1);
-const RENDER_W = LOGO_W * SCALE;
-const RENDER_H = LOGO_H * SCALE;
-
-const HERO_TOP = 1;
-const FORM_PADDING_TOP = HERO_TOP + RENDER_H * 0.55;
-const TOP_GRADIENT_H = HERO_TOP + RENDER_H + 40;
+const { HERO_TOP, TOP_GRADIENT_H, FORM_PADDING_TOP, RENDER_W, RENDER_H } = getAuthHeroLayout();
 
 const SignInSchema = Yup.object({
   email: Yup.string().email('Enter a valid email').required('Email is required'),
@@ -45,21 +36,21 @@ export default function SignInScreen() {
   const [showPwd, setShowPwd] = useState(false);
 
   return (
-    <SafeAreaView style={styles.safe}>
+    <SafeAreaView style={authStyles.safe}>
       <LinearGradient
         colors={['#1473B7', 'rgba(0,0,0,0)']}
         start={{ x: 0, y: 0 }}
         end={{ x: 0, y: 1 }}
-        style={[styles.topGradient, { height: TOP_GRADIENT_H }]}
+        style={[authStyles.topGradient, { height: TOP_GRADIENT_H }]}
         pointerEvents="none"
       />
 
-      <View style={[styles.hero, { top: HERO_TOP }]}>
+      <View style={[authStyles.hero, { top: HERO_TOP }]}>
         <Image source={images.logo} style={{ width: RENDER_W, height: RENDER_H }} resizeMode="contain" />
       </View>
 
       <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
-        <View style={[styles.container, { paddingTop: FORM_PADDING_TOP }]}>
+        <View style={[authStyles.container, { paddingTop: FORM_PADDING_TOP }]}>
           <Formik
             initialValues={{ email: '', pwd: '' }}
             validationSchema={SignInSchema}
@@ -114,7 +105,7 @@ export default function SignInScreen() {
 
                   <LabeledInput
                     label="Password"
-                    placeholder="••••••••••••"
+                    placeholder="**********"
                     value={values.pwd}
                     onChangeText={(t: string) => {
                       setStatus(undefined);        
@@ -124,7 +115,7 @@ export default function SignInScreen() {
                     secureTextEntry={!showPwd}
                     rightIcon={
                       <Pressable onPress={() => setShowPwd((s) => !s)} hitSlop={8}>
-                        <Ionicons name={showPwd ? 'eye-off-outline' : 'eye-outline'} size={20} color="#6B7280" />
+                        <Ionicons name={showPwd ? 'eye-off-outline' : 'eye-outline'} size={20} color="#000000" />
                       </Pressable>
                     }
                     error={touched.pwd && errors.pwd ? errors.pwd : undefined}
@@ -155,7 +146,7 @@ export default function SignInScreen() {
 
                 <View style={{ marginTop: 'auto' }}>
                   <Text style={styles.metaText}>
-                    Don’t have an account?{' '}
+                    Donâ€™t have an account?{' '}
                     <Link href="/(auth)/sign-up" style={styles.metaLink}>
                       Sign Up
                     </Link>
@@ -186,44 +177,18 @@ type LabeledInputProps = {
 function LabeledInput({ label, rightIcon, error, ...inputProps }: LabeledInputProps) {
   return (
     <View style={{ gap: 8 }}>
-      <Text style={styles.label}>{label}</Text>
-      <View style={[styles.inputWrap, error ? { borderWidth: 1, borderColor: '#EF4444' } : null]}>
-        <TextInput {...inputProps} style={styles.input} placeholderTextColor="#9CA3AF" />
-        {rightIcon ? <View style={styles.rightIcon}>{rightIcon}</View> : null}
+      <Text style={authStyles.label}>{label}</Text>
+      <View style={[authStyles.inputWrap, error ? { borderWidth: 1, borderColor: '#EF4444' } : null]}>
+        <TextInput {...inputProps} style={authStyles.input} placeholderTextColor="#FFFFFF" />
+        {rightIcon ? <View style={authStyles.rightIcon}>{rightIcon}</View> : null}
       </View>
-      {error ? <Text style={styles.errorText}>{error}</Text> : null}
+      {error ? <Text style={authStyles.errorText}>{error}</Text> : null}
     </View>
   );
 }
 
 
 const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: '#000' },
-  topGradient: { position: 'absolute', top: 0, left: 0, right: 0 },
-
-  hero: {
-    position: 'absolute',
-    left: 0,
-    right: 0,
-    alignItems: 'center',
-    zIndex: 1,
-    pointerEvents: 'none',
-  },
-
-  container: { flex: 1, paddingHorizontal: 24, gap: 20 },
-
-  label: { color: '#fff', fontSize: 14, fontWeight: '600' },
-
-  inputWrap: {
-    backgroundColor: '#fff',
-    borderRadius: 24,
-    paddingVertical: 12,
-    paddingHorizontal: 16,
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  input: { flex: 1, fontSize: 16, color: '#111' },
-  rightIcon: { marginLeft: 8 },
 
   forgotWrap: { alignSelf: 'flex-end', marginTop: 8 },
   forgotText: { color: '#D1D5DB', fontSize: 12 },
@@ -255,8 +220,6 @@ const styles = StyleSheet.create({
     marginTop: 8,
   },
   ctaText: { color: '#111', fontSize: 18, fontWeight: '700' },
-
-  errorText: { color: '#EF4444', fontSize: 12 },
 
   metaText: { textAlign: 'center', color: '#9CA3AF' },
   metaLink: { color: '#fff', fontWeight: '600' },
