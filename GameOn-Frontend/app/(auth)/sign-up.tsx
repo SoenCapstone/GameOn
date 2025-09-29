@@ -7,6 +7,7 @@ import { useRouter } from 'expo-router';
 import { Formik } from 'formik';
 import React, { useEffect, useState } from 'react';
 import {
+  Linking,
   ActivityIndicator,
   Alert,
   Image,
@@ -24,6 +25,18 @@ import * as Yup from 'yup';
 
 type User = { name: string; birth: string; email: string; pwd: string };
 const { HERO_TOP, TOP_GRADIENT_H, FORM_PADDING_TOP, RENDER_W, RENDER_H } = getAuthHeroLayout();
+
+const POLICY_URL =
+  'https://github.com/SoenCapstone/GameOn/wiki/User-consent-and-end%E2%80%90user-license-agreement';
+
+const openPolicy = async () => {
+  const ok = await Linking.canOpenURL(POLICY_URL);
+  if (ok) {
+    await Linking.openURL(POLICY_URL);
+  } else {
+    Alert.alert('Unable to open link', POLICY_URL);
+  }
+};
 
 
 const dobRegex =
@@ -199,8 +212,22 @@ export default function SignUpScreen() {
                 <View style={styles.disclaimerWrap}>
                   <Text style={styles.disclaimer}>
                     By continuing, you agree to{'\n'}
-                    <Text style={styles.disclaimerEmph}>Terms of Use</Text> and{' '}
-                    <Text style={styles.disclaimerEmph}>Privacy Policy</Text>.
+                    <Text
+                      style={styles.disclaimerEmph}
+                      onPress={openPolicy}
+                      accessibilityRole="link"
+                    >
+                      Terms of Use
+                    </Text>{' '}
+                    and{' '}
+                    <Text
+                      style={styles.disclaimerEmph}
+                      onPress={openPolicy}
+                      accessibilityRole="link"
+                    >
+                      Privacy Policy
+                    </Text>
+                    .
                   </Text>
                 </View>
 

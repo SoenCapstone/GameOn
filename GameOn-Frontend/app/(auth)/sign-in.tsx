@@ -146,7 +146,7 @@ export default function SignInScreen() {
 
                 <View style={{ marginTop: 'auto' }}>
                   <Text style={styles.metaText}>
-                    Donâ€™t have an account?{' '}
+                    Don't have an account?{' '}
                     <Link href="/(auth)/sign-up" style={styles.metaLink}>
                       Sign Up
                     </Link>
