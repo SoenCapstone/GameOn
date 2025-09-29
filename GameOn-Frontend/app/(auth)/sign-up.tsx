@@ -1,3 +1,4 @@
+import { authStyles } from './auth-styles';
 import { images } from '@/constants/images';
 import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -8,7 +9,6 @@ import React, { useEffect, useState } from 'react';
 import {
   ActivityIndicator,
   Alert,
-  Dimensions,
   Image,
   KeyboardAvoidingView,
   Platform,
@@ -19,20 +19,11 @@ import {
   TextInput,
   View,
 } from 'react-native';
+import { getAuthHeroLayout } from './auth-layout';
 import * as Yup from 'yup';
 
 type User = { name: string; birth: string; email: string; pwd: string };
-
-const { width: SCREEN_W } = Dimensions.get('window');
-const LOGO_W = 2000;
-const LOGO_H = 1900;
-const SCALE = Math.min((SCREEN_W * 0.8) / LOGO_W, 1);
-const RENDER_W = LOGO_W * SCALE;
-const RENDER_H = LOGO_H * SCALE;
-
-const HERO_TOP = 1;
-const FORM_PADDING_TOP = HERO_TOP + RENDER_H * 0.55;
-const TOP_GRADIENT_H = HERO_TOP + RENDER_H + 40;
+const { HERO_TOP, TOP_GRADIENT_H, FORM_PADDING_TOP, RENDER_W, RENDER_H } = getAuthHeroLayout();
 
 
 const dobRegex =
@@ -108,16 +99,16 @@ export default function SignUpScreen() {
   };
 
   return (
-    <SafeAreaView style={styles.safe}>
+    <SafeAreaView style={authStyles.safe}>
       <LinearGradient
         colors={['#1473B7', 'rgba(0,0,0,0)']}
         start={{ x: 0, y: 0 }}
         end={{ x: 0, y: 1 }}
-        style={[styles.topGradient, { height: TOP_GRADIENT_H }]}
+        style={[authStyles.topGradient, { height: TOP_GRADIENT_H }]}
         pointerEvents="none"
       />
 
-      <View style={[styles.hero, { top: HERO_TOP }]}>
+      <View style={[authStyles.hero, { top: HERO_TOP }]}>
         <Image
           source={images.logo}
           style={{ width: RENDER_W, height: RENDER_H }}
@@ -129,7 +120,7 @@ export default function SignUpScreen() {
         style={{ flex: 1 }}
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
       >
-        <View style={[styles.container, { paddingTop: FORM_PADDING_TOP }]}>
+        <View style={[authStyles.container, { paddingTop: FORM_PADDING_TOP }]}>
           <Formik<User>
             initialValues={{ name: '', birth: '', email: '', pwd: '' }}
             validationSchema={SignUpSchema}
@@ -172,7 +163,7 @@ export default function SignUpScreen() {
                         <Ionicons
                           name={showPwd ? 'eye-off-outline' : 'eye-outline'}
                           size={20}
-                          color="#6B7280"
+                          color="#000000"
                         />
                       </Pressable>
                     }
@@ -257,53 +248,25 @@ function LabeledInput({
 }: LabeledInputProps) {
   return (
     <View style={{ gap: 8 }}>
-      <Text style={styles.label}>{label}</Text>
+      <Text style={authStyles.label}>{label}</Text>
       <View style={[
-        styles.inputWrap,
+        authStyles.inputWrap,
         error ? { borderWidth: 1, borderColor: '#EF4444' } : null,
       ]}>
         <TextInput
           {...inputProps}
-          style={styles.input}
-          placeholderTextColor="#9CA3AF"
+          style={authStyles.input}
+          placeholderTextColor="#FFFFFF"
         />
-        {rightIcon ? <View style={styles.rightIcon}>{rightIcon}</View> : null}
+        {rightIcon ? <View style={authStyles.rightIcon}>{rightIcon}</View> : null}
       </View>
-      {error ? <Text style={styles.errorText}>{error}</Text> : null}
+      {error ? <Text style={authStyles.errorText}>{error}</Text> : null}
     </View>
   );
 }
 
 
 const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: '#000' },
-  topGradient: { position: 'absolute', top: 0, left: 0, right: 0 },
-
-  hero: {
-    position: 'absolute',
-    left: 0,
-    right: 0,
-    alignItems: 'center',
-    zIndex: 1,
-    pointerEvents: 'none',
-  },
-
-  container: { flex: 1, paddingHorizontal: 24, gap: 20 },
-
-  label: { color: '#fff', fontSize: 14, fontWeight: '600' },
-
-  inputWrap: {
-    backgroundColor: '#fff',
-    borderRadius: 24,
-    paddingVertical: 12,
-    paddingHorizontal: 16,
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  input: { flex: 1, fontSize: 16, color: '#111' },
-  rightIcon: { marginLeft: 8 },
-
-  errorText: { color: '#EF4444', fontSize: 12 },
 
   disclaimerWrap: { marginTop: 10, alignItems: 'center' },
   disclaimer: { color: '#FFFFFF', fontSize: 12, textAlign: 'center', lineHeight: 16 },
