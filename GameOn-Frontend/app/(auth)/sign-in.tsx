@@ -1,4 +1,3 @@
-import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { authStyles } from './auth-styles';
 import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -12,6 +11,7 @@ import {
   KeyboardAvoidingView,
   Platform,
   Pressable,
+  SafeAreaView,
   StyleSheet,
   Text,
   TextInput,
@@ -36,7 +36,7 @@ export default function SignInScreen() {
   const [showPwd, setShowPwd] = useState(false);
 
   return (
-    <SafeAreaProvider style={authStyles.safe}>
+    <SafeAreaView style={authStyles.safe}>
       <LinearGradient
         colors={['#1473B7', 'rgba(0,0,0,0)']}
         start={{ x: 0, y: 0 }}
@@ -157,7 +157,7 @@ export default function SignInScreen() {
           </Formik>
         </View>
       </KeyboardAvoidingView>
-    </SafeAreaProvider>
+    </SafeAreaView>
   );
 }
 

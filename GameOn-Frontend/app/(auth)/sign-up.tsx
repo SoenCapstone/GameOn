@@ -1,4 +1,3 @@
-import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { authStyles } from './auth-styles';
 import { images } from '@/constants/images';
 import { Ionicons } from '@expo/vector-icons';
@@ -15,6 +14,7 @@ import {
   KeyboardAvoidingView,
   Platform,
   Pressable,
+  SafeAreaView,
   StyleSheet,
   Text,
   TextInput,
@@ -112,7 +112,7 @@ export default function SignUpScreen() {
   };
 
   return (
-    <SafeAreaProvider style={authStyles.safe}>
+    <SafeAreaView style={authStyles.safe}>
       <LinearGradient
         colors={['#1473B7', 'rgba(0,0,0,0)']}
         start={{ x: 0, y: 0 }}
@@ -251,7 +251,7 @@ export default function SignUpScreen() {
           </Formik>
         </View>
       </KeyboardAvoidingView>
-    </SafeAreaProvider>
+    </SafeAreaView>
   );
 }
 
