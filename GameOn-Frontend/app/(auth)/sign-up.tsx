@@ -188,7 +188,7 @@ export default function SignUpScreen() {
                     placeholder="example@example.com"
                     value={values.email}
                     onChangeText={handleChange('email')}
-                    onBlur={handleBlur('email')}
+                    onBlur={() => handleBlur('email')}
                     keyboardType="email-address"
                     autoCapitalize="none"
                     error={touched.email && errors.email ? errors.email : undefined}
@@ -202,7 +202,7 @@ export default function SignUpScreen() {
                       const cleaned = text.replace(/\s+/g, '');
                       setFieldValue('birth', cleaned);
                     }}
-                    onBlur={handleBlur('birth')}
+                    onBlur={() => handleBlur('birth')}
                     keyboardType="number-pad"
                     autoCapitalize="none"
                     error={touched.birth && errors.birth ? errors.birth : undefined}
