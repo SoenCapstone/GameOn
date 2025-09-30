@@ -1,0 +1,35 @@
+on:
+  push:
+    branches: ["main"]
+    paths: ["GameOn-Frontend/**", ".github/workflows/frontend-docker.yml"]
+  pull_request:
+    branches: [main]
+    paths: ["GameOn-Frontend/**", ".github/workflows/frontend-docker.yml"]
+  workflow_dispatch:
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: docker/setup-buildx-action@e468171a9de216ec08956ac3ada2f0791b6bd435
+
+      - name: Build RN image
+        run: docker build -t gameon-frontend:ci ./GameOn-Frontend
+
+      - name: Log in to GHCR
+        uses: docker/login-action@5e57cd118135c172c3672efd75eb46360885c0ef
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Tag & push
+        run: |
+          IMAGE="ghcr.io/${GITHUB_REPOSITORY,,}/gameon-frontend:${GITHUB_SHA::7}"
+          echo "IMAGE=$IMAGE" >> $GITHUB_ENV
+          docker tag gameon-frontend:ci "$IMAGE"
+          docker push "$IMAGE"
