@@ -15,5 +15,7 @@ COPY eslint.config.js .
 COPY expo-env.d.ts .
 COPY tsconfig.json .
 COPY README.md .
+RUN groupadd -r nonroot && useradd -m -r -g nonroot nonroot && chown -R nonroot:nonroot /app
+USER nonroot
 EXPOSE 8081 19000 19001 19002
 CMD ["npm","start"]
