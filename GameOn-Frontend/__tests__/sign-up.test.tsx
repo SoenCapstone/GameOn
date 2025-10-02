@@ -56,7 +56,7 @@ afterEach(() => {
 
 describe('SignUpScreen', () => {
   it('creates an account, saves it, and navigates to sign-in', async () => {
-    const { getByPlaceholderText, getByText, findByText } = render(<SignUpScreen />);
+    const { getByPlaceholderText, findByText } = render(<SignUpScreen />);
 
     const cta = await findByText('Sign Up');
 
@@ -89,7 +89,7 @@ describe('SignUpScreen', () => {
   });
 
   it('shows validation errors for bad inputs and does not navigate', async () => {
-    const { getByPlaceholderText, getByText, findByText } = render(<SignUpScreen />);
+    const { getByPlaceholderText, findByText } = render(<SignUpScreen />);
 
     const cta = await findByText('Sign Up');
 

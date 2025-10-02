@@ -1,3 +1,4 @@
+import { createScopedLog } from '@/utils/logger'; 
 import { authStyles } from '@/constants/auth-styles';
 import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -31,9 +32,12 @@ const SignInSchema = Yup.object({
   pwd: Yup.string().min(6, 'Min 6 characters').required('Password is required'),
 });
 
+const log = createScopedLog('SignIn');
+
 export default function SignInScreen() {
   const { signIn } = useAuth();
   const [showPwd, setShowPwd] = useState(false);
+  
 
   return (
     <SafeAreaView style={authStyles.safe}>
@@ -55,7 +59,10 @@ export default function SignInScreen() {
             initialValues={{ email: '', pwd: '' }}
             validationSchema={SignInSchema}
             onSubmit={async (vals, { setSubmitting, setStatus }) => {
+              const started = Date.now();
               try {
+                log.debug('Sign-in attempt', { email: vals.email });
+
                 const raw = await AsyncStorage.getItem('users');
                 const list: User[] = raw ? JSON.parse(raw) : [];
                 const match = list.find(
@@ -63,12 +70,19 @@ export default function SignInScreen() {
                     u.email.trim().toLowerCase() === vals.email.trim().toLowerCase() &&
                     u.pwd === vals.pwd
                 );
+
                 if (match) {
+                  log.info('Sign-in success', {
+                    email: vals.email,
+                    ms: Date.now() - started,
+                  });
                   await signIn('demo-token');
                 } else {
+                  log.warn('Invalid credentials', { email: vals.email });
                   setStatus('Invalid email or password');
                 }
-              } catch {
+              } catch (e) {
+                log.error('Sign-in failed with exception', { error: String(e) });
                 setStatus('Sign in failed. Please try again.');
               } finally {
                 setSubmitting(false);
@@ -121,7 +135,7 @@ export default function SignInScreen() {
                     error={touched.pwd && errors.pwd ? errors.pwd : undefined}
                   />
 
-                  <Pressable onPress={() => { /* TODO: forgot password flow */ }} style={styles.forgotWrap}>
+                  <Pressable onPress={() => { /* forgot password flow */ }} style={styles.forgotWrap}>
                     <Text style={styles.forgotText}>Forgot Password</Text>
                   </Pressable>
                 </View>
@@ -174,7 +188,7 @@ type LabeledInputProps = {
   rightIcon?: React.ReactNode;
   error?: string;
 };
-function LabeledInput({ label, rightIcon, error, ...inputProps }: LabeledInputProps) {
+function LabeledInput({ label, rightIcon, error, ...inputProps }: Readonly<LabeledInputProps>) {
   return (
     <View style={{ gap: 8 }}>
       <Text style={authStyles.label}>{label}</Text>
