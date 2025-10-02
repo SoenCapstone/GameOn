@@ -337,7 +337,7 @@ function LabeledInput({
   rightIcon,
   error,
   ...inputProps
-}: LabeledInputProps) {
+}: Readonly<LabeledInputProps>) {
   return (
     <View style={{ gap: 8 }}>
       <Text style={authStyles.label}>{label}</Text>
