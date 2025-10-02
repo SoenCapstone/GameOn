@@ -1,4 +1,4 @@
-import { authStyles } from './auth-styles';
+import { authStyles } from '@/constants/auth-styles';
 import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -11,13 +11,13 @@ import {
   KeyboardAvoidingView,
   Platform,
   Pressable,
-  SafeAreaView,
   StyleSheet,
   Text,
   TextInput,
   View,
 } from 'react-native';
-import { getAuthHeroLayout } from './auth-layout';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { getAuthHeroLayout } from '@/constants/auth-layout';
 import * as Yup from 'yup';
 
 import { images } from '@/constants/images';

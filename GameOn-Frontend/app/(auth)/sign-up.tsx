@@ -1,4 +1,6 @@
-import { authStyles } from './auth-styles';
+import { createScopedLog } from '@/utils/logger'; 
+import DateTimePicker from '@react-native-community/datetimepicker';
+import { authStyles } from '@/constants/auth-styles';
 import { images } from '@/constants/images';
 import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -10,17 +12,19 @@ import {
   Linking,
   ActivityIndicator,
   Alert,
+  ToastAndroid,
   Image,
   KeyboardAvoidingView,
   Platform,
   Pressable,
-  SafeAreaView,
   StyleSheet,
   Text,
   TextInput,
   View,
+  Modal,
 } from 'react-native';
-import { getAuthHeroLayout } from './auth-layout';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { getAuthHeroLayout } from '@/constants/auth-layout';
 import * as Yup from 'yup';
 
 type User = { name: string; birth: string; email: string; pwd: string };
@@ -38,31 +42,7 @@ const openPolicy = async () => {
   }
 };
 
-
-const dobRegex =
-  /^(0[1-9]|[12][0-9]|3[01])\/(0[1-9]|1[0-2])\/(19|20)\d\d$/; // DD/MM/YYYY
-
-const isValidCalendarDate = (value?: string) => {
-  if (!value || !dobRegex.test(value)) return false;
-  const [dd, mm, yyyy] = value.split('/').map(Number);
-  const d = new Date(yyyy, mm - 1, dd);
-  // Check that JS date didn't overflow (e.g., 31/02/2024)
-  const matches =
-    d.getFullYear() === yyyy && d.getMonth() === mm - 1 && d.getDate() === dd;
-  if (!matches) return false;
-  // Must be in the past (not today or future)
-  const today = new Date();
-  const endOfToday = new Date(
-    today.getFullYear(),
-    today.getMonth(),
-    today.getDate(),
-    23,
-    59,
-    59,
-  );
-  return d < endOfToday;
-};
-
+const log = createScopedLog('SignUp');
 
 const SignUpSchema = Yup.object({
   name: Yup.string()
@@ -72,15 +52,21 @@ const SignUpSchema = Yup.object({
   email: Yup.string().email('Enter a valid email').required('Email is required'),
   pwd: Yup.string().min(6, 'Min 6 characters').required('Password is required'),
   birth: Yup.string()
-    .required('Date of birth is required')
-    .test('dob-format', 'Use DD/MM/YYYY', v => (v ? dobRegex.test(v) : false))
-    .test('dob-valid', 'Enter a valid past date', v => isValidCalendarDate(v)),
+  .required('Date of birth is required')
+  .test('dob-valid', 'Enter a valid past date', v => {
+    if (!v) return false;
+    const d = new Date(v);
+    if (Number.isNaN(d.getTime())) return false;
+    const today = new Date();
+    return d < today; // must be in the past
+  }),
 });
 
 export default function SignUpScreen() {
   const router = useRouter();
   const [showPwd, setShowPwd] = useState(false);
   const [loadingSeed, setLoadingSeed] = useState(false);
+  const [showDob, setShowDob] = useState(false);
 
   useEffect(() => {
     (async () => {
@@ -99,17 +85,33 @@ export default function SignUpScreen() {
   }, []);
 
   const handleSaveAndGo = async (values: User) => {
-    try {
-      const raw = await AsyncStorage.getItem('users');
-      const list: User[] = raw ? JSON.parse(raw) : [];
-      list.push(values);
-      await AsyncStorage.setItem('users', JSON.stringify(list));
+  try {
+    const raw = await AsyncStorage.getItem('users');
+    const list: User[] = raw ? JSON.parse(raw) : [];
+    list.push(values);
+    await AsyncStorage.setItem('users', JSON.stringify(list));
+
+    log.info('Account successfully created', { email: values.email });
+
+    if (Platform.OS === 'android') {
+      ToastAndroid.show('Account successfully created', ToastAndroid.SHORT);
       router.replace('/(auth)/sign-in');
-    } catch (e) {
-      Alert.alert('Error', 'Could not save your account locally.');
-      console.warn('Save error:', e);
+    } else {
+      Alert.alert(
+        'Success',
+        'Account successfully created',
+        [{ text: 'OK', onPress: () => router.replace('/(auth)/sign-in') }],
+        { cancelable: false }
+      );
     }
-  };
+  } catch (e) {
+    log.error('Save error', e);
+    Alert.alert('Error', 'Could not save your account locally.');
+    console.warn('Save error:', e);
+  }
+};
+
+
 
   return (
     <SafeAreaView style={authStyles.safe}>
@@ -135,7 +137,7 @@ export default function SignUpScreen() {
       >
         <View style={[authStyles.container, { paddingTop: FORM_PADDING_TOP }]}>
           <Formik<User>
-            initialValues={{ name: '', birth: '', email: '', pwd: '' }}
+            initialValues={{ name: '', birth: new Date().toISOString(), email: '', pwd: '' }}
             validationSchema={SignUpSchema}
             onSubmit={async (vals, { setSubmitting }) => {
               await handleSaveAndGo(vals);
@@ -159,7 +161,7 @@ export default function SignUpScreen() {
                     placeholder="john doe"
                     value={values.name}
                     onChangeText={handleChange('name')}
-                    onBlur={handleBlur('name')}
+                    onBlur={() => handleBlur('name')}
                     autoCapitalize="words"
                     error={touched.name && errors.name ? errors.name : undefined}
                   />
@@ -169,7 +171,7 @@ export default function SignUpScreen() {
                     placeholder="••••••••••••"
                     value={values.pwd}
                     onChangeText={handleChange('pwd')}
-                    onBlur={handleBlur('pwd')}
+                    onBlur={() => handleBlur('pwd')}
                     secureTextEntry={!showPwd}
                     rightIcon={
                       <Pressable onPress={() => setShowPwd(s => !s)} hitSlop={8}>
@@ -194,19 +196,82 @@ export default function SignUpScreen() {
                     error={touched.email && errors.email ? errors.email : undefined}
                   />
 
-                  <LabeledInput
-                    label="Date Of Birth"
-                    placeholder="DD/MM/YYYY"
-                    value={values.birth}
-                    onChangeText={text => {
-                      const cleaned = text.replace(/\s+/g, '');
-                      setFieldValue('birth', cleaned);
-                    }}
-                    onBlur={() => handleBlur('birth')}
-                    keyboardType="number-pad"
-                    autoCapitalize="none"
-                    error={touched.birth && errors.birth ? errors.birth : undefined}
-                  />
+                <View style={{ gap: 8 }}>
+                  <Text style={authStyles.label}>Date Of Birth</Text>
+
+                  {/* Tap field that looks like your inputs */}
+                  <Pressable onPress={() => setShowDob(true)} style={authStyles.inputWrap}>
+                    <Text style={{ color: '#fff', opacity: 0.85 }}>
+                      {(() => {
+                        const d = new Date(values.birth);
+                        return Number.isNaN(d.getTime())
+                          ? 'Select your date of birth'
+                          : d.toLocaleDateString();
+                      })()}
+                    </Text>
+                  </Pressable>
+
+                  {/* iOS: full-screen/modal wheel so it doesn't push UI down */}
+                  {Platform.OS === 'ios' && (
+                    <Modal visible={showDob} animationType="slide" transparent>
+                      {/* Dim background; tap to dismiss */}
+                      <Pressable style={styles.modalBackdrop} onPress={() => setShowDob(false)} />
+
+                      {/* Bottom sheet with toolbar + wheel */}
+                      <View style={styles.modalSheet}>
+                        <View style={styles.modalToolbar}>
+                          <Pressable onPress={() => setShowDob(false)}>
+                            <Text style={styles.modalAction}>Cancel</Text>
+                          </Pressable>
+                          <Text style={styles.modalTitle}>Select Date</Text>
+                          <Pressable onPress={() => setShowDob(false)}>
+                            <Text style={styles.modalAction}>Done</Text>
+                          </Pressable>
+                        </View>
+
+                        <DateTimePicker
+                          mode="date"
+                          display="spinner" // iOS wheel
+                          value={
+                            values.birth && !Number.isNaN(new Date(values.birth).getTime())
+                              ? new Date(values.birth)
+                              : new Date()
+                          }
+                          maximumDate={new Date()}
+                          onChange={(_, date) => {
+                            if (date) setFieldValue('birth', date.toISOString());
+                          }}
+                          style={{ width: '100%' }}
+                        />
+                      </View>
+                    </Modal>
+                  )}
+
+                  {/* Android: native dialog (doesn't push content) */}
+                  {Platform.OS === 'android' && showDob && (
+                    <DateTimePicker
+                      mode="date"
+                      display="calendar"
+                      value={
+                        values.birth && !Number.isNaN(new Date(values.birth).getTime())
+                          ? new Date(values.birth)
+                          : new Date()
+                      }
+                      maximumDate={new Date()}
+                      onChange={(_, date) => {
+                        setShowDob(false); // close dialog
+                        if (date) setFieldValue('birth', date.toISOString());
+                      }}
+                    />
+                  )}
+
+                  {touched.birth && errors.birth ? (
+                    <Text style={authStyles.errorText}>{errors.birth}</Text>
+                  ) : null}
+                </View>
+
+
+
                 </View>
 
                 <View style={styles.disclaimerWrap}>
@@ -309,4 +374,37 @@ const styles = StyleSheet.create({
     marginTop: 12,
   },
   ctaText: { color: '#111', fontSize: 18, fontWeight: '700' },
+
+  modalBackdrop: {
+  flex: 1,
+  backgroundColor: 'rgba(0,0,0,0.5)',
+},
+modalSheet: {
+  position: 'absolute',
+  left: 0,
+  right: 0,
+  bottom: 0,
+  backgroundColor: '#111',
+  borderTopLeftRadius: 16,
+  borderTopRightRadius: 16,
+  paddingBottom: 24,
+  paddingTop: 8,
+},
+modalToolbar: {
+  flexDirection: 'row',
+  alignItems: 'center',
+  justifyContent: 'space-between',
+  paddingHorizontal: 16,
+  paddingVertical: 8,
+},
+modalTitle: {
+  color: '#fff',
+  fontSize: 16,
+  fontWeight: '700',
+},
+modalAction: {
+  color: '#4DA3FF',
+  fontSize: 16,
+  fontWeight: '600',
+},
 });
