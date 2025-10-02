@@ -8,11 +8,11 @@ export function IconSymbol({
   style,
   weight = 'regular',
 }: {
-  name: SymbolViewProps['name'];
-  size?: number;
-  color: string;
-  style?: StyleProp<ViewStyle>;
-  weight?: SymbolWeight;
+  readonly name: SymbolViewProps['name'];
+  readonly size?: number;
+  readonly color: string;
+  readonly style?: StyleProp<ViewStyle>;
+  readonly weight?: SymbolWeight;
 }) {
   return (
     <SymbolView
