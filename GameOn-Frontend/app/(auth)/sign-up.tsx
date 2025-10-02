@@ -58,7 +58,7 @@ const SignUpSchema = Yup.object({
     const d = new Date(v);
     if (Number.isNaN(d.getTime())) return false;
     const today = new Date();
-    return d < today; // must be in the past
+    return d < today; 
   }),
 });
 
@@ -199,7 +199,7 @@ export default function SignUpScreen() {
                 <View style={{ gap: 8 }}>
                   <Text style={authStyles.label}>Date Of Birth</Text>
 
-                  {/* Tap field that looks like your inputs */}
+                  
                   <Pressable onPress={() => setShowDob(true)} style={authStyles.inputWrap}>
                     <Text style={{ color: '#fff', opacity: 0.85 }}>
                       {(() => {
@@ -211,13 +211,13 @@ export default function SignUpScreen() {
                     </Text>
                   </Pressable>
 
-                  {/* iOS: full-screen/modal wheel so it doesn't push UI down */}
+                  
                   {Platform.OS === 'ios' && (
                     <Modal visible={showDob} animationType="slide" transparent>
-                      {/* Dim background; tap to dismiss */}
+                      
                       <Pressable style={styles.modalBackdrop} onPress={() => setShowDob(false)} />
 
-                      {/* Bottom sheet with toolbar + wheel */}
+                      
                       <View style={styles.modalSheet}>
                         <View style={styles.modalToolbar}>
                           <Pressable onPress={() => setShowDob(false)}>
@@ -231,7 +231,7 @@ export default function SignUpScreen() {
 
                         <DateTimePicker
                           mode="date"
-                          display="spinner" // iOS wheel
+                          display="spinner" 
                           value={
                             values.birth && !Number.isNaN(new Date(values.birth).getTime())
                               ? new Date(values.birth)
@@ -247,7 +247,7 @@ export default function SignUpScreen() {
                     </Modal>
                   )}
 
-                  {/* Android: native dialog (doesn't push content) */}
+                  
                   {Platform.OS === 'android' && showDob && (
                     <DateTimePicker
                       mode="date"
@@ -259,7 +259,7 @@ export default function SignUpScreen() {
                       }
                       maximumDate={new Date()}
                       onChange={(_, date) => {
-                        setShowDob(false); // close dialog
+                        setShowDob(false); 
                         if (date) setFieldValue('birth', date.toISOString());
                       }}
                     />
