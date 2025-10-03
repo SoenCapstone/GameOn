@@ -19,7 +19,7 @@ export function useAuth() {
   return ctx;
 }
 
-export function AuthProvider({ children }: { children: React.ReactNode }) {
+export function AuthProvider({ children }: Readonly<{ children: React.ReactNode }>) {
   const [user, setUser] = useState<User>(null);
   const [loading, setLoading] = useState(true);
 
@@ -47,7 +47,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }
 
-export function AuthGate({ children }: { children: React.ReactNode }) {
+export function AuthGate({ children }: Readonly<{ children: React.ReactNode }>) {
   const { user, loading } = useAuth();
   const segments = useSegments();
   const router = useRouter();
