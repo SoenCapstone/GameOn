@@ -7,11 +7,13 @@ import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { Link } from 'expo-router';
 import { useAuth } from '../../contexts/auth';   
+import { useRouter } from "expo-router";
 
 
 export default function HomeScreen() {
 
   const { signOut } = useAuth(); 
+  const router = useRouter();
 
   return (
     <ParallaxScrollView
@@ -80,10 +82,12 @@ export default function HomeScreen() {
         </ThemedText>
       </ThemedView>
 
-      {/* for testing sign-in*/}
+      {/* Navigation + Sign out buttons */}
       <ThemedView style={styles.stepContainer}>
+        <Button title="Go to Feature Flags" onPress={() => router.push("/flags")} />
         <Button title="Sign out" onPress={signOut} />
       </ThemedView>
+
 
     </ParallaxScrollView>
   );

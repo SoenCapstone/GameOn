@@ -2,6 +2,7 @@ import React, { createContext, useContext, useEffect, useMemo, useState } from '
 import { ActivityIndicator, View } from 'react-native';
 import { useRouter, useSegments } from 'expo-router';
 import * as SecureStore from 'expo-secure-store';
+import { Platform } from "react-native";
 
 type User = { id: string } | null;
 type AuthContextType = {
@@ -25,9 +26,23 @@ export function AuthProvider({ children }: Readonly<{ children: React.ReactNode 
 
   useEffect(() => {
     (async () => {
-      const token = await SecureStore.getItemAsync('token');
-      setUser(token ? { id: 'user-1' } : null);
-      setLoading(false);
+      try {
+        let token: string | null = null;
+
+        if (Platform.OS !== "web") {
+          // ✅ Only use SecureStore on mobile (iOS/Android)
+          token = await SecureStore.getItemAsync("token");
+        } else {
+          // ✅ Skip SecureStore on web to avoid crash
+          token = null;
+        }
+
+        setUser(token ? { id: "user-1" } : null);
+      } catch (error) {
+        console.warn("Error reading token:", error);
+      } finally {
+        setLoading(false);
+      }
     })();
   }, []);
 
