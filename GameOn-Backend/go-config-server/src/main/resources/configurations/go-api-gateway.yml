@@ -1,0 +1,32 @@
+server:
+  port: 8222
+
+spring:
+  application:
+    name: go-api-gateway
+  cloud:
+    gateway:
+      discovery:
+        locator:
+          enabled: false
+      # Must create a route for each microservice.
+      # The API Gateway will use Eureka + Spring Cloud LoadBalancer to resolve the service ID (lb://SERVICE-ID) to
+      # the correct instance(s) & then forward the request.
+      routes:
+        - id: go-user-service
+          uri: lb://GO-USER-SERVICE
+          predicates:
+            - Path=/api/v1/user/**
+
+eureka:
+  client:
+    register-with-eureka: false
+    fetch-registry: true
+    service-url:
+      defaultZone: http://localhost:8761/eureka/
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: gateway,health,info
