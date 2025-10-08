@@ -39,6 +39,13 @@ public class UserService {
         return userMapper.toUserResponse(user);
     }
 
+    public UserResponse fetchUserById(Long userId) {
+        var user = userRepository.findById(userId)
+                .orElseThrow(() -> new UserNotFoundException(
+                        format("User with id %s does not exist", userId)));
+        return userMapper.toUserResponse(user);
+    }
+
     @Transactional
     public UserResponse createUser(UserRequestCreate userRequestCreate){
         userRepository.findByEmail(userRequestCreate.email())

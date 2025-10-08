@@ -93,6 +93,21 @@ public class UserServiceTest {
     }
 
     @Test
+    void fetchUserByIdTest(){
+        var user1 = user( "Person","One","test1@email.com",   "password1");
+
+        when(userRepository.findById(1L)).thenReturn(Optional.of(user1));
+        when(userMapper.toUserResponse(user1)).thenReturn(response("Person", "One", "test1@email.com"));
+
+        var fetchUserByIdResponse = userService.fetchUserById(1L);
+
+        assertThat(fetchUserByIdResponse.email()).isEqualTo("test1@email.com");
+
+        verify(userRepository).findById(1L);
+        verify(userMapper).toUserResponse(user1);
+    }
+
+    @Test
     void fetchUserByEmailTestUserNotFoundException(){
         when(userRepository.findByEmail("userNotFound@email.com")).thenReturn(Optional.empty());
 
