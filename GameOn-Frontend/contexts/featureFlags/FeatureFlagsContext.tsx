@@ -1,3 +1,9 @@
+/**
+ * Current version: Local-only feature flag persistence using AsyncStorage or localStorage.
+ * Next phase: Integrate with backend or remote config service to allow
+ * global propagation of flag states across all devices.
+ */
+
 import React, { createContext, useContext, useEffect, useState } from "react";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Platform } from "react-native";
@@ -12,6 +18,22 @@ type FeatureFlagsContextType = {
   toggleFlag: (key: keyof Flags) => void;
 };
 
+// 🧠 Future enhancement: sync feature flags with backend for global propagation
+const syncWithServer = async (updatedFlags: Record<string, boolean>) => {
+  try {
+    // Example placeholder for future API sync
+    // await fetch(`${API_URL}/feature-flags`, {
+    //   method: "POST",
+    //   headers: { "Content-Type": "application/json" },
+    //   body: JSON.stringify(updatedFlags),
+    // });
+
+    console.log("Feature flags would sync globally here:", updatedFlags);
+  } catch (error) {
+    console.error("Failed to sync flags globally:", error);
+  }
+};
+
 const FeatureFlagsContext = createContext<FeatureFlagsContextType | null>(null);
 
 export const FeatureFlagsProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
@@ -24,9 +46,10 @@ export const FeatureFlagsProvider: React.FC<{ children: React.ReactNode }> = ({ 
   useEffect(() => {
     (async () => {
       try {
-        const json = Platform.OS === "web"
-          ? localStorage.getItem("featureFlags")
-          : await AsyncStorage.getItem("featureFlags");
+        const json =
+          Platform.OS === "web"
+            ? localStorage.getItem("featureFlags")
+            : await AsyncStorage.getItem("featureFlags");
 
         if (json) setFlags(JSON.parse(json));
       } catch (error) {
@@ -45,6 +68,9 @@ export const FeatureFlagsProvider: React.FC<{ children: React.ReactNode }> = ({ 
         } else {
           await AsyncStorage.setItem("featureFlags", json);
         }
+
+        // 🔗 Sync with backend (placeholder)
+        await syncWithServer(flags);
       } catch (error) {
         console.warn("Error saving feature flags:", error);
       }
