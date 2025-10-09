@@ -7,7 +7,9 @@ COPY ../src ./src
 RUN mvn -q package
 #Run stage
 FROM eclipse-temurin:17-jre
+RUN addgroup --system app && adduser --system --ingroup app app
 WORKDIR /app
-COPY --from=build /app/target/*.jar app.jar
+COPY --from=build --chown=app:app /app/target/*.jar /app/app.jar
+USER app
 EXPOSE 7070
 ENTRYPOINT ["java","-jar","/app/app.jar"]
