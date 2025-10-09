@@ -8,7 +8,7 @@ services:
       POSTGRES_PASSWORD: password
       POSTGRES_DB: gameon_db
     ports:
-        - "5432:5432"
+      - "5432:5432"
     volumes:
       - db_data:/var/lib/postgresql/data
 
@@ -32,7 +32,7 @@ services:
   go-api-gateway:
     build: ./GameOn-Backend/go-api-gateway
     ports:
-      - "8222:8222"         # host:container (app listens on 8080 in-container)
+      - "8222:8222"
     environment:
       SPRING_CONFIG_IMPORT: optional:configserver:http://go-config-server:8889
       SPRING_CLOUD_CONFIG_OVERRIDE_SYSTEM_PROPERTIES: "true"
@@ -47,18 +47,18 @@ services:
   go-user-service:
     build: ./GameOn-Backend/go-user-service
     ports:
-      - "8090:8080"     # your current mapping
+      - "8090:8080"
     environment:
       SPRING_CONFIG_IMPORT: optional:configserver:http://go-config-server:8889
       SERVER_PORT: 8080
 
-      # ⬇️ add these four lines here
+
       SPRING_CLOUD_CONFIG_OVERRIDE_SYSTEM_PROPERTIES: "true"
       EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://go-discovery-service:8761/eureka/
       EUREKA_CLIENT_SERVICE_URL_DEFAULT_ZONE: http://go-discovery-service:8761/eureka/
       JAVA_TOOL_OPTIONS: "-Deureka.client.serviceUrl.defaultZone=http://go-discovery-service:8761/eureka/ -Dspring.cloud.config.override-system-properties=true"
 
-      # (keep your DB lines)
+
       SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/gameon_db
       SPRING_DATASOURCE_USERNAME: username
       SPRING_DATASOURCE_PASSWORD: password
