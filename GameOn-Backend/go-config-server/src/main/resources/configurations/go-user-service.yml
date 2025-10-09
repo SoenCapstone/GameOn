@@ -1,8 +1,8 @@
 spring:
   datasource:
     url: jdbc:postgresql://localhost:5432/user
-    username: ${DB_USERNAME}
-    password: ${DB_PASSWORD}
+    username: postgres
+    password: password
     driver-class-name: org.postgresql.Driver
   jpa:
     database: postgresql
@@ -13,3 +13,7 @@ spring:
 server:
   port: 8090
 
+eureka:
+  client:
+    service-url:
+      defaultZone: http://go-discovery-service:8761/eureka/
