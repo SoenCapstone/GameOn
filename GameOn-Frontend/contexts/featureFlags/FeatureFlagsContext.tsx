@@ -4,7 +4,7 @@
  * global propagation of flag states across all devices.
  */
 
-import React, { createContext, useContext, useEffect, useState } from "react";
+import React, { createContext, useContext, useEffect, useMemo, useState } from "react";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Platform } from "react-native";
 
@@ -27,7 +27,6 @@ const syncWithServer = async (updatedFlags: Record<string, boolean>) => {
     //   headers: { "Content-Type": "application/json" },
     //   body: JSON.stringify(updatedFlags),
     // });
-
     console.log("Feature flags would sync globally here:", updatedFlags);
   } catch (error) {
     console.error("Failed to sync flags globally:", error);
@@ -42,7 +41,7 @@ export const FeatureFlagsProvider: React.FC<{ children: React.ReactNode }> = ({ 
     betaMode: false,
   });
 
-  // ✅ Load flags from storage when the app starts
+  // ✅ Load flags on startup
   useEffect(() => {
     (async () => {
       try {
@@ -58,32 +57,29 @@ export const FeatureFlagsProvider: React.FC<{ children: React.ReactNode }> = ({ 
     })();
   }, []);
 
-  // ✅ Save flags whenever they change
+  // ✅ Save flags on change
   useEffect(() => {
     (async () => {
       try {
         const json = JSON.stringify(flags);
-        if (Platform.OS === "web") {
-          localStorage.setItem("featureFlags", json);
-        } else {
-          await AsyncStorage.setItem("featureFlags", json);
-        }
-
-        // 🔗 Sync with backend (placeholder)
-        await syncWithServer(flags);
+        if (Platform.OS === "web") localStorage.setItem("featureFlags", json);
+        else await AsyncStorage.setItem("featureFlags", json);
+        await syncWithServer(flags); // Placeholder global sync
       } catch (error) {
         console.warn("Error saving feature flags:", error);
       }
     })();
   }, [flags]);
 
-  // ✅ Toggle function
   const toggleFlag = (key: keyof Flags) => {
     setFlags((prev) => ({ ...prev, [key]: !prev[key] }));
   };
 
+  // ✅ useMemo prevents Sonar warning: “object changes every render”
+  const value = useMemo(() => ({ flags, toggleFlag }), [flags]);
+
   return (
-    <FeatureFlagsContext.Provider value={{ flags, toggleFlag }}>
+    <FeatureFlagsContext.Provider value={value}>
       {children}
     </FeatureFlagsContext.Provider>
   );
