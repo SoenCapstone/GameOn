@@ -9,7 +9,7 @@ RUN mvn -q package
 FROM eclipse-temurin:17-jre
 RUN addgroup --system app && adduser --system --ingroup app app
 WORKDIR /app
-COPY --from=build --chown=app:app /app/target/*.jar /app/app.jar
+COPY --from=build --chown=root:root --chmod=0444 /app/target/*.jar /app/app.jar
 USER app
 EXPOSE 7070
 ENTRYPOINT ["java","-jar","/app/app.jar"]
