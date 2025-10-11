@@ -1,43 +1,36 @@
-import { Tabs } from 'expo-router';
+import { NativeTabs, Label, Icon } from 'expo-router/unstable-native-tabs';
 import React from 'react';
+import { SearchProvider } from '@/contexts/SearchContext';
 
-import { HapticTab } from '@/components/haptic-tab';
-import { IconSymbol } from '@/components/ui/icon-symbol';
-import { Colors } from '@/constants/theme';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 
-const HomeIcon = ({ color }: { color: string }) => (
-  <IconSymbol size={28} name="house.fill" color={color} />
-);
-
-const ExploreIcon = ({ color }: { color: string }) => (
-  <IconSymbol size={28} name="paperplane.fill" color={color} />
-);
-
 export default function TabLayout() {
-  const colorScheme = useColorScheme();
+  useColorScheme();
 
   return (
-    <Tabs
-      screenOptions={{
-        tabBarActiveTintColor: Colors[colorScheme ?? 'light'].tint,
-        headerShown: false,
-        tabBarButton: HapticTab,
-      }}>
-      <Tabs.Screen
-        name="index"
-        options={{
-          title: 'Home',
-          tabBarIcon: HomeIcon,
-        }}
-      />
-      <Tabs.Screen
-        name="explore"
-        options={{
-          title: 'Explore',
-          tabBarIcon: ExploreIcon,
-        }}
-      />
-    </Tabs>
+    <SearchProvider>
+      <NativeTabs>
+      <NativeTabs.Trigger
+        name="index">
+          <Label>Home</Label>
+          <Icon sf="house.fill"/>
+      </NativeTabs.Trigger>
+      <NativeTabs.Trigger
+        name="search">
+          <Label>Explore</Label>
+          <Icon sf="paperplane.fill"/>
+      </NativeTabs.Trigger>
+      <NativeTabs.Trigger
+        name="explore">
+          <Label>Explore-old</Label>
+          <Icon sf="paperplane.fill"/>
+      </NativeTabs.Trigger>
+      <NativeTabs.Trigger
+        name="home">
+          <Label>Main</Label>
+          <Icon sf="house.fill"/>
+      </NativeTabs.Trigger>
+    </NativeTabs>
+    </SearchProvider>
   );
 }
