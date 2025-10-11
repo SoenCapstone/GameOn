@@ -2,48 +2,54 @@ import React from 'react';
 import { Image } from 'expo-image';
 import { FlatList, StyleSheet, View, ScrollView, Pressable } from 'react-native';
 import { ThemedText } from '@/components/themed-text';
-import { ThemedView } from '@/components/themed-view';
 import { LinearGradient } from 'expo-linear-gradient';
 import { images } from '@/constants/images';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { createScopedLog } from '@/utils/logger'; 
+//import NavBar from '@/components/bottom Navbar'
 
 // Sample league data (replace with fetched data later)
 const leagues = [
   { id: '1', name: 'Champions League', role: 'Player' },
-  //{ id: '2', name: 'Premier League', role: 'Player' },
+  { id: '2', name: 'Premier League', role: 'Player' },
   { id: '3', name: 'La Liga', role: 'Admin' },
 ];
 
-export default function UserProfile() {
-  const user = {
+const user = {
     name: 'John Doe',
     email: 'johndoe@email.com',
     image: images.defaultProfile,
     };
 
+const log = createScopedLog('Profile')
+
+export default function UserProfile() {
+
   return (
     <SafeAreaView style={{ flex: 1 }}>
       <LinearGradient 
-        colors ={['#000000', '#4B0082']}
+        colors ={['#824300ff', '#000000']}
+        locations={[0, 0.7]}
         style={{ flex: 1 }}>
     <ScrollView 
     showsVerticalScrollIndicator={false}
     contentContainerStyle={{ flexGrow: 1, paddingBottom: 20 }}>
       
-      {/* Header Section */}
+      {/* User Section */}
       <View style={styles.header}>
-        <ThemedView style={styles.imageSection}>
-        <Image source={ user.image } style={styles.profileImage} />
-        </ThemedView>
+        <Image source={ user.image ? user.image : images.defaultProfile } style={styles.profileImage} />
         <ThemedText style={styles.name}>{user.name}</ThemedText>
         <ThemedText style={styles.email}>{user.email}</ThemedText>
 
-      {/* Actions */}
+      {/* Edit Profile */}
+      
       <Pressable
-        style={({ pressed }) => [
+        style={({ pressed }) => [ 
         styles.editButton,
         pressed && { backgroundColor: 'rgba(255, 255, 255, 0.25)' },
-        ]}>
+        ]}
+        onPress={() => log.info('Clicked on Edit Profile')}
+        >
           <ThemedText style={styles.buttonText}>Edit Profile</ThemedText>
         </Pressable>
       
@@ -54,10 +60,18 @@ export default function UserProfile() {
           data={leagues}
           keyExtractor={(item) => item.id}
           renderItem={({ item }) => (
-            <View style={styles.leagueItem}>
+            <Pressable
+      onPress={() => log.info('Clicked: ', item.name)}
+      style = {({pressed}) => [
+      styles.leagueItem,
+      pressed && { backgroundColor: 'rgba(35, 0, 99, 0.37)'}
+    ]}
+    >
+            <View>
               <ThemedText style={styles.leagueName}>{item.name}</ThemedText>
               <ThemedText style={styles.leagueDivision}>{item.role}</ThemedText>
             </View>
+            </Pressable>
           )}
         />
 
@@ -65,14 +79,15 @@ export default function UserProfile() {
         <Pressable style={({pressed}) => [
           styles.button,
           pressed && { backgroundColor: 'rgba(240, 11, 11, 0.37)'},
-        ]}>
+        ]}
+        onPress={() => log.warn('Clicked Logout')}>
           <ThemedText style={styles.buttonLogoutText}>Logout</ThemedText>
         </Pressable>
         </View>
         </ScrollView>
       </LinearGradient>
-    </SafeAreaView>
-
+      {/*<NavBar></NavBar>*/}
+</SafeAreaView>
   );
 }
 
@@ -90,9 +105,9 @@ const styles = StyleSheet.create({
     marginHorizontal: 1,
   },
   name: {
-    fontSize: 24,
+    fontSize: 18,
     fontWeight: '700',
-    color: '#1f2937',
+    color: '#ffffffff',
   },
   email: {
     color: '#6b7280',
@@ -111,7 +126,7 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     marginBottom: 8,
     marginTop: 10,
-    color: '#505d6fff',
+    color: '#ffffffff',
     textDecorationLine: 'underline'
   },
   sectionText: {
@@ -135,8 +150,8 @@ buttonText: {
 
 button: {
   borderRadius: 25,
-  marginBottom: 15,
-  marginTop: 15,
+  marginBottom: 70,
+  marginTop: 10,
   paddingHorizontal: 20,
   paddingVertical: 8,
   borderWidth: 1,
@@ -150,8 +165,8 @@ button: {
     color: 'rgba(243, 166, 166, 0.8)',
   },
   leagueItem: {
-    backgroundColor: '#dbdbdbbe',
-    borderColor: '#000000ff',
+    backgroundColor: 'transparent',
+    borderColor: '#444444ff',
     borderWidth: 1,
     padding: 14,
     paddingHorizontal: 30,
@@ -161,7 +176,7 @@ button: {
   leagueName: {
     fontSize: 16,
     fontWeight: '500',
-    color: '#1f2937',
+    color: '#ffffffff',
   },
   leagueDivision: {
     color: '#6b7280',
