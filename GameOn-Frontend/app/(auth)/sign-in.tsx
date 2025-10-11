@@ -166,6 +166,18 @@ export default function SignInScreen() {
                     </Link>
                   </Text>
                 </View>
+                {//To test user profile
+                }
+                <View style={{ marginTop: 'auto' }}>
+                  <Text style={styles.metaText}>
+                    go to profile{' '}
+                    <Link href="/(auth)/userProfile" style={styles.metaLink}>
+                      here
+                    </Link>
+                  </Text>
+                </View>
+
+
               </>
             )}
           </Formik>
