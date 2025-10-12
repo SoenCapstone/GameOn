@@ -7,6 +7,4 @@ public interface FeatureFlags<T> {
     boolean isFlagEnabled(T flag);
 
     boolean setFlag(T flag, boolean isEnabled);
-
-    void save();
 }

@@ -21,9 +21,4 @@ public class GlobalFeatureFlags extends AbstractFeatureFlags<FFGlobal> {
     public boolean setFlag(FFGlobal flag, boolean isEnabled) {
         return false;
     }
-
-    @Override
-    public void save() {
-
-    }
 }
