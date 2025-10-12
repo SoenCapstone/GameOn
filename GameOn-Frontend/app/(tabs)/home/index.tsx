@@ -12,6 +12,7 @@ import { IconSymbol } from '@/components/ui/icon-symbol';
 import { createScopedLog } from '@/utils/logger';
 import { exploreStyles } from '@/constants/explore-styles';
 import { useSearch } from '@/contexts/SearchContext';
+import { SearchResult } from '@/utils/search';
 
 const log = createScopedLog('explore.search');
 
@@ -41,7 +42,7 @@ export default function Home() {
     // Navigate to team or league page (TODO)
   };
 
-  const renderSearchResult = ({ item }: { item: any }) => (
+  const renderSearchResult = ({ item }: { item: SearchResult }) => (
     <TouchableOpacity
       style={exploreStyles.searchResultItem}
       onPress={() => handleResultPress(item)}
@@ -72,7 +73,7 @@ export default function Home() {
         pointerEvents="none"
       />
 
-      {/* Search Results (from shared SearchContext) */}
+      {/* Search Results (from SearchContext) */}
       <FlatList
         data={results}
         renderItem={renderSearchResult}

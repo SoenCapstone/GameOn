@@ -247,26 +247,71 @@
 //     </SafeAreaView>
 //   );
 // }
-import { Host, TextField, Button} from '@expo/ui/swift-ui';
-import React from 'react';
+import React, { useRef } from 'react';
+import { Host, TextField, Button, List, HStack, VStack, Section, Form, Switch, Text, GlassEffectContainer} from '@expo/ui/swift-ui';
 import { Stack, useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import { exploreStyles } from '@/constants/explore-styles';
 import { IconSymbol } from '@/components/ui/icon-symbol';
-import { View } from 'react-native';
+import { View, ScrollView, FlatList } from 'react-native';
+import { background, frame } from '@expo/ui/swift-ui/modifiers';
+import { createScopedLog } from '@/utils/logger';
+import { useSearch } from '@/contexts/SearchContext';
+import { SearchResult } from '@/utils/search';
 
 export default function Search() {
-  const [value, setValue] = React.useState<string>('');
+
+  const log = createScopedLog('Search');
+  const { query, results, markRendered } = useSearch();
+  const renderT0 = useRef<number | null>(null);
+  const renderLogged = useRef(false);
+
+  const uiLog = createScopedLog('explore.ui');
+
+    // prefer high-resolution timer when available
+    const now = () => (typeof performance !== 'undefined' && performance.now) ? performance.now() : Date.now();
+  
+    // Start timing when results change (filter completed -> UI render start)
+    React.useEffect(() => {
+      renderT0.current = now();
+      renderLogged.current = false;
+    }, [results]);
+  
+    const handleResultPress = (result: SearchResult) => {
+      log.info('search result pressed', { 
+        resultId: result.id,
+        resultName: result.name,
+        resultType: result.type
+      });
+      
+      // Navigate to team or league page (TODO)
+    };
+  
+    const renderSearchResult = ({ item }: { item: SearchResult }) => (
+      <Host style={{ flex: 1, height: '100%', width: '100%', alignSelf: 'center'}} matchContents>
+        <VStack spacing={5}>
+          <VStack spacing={5}>
+            <Button controlSize='extraLarge' color='#FFFFFF' onPress={() => handleResultPress(item)} variant='glass'>
+              <HStack spacing={6}>
+                <Text>{item.logo}</Text>
+                <VStack alignment='leading' modifiers={[frame({ height: 40, width: 255, alignment: 'topLeading' })]}>
+                  <Text>{item.name}</Text>
+                  <Text size={12} color='#FFFFFF80'>{item.subtitle}</Text>
+                </VStack>
+              </HStack>
+            </Button>
+          </VStack>
+        </VStack>
+      </Host>
+    );
+
+    const separator = () => <View style={{ height: 10 }} />;
   
 
   return (
 
     <SafeAreaView style={exploreStyles.container}>
-        <Stack.Screen options={{ title: 'Search', 
-          headerStyle: { backgroundColor: '#0C456E' },
-          headerShadowVisible: false }} />
-
         <LinearGradient
         colors={['#0C456E', 'rgba(0,0,0,0)']}
         start={{ x: 0, y: 0 }}
@@ -275,23 +320,28 @@ export default function Search() {
         pointerEvents="none"
       />
 
-      {/* <View style={exploreStyles.searchContainer}> */}
-        <Host style={{ width: '100%', height: '5%' }} matchContents>
-          <Button variant="glass">
-            <View style={exploreStyles.searchInput}>
-              <IconSymbol name="magnifyingglass" size={20} 
-                color="#FFFFFFFF" style={exploreStyles.searchIcon} />
-              <Host>
-                <TextField
-                    autocorrection={false}
-                    placeholder="A single line text input"
-                    onChangeText={setValue}
-                  />
-                </Host>
-            </View>
-          </Button>
-        </Host>
-      {/* </View> */}
+      {/* Search Results (from SearchContext) */}
+        <FlatList
+        data={results}
+        renderItem={renderSearchResult}
+        ItemSeparatorComponent={separator}
+        keyExtractor={(item) => item.id}
+        style={exploreStyles.searchResultsList}
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={exploreStyles.searchResultsContent}
+        contentInsetAdjustmentBehavior="automatic"
+        onContentSizeChange={() => {
+          if (renderT0.current !== null && !renderLogged.current) {
+            const took = Math.max(0, Math.round(now() - renderT0.current));
+            try {
+              markRendered(took);
+            } catch {
+              uiLog.info('render completed (fallback)', { query, resultCount: results.length, tookMs: took });
+            }
+            renderLogged.current = true;
+          }
+        }}
+      />
     </SafeAreaView>
   );
 }
