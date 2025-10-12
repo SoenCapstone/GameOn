@@ -1,18 +1,20 @@
-package com.game.on.go_config_server;
+package com.game.on.common.feature_flags;
 
+import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectWriter;
+import com.fasterxml.jackson.databind.module.SimpleModule;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.BufferedWriter;
-import java.io.FileWriter;
-import java.io.IOException;
+import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.EnumMap;
+import java.util.List;
 
 public abstract class AbstractFeatureFlags<T extends Enum<T>> implements FeatureFlags<T> {
 
@@ -20,7 +22,7 @@ public abstract class AbstractFeatureFlags<T extends Enum<T>> implements Feature
     private final Class<T> enumClass;
     private Path filePath;
 
-    protected EnumMap<T, Boolean> values;
+    protected EnumMap<T, FeatureFlagEntry<T>> values;
 
     public AbstractFeatureFlags(Class<T> typeClass) {
         this.enumClass = typeClass;
@@ -33,7 +35,7 @@ public abstract class AbstractFeatureFlags<T extends Enum<T>> implements Feature
 
         //TODO: Different error handling? This means the feature flag map is not populated, thus returning false for all challenges in the future...
         if(fileAnnotation == null) {
-            log.error("Feature flag enum is missing FeatureFlagFile annotation");
+            log.error("Feature flag enum is missing com.game.on.common.feature_flags.FeatureFlagFile annotation");
             return;
         }
 
@@ -65,6 +67,29 @@ public abstract class AbstractFeatureFlags<T extends Enum<T>> implements Feature
 
     private void readExistingFile() {
         log.info("Reading feature flag configuration from path: {}", filePath);
+
+        try {
+            FileReader fr = new FileReader(filePath.toString());
+            BufferedReader br = new BufferedReader(fr);
+            ObjectMapper mapper = new ObjectMapper();
+            SimpleModule module = new SimpleModule();
+
+            module.addDeserializer(FeatureFlagEntry.class, new FeatureFlagEntryDeserializer());
+            mapper.registerModule(module);
+
+            // When we serialize, we just serialize the entries, which means we have to construct the list ourselves...
+            var test = mapper.readValue(br, FeatureFlagEntry.class);
+
+            log.info("TEST: {}:{}", test.getKey(), test.isEnabled());
+
+            //TODO: Reminder to check when deserializing that there are no missing flags...
+        }
+        catch (FileNotFoundException e) {
+            log.error("Feature flag file not found", e);
+        } catch (Exception e) {
+            //TODO: This is handling several different types of exceptions associated with readValue, rewrite needed for clarity
+            log.error("Exception while reading data from file", e);
+        }
     }
 
     private void createDefaultFile() {
@@ -73,7 +98,10 @@ public abstract class AbstractFeatureFlags<T extends Enum<T>> implements Feature
         try {
             for(T enumVal : enumClass.getEnumConstants()) {
                 FeatureFlagDescriptor descriptor = enumClass.getField(enumVal.name()).getAnnotation(FeatureFlagDescriptor.class);
-                values.put(enumVal, descriptor.DefaultEnabled());
+                FeatureFlagEntry<T> entry = new FeatureFlagEntry<T>();
+                entry.setKey(enumVal);
+                entry.setEnabled(descriptor.DefaultEnabled());
+                values.put(enumVal, entry);
             }
 
             //Create the new file so that save() does not have to
@@ -97,7 +125,7 @@ public abstract class AbstractFeatureFlags<T extends Enum<T>> implements Feature
 
     @Override
     public boolean isFlagEnabled(T flag) {
-        return values.containsKey(flag) && values.get(flag);
+        return values.containsKey(flag) && values.get(flag).isEnabled();
     }
 
     @Override
@@ -107,7 +135,8 @@ public abstract class AbstractFeatureFlags<T extends Enum<T>> implements Feature
             return false;
         }
 
-        values.put(flag, isEnabled);
+        FeatureFlagEntry<T> cur = values.get(flag);
+        cur.setEnabled(isEnabled);
 
         if(save()) {
             log.info("Feature flags successfully updated");
@@ -130,7 +159,7 @@ public abstract class AbstractFeatureFlags<T extends Enum<T>> implements Feature
 
         ObjectWriter ow = new ObjectMapper().writer().withDefaultPrettyPrinter();
         try {
-            String json = ow.writeValueAsString(values);
+            String json = ow.writeValueAsString(values.values());
             FileWriter fw = new FileWriter(filePath.toString());
             BufferedWriter bw = new BufferedWriter(fw);
 

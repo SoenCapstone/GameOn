@@ -1,5 +1,6 @@
-package com.game.on.go_config_server;
+package com.game.on.go_config_server.feature_flags;
 
+import com.game.on.common.feature_flags.AbstractFeatureFlags;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
@@ -11,14 +12,5 @@ public class GlobalFeatureFlags extends AbstractFeatureFlags<FFGlobal> {
 
     public GlobalFeatureFlags() {
         super(FFGlobal.class);
-    }
-
-    public void Test() {
-        log.warn("Global Feature Flags called");
-    }
-
-    @Override
-    public boolean setFlag(FFGlobal flag, boolean isEnabled) {
-        return false;
     }
 }
