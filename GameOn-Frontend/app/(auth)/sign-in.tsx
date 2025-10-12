@@ -166,8 +166,10 @@ export default function SignInScreen() {
                     </Link>
                   </Text>
                 </View>
-                {//To test user profile
-                }
+
+
+                
+                {/*To test user profile*/}
                 <View style={{ marginTop: 'auto' }}>
                   <Text style={styles.metaText}>
                     go to profile{' '}

@@ -1,11 +1,12 @@
 import React from 'react';
 import { Image } from 'expo-image';
-import { FlatList, StyleSheet, View, ScrollView, Pressable } from 'react-native';
+import { Alert, FlatList, StyleSheet, View, ScrollView, Pressable } from 'react-native';
 import { ThemedText } from '@/components/themed-text';
 import { LinearGradient } from 'expo-linear-gradient';
 import { images } from '@/constants/images';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { createScopedLog } from '@/utils/logger'; 
+import { router } from 'expo-router'
 //import NavBar from '@/components/bottom Navbar'
 
 // Sample league data (replace with fetched data later)
@@ -15,6 +16,7 @@ const leagues = [
   { id: '3', name: 'La Liga', role: 'Admin' },
 ];
 
+// Sample user data (replace with fetched data later)
 const user = {
     name: 'John Doe',
     email: 'johndoe@email.com',
@@ -25,12 +27,21 @@ const log = createScopedLog('Profile')
 
 export default function UserProfile() {
 
+  // define logout behavior here
+  const onLogout = () => {
+    log.info('User confirmed logout');
+    // authContext.logout();
+
+    //navigate to sign in page
+    router.replace('/(auth)/sign-in')
+  };
+
   return (
     <SafeAreaView style={{ flex: 1 }}>
       <LinearGradient 
         colors ={['#824300ff', '#000000']}
         locations={[0, 0.7]}
-        style={{ flex: 1 }}>
+        style={styles.gradient}>
     <ScrollView 
     showsVerticalScrollIndicator={false}
     contentContainerStyle={{ flexGrow: 1, paddingBottom: 20 }}>
@@ -59,12 +70,13 @@ export default function UserProfile() {
         <FlatList
           data={leagues}
           keyExtractor={(item) => item.id}
+          scrollEnabled={false}
           renderItem={({ item }) => (
             <Pressable
       onPress={() => log.info('Clicked: ', item.name)}
       style = {({pressed}) => [
       styles.leagueItem,
-      pressed && { backgroundColor: 'rgba(35, 0, 99, 0.37)'}
+      pressed && { backgroundColor: 'rgba(89, 38, 184, 0.56)'}
     ]}
     >
             <View>
@@ -77,10 +89,14 @@ export default function UserProfile() {
 
       {/* Logout */}
         <Pressable style={({pressed}) => [
-          styles.button,
+          styles.buttonLogOut,
           pressed && { backgroundColor: 'rgba(240, 11, 11, 0.37)'},
         ]}
-        onPress={() => log.warn('Clicked Logout')}>
+        onPress={() => {
+          Alert.alert("Confirm Logout", "Are you sure you want to log out?", [
+          { text: "Cancel", style: "cancel" },
+          { text: "Log Out", onPress: onLogout, style: "destructive" }
+        ]); } }>
           <ThemedText style={styles.buttonLogoutText}>Logout</ThemedText>
         </Pressable>
         </View>
@@ -101,8 +117,9 @@ const styles = StyleSheet.create({
     height: 100,
     borderRadius: 60,
     marginBottom: 1,
-    marginTop: 1,
+    marginTop: 40,
     marginHorizontal: 1,
+    
   },
   name: {
     fontSize: 18,
@@ -113,14 +130,14 @@ const styles = StyleSheet.create({
     color: '#6b7280',
     marginBottom: 8,
   },
-  imageSection:{
-    backgroundColor: '#fff',
-    borderRadius: 12,
-    marginTop: 10,
-    marginHorizontal:10,
-    marginBottom: 8,
+  gradient: { 
+    flex: 1,
+    position: 'absolute', 
+    top: 0,
+    left: 0, 
+    right: 0, 
+    bottom: 0
   },
-
   sectionTitle: {
     fontSize: 18,
     fontWeight: '600',
@@ -128,10 +145,6 @@ const styles = StyleSheet.create({
     marginTop: 10,
     color: '#ffffffff',
     textDecorationLine: 'underline'
-  },
-  sectionText: {
-    color: '#4b5563',
-    lineHeight: 20,
   },
   editButton: {
   marginTop: 5,
@@ -148,7 +161,7 @@ buttonText: {
   fontWeight: '400',
 },
 
-button: {
+buttonLogOut: {
   borderRadius: 25,
   marginBottom: 70,
   marginTop: 10,
