@@ -1,4 +1,4 @@
-package com.game.on.go_config_server;
+package com.game.on.common.feature_flags;
 
 public interface FeatureFlags<T> {
 

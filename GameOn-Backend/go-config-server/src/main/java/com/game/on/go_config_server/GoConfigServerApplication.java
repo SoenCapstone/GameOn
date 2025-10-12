@@ -1,6 +1,8 @@
 package com.game.on.go_config_server;
 
 
+import com.game.on.go_config_server.feature_flags.FFGlobal;
+import com.game.on.go_config_server.feature_flags.GlobalFeatureFlags;
 import lombok.extern.log4j.Log4j2;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -27,6 +29,16 @@ public class GoConfigServerApplication {
 
     @EventListener(ApplicationReadyEvent.class)
     public void afterStart() {
-        gFlags.Test();
+        var success = gFlags.isFlagEnabled(FFGlobal.TEST_FLAG);
+
+        log.info("Was flag enabled? {}", success);
+
+        success = gFlags.setFlag(FFGlobal.TEST_FLAG, true);
+
+        log.info("Was the flag successfully set? {}", success);
+
+        success = gFlags.isFlagEnabled(FFGlobal.TEST_FLAG);
+
+        log.info("Is flag enabled? {}", success);
     }
 }
