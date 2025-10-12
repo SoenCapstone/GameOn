@@ -1,14 +1,14 @@
 package com.game.on.common.feature_flags;
 
-public class FeatureFlagEntry<T extends Enum<T>> {
-    private T key;
+public class FeatureFlagEntry {
+    private String key;
     private boolean enabled;
 
-    public T getKey() {
+    public String getKey() {
         return key;
     }
 
-    public void setKey(T value) {
+    public void setKey(String value) {
         key = value;
     }
 

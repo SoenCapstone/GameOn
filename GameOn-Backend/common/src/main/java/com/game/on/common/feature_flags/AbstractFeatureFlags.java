@@ -1,11 +1,9 @@
 package com.game.on.common.feature_flags;
 
-import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectWriter;
-import com.fasterxml.jackson.databind.module.SimpleModule;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -16,13 +14,13 @@ import java.nio.file.Paths;
 import java.util.EnumMap;
 import java.util.List;
 
-public abstract class AbstractFeatureFlags<T extends Enum<T>> implements FeatureFlags<T> {
+public abstract class AbstractFeatureFlags<T extends Enum<T> & FeatureFlagList<T>> implements FeatureFlags<T> {
 
     private static final Logger log = LoggerFactory.getLogger(AbstractFeatureFlags.class);
     private final Class<T> enumClass;
     private Path filePath;
 
-    protected EnumMap<T, FeatureFlagEntry<T>> values;
+    protected EnumMap<T, FeatureFlagEntry> values;
 
     public AbstractFeatureFlags(Class<T> typeClass) {
         this.enumClass = typeClass;
@@ -72,22 +70,30 @@ public abstract class AbstractFeatureFlags<T extends Enum<T>> implements Feature
             FileReader fr = new FileReader(filePath.toString());
             BufferedReader br = new BufferedReader(fr);
             ObjectMapper mapper = new ObjectMapper();
-            SimpleModule module = new SimpleModule();
 
-            module.addDeserializer(FeatureFlagEntry.class, new FeatureFlagEntryDeserializer());
-            mapper.registerModule(module);
+            var test = mapper.readValue(br, new TypeReference<List<FeatureFlagEntry>>() {});
 
-            // When we serialize, we just serialize the entries, which means we have to construct the list ourselves...
-            var test = mapper.readValue(br, FeatureFlagEntry.class);
+            //This is a hack, to allow for our generic enums to deserialize themselves through reflection
+            // The deserialize() method is tied to an actual instance, but it doesn't matter which one...
+            T pseudoDeserializer = enumClass.getEnumConstants()[0];
+            for(var t : test) {
+                log.info("TEST: {}:{}", t.getKey(), t.isEnabled());
 
-            log.info("TEST: {}:{}", test.getKey(), test.isEnabled());
+                T deserializedValue = pseudoDeserializer.deserialize(t.getKey());
 
-            //TODO: Reminder to check when deserializing that there are no missing flags...
+                log.info("Deserialized value: {}", deserializedValue);
+                values.put(deserializedValue, t);
+            }
+
+            //TODO: Add the missing flag?
+            if(values.size() != enumClass.getEnumConstants().length) {
+                log.warn("Missing feature flag in configuration file: {}", filePath);
+            }
         }
         catch (FileNotFoundException e) {
             log.error("Feature flag file not found", e);
         } catch (Exception e) {
-            //TODO: This is handling several different types of exceptions associated with readValue, rewrite needed for clarity
+            //TODO: This is handling many exceptions that come from the deserialization process, expand this...
             log.error("Exception while reading data from file", e);
         }
     }
@@ -98,8 +104,14 @@ public abstract class AbstractFeatureFlags<T extends Enum<T>> implements Feature
         try {
             for(T enumVal : enumClass.getEnumConstants()) {
                 FeatureFlagDescriptor descriptor = enumClass.getField(enumVal.name()).getAnnotation(FeatureFlagDescriptor.class);
-                FeatureFlagEntry<T> entry = new FeatureFlagEntry<T>();
-                entry.setKey(enumVal);
+
+                if(descriptor == null) {
+                    log.error("Feature flag: {} in {} is missing a descriptor, skipping...", enumVal.name(), filePath);
+                    continue;
+                }
+
+                FeatureFlagEntry entry = new FeatureFlagEntry();
+                entry.setKey(enumVal.serialize(enumVal));
                 entry.setEnabled(descriptor.DefaultEnabled());
                 values.put(enumVal, entry);
             }
@@ -135,7 +147,7 @@ public abstract class AbstractFeatureFlags<T extends Enum<T>> implements Feature
             return false;
         }
 
-        FeatureFlagEntry<T> cur = values.get(flag);
+        FeatureFlagEntry cur = values.get(flag);
         cur.setEnabled(isEnabled);
 
         if(save()) {

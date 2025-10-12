@@ -5,16 +5,19 @@ import com.game.on.common.feature_flags.FeatureFlagFile;
 import com.game.on.common.feature_flags.FeatureFlagList;
 
 @FeatureFlagFile(FileName = "Global.json")
-public enum FFGlobal implements FeatureFlagList {
+public enum FFGlobal implements FeatureFlagList<FFGlobal> {
 
     @FeatureFlagDescriptor(Name = "Test flag")
     TEST_FLAG,
 
     @FeatureFlagDescriptor(Name = "Another test flag")
-    SECOND_FLAG;
+    SECOND_FLAG,
+
+    @FeatureFlagDescriptor(Name = "Another feature flag", DefaultEnabled = true)
+    FLAG_THREE;
 
     @Override
-    public String serialize() {
-        return "";
+    public Class<FFGlobal> getEnumClass() {
+        return FFGlobal.class;
     }
 }
