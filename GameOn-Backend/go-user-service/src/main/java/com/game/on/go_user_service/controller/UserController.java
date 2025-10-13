@@ -11,7 +11,6 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
-
 @RestController
 @RequestMapping("/api/v1")
 @RequiredArgsConstructor
@@ -28,6 +27,16 @@ public class UserController {
     public ResponseEntity<UserResponse> fetchUserByEmail(@PathVariable String userEmail){
         return ResponseEntity.ok(userService.fetchUserByEmail(userEmail));
     }
+
+    @GetMapping("/user/keycloak/{keycloakId}")
+    public ResponseEntity<UserResponse> fetchUserByKeycloakId(@PathVariable String keycloakId) {
+        return ResponseEntity.ok(userService.fetchUserByKeycloakId(keycloakId));
+    }
+
+   @GetMapping("/user/id/{userId}")
+   public ResponseEntity<UserResponse> fetchUserById(@PathVariable Long userId) {
+       return ResponseEntity.ok(userService.fetchUserById(userId));
+   }
 
     @PostMapping("/user/create")
     public ResponseEntity<UserResponse> createUser(@Valid @RequestBody UserRequestCreate userRequestCreate){
