@@ -40,4 +40,4 @@ application-local.properties
 /build/
 /tmp/
 /hs_err_pid*
-/feature-flags/
+**/feature-flags/
