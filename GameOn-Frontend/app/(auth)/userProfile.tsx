@@ -6,7 +6,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { images } from '@/constants/images';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { createScopedLog } from '@/utils/logger'; 
-import { router } from 'expo-router'
+import { confirmLogout } from '@/utils/onLogout-utils'
 
 
 // Sample league data (replace with fetched data later)
@@ -25,16 +25,7 @@ const user = {
 
 const log = createScopedLog('Profile')
 
-export const UserProfile = () => {
-
-  // define logout behavior here
-  const onLogout = () => {
-    log.info('User confirmed logout');
-    // authContext.logout();
-
-    //navigate to sign in page
-    router.replace('/(auth)/sign-in')
-  };
+const UserProfile = () => {
 
   return (
     <SafeAreaView style={{ flex: 1 }}>
@@ -53,7 +44,6 @@ export const UserProfile = () => {
         <ThemedText style={styles.email}>{user.email}</ThemedText>
 
       {/* Edit Profile */}
-      
       <Pressable
         style={({ pressed }) => [ 
         styles.editButton,
@@ -92,11 +82,7 @@ export const UserProfile = () => {
           styles.buttonLogOut,
           pressed && { backgroundColor: 'rgba(240, 11, 11, 0.37)'},
         ]}
-        onPress={() => {
-          Alert.alert("Confirm Logout", "Are you sure you want to log out?", [
-          { text: "Cancel", style: "cancel" },
-          { text: "Log Out", onPress: onLogout, style: "destructive" }
-        ]); } }>
+        onPress={() => confirmLogout}>
           <ThemedText style={styles.buttonLogoutText}>Logout</ThemedText>
         </Pressable>
         </View>
