@@ -10,7 +10,7 @@ export const onLogout = () => {
     router.replace('/(auth)/sign-in')
   };
 
-export const confirmLogout = (onLogout: () => void) => {
+export const confirmLogout = () => {
   Alert.alert(
     "Confirm Logout",
     "Are you sure you want to log out?",

@@ -1,6 +1,6 @@
 import React from 'react';
 import { Image } from 'expo-image';
-import { Alert, FlatList, StyleSheet, View, ScrollView, Pressable } from 'react-native';
+import { FlatList, StyleSheet, View, ScrollView, Pressable } from 'react-native';
 import { ThemedText } from '@/components/themed-text';
 import { LinearGradient } from 'expo-linear-gradient';
 import { images } from '@/constants/images';
@@ -82,7 +82,7 @@ const UserProfile = () => {
           styles.buttonLogOut,
           pressed && { backgroundColor: 'rgba(240, 11, 11, 0.37)'},
         ]}
-        onPress={() => confirmLogout}>
+        onPress={() => confirmLogout()}>
           <ThemedText style={styles.buttonLogoutText}>Logout</ThemedText>
         </Pressable>
         </View>
