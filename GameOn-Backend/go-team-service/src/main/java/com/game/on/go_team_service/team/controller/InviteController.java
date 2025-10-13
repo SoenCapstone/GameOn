@@ -13,7 +13,7 @@ import org.springframework.web.bind.annotation.RestController;
 import java.util.UUID;
 
 @RestController
-@RequestMapping("/invites")
+@RequestMapping("/api/v1/invites")
 @RequiredArgsConstructor
 public class InviteController {
 

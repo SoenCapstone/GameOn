@@ -14,6 +14,9 @@ public class RestUserDirectoryClient implements UserDirectoryClient {
 
     @Override
     public boolean userExists(Long userId) {
+        if (userId == null) {
+            return false;
+        }
         try {
             userServiceRestClient.get()
                     .uri("/api/v1/user/id/{userId}", userId)

@@ -34,10 +34,10 @@ public class AuthInterceptor implements HandlerInterceptor {
             var userId = Long.parseLong(userIdHeader.trim());
             var email = request.getHeader(USER_EMAIL_HEADER);
             RequestContextHolder.set(new RequestContext(userId, email));
+            return true;
         } catch (NumberFormatException ex) {
             throw new UnauthorizedException("Invalid " + USER_ID_HEADER + " header");
         }
-        return true;
     }
 
     @Override
