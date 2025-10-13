@@ -4,6 +4,14 @@ server:
 spring:
   application:
     name: go-api-gateway
+
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: http://localhost:8080/realms/gameon
+          jwk-set-uri: ${spring.security.oauth2.resourceserver.jwt.issuer-uri}/protocol/openid-connect/certs
+
   cloud:
     gateway:
       discovery:
@@ -17,6 +25,11 @@ spring:
           uri: lb://GO-USER-SERVICE
           predicates:
             - Path=/api/v1/user/**
+        - id: go-team-service
+          uri: lb://GO-TEAM-SERVICE
+          predicates:
+            - Path=/api/v1/teams/**
+
 
 eureka:
   client:

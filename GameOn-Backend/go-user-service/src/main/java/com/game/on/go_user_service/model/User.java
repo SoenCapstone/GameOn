@@ -1,25 +1,32 @@
 package com.game.on.go_user_service.model;
 
 import jakarta.persistence.*;
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NonNull;
+
 
 @Data
-@Table(name = "user_table")
+@Table(name = "users")
 @Entity
 @Builder
 @AllArgsConstructor
-@RequiredArgsConstructor
 public class User {
 
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     private Long id;
 
-    private String firstname;
+    @Column(nullable = false, unique = true)
+    @NonNull
+    private String keycloakId;
 
-    private String lastname;
+    public User(@NonNull String keycloakId) {
+        this.keycloakId = keycloakId;
+    }
 
-    private String email;
+    public User() {
 
-    private String password;
+    }
 }
