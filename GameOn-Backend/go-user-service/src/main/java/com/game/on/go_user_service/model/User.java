@@ -1,10 +1,7 @@
 package com.game.on.go_user_service.model;
 
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NonNull;
+import lombok.*;
 
 
 @Data
@@ -12,6 +9,7 @@ import lombok.NonNull;
 @Entity
 @Builder
 @AllArgsConstructor
+@RequiredArgsConstructor
 public class User {
 
     @Id
@@ -21,10 +19,6 @@ public class User {
     @Column(nullable = false, unique = true)
     @NonNull
     private String keycloakId;
-
-    public User(@NonNull String keycloakId) {
-        this.keycloakId = keycloakId;
-    }
 
     public User() {
 

@@ -1,8 +1,10 @@
 package com.game.on.go_api_gateway;
 
-public class PublicEndpoints {
+import lombok.AccessLevel;
+import lombok.NoArgsConstructor;
 
-    private PublicEndpoints() {}
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
+public class PublicEndpoints {
 
     public static final String[] AUTH_WHITELIST = {
             "/api/v1/user/create"
