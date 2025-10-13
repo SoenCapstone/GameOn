@@ -1,7 +1,10 @@
 package com.game.on.go_user_service.service;
 
 import com.game.on.go_user_service.config.KeycloakProperties;
+import com.game.on.go_user_service.constants.KeycloakConstants;
 import com.game.on.go_user_service.dto.*;
+import com.game.on.go_user_service.exception.KeycloakResponseParsingException;
+import com.game.on.go_user_service.exception.KeycloakUserCreationException;
 import com.game.on.go_user_service.exception.UserAlreadyExistsException;
 import com.game.on.go_user_service.exception.UserNotFoundException;
 import com.game.on.go_user_service.mapper.UserMapper;
@@ -71,9 +74,9 @@ public class UserService {
         headers.setBearerAuth(token);
 
         KeycloakCredential credential = new KeycloakCredential(
-                "password",
+                KeycloakConstants.CREDENTIAL_TYPE,
                 userRequestCreate.password(),
-                false
+                KeycloakConstants.TEMPORARY
         );
 
         KeycloakUser keycloakUser = new KeycloakUser(
@@ -97,7 +100,7 @@ public class UserService {
                 return location.substring(location.lastIndexOf("/") + 1);
             }
 
-            throw new RuntimeException("Failed to get Keycloak ID from response");
+            throw new KeycloakResponseParsingException("Failed to get Keycloak ID from response");
 
         } catch (HttpClientErrorException e) {
             if (e.getStatusCode() == HttpStatus.CONFLICT) {
@@ -107,10 +110,10 @@ public class UserService {
                 );
             }
             log.error("Keycloak returned error: {} {}", e.getStatusCode(), e.getResponseBodyAsString());
-            throw new RuntimeException("Failed to create user in Keycloak", e);
+            throw new KeycloakUserCreationException("Failed to create user in Keycloak", e);
         } catch (Exception e) {
             log.error("Unexpected error creating user in Keycloak", e);
-            throw new RuntimeException("Failed to create user in Keycloak", e);
+            throw new KeycloakUserCreationException("Failed to create user in Keycloak", e);
         }
     }
 
