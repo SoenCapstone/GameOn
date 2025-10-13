@@ -55,6 +55,13 @@ public class UserService {
                 .toList();
     }
 
+   public UserResponse fetchUserById(Long userId) {
+       var user = userRepository.findById(userId)
+               .orElseThrow(() -> new UserNotFoundException(
+                       String.format("User with id %s does not exist", userId)));
+       return fetchUserByKeycloakId(user.getKeycloakId());
+   }
+
     @Transactional
     public UserResponse createUser(UserRequestCreate userRequestCreate) {
         log.info("Creating user {} in Keycloak", userRequestCreate.email());
@@ -221,7 +228,34 @@ public class UserService {
 
         Map<String, Object> userMap = users.get(0);
         KeycloakUser kcUser = userMapper.fromMap(userMap);
-        return userMapper.toUserResponse(kcUser);
+       return userMapper.toUserResponse(kcUser);
+    }
+
+    public UserResponse fetchUserByKeycloakId(String keycloakId) {
+        String url = keycloakProperties.getAdminUsersUrl() + "/" + keycloakId;
+
+        try {
+            Map<String, Object> userMap = keycloakGet(
+                    url,
+                    new ParameterizedTypeReference<Map<String, Object>>() {}
+            );
+
+            if (userMap == null || userMap.isEmpty()) {
+                throw new UserNotFoundException(
+                        String.format("User with Keycloak id %s does not exist", keycloakId)
+                );
+            }
+
+            KeycloakUser kcUser = userMapper.fromMap(userMap);
+            return userMapper.toUserResponse(kcUser);
+        } catch (HttpClientErrorException e) {
+            if (e.getStatusCode() == HttpStatus.NOT_FOUND) {
+                throw new UserNotFoundException(
+                        String.format("User with Keycloak id %s does not exist", keycloakId)
+                );
+            }
+            throw e;
+        }
     }
 
 

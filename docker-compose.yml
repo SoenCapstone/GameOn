@@ -26,6 +26,7 @@ services:
       KC_DB_PASSWORD: password
       KC_BOOTSTRAP_ADMIN_USERNAME: admin
       KC_BOOTSTRAP_ADMIN_PASSWORD: admin
+      
     ports:
       - "8080:8080"
     depends_on:

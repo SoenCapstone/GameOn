@@ -1,7 +1,9 @@
 package com.game.on.go_user_service;
 
 import com.game.on.go_user_service.config.KeycloakProperties;
-import com.game.on.go_user_service.dto.*;
+import com.game.on.go_user_service.dto.UserRequestCreate;
+import com.game.on.go_user_service.dto.UserRequestUpdate;
+import com.game.on.go_user_service.dto.UserResponse;
 import com.game.on.go_user_service.exception.UserAlreadyExistsException;
 import com.game.on.go_user_service.exception.UserNotFoundException;
 import com.game.on.go_user_service.mapper.UserMapper;
@@ -15,8 +17,15 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 import org.springframework.core.ParameterizedTypeReference;
-import org.springframework.http.*;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
 
 import java.util.List;
@@ -24,11 +33,13 @@ import java.util.Map;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
-public class UserServiceTest {
+@MockitoSettings(strictness = Strictness.LENIENT)
+class UserServiceTest {
 
     @InjectMocks
     private UserService userService;
@@ -56,7 +67,6 @@ public class UserServiceTest {
         lenient().when(keycloakProperties.getClientSecret()).thenReturn("client-secret");
     }
 
-
     private static UserRequestCreate requestCreate(String firstname, String lastname, String email, String password) {
         return new UserRequestCreate(firstname, lastname, email, password);
     }
@@ -69,15 +79,16 @@ public class UserServiceTest {
         return new UserResponse(email, firstname, lastname);
     }
 
-
-    private static User userEntity(String keycloakId) {
-        return new User(keycloakId); // uses the required args constructor
+    private static KeycloakUser kcUser(String username, String email) {
+        return new KeycloakUser(username, email, "Person", "One", true, null);
     }
 
-    /** ------------------------ Tests ------------------------ **/
+    private static User userEntity(String keycloakId) {
+        return new User(keycloakId);
+    }
 
     @Test
-    void fetchUserByEmailTest() {
+    void fetchUserByEmail_returnsUser() {
         String email = "test1@email.com";
         Map<String, Object> kcMap = Map.of(
                 "username", "test1",
@@ -88,7 +99,7 @@ public class UserServiceTest {
                 "id", "123"
         );
 
-        KeycloakUser kcUser = new KeycloakUser("test1", email, "Person", "One", true, null);
+        KeycloakUser kcUser = kcUser("test1", email);
         when(restTemplate.exchange(
                 contains("/users?email=" + email),
                 eq(HttpMethod.GET),
@@ -104,11 +115,10 @@ public class UserServiceTest {
         assertThat(result.email()).isEqualTo(email);
         assertThat(result.firstname()).isEqualTo("Person");
         assertThat(result.lastname()).isEqualTo("One");
-
     }
 
     @Test
-    void fetchUserByEmailNotFoundTest() {
+    void fetchUserByEmail_missingUser_throws() {
         String email = "missing@email.com";
 
         when(restTemplate.exchange(
@@ -124,37 +134,65 @@ public class UserServiceTest {
     }
 
     @Test
-    void createUserTest() {
+    void fetchUserById_delegatesToKeycloak() {
+        Long id = 1L;
+        User userEntity = new User("kc-123");
+        Map<String, Object> kcMap = Map.of(
+                "username", "test1",
+                "email", "test1@email.com",
+                "firstName", "Person",
+                "lastName", "One",
+                "enabled", true
+        );
+        KeycloakUser kcUser = kcUser("test1", "test1@email.com");
+
+        when(userRepository.findById(id)).thenReturn(Optional.of(userEntity));
+        when(restTemplate.exchange(
+                contains("/users/kc-123"),
+                eq(HttpMethod.GET),
+                any(HttpEntity.class),
+                any(ParameterizedTypeReference.class)
+        )).thenReturn(new ResponseEntity<>(kcMap, HttpStatus.OK));
+        when(userMapper.fromMap(kcMap)).thenReturn(kcUser);
+        when(userMapper.toUserResponse(kcUser)).thenReturn(response("Person", "One", "test1@email.com"));
+
+        UserResponse result = userService.fetchUserById(id);
+
+        assertThat(result.email()).isEqualTo("test1@email.com");
+    }
+
+    @Test
+    void fetchUserById_missingLocalUser_throws() {
+        when(userRepository.findById(99L)).thenReturn(Optional.empty());
+
+        assertThatThrownBy(() -> userService.fetchUserById(99L))
+                .isInstanceOf(UserNotFoundException.class);
+    }
+
+    @Test
+    void createUser_createsInKeycloakAndDb() {
         UserRequestCreate request = requestCreate("Person", "One", "test1@email.com", "Password123");
 
-        // Simulate Keycloak creating user
         when(restTemplate.postForEntity(anyString(), any(HttpEntity.class), eq(String.class)))
                 .thenReturn(ResponseEntity.status(HttpStatus.CREATED)
                         .header(HttpHeaders.LOCATION, "http://localhost/users/123")
                         .build());
 
-        // Simulate saving user in DB
         User userEntity = userEntity("123");
         when(userMapper.toUser(request, "123")).thenReturn(userEntity);
-        when(userRepository.save(userEntity)).thenReturn(userEntity);
 
         UserResponse result = userService.createUser(request);
 
-        // Directly matches the UserResponse built in the service
-        assertThat(result.email()).isEqualTo("test1@email.com");
-        assertThat(result.firstname()).isEqualTo("Person");
-        assertThat(result.lastname()).isEqualTo("One");
+        assertThat(result.email()).isEqualTo(request.email());
+        verify(userRepository).save(userEntity);
     }
 
-
-
-
     @Test
-    void createUserAlreadyExistsTest() {
+    void createUser_existingKeycloakUser_throws() {
         UserRequestCreate request = requestCreate("Person", "One", "test1@email.com", "Password123");
 
         when(restTemplate.postForEntity(anyString(), any(HttpEntity.class), eq(String.class)))
-                .thenThrow(new org.springframework.web.client.HttpClientErrorException(HttpStatus.CONFLICT));
+                .thenThrow(new HttpClientErrorException(HttpStatus.CONFLICT));
 
         assertThatThrownBy(() -> userService.createUser(request))
                 .isInstanceOf(UserAlreadyExistsException.class)
@@ -162,12 +200,11 @@ public class UserServiceTest {
     }
 
     @Test
-    void updateUserTest() {
+    void updateUser_updatesKeycloakAndDb() {
         UserRequestUpdate request = requestUpdate("NewFirst", "NewLast", "test1@email.com", "");
-
         Map<String, Object> kcMap = Map.of(
                 "username", "test1",
-                "email", "test1@email.com",
+                "email", request.email(),
                 "firstName", "OldFirst",
                 "lastName", "OldLast",
                 "enabled", true,
@@ -180,7 +217,6 @@ public class UserServiceTest {
                 any(HttpEntity.class),
                 any(ParameterizedTypeReference.class)
         )).thenReturn(new ResponseEntity<>(List.of(kcMap), HttpStatus.OK));
-
         when(restTemplate.exchange(
                 contains("/users/123"),
                 eq(HttpMethod.PUT),
@@ -190,7 +226,6 @@ public class UserServiceTest {
 
         User dbUser = userEntity("123");
         when(userRepository.findByKeycloakId("123")).thenReturn(Optional.of(dbUser));
-        when(userRepository.save(dbUser)).thenReturn(dbUser);
 
         userService.updateUser(request);
 
@@ -199,7 +234,7 @@ public class UserServiceTest {
     }
 
     @Test
-    void updateUserNotFoundTest() {
+    void updateUser_missingKeycloakUser_throws() {
         UserRequestUpdate request = requestUpdate("NewFirst", "NewLast", "missing@email.com", "");
 
         when(restTemplate.exchange(
@@ -214,9 +249,8 @@ public class UserServiceTest {
     }
 
     @Test
-    void deleteUserTest() {
+    void deleteUser_deletesFromKeycloakAndDb() {
         String email = "test1@email.com";
-
         Map<String, Object> kcMap = Map.of(
                 "username", "test1",
                 "email", email,
@@ -232,7 +266,6 @@ public class UserServiceTest {
                 any(HttpEntity.class),
                 any(ParameterizedTypeReference.class)
         )).thenReturn(new ResponseEntity<>(List.of(kcMap), HttpStatus.OK));
-
         when(restTemplate.exchange(
                 contains("/users/123"),
                 eq(HttpMethod.DELETE),
@@ -250,7 +283,7 @@ public class UserServiceTest {
     }
 
     @Test
-    void deleteUserNotFoundTest() {
+    void deleteUser_missingKeycloakUser_throws() {
         String email = "missing@email.com";
 
         when(restTemplate.exchange(

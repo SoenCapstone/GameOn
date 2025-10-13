@@ -4,6 +4,14 @@ server:
 spring:
   application:
     name: go-api-gateway
+
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: http://localhost:8080/realms/gameon
+          jwk-set-uri: ${spring.security.oauth2.resourceserver.jwt.issuer-uri}/protocol/openid-connect/certs
+
   cloud:
     gateway:
       server:
@@ -26,7 +34,6 @@ spring:
         jwt:
           issuer-uri: http://localhost:8080/realms/gameon
           jwk-set-uri: ${spring.security.oauth2.resourceserver.jwt.issuer-uri}/protocol/openid-connect/certs
-
 eureka:
   client:
     register-with-eureka: false
