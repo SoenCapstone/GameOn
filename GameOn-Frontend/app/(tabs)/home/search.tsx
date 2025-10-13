@@ -1,4 +1,4 @@
-import React, { useRef } from 'react';
+import React, { useRef, useContext } from 'react';
 import { Host, Button, HStack, VStack, Text } from '@expo/ui/swift-ui';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -8,13 +8,16 @@ import { createScopedLog } from '@/utils/logger';
 import { useSearch } from '@/contexts/SearchContext';
 import { SearchResult } from '@/utils/search';
 import { ScrollView } from 'react-native';
+import { Stack } from 'expo-router';
+import { HeaderHeightContext } from '@react-navigation/elements';
 
 export default function Search() {
 
   const log = createScopedLog('Search');
-  const { query, results, markRendered } = useSearch();
+  const { query, results, markRendered, setQuery } = useSearch();
   const renderT0 = useRef<number | null>(null);
   const renderLogged = useRef(false);
+  const headerHeight = useContext(HeaderHeightContext);
 
   const uiLog = createScopedLog('explore.ui');
 
@@ -51,7 +54,26 @@ export default function Search() {
 
   return (
 
+     
+
     <SafeAreaView style={exploreStyles.container}>
+        <Stack.Screen
+        options={{
+            title: 'Search',
+            headerTransparent: false,
+            headerStyle: { backgroundColor: '#0C456E' },
+            headerShadowVisible: false,
+            headerTintColor: '#ffffff',
+            headerSearchBarOptions: {
+                placement: 'automatic',
+                barTintColor: '#00000000',
+                onChangeText: (event) => {
+                    const text = event.nativeEvent.text || '';
+                    setQuery(text);
+                },
+            },
+        }}
+        /> 
 
         <LinearGradient
         colors={['#0C456E', 'rgba(0,0,0,0)']}
@@ -59,10 +81,9 @@ export default function Search() {
         end={{ x: 0, y: 1 }}
         style={exploreStyles.topGradient}
         pointerEvents="none"
-      />
+        />
 
-        {/* Search Results (from SearchContext) */}
-        <ScrollView style={{ flex: 1, width: '100%'}} contentContainerStyle={{ alignItems: 'center', paddingVertical: 10 }}
+        <ScrollView style={{ width: '100%', height: '80%' }} contentContainerStyle={{ alignItems: 'center', paddingVertical: 10, marginTop: (headerHeight ?? 130) - 130, marginBottom: 70 }}
           onContentSizeChange={() => {
             if (renderT0.current !== null && !renderLogged.current) {
               const took = Math.max(0, Math.round(now() - renderT0.current));

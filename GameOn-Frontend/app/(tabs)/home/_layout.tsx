@@ -1,10 +1,9 @@
-import { Stack } from "expo-router";
-import { useSearch } from '@/contexts/SearchContext';
-import { useColorScheme } from "react-native";
+import { router, Stack } from "expo-router";
+import { Pressable, useColorScheme } from "react-native";
 import React from "react";
+import { SymbolView } from "expo-symbols";
 
 export default function HomeLayout() {
-  const { setQuery } = useSearch();
 
   useColorScheme();
 
@@ -12,19 +11,25 @@ export default function HomeLayout() {
     <Stack>
       <Stack.Screen
         name="index"
-        options={{ title: 'Search', 
+        options={{ title: 'Home', 
           headerTransparent: true,
           headerStyle: { backgroundColor: '#0a324fff' },
           headerShadowVisible: false,
           headerTintColor: '#ffffff',
-          headerSearchBarOptions: {
-            placement: 'integratedButton',
-            barTintColor: '#00000000',
-            onChangeText: (event) => {
-              const text = event.nativeEvent.text || '';
-              setQuery(text);
-            },
-          },
+          headerRight: () => (
+                <Pressable
+                    style={{
+                        // justifyContent: 'center',
+                        alignItems: 'center',
+                        height: '100%',
+                        width: 36,
+                        alignSelf: 'center',
+                    }}
+                    onPress={() => router.push('/home/search')}
+                >
+                    <SymbolView name="magnifyingglass" tintColor="white" />
+                </Pressable>
+            ),
         }}
       />
     </Stack>
