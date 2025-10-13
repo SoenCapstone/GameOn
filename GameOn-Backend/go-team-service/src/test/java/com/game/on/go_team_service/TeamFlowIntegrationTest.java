@@ -16,6 +16,7 @@ import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 
+import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.anyLong;
@@ -56,7 +57,7 @@ class TeamFlowIntegrationTest {
                 TeamPrivacy.PRIVATE
         );
 
-        MvcResult createResult = mockMvc.perform(post("/teams")
+        MvcResult createResult = mockMvc.perform(post("/api/v1/teams")
                         .headers(ownerHeaders)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(createRequest)))
@@ -66,11 +67,11 @@ class TeamFlowIntegrationTest {
                 .andReturn();
 
         JsonNode createNode = objectMapper.readTree(createResult.getResponse().getContentAsString());
-        var teamId = java.util.UUID.fromString(createNode.get("id").asText());
+        var teamId = UUID.fromString(createNode.get("id").asText());
         var slug = createNode.get("slug").asText();
 
         // Fetch by slug
-        mockMvc.perform(get("/teams/" + slug).headers(ownerHeaders))
+        mockMvc.perform(get("/api/v1/teams/" + slug).headers(ownerHeaders))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.slug").value(slug));
 
@@ -85,7 +86,7 @@ class TeamFlowIntegrationTest {
                 TeamPrivacy.PUBLIC
         );
 
-        mockMvc.perform(patch("/teams/" + teamId)
+        mockMvc.perform(patch("/api/v1/teams/" + teamId)
                         .headers(ownerHeaders)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(updateRequest)))
@@ -95,33 +96,33 @@ class TeamFlowIntegrationTest {
 
         // Invite player by userId
         var inviteUserRequest = new TeamInviteCreateRequest(playerId, null, null);
-        MvcResult inviteUserResult = mockMvc.perform(post("/teams/" + teamId + "/invites")
+        MvcResult inviteUserResult = mockMvc.perform(post("/api/v1/teams/" + teamId + "/invites")
                         .headers(ownerHeaders)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(inviteUserRequest)))
                 .andExpect(status().isCreated())
                 .andReturn();
-        var inviteUserId = java.util.UUID.fromString(objectMapper.readTree(inviteUserResult.getResponse()
+        var inviteUserId = UUID.fromString(objectMapper.readTree(inviteUserResult.getResponse()
                 .getContentAsString()).get("id").asText());
 
         // Accept invite as player
-        mockMvc.perform(post("/invites/" + inviteUserId + "/accept")
+        mockMvc.perform(post("/api/v1/invites/" + inviteUserId + "/accept")
                         .headers(headerBlock(playerId, null)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.role").value("PLAYER"));
 
         // Transfer ownership to player
         var transferPayload = "{\"newOwnerUserId\":" + playerId + "}";
-        mockMvc.perform(post("/teams/" + teamId + "/transfer-owner")
+        mockMvc.perform(post("/api/v1/teams/" + teamId + "/transfer-owner")
                         .headers(ownerHeaders)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(transferPayload))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.ownerUserId").value(playerId))
+                .andExpect(jsonPath("$.ownerUserId").value((int) playerId))
                 .andExpect(jsonPath("$.members[0].role").value("OWNER"));
 
         // Previous owner demotes to player
-        mockMvc.perform(post("/teams/" + teamId + "/members/self-demote")
+        mockMvc.perform(post("/api/v1/teams/" + teamId + "/members/self-demote")
                         .headers(ownerHeaders))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.role").value("PLAYER"));
@@ -130,7 +131,7 @@ class TeamFlowIntegrationTest {
 
         // Invite second player by email
         var inviteEmailRequest = new TeamInviteCreateRequest(null, "player@example.com", null);
-        MvcResult inviteEmailResult = mockMvc.perform(post("/teams/" + teamId + "/invites")
+        MvcResult inviteEmailResult = mockMvc.perform(post("/api/v1/teams/" + teamId + "/invites")
                         .headers(newOwnerHeaders)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(inviteEmailRequest)))
@@ -140,14 +141,14 @@ class TeamFlowIntegrationTest {
                 .getContentAsString()).get("id").asText());
 
         // Accept email invite with matching header
-        mockMvc.perform(post("/invites/" + inviteEmailId + "/accept")
+        mockMvc.perform(post("/api/v1/invites/" + inviteEmailId + "/accept")
                         .headers(headerBlock(emailPlayerId, "player@example.com")))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.userId").value(emailPlayerId))
+                .andExpect(jsonPath("$.userId").value((int) emailPlayerId))
                 .andExpect(jsonPath("$.role").value("PLAYER"));
 
         // List members shows three entries
-        MvcResult membersResult = mockMvc.perform(get("/teams/" + teamId + "/members")
+        MvcResult membersResult = mockMvc.perform(get("/api/v1/teams/" + teamId + "/members")
                         .headers(newOwnerHeaders))
                 .andExpect(status().isOk())
                 .andReturn();
@@ -155,22 +156,22 @@ class TeamFlowIntegrationTest {
         assertThat(members).hasSize(3);
 
         // Email player leaves their team
-        mockMvc.perform(delete("/teams/" + teamId + "/members/" + emailPlayerId)
+        mockMvc.perform(delete("/api/v1/teams/" + teamId + "/members/" + emailPlayerId)
                         .headers(headerBlock(emailPlayerId, "player@example.com")))
                 .andExpect(status().isNoContent());
 
         // Owner removes the remaining player
-        mockMvc.perform(delete("/teams/" + teamId + "/members/" + ownerId)
+        mockMvc.perform(delete("/api/v1/teams/" + teamId + "/members/" + ownerId)
                         .headers(ownerHeaders))
                 .andExpect(status().isNoContent());
 
         // Archive team
-        mockMvc.perform(delete("/teams/" + teamId)
+        mockMvc.perform(delete("/api/v1/teams/" + teamId)
                         .headers(newOwnerHeaders))
                 .andExpect(status().isNoContent());
 
         // Team no longer appears in listings
-        MvcResult listResult = mockMvc.perform(get("/teams")
+        MvcResult listResult = mockMvc.perform(get("/api/v1/teams")
                         .headers(newOwnerHeaders)
                         .param("my", "true"))
                 .andExpect(status().isOk())

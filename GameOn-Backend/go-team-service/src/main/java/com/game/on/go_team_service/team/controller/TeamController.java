@@ -13,7 +13,7 @@ import java.util.List;
 import java.util.UUID;
 
 @RestController
-@RequestMapping("/teams")
+@RequestMapping("/api/v1/teams")
 @RequiredArgsConstructor
 public class TeamController {
 

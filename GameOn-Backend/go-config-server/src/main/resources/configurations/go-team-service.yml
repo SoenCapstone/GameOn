@@ -1,6 +1,6 @@
 spring:
   datasource:
-    url: jdbc:postgresql://localhost:5432/team
+    url: jdbc:postgresql://localhost:5432/gameon_db
     username: ${DB_USERNAME}
     password: ${DB_PASSWORD}
     driver-class-name: org.postgresql.Driver
@@ -15,6 +15,8 @@ spring:
     open-in-view: false
   flyway:
     enabled: true
+    baseline-on-migrate: true
+    baseline-version: 0
     locations: classpath:db/migration
 
 server:

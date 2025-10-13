@@ -18,7 +18,7 @@ public class UserController {
 
     private final UserService userService;
 
-    @GetMapping("/getAllUsers")
+    @GetMapping("/user/getAllUsers")
     public ResponseEntity<List<UserResponse>> getAllUsers(){
         return ResponseEntity.ok(userService.getAllUsers());
     }
@@ -28,10 +28,15 @@ public class UserController {
         return ResponseEntity.ok(userService.fetchUserByEmail(userEmail));
     }
 
-    @GetMapping("/user/id/{userId}")
-    public ResponseEntity<UserResponse> fetchUserById(@PathVariable Long userId) {
-        return ResponseEntity.ok(userService.fetchUserById(userId));
+    @GetMapping("/user/keycloak/{keycloakId}")
+    public ResponseEntity<UserResponse> fetchUserByKeycloakId(@PathVariable String keycloakId) {
+        return ResponseEntity.ok(userService.fetchUserByKeycloakId(keycloakId));
     }
+
+   @GetMapping("/user/id/{userId}")
+   public ResponseEntity<UserResponse> fetchUserById(@PathVariable Long userId) {
+       return ResponseEntity.ok(userService.fetchUserById(userId));
+   }
 
     @PostMapping("/user/create")
     public ResponseEntity<UserResponse> createUser(@Valid @RequestBody UserRequestCreate userRequestCreate){

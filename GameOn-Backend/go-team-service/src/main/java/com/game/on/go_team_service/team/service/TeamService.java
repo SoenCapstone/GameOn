@@ -223,12 +223,12 @@ public class TeamService {
         ensureRole(callerMembership, Set.of(TeamRole.OWNER, TeamRole.MANAGER),
                 "Only owners or managers can create invites");
 
-        if (request.inviteeUserId() == null && !StringUtils.hasText(request.inviteeEmail())) {
+        var inviteeUserId = request.inviteeUserId();
+        var inviteeEmail = trimToNull(request.inviteeEmail());
+
+        if (inviteeUserId == null && inviteeEmail == null) {
             throw new BadRequestException("Either inviteeUserId or inviteeEmail must be provided");
         }
-
-        var inviteeEmail = trimToNull(request.inviteeEmail());
-        var inviteeUserId = request.inviteeUserId();
 
         if (inviteeUserId != null && !userDirectoryClient.userExists(inviteeUserId)) {
             throw new NotFoundException("Invitee user not found");
