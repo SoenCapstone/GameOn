@@ -7,7 +7,7 @@ import { images } from '@/constants/images';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { createScopedLog } from '@/utils/logger'; 
 import { router } from 'expo-router'
-//import NavBar from '@/components/bottom Navbar'
+
 
 // Sample league data (replace with fetched data later)
 const leagues = [
@@ -25,7 +25,7 @@ const user = {
 
 const log = createScopedLog('Profile')
 
-export default function UserProfile() {
+export const UserProfile = () => {
 
   // define logout behavior here
   const onLogout = () => {
@@ -102,10 +102,11 @@ export default function UserProfile() {
         </View>
         </ScrollView>
       </LinearGradient>
-      {/*<NavBar></NavBar>*/}
 </SafeAreaView>
   );
 }
+
+export default UserProfile;
 
 const styles = StyleSheet.create({
   header: {
