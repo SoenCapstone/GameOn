@@ -42,6 +42,10 @@ jobs:
             mvn -B -ntp -DskipTests package
           fi
           
+      - name: Copy common artifact to other dirs
+        working-directory: GameOn-Backend/common
+        run: |
+          cp GameOn-Backend/common/target/*.jar GameOn-Backend/go-user-service/target/
       - name: Build User service
         run: |
           if [ -f mvnw ]; then
