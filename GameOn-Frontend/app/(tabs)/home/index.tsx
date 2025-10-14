@@ -1,18 +1,18 @@
 import React from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { exploreStyles } from '@/constants/explore-styles';
+import { searchStyles } from '@/components/SearchPage/constants';
 import { LinearGradient } from 'expo-linear-gradient';
 
 export default function Home() {
 
   return (
-    <SafeAreaView style={exploreStyles.container}>
+    <SafeAreaView style={searchStyles.container}>
 
       <LinearGradient
               colors={['#0C456E', 'rgba(0,0,0,0)']}
               start={{ x: 0, y: 0 }}
               end={{ x: 0, y: 1 }}
-              style={exploreStyles.topGradient}
+              style={searchStyles.topGradient}
               pointerEvents="none"
             />
       

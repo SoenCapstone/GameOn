@@ -19,7 +19,6 @@ export default function HomeLayout() {
           headerRight: () => (
                 <Pressable
                     style={{
-                        // justifyContent: 'center',
                         alignItems: 'center',
                         height: '100%',
                         width: 36,

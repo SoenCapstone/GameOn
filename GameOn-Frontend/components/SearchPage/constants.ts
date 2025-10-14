@@ -1,3 +1,7 @@
+import { StyleSheet } from 'react-native';
+
+export const HEADER_BASE_HEIGHT = 75;
+
 export interface SearchResult {
   id: string;
   type: 'team' | 'league';
@@ -6,6 +10,13 @@ export interface SearchResult {
   logo: string;
   league: string;
 }
+
+export type SearchContextValue = {
+  query: string;
+  setQuery: (q: string) => void;
+  results: SearchResult[];
+  markRendered: (renderTookMs: number) => void;
+};
 
 export const mockSearchResults: SearchResult[] = [
   { id: '1', type: 'team', name: 'FC Barcelona', subtitle: 'Team in La Liga', logo: '⚽', league: 'La Liga' },
@@ -22,14 +33,18 @@ export const mockSearchResults: SearchResult[] = [
   { id: '12', type: 'league', name: 'Serie A', subtitle: 'Italian League', logo: '🇮🇹', league: 'Serie A' },
 ];
 
-export function filterSearchResults(query: string): SearchResult[] {
-  const q = (query || '').toLowerCase().trim();
-  if (!q) return mockSearchResults;
-  return mockSearchResults.filter((r) =>
-    r.name.toLowerCase().includes(q) ||
-    r.subtitle.toLowerCase().includes(q) ||
-    r.league.toLowerCase().includes(q)
-  );
-}
-
-export default { mockSearchResults, filterSearchResults };
+export default { mockSearchResults };
+ 
+export const searchStyles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: '#000',
+  },
+  topGradient: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    height: 700,
+  },
+});

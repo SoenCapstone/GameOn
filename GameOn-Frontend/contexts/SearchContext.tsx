@@ -1,15 +1,9 @@
 import React, { createContext, useContext, useEffect, useMemo, useState } from 'react';
-import { filterSearchResults, SearchResult } from '@/utils/search';
+import { SearchResult, SearchContextValue } from '@/components/SearchPage/constants';
+import { filterSearchResults } from '@/components/SearchPage/utils';
 import { createScopedLog } from '@/utils/logger';
 
-const ctxLog = createScopedLog('search.context');
-
-type SearchContextValue = {
-  query: string;
-  setQuery: (q: string) => void;
-  results: SearchResult[];
-  markRendered: (renderTookMs: number) => void;
-};
+const ctxLog = createScopedLog('Search.context');
 
 const SearchContext = createContext<SearchContextValue | undefined>(undefined);
 
