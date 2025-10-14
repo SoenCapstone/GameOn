@@ -21,7 +21,7 @@ export const log = logger.createLogger({
 
 export const createScopedLog = (scope: string) => ({
   debug: (m: string, d?: unknown) => log.debug(`${scope}: ${m}`, d),
-  info:  (m: string, d?: unknown) => log.info(`${scope}: ${m}`, d),
+  info:  (m: string, d?: unknown) => d !== undefined ? log.info(`${scope}: ${m}`, d) : log.info(`${scope}: ${m}`),
   warn:  (m: string, d?: unknown) => log.warn(`${scope}: ${m}`, d),
   error: (m: string, d?: unknown) => log.error(`${scope}: ${m}`, d),
 });

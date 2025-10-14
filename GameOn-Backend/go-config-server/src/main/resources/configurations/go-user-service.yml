@@ -1,6 +1,6 @@
 spring:
   datasource:
-    url: jdbc:postgresql://localhost:5432/user
+    url: jdbc:postgresql://localhost:5432/gameon_db
     username: ${DB_USERNAME}
     password: ${DB_PASSWORD}
     driver-class-name: org.postgresql.Driver
@@ -17,3 +17,9 @@ eureka:
   client:
     service-url:
       defaultZone: http://go-discovery-service:8761/eureka/
+
+keycloak:
+  base-url: http://localhost:8080
+  realm: gameon
+  client-id: ${KEYCLOAK_CLIENT_ID:gameon-client}
+  client-secret: ${KEYCLOAK_CLIENT_SECRET}
