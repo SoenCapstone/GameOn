@@ -5,11 +5,13 @@ on:
     branches: [main]
     paths:
       - "GameOn-Backend/go-user-service/**"
+      - "GameOn-Backend/common/**"
       - ".github/workflows/backend-tests.yml"
   push:
     branches: [main]
     paths:
       - "GameOn-Backend/go-user-service/**"
+      - "GameOn-Backend/common/**"
       - ".github/workflows/backend-tests.yml"
 
 jobs:
