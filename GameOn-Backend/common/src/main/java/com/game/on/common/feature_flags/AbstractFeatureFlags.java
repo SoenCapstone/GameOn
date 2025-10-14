@@ -1,7 +1,9 @@
 package com.game.on.common.feature_flags;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.exc.StreamReadException;
 import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.DatabindException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectWriter;
 import org.slf4j.Logger;
@@ -28,17 +30,20 @@ public abstract class AbstractFeatureFlags<T extends Enum<T> & FeatureFlagList<T
         initialize();
     }
 
+    /**
+     * Initialize the feature flags using the annotations for the class
+     */
     public void initialize() {
         FeatureFlagFile fileAnnotation = enumClass.getAnnotation(FeatureFlagFile.class);
 
-        //TODO: Different error handling? This means the feature flag map is not populated, thus returning false for all challenges in the future...
+        // Without this annotation, we don't know what file to check
         if(fileAnnotation == null) {
-            log.error("Feature flag enum is missing com.game.on.common.feature_flags.FeatureFlagFile annotation");
+            log.error("Feature flag enum is missing FeatureFlagFile annotation");
             return;
         }
 
         Path dirPath = Paths.get("feature-flags");
-        log.info("Searching for feature flags in: {}", dirPath);
+        log.debug("Searching for feature flags in: {}", dirPath);
         if(!Files.exists(dirPath) || !Files.isDirectory(dirPath)) {
             try {
                 Files.createDirectory(dirPath);
@@ -49,11 +54,11 @@ public abstract class AbstractFeatureFlags<T extends Enum<T> & FeatureFlagList<T
         }
 
         String fileName = fileAnnotation.FileName();
-
         if(!fileName.endsWith(".json")) {
             log.warn("Missing or invalid file format. Appending .json to {}", fileName);
             fileName += ".json";
         }
+
         filePath = Paths.get("feature-flags\\" + fileName);
         if(Files.exists(filePath)) {
             readExistingFile();
@@ -63,8 +68,11 @@ public abstract class AbstractFeatureFlags<T extends Enum<T> & FeatureFlagList<T
         }
     }
 
+    /**
+     * Read an existing feature flag file and populate the underlying map
+     */
     private void readExistingFile() {
-        log.info("Reading feature flag configuration from path: {}", filePath);
+        log.debug("Reading feature flag configuration from path: {}", filePath);
 
         try {
             FileReader fr = new FileReader(filePath.toString());
@@ -77,43 +85,52 @@ public abstract class AbstractFeatureFlags<T extends Enum<T> & FeatureFlagList<T
             // The deserialize() method is tied to an actual instance, but it doesn't matter which one...
             T pseudoDeserializer = enumClass.getEnumConstants()[0];
             for(var t : test) {
-                log.info("TEST: {}:{}", t.getKey(), t.isEnabled());
+                T deserializedEnumValue = pseudoDeserializer.deserialize(t.getKey());
 
-                T deserializedValue = pseudoDeserializer.deserialize(t.getKey());
-
-                log.info("Deserialized value: {}", deserializedValue);
-                values.put(deserializedValue, t);
+                values.put(deserializedEnumValue, t);
             }
 
-            //TODO: Add the missing flag?
+            // This is nice if people add a new flag, so they don't have to remake the file entirely...
             if(values.size() != enumClass.getEnumConstants().length) {
                 log.warn("Missing feature flag in configuration file: {}", filePath);
+
+                for(T enumVal : enumClass.getEnumConstants()) {
+                    if(values.containsKey(enumVal)) {
+                        continue;
+                    }
+
+                    log.debug("Adding missing feature flag: {}", enumVal);
+
+                    addDefaultEntry(enumVal);
+                }
+
+                save();
             }
         }
         catch (FileNotFoundException e) {
             log.error("Feature flag file not found", e);
-        } catch (Exception e) {
-            //TODO: This is handling many exceptions that come from the deserialization process, expand this...
-            log.error("Exception while reading data from file", e);
+        }catch (DatabindException e) {
+            log.error("Error while parsing feature flag entries", e);
+        } catch (StreamReadException e) {
+            log.error("Error reading data stream for file", e);
+        } catch (IOException e) {
+            log.error("IO exception", e);
+        } catch (NoSuchFieldException e) {
+            log.error("Enum field could not be found...", e);
+        }  catch (IllegalAccessException e) {
+            log.error("Missing access to read existing file");
         }
     }
 
+    /**
+     * Create a default feature flag file
+     */
     private void createDefaultFile() {
-        log.info("Creating default feature flag file in: {}", filePath);
+        log.debug("Creating default feature flag file in: {}", filePath);
 
         try {
             for(T enumVal : enumClass.getEnumConstants()) {
-                FeatureFlagDescriptor descriptor = enumClass.getField(enumVal.name()).getAnnotation(FeatureFlagDescriptor.class);
-
-                if(descriptor == null) {
-                    log.error("Feature flag: {} in {} is missing a descriptor, skipping...", enumVal.name(), filePath);
-                    continue;
-                }
-
-                FeatureFlagEntry entry = new FeatureFlagEntry();
-                entry.setKey(enumVal.serialize(enumVal));
-                entry.setEnabled(descriptor.DefaultEnabled());
-                values.put(enumVal, entry);
+                addDefaultEntry(enumVal);
             }
 
             //Create the new file so that save() does not have to
@@ -133,6 +150,25 @@ public abstract class AbstractFeatureFlags<T extends Enum<T> & FeatureFlagList<T
         else {
             log.info("Default feature flag file has been created and saved.");
         }
+    }
+
+    /**
+     * Adds an entry to the map using the default information for the feature flag
+     * @param newFlag The enum value to be added
+     * @throws NoSuchFieldException Field is not found in the enum
+     */
+    private void addDefaultEntry(T newFlag) throws NoSuchFieldException{
+        FeatureFlagDescriptor descriptor = enumClass.getField(newFlag.name()).getAnnotation(FeatureFlagDescriptor.class);
+
+        if(descriptor == null) {
+            log.warn("Feature flag: {} in {} is missing a descriptor, skipping...", newFlag.name(), filePath);
+            return;
+        }
+
+        FeatureFlagEntry entry = new FeatureFlagEntry();
+        entry.setKey(newFlag.serialize(newFlag));
+        entry.setEnabled(descriptor.DefaultEnabled());
+        values.put(newFlag, entry);
     }
 
     @Override
@@ -165,7 +201,7 @@ public abstract class AbstractFeatureFlags<T extends Enum<T> & FeatureFlagList<T
         // NOTE: isWritable checks for exists(), so it's possible it's not a permissions problem
         // The file should be created in createDefaultFile, otherwise there's some other issue...
         if(!Files.isWritable(filePath)) {
-            log.warn("Path '{}' is not writable", filePath);
+            log.error("Path '{}' is not writable", filePath);
             return false;
         }
 
