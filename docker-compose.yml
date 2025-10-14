@@ -12,6 +12,63 @@ services:
     volumes:
       - db_data:/var/lib/postgresql/data
 
+  go-config-server:
+    build: ./GameOn-Backend/go-config-server
+    ports:
+      - "8889:8889"
+    volumes:
+      - ./Configuration:/configurations
+
+  go-discovery-service:
+    build: ./GameOn-Backend/go-discovery-service
+    ports:
+      - "8761:8761"
+    environment:
+      SPRING_CONFIG_IMPORT: optional:configserver:http://go-config-server:8889
+      SERVER_PORT: 8761
+    depends_on:
+      - go-config-server
+
+  go-api-gateway:
+    build: ./GameOn-Backend/go-api-gateway
+    ports:
+      - "8222:8222"
+    environment:
+      SPRING_CONFIG_IMPORT: optional:configserver:http://go-config-server:8889
+      SPRING_CLOUD_CONFIG_OVERRIDE_SYSTEM_PROPERTIES: "true"
+      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://go-discovery-service:8761/eureka/
+      EUREKA_CLIENT_SERVICE_URL_DEFAULT_ZONE: http://go-discovery-service:8761/eureka/
+      JAVA_TOOL_OPTIONS: "-Deureka.client.serviceUrl.defaultZone=http://go-discovery-service:8761/eureka/ -Dspring.cloud.config.override-system-properties=true"
+      SERVER_PORT: 8222
+    depends_on:
+      - go-config-server
+      - go-discovery-service
+
+  go-user-service:
+    build: ./GameOn-Backend/go-user-service
+    ports:
+      - "8090:8080"
+    environment:
+      SPRING_CONFIG_IMPORT: optional:configserver:http://go-config-server:8889
+      SERVER_PORT: 8080
+
+
+      SPRING_CLOUD_CONFIG_OVERRIDE_SYSTEM_PROPERTIES: "true"
+      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://go-discovery-service:8761/eureka/
+      EUREKA_CLIENT_SERVICE_URL_DEFAULT_ZONE: http://go-discovery-service:8761/eureka/
+      JAVA_TOOL_OPTIONS: "-Deureka.client.serviceUrl.defaultZone=http://go-discovery-service:8761/eureka/ -Dspring.cloud.config.override-system-properties=true"
+
+
+      SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/gameon_db
+      SPRING_DATASOURCE_USERNAME: username
+      SPRING_DATASOURCE_PASSWORD: password
+      SPRING_JPA_HIBERNATE_DDL_AUTO: update
+    depends_on:
+      - go-config-server
+      - go-discovery-service
+      - db
+
+
   keycloak:
     image: quay.io/keycloak/keycloak:26.4.0
     container_name: keycloak
@@ -34,3 +91,4 @@ services:
 
 volumes:
   db_data:
+
