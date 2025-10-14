@@ -4,14 +4,14 @@ on:
   pull_request:
     branches: [main]
     paths:
-      - "GameOn-Backend/go-user-service/**"
       - "GameOn-Backend/common/**"
+      - "GameOn-Backend/go-user-service/**"
       - ".github/workflows/backend-tests.yml"
   push:
     branches: [main]
     paths:
-      - "GameOn-Backend/go-user-service/**"
       - "GameOn-Backend/common/**"
+      - "GameOn-Backend/go-user-service/**"
       - ".github/workflows/backend-tests.yml"
 
 jobs:
@@ -32,7 +32,17 @@ jobs:
           java-version: "21"
           cache: maven
 
-      - name: Build
+      - name: Build common
+        working-directory: GameOn-Backend/common
+        run: |
+          if [ -f mvnw ]; then
+            chmod +x mvnw
+            ./mvnw -B -ntp -DskipTests package
+          else
+            mvn -B -ntp -DskipTests package
+          fi
+          
+      - name: Build User service
         run: |
           if [ -f mvnw ]; then
             chmod +x mvnw
