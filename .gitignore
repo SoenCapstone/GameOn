@@ -141,3 +141,7 @@ vite.config.ts.timestamp-*
 # macOS
 .DS_Store
 *.pem
+
+#vsCode related
+.idea
+.vscode
