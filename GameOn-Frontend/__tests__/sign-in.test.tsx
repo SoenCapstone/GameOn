@@ -1,6 +1,9 @@
 import React from 'react';
 import { render, fireEvent, waitFor } from '@testing-library/react-native';
 
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import SignInScreen from '@/app/(auth)/sign-in';
+
 // Silence noisy warnings
 jest.spyOn(console, 'warn').mockImplementation(() => {});
 
@@ -33,9 +36,6 @@ jest.mock('@/contexts/auth', () => ({
 
 // Logo
 jest.mock('@/constants/images', () => ({ images: { logo: 1 } }));
-
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import SignInScreen from '@/app/(auth)/sign-in';
 
 beforeEach(async () => {
   jest.clearAllMocks();
