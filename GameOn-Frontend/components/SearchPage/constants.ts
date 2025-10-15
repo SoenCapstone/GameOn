@@ -15,7 +15,11 @@ export type SearchContextValue = {
   query: string;
   setQuery: (q: string) => void;
   results: SearchResult[];
-  markRendered: (renderTookMs: number) => void;
+  markRendered: (
+    renderTookMs: number,
+    opts?: { mode?: 'teams' | 'leagues'; resultCount?: number; query?: string }
+  ) => void;
+  notifyModeChange: (mode: 'teams' | 'leagues', resultCount: number) => void;
 };
 
 export const mockSearchResults: SearchResult[] = [
@@ -60,14 +64,19 @@ export const searchStyles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    backgroundColor: 'transparent',
-    paddingVertical: 10,
+    backgroundColor: 'rgba(255,255,255,0.02)',
+    paddingVertical: 12,
     paddingHorizontal: 18,
-    marginBottom: 12,
-    borderRadius: 20,
+    marginBottom: 14,
+    borderRadius: 24,
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.12)',
+    borderColor: 'rgba(255,255,255,0.06)',
     overflow: 'hidden',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.28,
+    shadowRadius: 12,
+    elevation: 6,
   },
   resultRow: {
     flexDirection: 'row',
@@ -77,13 +86,13 @@ export const searchStyles = StyleSheet.create({
   logoContainer: {
     width: 48,
     height: 48,
-    borderRadius: 24,
-    backgroundColor: 'rgba(255,255,255,0.15)',
+    borderRadius: 16,
+    backgroundColor: 'rgba(255,255,255,0.06)',
     alignItems: 'center',
     justifyContent: 'center',
     marginRight: 12,
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.25)',
+    borderColor: 'rgba(255,255,255,0.08)',
   },
   logoText: {
     fontSize: 20,

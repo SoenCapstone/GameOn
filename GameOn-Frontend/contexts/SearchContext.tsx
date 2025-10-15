@@ -15,6 +15,7 @@ export const SearchProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     id: number;
     query: string;
     resultCount: number;
+    mode?: 'teams' | 'leagues';
   } | null>(null);
   const nextId = React.useRef(1);
 
@@ -27,22 +28,69 @@ export const SearchProvider: React.FC<{ children: React.ReactNode }> = ({ childr
       query,
       resultCount: filtered.length,
     };
+    // also emit an immediate log for the query change (tookMs = 0). This ensures every query change is recorded.
+    try {
+      // compute displayedCount the same way the UI will: if a mode is set, restrict by type
+      let displayedCount = filtered.length;
+      if (lastSearchRef.current?.mode) {
+        const mode = lastSearchRef.current.mode;
+        const q = (query || '').toLowerCase().trim();
+        // name-only match for UI behavior
+        displayedCount = filtered
+          .filter((r) => (mode === 'teams' ? r.type === 'team' : r.type === 'league'))
+          .filter((r) => {
+            if (!q) return true;
+            return r.name.toLowerCase().includes(q);
+          }).length;
+      }
+
+      const payload: Record<string, any> = { query, resultCount: displayedCount, tookMs: 0 };
+      if (lastSearchRef.current?.mode) payload.mode = lastSearchRef.current.mode;
+      ctxLog.info('search completed', payload);
+      // clear metadata so markRendered won't double-log the same query
+      lastSearchRef.current = null;
+    } catch {
+      // swallow logging errors; lastSearchRef still set for UI-driven logging
+    }
   }, [query]);
 
-  const markRendered = (renderTookMs: number) => {
+  const markRendered = (
+    renderTookMs: number,
+    opts?: { mode?: 'teams' | 'leagues'; resultCount?: number; query?: string }
+  ) => {
     const meta = lastSearchRef.current;
-    if (!meta) return;
-    // print single log for this query containing render duration (tookMs)
-    ctxLog.info('search completed', {
-      query: meta.query,
-      resultCount: meta.resultCount,
+    if (!meta && !opts) return;
+    // build base payload
+    const payload: Record<string, any> = {
+      query: opts?.query ?? meta?.query ?? '',
+      resultCount: opts?.resultCount ?? meta?.resultCount ?? 0,
       tookMs: renderTookMs,
-    });
+    };
+
+    // if caller provided mode, include it in the log
+  if (opts?.mode) payload.mode = opts.mode;
+
+    ctxLog.info('search completed', payload);
     // clear to avoid duplicate logs
     lastSearchRef.current = null;
   };
 
-  const value = useMemo(() => ({ query, setQuery, results, markRendered }), [query, results]);
+  const logModeChange = React.useCallback((mode: 'teams' | 'leagues', resultCount: number) => {
+    // update lastSearchRef so the subsequent markRendered will include the mode
+    if (lastSearchRef.current) {
+      lastSearchRef.current.mode = mode;
+      lastSearchRef.current.resultCount = resultCount;
+    } else {
+      // use current query state if available when creating a placeholder
+      lastSearchRef.current = {
+        id: nextId.current++,
+        query: query,
+        resultCount,
+        mode,
+      };
+    }
+  }, [query]);
+  const value = useMemo(() => ({ query, setQuery, results, markRendered, notifyModeChange: logModeChange }), [query, results, logModeChange]);
 
   return <SearchContext.Provider value={value}>{children}</SearchContext.Provider>;
 };
