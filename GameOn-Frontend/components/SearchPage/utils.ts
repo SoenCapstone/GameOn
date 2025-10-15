@@ -9,9 +9,3 @@ export function filterSearchResults(query: string): SearchResult[] {
     r.league.toLowerCase().includes(q)
   );
 }
-
-export default { filterSearchResults };
-
-export function renderResultText(item: SearchResult) {
-  return `${item.name} — ${item.subtitle}`;
-}

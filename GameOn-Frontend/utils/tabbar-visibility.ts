@@ -15,10 +15,6 @@ export function setTabBarHidden(value: boolean) {
   for (const l of Array.from(listeners)) l(hidden);
 }
 
-export function isTabBarHidden() {
-  return hidden;
-}
-
 export function subscribe(fn: Listener) {
   listeners.add(fn);
   return () => { listeners.delete(fn); };

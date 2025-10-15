@@ -33,8 +33,6 @@ export const mockSearchResults: SearchResult[] = [
   { id: '12', type: 'league', name: 'Serie A', subtitle: 'Italian League', logo: '🇮🇹', league: 'Serie A' },
 ];
 
-export default { mockSearchResults };
- 
 export const searchStyles = StyleSheet.create({
   container: {
     flex: 1,
@@ -46,5 +44,70 @@ export const searchStyles = StyleSheet.create({
     left: 0,
     right: 0,
     height: 700,
+  },
+  resultsWrapper: {
+    flex: 1,
+    height: '100%',
+    width: '100%',
+    alignSelf: 'center',
+  },
+  pressableWrapper: {
+    width: '100%',
+    alignItems: 'center',
+  },
+  resultCard: {
+    width: '90%',
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    backgroundColor: 'transparent',
+    paddingVertical: 10,
+    paddingHorizontal: 18,
+    marginBottom: 12,
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.12)',
+    overflow: 'hidden',
+  },
+  resultRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flex: 1,
+  },
+  logoContainer: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    backgroundColor: 'rgba(255,255,255,0.15)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 12,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.25)',
+  },
+  logoText: {
+    fontSize: 20,
+  },
+  nameText: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: '#FFFFFF',
+    marginBottom: 2,
+  },
+  subtitleText: {
+    fontSize: 14,
+    color: '#FFFFFF80',
+    fontWeight: '500',
+  },
+  rightIconContainer: {
+    marginLeft: 12,
+  },
+  scrollContainer: {
+    width: '100%',
+    height: '100%',
+  },
+  resultsContentStatic: {
+    alignItems: 'center',
+    paddingVertical: 10,
   },
 });

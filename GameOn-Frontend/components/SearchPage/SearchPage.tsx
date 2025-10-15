@@ -1,12 +1,12 @@
 import React, { useRef, useContext } from 'react';
-import { Host, Button, HStack, VStack, Text } from '@expo/ui/swift-ui';
+import { ScrollView, Pressable, View, Text } from 'react-native';
+import { IconSymbol } from '@/components/ui/icon-symbol';
+import { GlassView } from 'expo-glass-effect';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import { searchStyles, HEADER_BASE_HEIGHT, SearchResult } from './constants';
-import { frame } from '@expo/ui/swift-ui/modifiers';
 import { createScopedLog } from '@/utils/logger';
 import { useSearch } from '@/contexts/SearchContext';
-import { ScrollView } from 'react-native';
 import { Stack } from 'expo-router';
 import { setTabBarHidden, getOverlayHeight } from '@/utils/tabbar-visibility';
 import { HeaderHeightContext } from '@react-navigation/elements';
@@ -50,15 +50,22 @@ export default function SearchPage() {
     };
   
     const renderSearchResult = ({ item }: { item: SearchResult }) => (
-      <Button key={item.id} controlSize='extraLarge' color='#FFFFFF' onPress={() => handleResultPress(item)} variant='glass'>
-        <HStack spacing={6}>
-          <Text>{item.logo}</Text>
-          <VStack alignment='leading' modifiers={[frame({ height: 40, width: 255, alignment: 'topLeading' })]}>
-            <Text>{item.name}</Text>
-            <Text size={12} color='#FFFFFF80'>{item.subtitle}</Text>
-          </VStack>
-        </HStack>
-      </Button>
+      <Pressable key={item.id} onPress={() => handleResultPress(item)} style={searchStyles.pressableWrapper}>
+        <GlassView isInteractive={true} glassEffectStyle='clear' style={searchStyles.resultCard}>
+          <View style={searchStyles.resultRow}>
+            <View style={searchStyles.logoContainer}>
+              <Text style={searchStyles.logoText}>{item.logo}</Text>
+            </View>
+            <View style={{ flex: 1 }}>
+              <Text style={searchStyles.nameText}>{item.name}</Text>
+              <Text style={searchStyles.subtitleText}>{item.subtitle}</Text>
+            </View>
+            <View style={searchStyles.rightIconContainer}>
+              <IconSymbol name="chevron.right" size={16} color="#FFFFFF60" />
+            </View>
+          </View>
+        </GlassView>
+      </Pressable>
     );
 
   return (
@@ -92,10 +99,9 @@ export default function SearchPage() {
 
         {/* Search Results */}
         <ScrollView
-          style={{ width: '100%', height: '100%' }}
+          style={searchStyles.scrollContainer}
           contentContainerStyle={{
-            alignItems: 'center',
-            paddingVertical: 10,
+            ...searchStyles.resultsContentStatic,
             marginTop: (headerHeight ?? HEADER_BASE_HEIGHT) - HEADER_BASE_HEIGHT,
             paddingBottom: getOverlayHeight(insets.bottom),
           }}
@@ -111,11 +117,9 @@ export default function SearchPage() {
             }
           }}
         >
-          <Host style={{ flex: 1, height: '100%', width: '100%', alignSelf: 'center'}} matchContents>
-            <VStack spacing={10}>
-              {results.map((item) => renderSearchResult({ item }))}
-            </VStack>
-          </Host>
+          <View style={searchStyles.resultsWrapper}>
+            {results.map((item) => renderSearchResult({ item }))}
+          </View>
         </ScrollView>
     </SafeAreaView>
   );
