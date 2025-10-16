@@ -33,10 +33,10 @@ jobs:
           cache: maven
           
       - name: Build and test common
-        run: mvn -f "./common/pom.xml" -B -ntp -DskipITs test
+        run: mvn -f "./common/pom.xml" -B -ntp -DskipITs package
 
       - name: Build and test user service
-        run: mvn -f "./go-user-service/pom.xml" -B -ntp -DskipITs clean compile --also-make
+        run: mvn -f "./go-user-service/pom.xml" -B -ntp -DskipITs test
 
       - name: Upload test reports
         if: always()
