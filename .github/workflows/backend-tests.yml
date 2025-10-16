@@ -36,7 +36,7 @@ jobs:
         run: mvn -f "./common/pom.xml" -B -ntp -DskipITs package
         
       - name: Copy common jar to repository
-        run: cp "./common/target/*.jar" "~/.m2/repository"
+        run: cp "./common/target/common-1.0-SNAPSHOT.jar" "~/.m2/repository"
 
       - name: Build and test user service
         run: mvn -f "./go-user-service/pom.xml" -B -ntp -DskipITs test
