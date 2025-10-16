@@ -32,16 +32,11 @@ jobs:
           java-version: "21"
           cache: maven
           
-      - name: Cache poms
-        uses: actions/cache@v4
-        with:
-          path: ~/.m2/repository
-          key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
-          restore-keys: |
-            ${{ runner.os }}-maven-
+      - name: Build and test common
+        run: mvn -f "./common/pom.xml" test
 
-      - name: Build with Maven
-        run: mvn --batch-mode clean test
+      - name: Build and test user service
+        run: mvn -f "./go-user-service/pom.xml" test
 
       - name: Upload test reports
         if: always()
