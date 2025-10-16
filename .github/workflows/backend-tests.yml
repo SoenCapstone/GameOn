@@ -19,7 +19,7 @@ jobs:
     runs-on: ubuntu-latest
     defaults:
       run:
-        working-directory: GameOn-Backend/go-user-service
+        working-directory: GameOn-Backend
 
     steps:
       - name: Set up job
@@ -30,38 +30,17 @@ jobs:
         with:
           distribution: temurin
           java-version: "21"
-          cache: maven
-
-      - name: Build common
-        working-directory: GameOn-Backend/common
-        run: |
-          if [ -f mvnw ]; then
-            chmod +x mvnw
-            ./mvnw -B -ntp -DskipTests package
-          else
-            mvn -B -ntp -DskipTests package
-          fi
           
-      - name: Copy common artifact to other dirs
-        working-directory: GameOn-Backend/common
-        run: |
-          cp GameOn-Backend/common/target/*.jar GameOn-Backend/go-user-service/target/
-      - name: Build User service
-        run: |
-          if [ -f mvnw ]; then
-            chmod +x mvnw
-            ./mvnw -B -ntp -DskipTests package
-          else
-            mvn -B -ntp -DskipTests package
-          fi
+      - name: Cache Maven dependencies
+        uses: actions/cache@v4
+        with:
+          path: ~/.m2/repository
+          key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
+          restore-keys: |
+            ${{ runner.os }}-maven-
 
-      - name: Unit tests
-        run: |
-          if [ -f mvnw ]; then
-            ./mvnw -B -ntp -DskipITs test
-          else
-            mvn -B -ntp -DskipITs test
-          fi
+      - name: Build with Maven
+        run: mvn --batch-mode clean test
 
       - name: Upload test reports
         if: always()
