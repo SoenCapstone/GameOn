@@ -36,7 +36,7 @@ jobs:
         run: mvn -f "./common/pom.xml" -B -ntp -DskipITs test
         
       - name: Copy generated jar for common
-        run: mkdir -r "~/.m2/repository/game/on/common" && cp "./common/target/*.jar" "~/.m2/repository/game/on/common"
+        run: mkdir -p "~/.m2/repository/game/on/common" && cp "./common/target/*.jar" "~/.m2/repository/game/on/common"
 
       - name: Build and test user service
         run: mvn -f "./go-user-service/pom.xml" -B -ntp -DskipITs test
