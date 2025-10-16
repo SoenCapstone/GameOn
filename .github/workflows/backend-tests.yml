@@ -32,8 +32,8 @@ jobs:
           java-version: "21"
           
       - name: Cache common
-        uses: actions/cache@v4
         working-directory: GameOn-Backend/common
+        uses: actions/cache@v4
         with:
           path: ~/.m2/repository
           key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
@@ -41,8 +41,8 @@ jobs:
             ${{ runner.os }}-maven-
             
       - name: Cache user service
-        uses: actions/cache@v4
         working-directory: GameOn-Backend/user-service
+        uses: actions/cache@v4
         with:
           path: ~/.m2/repository
           key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
