@@ -4,39 +4,38 @@ server:
 spring:
   application:
     name: go-api-gateway
-
+  cloud:
+    gateway:
+      server:
+        webflux:
+          discovery:
+            locator:
+              enabled: false
+          # Must create a route for each microservice.
+          # The API Gateway will use Eureka + Spring Cloud LoadBalancer to resolve the service ID (lb://SERVICE-ID) to
+          # the correct instance(s) & then forward the request.
+          routes:
+            - id: go-user-service
+              uri: lb://GO-USER-SERVICE
+              predicates:
+                - Path=/api/v1/user/**
+            - id: go-team-service
+              uri: lb://GO-TEAM-SERVICE
+              predicates:
+                  - Path=/api/v1/teams/**
   security:
     oauth2:
       resourceserver:
         jwt:
           issuer-uri: http://localhost:8080/realms/gameon
           jwk-set-uri: ${spring.security.oauth2.resourceserver.jwt.issuer-uri}/protocol/openid-connect/certs
-
-  cloud:
-    gateway:
-      discovery:
-        locator:
-          enabled: false
-      # Must create a route for each microservice.
-      # The API Gateway will use Eureka + Spring Cloud LoadBalancer to resolve the service ID (lb://SERVICE-ID) to
-      # the correct instance(s) & then forward the request.
-      routes:
-        - id: go-user-service
-          uri: lb://GO-USER-SERVICE
-          predicates:
-            - Path=/api/v1/user/**
-        - id: go-team-service
-          uri: lb://GO-TEAM-SERVICE
-          predicates:
-            - Path=/api/v1/teams/**
-
-
 eureka:
   client:
     register-with-eureka: false
     fetch-registry: true
     service-url:
-      defaultZone: http://localhost:8761/eureka/
+      #defaultZone: http://localhost:8761/eureka/
+      default-zone: http://go-discovery-service:8761/eureka/
 
 management:
   endpoints:
