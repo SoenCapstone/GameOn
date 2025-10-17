@@ -111,6 +111,11 @@ export const searchStyles = StyleSheet.create({
     justifyContent: "center",
     marginRight: 12,
   },
+  logoImage: {
+    width: 48,
+    height: 48,
+    borderRadius: 16,
+  },
   logoText: {
     fontSize: 20,
   },

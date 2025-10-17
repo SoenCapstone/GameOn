@@ -1,5 +1,5 @@
 import React, { useRef } from "react";
-import { Pressable, View, Text } from "react-native";
+import { Pressable, View, Text, Image } from "react-native";
 import { IconSymbol } from "@/components/ui/icon-symbol";
 import { GlassView } from "expo-glass-effect";
 import SegmentedControl from "@react-native-segmented-control/segmented-control";
@@ -59,31 +59,45 @@ export default function SearchPage() {
   );
 
   const renderItem = React.useCallback(
-    ({ item }: { item: SearchResult }) => (
-      <Pressable
-        onPress={() => handleResultPress(item)}
-        style={searchStyles.pressableWrapper}
-      >
-        <GlassView
-          isInteractive={true}
-          glassEffectStyle="clear"
-          style={searchStyles.resultCard}
+    ({ item }: { item: SearchResult }) => {
+      // Check if logo is a URL or emoji/text
+      const isUrl =
+        item.logo.startsWith("http://") || item.logo.startsWith("https://");
+
+      return (
+        <Pressable
+          onPress={() => handleResultPress(item)}
+          style={searchStyles.pressableWrapper}
         >
-          <View style={searchStyles.resultRow}>
-            <View style={searchStyles.logoContainer}>
-              <Text style={searchStyles.logoText}>{item.logo}</Text>
+          <GlassView
+            isInteractive={true}
+            glassEffectStyle="clear"
+            style={searchStyles.resultCard}
+          >
+            <View style={searchStyles.resultRow}>
+              <View style={searchStyles.logoContainer}>
+                {isUrl ? (
+                  <Image
+                    source={{ uri: item.logo }}
+                    style={searchStyles.logoImage}
+                    resizeMode="contain"
+                  />
+                ) : (
+                  <Text style={searchStyles.logoText}>{item.logo}</Text>
+                )}
+              </View>
+              <View style={{ flex: 1 }}>
+                <Text style={searchStyles.nameText}>{item.name}</Text>
+                <Text style={searchStyles.subtitleText}>{item.subtitle}</Text>
+              </View>
+              <View style={searchStyles.rightIconContainer}>
+                <IconSymbol name="chevron.right" size={16} color="#FFFFFF60" />
+              </View>
             </View>
-            <View style={{ flex: 1 }}>
-              <Text style={searchStyles.nameText}>{item.name}</Text>
-              <Text style={searchStyles.subtitleText}>{item.subtitle}</Text>
-            </View>
-            <View style={searchStyles.rightIconContainer}>
-              <IconSymbol name="chevron.right" size={16} color="#FFFFFF60" />
-            </View>
-          </View>
-        </GlassView>
-      </Pressable>
-    ),
+          </GlassView>
+        </Pressable>
+      );
+    },
     [handleResultPress],
   );
 

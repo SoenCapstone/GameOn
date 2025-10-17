@@ -56,6 +56,7 @@ type TeamSummaryResponse = {
   sport?: string | null;
   leagueId?: string | null;
   slug: string;
+  logoUrl?: string | null;
   privacy: string;
   maxRoster?: number | null;
   archived: boolean;
@@ -105,7 +106,8 @@ export async function fetchTeamResults(query: string): Promise<SearchResult[]> {
     type: "team",
     name: t.name,
     subtitle: t.sport ? `${t.sport}` : "Team",
-    logo: mapSportToEmoji(t.sport),
+    // Use logoUrl from backend if available, otherwise fallback to emoji
+    logo: t.logoUrl || mapSportToEmoji(t.sport),
     league: "",
   }));
   return mapped;
