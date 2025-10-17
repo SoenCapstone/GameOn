@@ -1,13 +1,12 @@
-import React, { useRef, useContext } from 'react';
+import React, { useRef } from 'react';
 import { Pressable, View, Text } from 'react-native';
 import { IconSymbol } from '@/components/ui/icon-symbol';
 import { GlassView } from 'expo-glass-effect';
 import SegmentedControl from '@react-native-segmented-control/segmented-control';
 import { LegendList } from "@legendapp/list";
-import { searchStyles, HEADER_BASE_HEIGHT, SearchResult } from '@/components/SearchPage/constants';
+import { searchStyles, SearchResult } from '@/components/SearchPage/constants';
 import { createScopedLog } from '@/utils/logger';
 import { useSearch } from '@/contexts/SearchContext';
-import { HeaderHeightContext } from '@react-navigation/elements';
 import { Background } from "@/components/background";
 import ContentArea from "@/components/content-area";
 
@@ -18,7 +17,6 @@ export default function SearchPage() {
   const q = (query || '').toLowerCase().trim();
   const renderT0 = useRef<number | null>(null);
   const renderLogged = useRef(false);
-  const headerHeight = useContext(HeaderHeightContext);
 
   const uiLog = createScopedLog('Search.ui');
   const [mode, setMode] = React.useState<'teams' | 'leagues'>('teams');
@@ -104,7 +102,7 @@ export default function SearchPage() {
           renderItem={renderItem}
           contentContainerStyle={{
             ...searchStyles.resultsContentStatic,
-            marginTop: (headerHeight ?? HEADER_BASE_HEIGHT) - HEADER_BASE_HEIGHT,
+            marginTop: 15
           }}
           onContentSizeChange={() => {
             if (renderT0.current !== null && !renderLogged.current) {

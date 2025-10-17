@@ -1,7 +1,5 @@
 import { StyleSheet } from 'react-native';
 
-export const HEADER_BASE_HEIGHT = 75;
-
 export interface SearchResult {
   id: string;
   type: 'team' | 'league';
@@ -118,7 +116,6 @@ export const searchStyles = StyleSheet.create({
     height: '100%',
   },
   resultsContentStatic: {
-    alignItems: 'center',
     paddingVertical: 10,
   },
 });
