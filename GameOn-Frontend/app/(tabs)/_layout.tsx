@@ -8,7 +8,7 @@ export default function TabLayout() {
       <NativeTabs>
         <NativeTabs.Trigger name="home">
           <Label>Home</Label>
-          <Icon sf="house.fill" />
+          <Icon sf="text.rectangle.page" />
         </NativeTabs.Trigger>
       </NativeTabs>
     </View>
