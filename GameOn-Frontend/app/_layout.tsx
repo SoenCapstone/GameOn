@@ -6,7 +6,7 @@ import {
 import { Stack } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import "react-native-reanimated";
-
+import * as SystemUI from "expo-system-ui";
 import { useColorScheme } from "@/hooks/use-color-scheme";
 import { AuthGate, AuthProvider } from "@/contexts/auth";
 import { FeatureFlagsProvider } from "@/contexts/featureFlags/FeatureFlagsContext";
@@ -17,6 +17,8 @@ export const unstable_settings = {
 
 export default function RootLayout() {
   const colorScheme = useColorScheme();
+
+  SystemUI.setBackgroundColorAsync("black");
 
   return (
     <FeatureFlagsProvider>
