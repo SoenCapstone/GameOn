@@ -11,7 +11,8 @@
     "lint": "expo lint",
     "prebuild": "expo prebuild",
     "build:web": "expo export --platform web --output-dir dist",
-    "test": "jest"
+    "test": "jest --verbose",
+    "format:fix": "prettier --write ."
   },
   "dependencies": {
     "@expo/metro-runtime": "~6.1.2",
