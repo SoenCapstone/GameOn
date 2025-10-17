@@ -1,30 +1,27 @@
 import React, { useRef, useContext } from 'react';
-import { FlatList, Pressable, View, Text } from 'react-native';
+import { Pressable, View, Text } from 'react-native';
 import { IconSymbol } from '@/components/ui/icon-symbol';
 import { GlassView } from 'expo-glass-effect';
-import { Host, Picker } from '@expo/ui/swift-ui';
-import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
-import { LinearGradient } from 'expo-linear-gradient';
-import { searchStyles, HEADER_BASE_HEIGHT, SearchResult } from './constants';
+import SegmentedControl from '@react-native-segmented-control/segmented-control';
+import { LegendList } from "@legendapp/list";
+import { searchStyles, HEADER_BASE_HEIGHT, SearchResult } from '@/components/SearchPage/constants';
 import { createScopedLog } from '@/utils/logger';
 import { useSearch } from '@/contexts/SearchContext';
-import { Stack } from 'expo-router';
-import { setTabBarHidden, getOverlayHeight } from '@/utils/tabbar-visibility';
 import { HeaderHeightContext } from '@react-navigation/elements';
+import { Background } from "@/components/background";
+import ContentArea from "@/components/content-area";
 
 export default function SearchPage() {
 
   const log = createScopedLog('Search');
-  const { query, results, markRendered, setQuery, notifyModeChange } = useSearch();
+  const { query, results, markRendered, notifyModeChange, searchActive } = useSearch();
   const q = (query || '').toLowerCase().trim();
   const renderT0 = useRef<number | null>(null);
   const renderLogged = useRef(false);
   const headerHeight = useContext(HeaderHeightContext);
-  const insets = useSafeAreaInsets();
 
   const uiLog = createScopedLog('Search.ui');
   const [mode, setMode] = React.useState<'teams' | 'leagues'>('teams');
-  const [searchActive, setSearchActive] = React.useState(false);
 
   // log when mode changes
   React.useEffect(() => {
@@ -35,14 +32,6 @@ export default function SearchPage() {
       uiLog.info('mode changed (fallback)', { mode, resultCount: cnt });
     }
   }, [mode, notifyModeChange, results, uiLog]);
-
-  // Hide parent tab bar while this screen is focused
-  React.useEffect(() => {
-    setTabBarHidden(true);
-    return () => {
-      setTabBarHidden(false);
-    };
-  }, [uiLog]);
 
     // prefer high-resolution timer when available
     const now = () => (typeof performance !== 'undefined' && performance.now) ? performance.now() : Date.now();
@@ -97,55 +86,25 @@ export default function SearchPage() {
 
   return (
 
-    <SafeAreaView style={searchStyles.container}>
-        <Stack.Screen
-        options={{
-            title: 'Search',
-            headerTransparent: false,
-            headerStyle: { backgroundColor: '#0C456E' },
-            headerShadowVisible: false,
-            headerTintColor: '#ffffff',
-      headerSearchBarOptions: {
-        placement: 'automatic',
-        barTintColor: '#00000000',
-        onChangeText: (event) => {
-          const text = event.nativeEvent.text || '';
-          setQuery(text);
-        },
-        onFocus: () => setSearchActive(true),
-        onBlur: () => setSearchActive(false),
-      },
-        }}
-        /> 
+    <ContentArea>
+        <Background preset='blue' mode='default'/>
 
-        <LinearGradient
-        colors={['#0C456E', 'rgba(0,0,0,0)']}
-        start={{ x: 0, y: 0 }}
-        end={{ x: 0, y: 1 }}
-        style={searchStyles.topGradient}
-        pointerEvents="none"
+        <SegmentedControl
+          values={['Teams', 'Leagues']}
+          selectedIndex={mode === 'teams' ? 0 : 1}
+          onValueChange={(value) => {
+            setMode(value === 'Teams' ? 'teams' : 'leagues');
+          }}
         />
 
-          <Host matchContents>
-            <Picker
-              options={['Teams', 'Leagues']}
-              selectedIndex={mode === 'teams' ? 0 : 1}
-              onOptionSelected={({ nativeEvent: { index } }) => {
-                setMode(index === 0 ? 'teams' : 'leagues');
-              }}
-              variant="segmented"
-            />
-          </Host>
-
         {/* Search Results */}
-        <FlatList
+        <LegendList
           data={displayedResults}
           keyExtractor={(item) => item.id}
           renderItem={renderItem}
           contentContainerStyle={{
             ...searchStyles.resultsContentStatic,
             marginTop: (headerHeight ?? HEADER_BASE_HEIGHT) - HEADER_BASE_HEIGHT,
-            paddingBottom: getOverlayHeight(insets.bottom),
           }}
           onContentSizeChange={() => {
             if (renderT0.current !== null && !renderLogged.current) {
@@ -159,11 +118,8 @@ export default function SearchPage() {
               renderLogged.current = true;
             }
           }}
-          initialNumToRender={10}
-          maxToRenderPerBatch={8}
-          windowSize={7}
-          removeClippedSubviews
+          recycleItems={true}
         />
-    </SafeAreaView>
+    </ContentArea>
   );
 }

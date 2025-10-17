@@ -1,10 +1,7 @@
-import { Background } from "@/components/background";
-import ContentArea from "@/components/content-area";
+import SearchPage from "@/components/SearchPage/search-page";
 
 export default function Search() {
   return (
-    <ContentArea>
-      <Background preset="blue" mode="default" />
-    </ContentArea>
+    <SearchPage />
   );
 }

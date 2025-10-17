@@ -11,6 +11,7 @@ import React from "react";
 import Header from "@/components/header";
 import PageTitle from "@/components/page-title";
 import HeaderButton from "@/components/header-button";
+import { useSearch } from "@/contexts/SearchContext";
 
 export const unstable_settings = {
   anchor: "(tabs)",
@@ -18,6 +19,7 @@ export const unstable_settings = {
 
 export default function RootLayout() {
   const colorScheme = useColorScheme();
+  const { setQuery, setSearchActive } = useSearch();
 
   return (
     <ThemeProvider value={colorScheme === "dark" ? DarkTheme : DefaultTheme}>
@@ -35,6 +37,13 @@ export default function RootLayout() {
             headerTransparent: true,
             headerSearchBarOptions: {
               hideNavigationBar: false,
+              placement: 'automatic',
+              onChangeText: (event) => {
+                const text = event.nativeEvent.text || '';
+                setQuery(text);
+              },
+              onFocus: () => setSearchActive(true),
+              onBlur: () => setSearchActive(false),
             },
           }}
         />

@@ -9,6 +9,7 @@ const SearchContext = createContext<SearchContextValue | undefined>(undefined);
 
 export const SearchProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [query, setQuery] = useState('');
+  const [searchActive, setSearchActive] = useState(false);
   const [results, setResults] = useState<SearchResult[]>(() => filterSearchResults(''));
   // track last search metadata so we can emit a single combined log after render
   const lastSearchRef = React.useRef<{
@@ -90,7 +91,15 @@ export const SearchProvider: React.FC<{ children: React.ReactNode }> = ({ childr
       };
     }
   }, [query]);
-  const value = useMemo(() => ({ query, setQuery, results, markRendered, notifyModeChange: logModeChange }), [query, results, logModeChange]);
+  const value = useMemo(() => ({ 
+    query, 
+    setQuery, 
+    results, 
+    searchActive, 
+    setSearchActive, 
+    markRendered, 
+    notifyModeChange: logModeChange 
+  }), [query, results, searchActive, logModeChange]);
 
   return <SearchContext.Provider value={value}>{children}</SearchContext.Provider>;
 };

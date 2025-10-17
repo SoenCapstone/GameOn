@@ -1,4 +1,4 @@
-import { SearchResult, mockSearchResults } from './constants';
+import { SearchResult, mockSearchResults } from '@/components/SearchPage/constants';
 
 export function filterSearchResults(query: string): SearchResult[] {
   const q = (query || '').toLowerCase().trim();
