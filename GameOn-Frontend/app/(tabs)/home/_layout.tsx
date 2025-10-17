@@ -1,34 +1,32 @@
-import { router, Stack } from "expo-router";
-import { Pressable, useColorScheme } from "react-native";
+import { Stack } from "expo-router";
 import React from "react";
-import { SymbolView } from "expo-symbols";
+import Header from "@/components/header";
+import { Logo } from "@/components/logo";
+import PageTitle from "@/components/page-title";
+import HeaderButton from "@/components/header-button";
 
 export default function HomeLayout() {
-
-  useColorScheme();
-
-    return (
+  return (
     <Stack>
       <Stack.Screen
         name="index"
-        options={{ title: 'Home', 
+        options={{
+          title: "Home",
           headerTransparent: true,
-          headerStyle: { backgroundColor: '#0a324fff' },
           headerShadowVisible: false,
-          headerTintColor: '#ffffff',
-          headerRight: () => (
-                <Pressable
-                    style={{
-                        alignItems: 'center',
-                        height: '100%',
-                        width: 36,
-                        alignSelf: 'center',
-                    }}
-                    onPress={() => router.push('/home/search')}
-                >
-                    <SymbolView name="magnifyingglass" tintColor="white" />
-                </Pressable>
-            ),
+          headerTitle: () => (
+            <Header
+              left={<Logo />}
+              center={<PageTitle title="Home" />}
+              right={
+                <HeaderButton
+                  type="custom"
+                  route="/search"
+                  icon="magnifyingglass"
+                />
+              }
+            />
+          ),
         }}
       />
     </Stack>
