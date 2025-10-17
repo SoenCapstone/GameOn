@@ -12,7 +12,7 @@ export default function ContentArea({
     <View
       style={{
         flex: 1,
-        paddingTop: headerHeight,
+        paddingTop: headerHeight + 10,
         paddingHorizontal: 16,
       }}
     >
