@@ -1,6 +1,6 @@
 import React from "react";
 import { render } from "@testing-library/react-native";
-import PageTitle from "@/components/page-title";
+import PageTitle from "@/components/header/page-title";
 
 describe("PageTitle", () => {
   it("should render the title text correctly", () => {

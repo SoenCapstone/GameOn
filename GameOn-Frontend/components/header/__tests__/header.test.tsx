@@ -1,6 +1,6 @@
 import React from "react";
 import { render } from "@testing-library/react-native";
-import Header from "@/components/header";
+import Header from "@/components/header/header";
 import { Text } from "react-native";
 
 describe("Header component", () => {

@@ -1,8 +1,6 @@
 import { Stack } from "expo-router";
 import React from "react";
-import Header from "@/components/header";
-import { Logo } from "@/components/logo";
-import PageTitle from "@/components/page-title";
+import SpacesHeader from "@/components/header/variants/spaces-header";
 
 export default function SpacesLayout() {
   return (
@@ -12,9 +10,7 @@ export default function SpacesLayout() {
         options={{
           headerTransparent: true,
           headerShadowVisible: false,
-          headerTitle: () => (
-            <Header left={<Logo />} center={<PageTitle title="Spaces" />} />
-          ),
+          headerTitle: () => <SpacesHeader />,
         }}
       />
     </Stack>

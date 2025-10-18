@@ -1,11 +1,11 @@
 import { View } from "react-native";
 import { useHeaderHeight } from "@react-navigation/elements";
 
-export default function ContentArea({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+interface ContentAreaProps {
+  readonly children: React.ReactNode;
+}
+
+export default function ContentArea({ children }: Readonly<ContentAreaProps>) {
   const headerHeight = useHeaderHeight();
 
   return (

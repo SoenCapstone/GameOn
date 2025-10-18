@@ -1,8 +1,6 @@
 import { Stack } from "expo-router";
 import React from "react";
-import Header from "@/components/header";
-import { Logo } from "@/components/logo";
-import PageTitle from "@/components/page-title";
+import ProfileHeader from "@/components/header/variants/profile-header";
 
 export default function ProfileLayout() {
   return (
@@ -12,9 +10,7 @@ export default function ProfileLayout() {
         options={{
           headerTransparent: true,
           headerShadowVisible: false,
-          headerTitle: () => (
-            <Header left={<Logo />} center={<PageTitle title="Profile" />} />
-          ),
+          headerTitle: () => <ProfileHeader />,
         }}
       />
     </Stack>

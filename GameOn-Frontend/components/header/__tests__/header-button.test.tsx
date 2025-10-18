@@ -1,7 +1,7 @@
 import React from "react";
 import { render, fireEvent } from "@testing-library/react-native";
 import { router } from "expo-router";
-import HeaderButton from "@/components/header-button";
+import HeaderButton from "@/components/header/header-button";
 import { SymbolView } from "expo-symbols";
 import { GlassView } from "expo-glass-effect";
 

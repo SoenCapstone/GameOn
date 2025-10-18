@@ -1,6 +1,6 @@
 import React from "react";
 import { render } from "@testing-library/react-native";
-import { Logo } from "@/components/logo";
+import { Logo } from "@/components/header/logo";
 
 jest.mock("expo-glass-effect", () => {
   const React = require("react");
