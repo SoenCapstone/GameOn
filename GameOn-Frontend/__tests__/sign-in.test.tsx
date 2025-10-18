@@ -57,7 +57,7 @@ describe("SignInScreen", () => {
       getByPlaceholderText("example@example.com"),
       "jane@example.com",
     );
-    fireEvent.changeText(getByPlaceholderText("**********"), "secret12");
+    fireEvent.changeText(getByPlaceholderText("**********"), "testtest");
     fireEvent.press(getByText("Log In"));
 
     await waitFor(() => expect(mockSignIn).toHaveBeenCalledWith("demo-token"));

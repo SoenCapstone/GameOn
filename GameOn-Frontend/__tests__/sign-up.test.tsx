@@ -61,7 +61,7 @@ describe("SignUpScreen", () => {
         getByPlaceholderText("example@example.com"),
         "jane@example.com",
       );
-      fireEvent.changeText(getByPlaceholderText("••••••••••••"), "secret12");
+      fireEvent.changeText(getByPlaceholderText("••••••••••••"), "testtest");
     });
 
     jest.setSystemTime(new Date("2025-01-02T00:00:00.000Z"));
