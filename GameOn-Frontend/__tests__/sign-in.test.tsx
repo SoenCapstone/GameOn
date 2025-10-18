@@ -31,7 +31,7 @@ jest.mock("@/contexts/auth", () => ({
 
 jest.mock("@/constants/images", () => ({ images: { logo: 1 } }));
 
-const TEST_PASSWORD = "secret12";
+const TEST = "testtest";
 
 beforeEach(async () => {
   jest.clearAllMocks();
@@ -43,7 +43,7 @@ beforeEach(async () => {
         name: "Jane",
         birth: "01/01/1990",
         email: "jane@example.com",
-        pwd: TEST_PASSWORD,
+        pwd: TEST,
       },
     ]),
   );
