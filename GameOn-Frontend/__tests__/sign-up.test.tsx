@@ -74,12 +74,14 @@ describe("SignUpScreen", () => {
       expect(mockReplace).toHaveBeenCalledWith("/(auth)/sign-in"),
     );
 
+    const TEST_PASSWORD = "secret12";
+
     const saved = JSON.parse((await AsyncStorage.getItem("users")) as string);
     expect(saved).toHaveLength(1);
     expect(saved[0]).toMatchObject({
       name: "Jane Doe",
       email: "jane@example.com",
-      pwd: "secret12",
+      pwd: TEST_PASSWORD,
     });
     expect(typeof saved[0].birth).toBe("string");
   });
