@@ -1,6 +1,12 @@
 import { Stack } from "expo-router";
 import React from "react";
-import HomeHeader from "@/components/header/variants/home-header";
+import Header from "@/components/header/header";
+import { Logo } from "@/components/header/logo";
+import PageTitle from "@/components/header/page-title";
+
+const header = () => (
+  <Header left={<Logo />} center={<PageTitle title="Home" />} />
+);
 
 export default function HomeLayout() {
   return (
@@ -10,7 +16,7 @@ export default function HomeLayout() {
         options={{
           headerTransparent: true,
           headerShadowVisible: false,
-          headerTitle: () => <HomeHeader />,
+          headerTitle: header,
         }}
       />
     </Stack>
