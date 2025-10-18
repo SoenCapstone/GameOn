@@ -1,7 +1,7 @@
 import React from "react";
 import { StyleSheet, View, ViewStyle, ColorValue } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
-import { ColorName, Colors } from "@/constants/colors";
+import { Color, Colors } from "@/constants/colors";
 
 type GradientMode = "default" | "form";
 
@@ -11,7 +11,7 @@ interface BackgroundBaseProps {
 }
 
 type PresetBackgroundProps = BackgroundBaseProps & {
-  preset: ColorName;
+  preset: Color;
   color?: never;
 };
 
