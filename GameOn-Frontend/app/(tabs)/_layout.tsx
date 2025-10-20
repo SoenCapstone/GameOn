@@ -1,43 +1,26 @@
-import { Tabs } from 'expo-router';
-import React from 'react';
-
-import { HapticTab } from '@/components/haptic-tab';
-import { IconSymbol } from '@/components/ui/icon-symbol';
-import { Colors } from '@/constants/theme';
-import { useColorScheme } from '@/hooks/use-color-scheme';
-
-const HomeIcon = ({ color }: { color: string }) => (
-  <IconSymbol size={28} name="house.fill" color={color} />
-);
-
-const ExploreIcon = ({ color }: { color: string }) => (
-  <IconSymbol size={28} name="paperplane.fill" color={color} />
-);
+import React from "react";
+import { NativeTabs, Label, Icon } from "expo-router/unstable-native-tabs";
+import { AccentColors } from "@/constants/colors";
 
 export default function TabLayout() {
-  const colorScheme = useColorScheme();
-
   return (
-    <Tabs
-      screenOptions={{
-        tabBarActiveTintColor: Colors[colorScheme ?? 'light'].tint,
-        headerShown: false,
-        tabBarButton: HapticTab,
-      }}>
-      <Tabs.Screen
-        name="index"
-        options={{
-          title: 'Home',
-          tabBarIcon: HomeIcon,
-        }}
-      />
-      <Tabs.Screen
-        name="explore"
-        options={{
-          title: 'Explore',
-          tabBarIcon: ExploreIcon,
-        }}
-      />
-    </Tabs>
+    <NativeTabs>
+      <NativeTabs.Trigger name="home">
+        <Label>Home</Label>
+        <Icon sf="text.rectangle.page" selectedColor={AccentColors.blue} />
+      </NativeTabs.Trigger>
+      <NativeTabs.Trigger name="spaces">
+        <Label>Spaces</Label>
+        <Icon sf="circle.grid.2x2.fill" selectedColor={AccentColors.purple} />
+      </NativeTabs.Trigger>
+      <NativeTabs.Trigger name="messages">
+        <Label>Messages</Label>
+        <Icon sf="message.fill" selectedColor={AccentColors.green} />
+      </NativeTabs.Trigger>
+      <NativeTabs.Trigger name="profile">
+        <Label>Profile</Label>
+        <Icon sf="person.fill" selectedColor={AccentColors.orange} />
+      </NativeTabs.Trigger>
+    </NativeTabs>
   );
 }
