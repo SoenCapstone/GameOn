@@ -2,7 +2,7 @@ import {
   mapSportToEmoji,
   filterLocalLeagues,
   fetchTeamResults,
-} from "../utils";
+} from "@/components/SearchPage/utils";
 
 // Mock SecureStore for fetchTeamResults
 jest.mock("expo-secure-store", () => ({
