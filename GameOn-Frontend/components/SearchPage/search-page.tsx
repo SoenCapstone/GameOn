@@ -59,7 +59,8 @@ export default function SearchPage() {
   );
 
   const renderItem = React.useCallback(
-    ({ item }: { item: SearchResult }) => {
+    (args: { item: SearchResult }) => {
+      const { item } = args;
       // Check if logo is a URL or emoji/text
       const isUrl =
         item.logo.startsWith("http://") || item.logo.startsWith("https://");

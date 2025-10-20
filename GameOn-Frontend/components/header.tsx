@@ -7,7 +7,7 @@ type HeaderProps = {
     right?: React.ReactNode;
 };
 
-export default function Header({ left, center, right }: HeaderProps) {
+export default function Header({ left, center, right }: Readonly<HeaderProps>) {
     return (
         <View
             style={{

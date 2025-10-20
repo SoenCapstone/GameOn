@@ -25,7 +25,7 @@ describe("mapSportToEmoji", () => {
   it("returns default emoji for unknown sport", () => {
     expect(mapSportToEmoji("quidditch")).toBe("🏅");
     expect(mapSportToEmoji("")).toBe("🏅");
-    expect(mapSportToEmoji(undefined)).toBe("🏅");
+    expect(mapSportToEmoji()).toBe("🏅");
   });
 });
 
@@ -48,8 +48,13 @@ describe("filterLocalLeagues", () => {
 });
 
 describe("fetchTeamResults", () => {
+  type FetchArgs = [input: RequestInfo | URL, init?: RequestInit];
+  type FetchResolvedValue = { ok: boolean; json: () => Promise<unknown> };
+  type FetchReturn = Promise<FetchResolvedValue>;
+  let mockFetch: jest.Mock<FetchReturn, FetchArgs>;
+
   beforeEach(() => {
-    global.fetch = jest.fn().mockResolvedValue({
+    mockFetch = jest.fn<FetchReturn, FetchArgs>().mockResolvedValue({
       ok: true,
       json: async () => ({
         items: [
@@ -71,7 +76,8 @@ describe("fetchTeamResults", () => {
         size: 20,
         hasNext: false,
       }),
-    }) as any;
+    });
+    globalThis.fetch = mockFetch as unknown as typeof fetch;
   });
   it("maps backend teams to SearchResult[] with emoji fallback", async () => {
     const results = await fetchTeamResults("Test");
@@ -85,7 +91,10 @@ describe("fetchTeamResults", () => {
     });
   });
   it("returns empty array if fetch fails", async () => {
-    (global.fetch as any).mockResolvedValueOnce({ ok: false });
+    mockFetch.mockResolvedValueOnce({
+      ok: false,
+      json: async () => ({}),
+    });
     const results = await fetchTeamResults("fail");
     expect(results).toEqual([]);
   });
