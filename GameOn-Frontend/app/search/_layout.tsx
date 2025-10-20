@@ -17,12 +17,14 @@ export const unstable_settings = {
   anchor: "(tabs)",
 };
 
-const SearchHeaderTitle: React.FC<{ title: string }> = ({ title }) => (
-  <Header
-    left={<HeaderButton type="back" />}
-    center={<PageTitle title={title} />}
-  />
-);
+function renderSearchHeaderTitle() {
+  return (
+    <Header
+      left={<HeaderButton type="back" />}
+      center={<PageTitle title="Search" />}
+    />
+  );
+}
 
 export default function RootLayout() {
   const colorScheme = useColorScheme();
@@ -35,7 +37,7 @@ export default function RootLayout() {
           name="index"
           options={{
             headerBackVisible: false,
-            headerTitle: () => <SearchHeaderTitle title="Search" />,
+            headerTitle: renderSearchHeaderTitle,
             headerTransparent: true,
             headerSearchBarOptions: {
               hideNavigationBar: false,
