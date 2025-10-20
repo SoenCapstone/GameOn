@@ -1,9 +1,12 @@
 import { Stack } from "expo-router";
 import React from "react";
-import Header from "@/components/header";
-import { Logo } from "@/components/logo";
-import PageTitle from "@/components/page-title";
-import HeaderButton from "@/components/header-button";
+import Header from "@/components/header/header";
+import { Logo } from "@/components/header/logo";
+import PageTitle from "@/components/header/page-title";
+
+const header = () => (
+  <Header left={<Logo />} center={<PageTitle title="Home" />} />
+);
 
 export default function HomeLayout() {
   return (
@@ -11,22 +14,9 @@ export default function HomeLayout() {
       <Stack.Screen
         name="index"
         options={{
-          title: "Home",
           headerTransparent: true,
           headerShadowVisible: false,
-          headerTitle: () => (
-            <Header
-              left={<Logo />}
-              center={<PageTitle title="Home" />}
-              right={
-                <HeaderButton
-                  type="custom"
-                  route="/search"
-                  icon="magnifyingglass"
-                />
-              }
-            />
-          ),
+          headerTitle: header,
         }}
       />
     </Stack>

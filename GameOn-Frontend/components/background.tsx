@@ -1,16 +1,8 @@
 import React from "react";
 import { StyleSheet, View, ViewStyle, ColorValue } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
+import { Color, Colors } from "@/constants/colors";
 
-const Presets = {
-  red: "#8E0000",
-  orange: "#CE721D",
-  purple: "#58175D",
-  blue: "#0C456E",
-  green: "#005D29",
-} as const;
-
-type PresetName = keyof typeof Presets;
 type GradientMode = "default" | "form";
 
 interface BackgroundBaseProps {
@@ -19,7 +11,7 @@ interface BackgroundBaseProps {
 }
 
 type PresetBackgroundProps = BackgroundBaseProps & {
-  preset: PresetName;
+  preset: Color;
   color?: never;
 };
 
@@ -37,7 +29,7 @@ export const Background: React.FC<BackgroundProps> = ({
   style,
 }) => {
   const baseColor: ColorValue =
-    (preset && Presets[preset]) || color || Presets.blue;
+    (preset && Colors[preset]) || color || Colors.blue;
 
   const locations = mode === "form" ? ([0, 0.3] as const) : ([0, 0.8] as const);
 
