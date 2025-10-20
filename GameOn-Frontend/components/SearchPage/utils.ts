@@ -75,9 +75,7 @@ type TeamListResponse = {
 function getApiBase(): string {
   // Prefer public Expo env var if provided; fallback to local gateway port.
   // Example: EXPO_PUBLIC_API_BASE=http://localhost:8222
-  const fromEnv = (process as any)?.env?.EXPO_PUBLIC_API_BASE as
-    | string
-    | undefined;
+  const fromEnv = process.env.EXPO_PUBLIC_API_BASE as string | undefined;
   return fromEnv || "http://localhost:8222";
 }
 

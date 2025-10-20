@@ -66,7 +66,7 @@ export const SearchProvider: React.FC<{ children: React.ReactNode }> = ({
                 return r.name.toLowerCase().includes(q);
               }).length;
           }
-          const payload: Record<string, any> = {
+          const payload: Record<string, string | number> = {
             query,
             resultCount: displayedCount,
             tookMs: 0,
@@ -96,7 +96,7 @@ export const SearchProvider: React.FC<{ children: React.ReactNode }> = ({
     const meta = lastSearchRef.current;
     if (!meta && !opts) return;
     // build base payload
-    const payload: Record<string, any> = {
+    const payload: Record<string, string | number> = {
       query: opts?.query ?? meta?.query ?? "",
       resultCount: opts?.resultCount ?? meta?.resultCount ?? 0,
       tookMs: renderTookMs,
