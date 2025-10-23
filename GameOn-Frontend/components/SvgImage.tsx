@@ -1,31 +1,34 @@
 import React from "react";
 import { View, ActivityIndicator, StyleSheet, ViewStyle, Image } from "react-native";
 import { SvgXml } from "react-native-svg";
+import { createScopedLog } from "@/utils/logger";
 
 // In-memory cache for fetched SVG XML strings. null means fetch failed.
 const svgCache = new Map<string, string | null>();
 const inFlight = new Map<string, Promise<string | null>>();
 
+const log = createScopedLog("SvgImage");
+
 async function fetchSvgXml(uri: string): Promise<string | null> {
   if (svgCache.has(uri)) return svgCache.get(uri) as string | null;
   if (inFlight.has(uri)) return inFlight.get(uri) as Promise<string | null>;
 
-  console.debug(`[SvgImage] fetch start: ${uri}`);
+  log.info(`fetch start: ${uri}`);
   const p = fetch(uri)
     .then((r) => r.text())
     .then((text) => {
       const t = typeof text === "string" ? text.trim() : "";
       if (t.match(/<svg[\s>]/i) || t.includes("<svg")) {
         svgCache.set(uri, text);
-        console.debug(`[SvgImage] fetched and cached: ${uri}`);
+        log.info(`fetched and cached: ${uri}`);
         return text;
       }
-      console.warn(`[SvgImage] fetched content for ${uri} did not contain <svg>`);
+      log.warn(`fetched content for ${uri} did not contain <svg>`);
       svgCache.set(uri, null);
       return null;
     })
     .catch((err) => {
-      console.warn(`[SvgImage] fetch failed for ${uri}:`, err?.message || err);
+      log.warn(`fetch failed for ${uri}:`, err?.message || err);
       svgCache.set(uri, null);
       return null;
     })
@@ -61,7 +64,7 @@ export default function SvgImage({
     // If cached, set immediately
     if (svgCache.has(uri)) {
       const cached = svgCache.get(uri) as string | null;
-      console.debug(`[SvgImage] cache hit for ${uri}: ${cached ? "ok" : "null"}`);
+      log.info(`cache hit for ${uri}: ${cached ? "ok" : "null"}`);
       if (mounted) setXml(cached);
       return;
     }
@@ -77,11 +80,11 @@ export default function SvgImage({
         fetch(pngUri, { method: "GET" })
           .then((r) => {
             if (r.ok) {
-              console.debug(`[SvgImage] using PNG fallback for ${uri} -> ${pngUri}`);
-              setPngFallback(pngUri);
-            } else {
-              setXml(null);
-            }
+                  log.info(`using PNG fallback for ${uri} -> ${pngUri}`);
+                  setPngFallback(pngUri);
+                } else {
+                  setXml(null);
+                }
           })
           .catch(() => setXml(null));
       } else {
