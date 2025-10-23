@@ -9,10 +9,7 @@ import {
   SearchResult,
   SearchContextValue,
 } from "@/components/SearchPage/constants";
-import {
-  fetchTeamResults,
-  filterLocalLeagues,
-} from "@/components/SearchPage/utils";
+import { filterLocalLeagues, useTeamResults } from "@/components/SearchPage/utils";
 import { createScopedLog } from "@/utils/logger";
 
 const ctxLog = createScopedLog("Search.context");
@@ -34,60 +31,46 @@ export const SearchProvider: React.FC<{ children: React.ReactNode }> = ({
   } | null>(null);
   const nextId = React.useRef(1);
 
+  const teamQuery = useTeamResults(query);
+
+  // Combine team results with leagues when data changes
   useEffect(() => {
-    let cancelled = false;
-    (async () => {
-      try {
-        // Fetch teams from backend; leagues still come from local mock until backend endpoint exists
-        const teamItems = await fetchTeamResults(query);
-        const leagueItems = filterLocalLeagues(query);
-        const combined = [...teamItems, ...leagueItems];
-        if (!cancelled) setResults(combined);
+    const teamItems = (teamQuery.data ?? []).slice().reverse();
+    const leagueItems = filterLocalLeagues(query);
+    const combined = [...teamItems, ...leagueItems];
+    setResults(combined);
 
-        // store metrics and wait for UI render to print a single combined log
-        lastSearchRef.current = {
-          id: nextId.current++,
-          query,
-          resultCount: combined.length,
-        };
-
-        // emit immediate log (tookMs = 0) mirroring UI filter behavior
-        try {
-          let displayedCount = combined.length;
-          if (lastSearchRef.current?.mode) {
-            const mode = lastSearchRef.current.mode;
-            const q = (query || "").toLowerCase().trim();
-            displayedCount = combined
-              .filter((r) =>
-                mode === "teams" ? r.type === "team" : r.type === "league",
-              )
-              .filter((r) => {
-                if (!q) return true;
-                return r.name.toLowerCase().includes(q);
-              }).length;
-          }
-          const payload: Record<string, string | number> = {
-            query,
-            resultCount: displayedCount,
-            tookMs: 0,
-          };
-          if (lastSearchRef.current?.mode)
-            payload.mode = lastSearchRef.current.mode;
-          ctxLog.info("search completed", payload);
-          lastSearchRef.current = null;
-        } catch {
-          // ignore logging failures
-        }
-      } catch {
-        // On failure, fallback to mock leagues
-        const leagueItems = filterLocalLeagues(query);
-        if (!cancelled) setResults(leagueItems);
-      }
-    })();
-    return () => {
-      cancelled = true;
+    // store metrics and wait for UI render to print a single combined log
+    lastSearchRef.current = {
+      id: nextId.current++,
+      query,
+      resultCount: combined.length,
     };
-  }, [query]);
+
+    try {
+      let displayedCount = combined.length;
+      if (lastSearchRef.current?.mode) {
+        const mode = lastSearchRef.current.mode;
+        const q = (query || "").toLowerCase().trim();
+        displayedCount = combined
+          .filter((r) => (mode === "teams" ? r.type === "team" : r.type === "league"))
+          .filter((r) => {
+            if (!q) return true;
+            return r.name.toLowerCase().includes(q);
+          }).length;
+      }
+      const payload: Record<string, string | number> = {
+        query,
+        resultCount: displayedCount,
+        tookMs: 0,
+      };
+      if (lastSearchRef.current?.mode) payload.mode = lastSearchRef.current.mode;
+      ctxLog.info("search completed", payload);
+      lastSearchRef.current = null;
+    } catch {
+      // ignore logging failures
+    }
+  }, [teamQuery.data, query]);
 
   const markRendered = (
     renderTookMs: number,
@@ -95,7 +78,6 @@ export const SearchProvider: React.FC<{ children: React.ReactNode }> = ({
   ) => {
     const meta = lastSearchRef.current;
     if (!meta && !opts) return;
-    // build base payload
     const payload: Record<string, string | number> = {
       query: opts?.query ?? meta?.query ?? "",
       resultCount: opts?.resultCount ?? meta?.resultCount ?? 0,
@@ -136,8 +118,10 @@ export const SearchProvider: React.FC<{ children: React.ReactNode }> = ({
       setSearchActive,
       markRendered,
       notifyModeChange: logModeChange,
+      isLoading: teamQuery.isLoading,
+      error: teamQuery.error ? String(teamQuery.error) : null,
     }),
-    [query, results, searchActive, logModeChange],
+    [query, results, searchActive, logModeChange, teamQuery.isLoading, teamQuery.error],
   );
 
   return (

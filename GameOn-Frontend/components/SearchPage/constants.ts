@@ -15,6 +15,8 @@ export type SearchContextValue = {
   results: SearchResult[];
   searchActive: boolean;
   setSearchActive: (active: boolean) => void;
+  isLoading?: boolean;
+  error?: string | null;
   markRendered: (
     renderTookMs: number,
     opts?: { mode?: "teams" | "leagues"; resultCount?: number; query?: string },

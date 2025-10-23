@@ -3,6 +3,8 @@ import {
   mockSearchResults,
 } from "@/components/SearchPage/constants";
 import * as SecureStore from "expo-secure-store";
+import axios from "axios";
+import { useQuery } from "@tanstack/react-query";
 
 // Map common sports to emoji as a fallback for missing logos.
 export function mapSportToEmoji(sport?: string | null): string {
@@ -72,41 +74,50 @@ type TeamListResponse = {
   hasNext: boolean;
 };
 
-function getApiBase(): string {
-  // Prefer public Expo env var if provided; fallback to local gateway port.
-  // Example: EXPO_PUBLIC_API_BASE=http://localhost:8222
-  const fromEnv = process.env.EXPO_PUBLIC_API_BASE as string | undefined;
-  return fromEnv || "http://localhost:8222";
-}
+async function fetchTeamResults(query: string): Promise<SearchResult[]> {
+  const params: Record<string, string> = { size: "20" };
+  if (query && query.trim().length > 0) params.q = query.trim();
 
-export async function fetchTeamResults(query: string): Promise<SearchResult[]> {
-  const base = getApiBase();
-  const params = new URLSearchParams();
-  if (query && query.trim().length > 0) params.set("q", query.trim());
-  params.set("size", "20");
-
+  const base = "http://localhost:8091";
   const token = await SecureStore.getItemAsync("token");
-  const res = await fetch(`${base}/api/v1/teams?${params.toString()}`, {
-    headers: {
-      Accept: "application/json",
-      ...(token ? { Authorization: `Bearer ${token}` } : {}),
-    },
-  });
+  const headers: Record<string, string> = {
+    Accept: "application/json",
+    ...(token ? { Authorization: `Bearer ${token}` } : {}),
+  };
 
-  if (!res.ok) {
-    // Return empty to allow UI to continue showing leagues/mock content if needed
+  // Dev helper: inject X-User-Id header
+  const devUserId = (process.env.EXPO_PUBLIC_DEV_USER_ID as string) || (base.includes("localhost") ? "1001" : "");
+  if (devUserId) headers["X-User-Id"] = devUserId;
+
+  try {
+    const resp = await axios.get<TeamListResponse>(`${base}/api/v1/teams`, {
+      headers,
+      params,
+      timeout: 5000,
+    });
+    const data = resp.data;
+    const mapped: SearchResult[] = (data.items || []).map((t: TeamSummaryResponse) => ({
+      id: String(t.id),
+      type: "team",
+      name: t.name,
+      subtitle: t.sport ? `${t.sport}` : "Team",
+      // Use logoUrl from backend if available, otherwise fallback to emoji
+      logo: t.logoUrl || mapSportToEmoji(t.sport),
+      league: "",
+    }));
+    return mapped;
+  } catch (err) {
+    console.warn("fetchTeamResults failed", err);
     return [];
   }
-
-  const data = (await res.json()) as TeamListResponse;
-  const mapped: SearchResult[] = (data.items || []).map((t) => ({
-    id: String(t.id),
-    type: "team",
-    name: t.name,
-    subtitle: t.sport ? `${t.sport}` : "Team",
-    // Use logoUrl from backend if available, otherwise fallback to emoji
-    logo: t.logoUrl || mapSportToEmoji(t.sport),
-    league: "",
-  }));
-  return mapped;
 }
+
+export function useTeamResults(query: string) {
+  return useQuery<SearchResult[], Error>({
+    queryKey: ["teams", query],
+    queryFn: () => fetchTeamResults(query),
+    retry: 1,
+  });
+}
+
+export { fetchTeamResults as fetchTeamResults };

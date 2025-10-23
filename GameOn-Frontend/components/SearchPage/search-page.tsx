@@ -1,5 +1,5 @@
 import React, { useRef } from "react";
-import { Pressable, View, Text, Image } from "react-native";
+import { Pressable, View, Text, Image, ActivityIndicator } from "react-native";
 import { IconSymbol } from "@/components/ui/icon-symbol";
 import { GlassView } from "expo-glass-effect";
 import SegmentedControl from "@react-native-segmented-control/segmented-control";
@@ -13,7 +13,7 @@ import ContentArea from "@/components/content-area";
 
 export default function SearchPage() {
   const log = createScopedLog("Search");
-  const { query, results, markRendered, notifyModeChange, searchActive } =
+  const { query, results, markRendered, notifyModeChange, searchActive, isLoading, error } =
     useSearch();
   const q = (query || "").toLowerCase().trim();
   const renderT0 = useRef<number | null>(null);
@@ -142,6 +142,18 @@ export default function SearchPage() {
           setMode(value === "Teams" ? "teams" : "leagues");
         }}
       />
+
+      {/* Loading spinner / error banner */}
+      {isLoading ? (
+        <View style={{ alignItems: "center", padding: 8 }}>
+          <ActivityIndicator size="small" color="#FFFFFF" />
+        </View>
+      ) : null}
+      {error ? (
+        <View style={{ backgroundColor: "#661313", padding: 8, marginVertical: 6, borderRadius: 8 }}>
+          <Text style={{ color: "#fff" }}>Failed to load teams: {error}</Text>
+        </View>
+      ) : null}
 
       {/* Search Results */}
       <LegendList

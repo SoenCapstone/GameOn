@@ -11,6 +11,9 @@ import { useColorScheme } from "@/hooks/use-color-scheme";
 import { AuthGate, AuthProvider } from "@/contexts/auth";
 import { FeatureFlagsProvider } from "@/contexts/featureFlags/FeatureFlagsContext";
 import { SearchProvider } from "@/contexts/SearchContext";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+
+const queryClient = new QueryClient();
 
 export const unstable_settings = {
   anchor: "(tabs)",
@@ -26,14 +29,16 @@ export default function RootLayout() {
       <ThemeProvider value={colorScheme === "dark" ? DarkTheme : DefaultTheme}>
         <AuthProvider>
           <AuthGate>
-            <SearchProvider>
+            <QueryClientProvider client={queryClient}>
+              <SearchProvider>
               <Stack>
                 <Stack.Screen name="(auth)" options={{ headerShown: false }} />
                 <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
                 <Stack.Screen name="search" options={{ headerShown: false }} />
               </Stack>
               <StatusBar style="auto" />
-            </SearchProvider>
+              </SearchProvider>
+            </QueryClientProvider>
           </AuthGate>
         </AuthProvider>
       </ThemeProvider>
