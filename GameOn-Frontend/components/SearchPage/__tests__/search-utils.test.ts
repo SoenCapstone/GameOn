@@ -4,10 +4,16 @@ import {
   fetchTeamResults,
 } from "@/components/SearchPage/utils";
 
+import axios from 'axios';
+
 // Mock SecureStore for fetchTeamResults
 jest.mock("expo-secure-store", () => ({
   getItemAsync: jest.fn().mockResolvedValue("test-token"),
 }));
+
+// Mock axios used by fetchTeamResults
+jest.mock('axios');
+const mockedAxios = axios as jest.Mocked<typeof axios>;
 
 describe("mapSportToEmoji", () => {
   it("returns correct emoji for known sports", () => {
@@ -48,15 +54,9 @@ describe("filterLocalLeagues", () => {
 });
 
 describe("fetchTeamResults", () => {
-  type FetchArgs = [input: RequestInfo | URL, init?: RequestInit];
-  type FetchResolvedValue = { ok: boolean; json: () => Promise<unknown> };
-  type FetchReturn = Promise<FetchResolvedValue>;
-  let mockFetch: jest.Mock<FetchReturn, FetchArgs>;
-
   beforeEach(() => {
-    mockFetch = jest.fn<FetchReturn, FetchArgs>().mockResolvedValue({
-      ok: true,
-      json: async () => ({
+    mockedAxios.get.mockResolvedValue({
+      data: {
         items: [
           {
             id: "abc",
@@ -75,9 +75,8 @@ describe("fetchTeamResults", () => {
         page: 0,
         size: 20,
         hasNext: false,
-      }),
+      },
     });
-    globalThis.fetch = mockFetch as unknown as typeof fetch;
   });
   it("maps backend teams to SearchResult[] with emoji fallback", async () => {
     const results = await fetchTeamResults("Test");
@@ -91,10 +90,7 @@ describe("fetchTeamResults", () => {
     });
   });
   it("returns empty array if fetch fails", async () => {
-    mockFetch.mockResolvedValueOnce({
-      ok: false,
-      json: async () => ({}),
-    });
+    mockedAxios.get.mockRejectedValueOnce(new Error('network error'));
     const results = await fetchTeamResults("fail");
     expect(results).toEqual([]);
   });
