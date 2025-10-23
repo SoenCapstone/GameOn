@@ -120,4 +120,4 @@ export function useTeamResults(query: string) {
   });
 }
 
-export { fetchTeamResults as fetchTeamResults };
+export { fetchTeamResults };
