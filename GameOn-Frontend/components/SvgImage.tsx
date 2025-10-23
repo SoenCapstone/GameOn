@@ -4,7 +4,6 @@ import { SvgXml } from "react-native-svg";
 
 // In-memory cache for fetched SVG XML strings. null means fetch failed.
 const svgCache = new Map<string, string | null>();
-// In-flight fetch promises to dedupe concurrent requests
 const inFlight = new Map<string, Promise<string | null>>();
 
 async function fetchSvgXml(uri: string): Promise<string | null> {
@@ -115,7 +114,6 @@ export default function SvgImage({
     );
   }
 
-  // xml is non-null here
   return (
     <View style={[styles.wrapper, { width, height }, style]}>
       <SvgXml xml={xml as string} width={width} height={height} />
