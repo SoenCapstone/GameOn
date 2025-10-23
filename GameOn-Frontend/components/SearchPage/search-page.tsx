@@ -5,7 +5,7 @@ import { GlassView } from "expo-glass-effect";
 import SegmentedControl from "@react-native-segmented-control/segmented-control";
 import { LegendList } from "@legendapp/list";
 import { searchStyles, SearchResult } from "@/components/SearchPage/constants";
-import SvgImage from "@/components/SvgImage";
+import SvgImage from "@/components/svg-image";
 import { createScopedLog } from "@/utils/logger";
 import { useSearch } from "@/contexts/SearchContext";
 import { Background } from "@/components/background";
@@ -79,19 +79,27 @@ export default function SearchPage() {
           >
             <View style={searchStyles.resultRow}>
               <View style={searchStyles.logoContainer}>
-                {isUrl ? (
-                  isSvg ? (
-                    <SvgImage uri={item.logo} width={48} height={48} />
-                  ) : (
-                    <Image
-                      source={{ uri: item.logo }}
-                      style={searchStyles.logoImage}
-                      resizeMode="contain"
-                    />
-                  )
-                ) : (
-                  <Text style={searchStyles.logoText}>{item.logo}</Text>
-                )}
+                {(() => {
+                  let logoElement: React.ReactNode;
+                  if (isUrl) {
+                    if (isSvg) {
+                      logoElement = (
+                        <SvgImage uri={item.logo} width={48} height={48} />
+                      );
+                    } else {
+                      logoElement = (
+                        <Image
+                          source={{ uri: item.logo }}
+                          style={searchStyles.logoImage}
+                          resizeMode="contain"
+                        />
+                      );
+                    }
+                  } else {
+                    logoElement = <Text style={searchStyles.logoText}>{item.logo}</Text>;
+                  }
+                  return logoElement;
+                })()}
               </View>
               <View style={{ flex: 1 }}>
                 <Text style={searchStyles.nameText}>{item.name}</Text>

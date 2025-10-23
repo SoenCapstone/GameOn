@@ -18,7 +18,7 @@ async function fetchSvgXml(uri: string): Promise<string | null> {
     .then((r) => r.text())
     .then((text) => {
       const t = typeof text === "string" ? text.trim() : "";
-      if (t.match(/<svg[\s>]/i) || t.includes("<svg")) {
+      if (/<svg[\s>]/i.exec(t) || t.includes("<svg")) {
         svgCache.set(uri, text);
         log.info(`fetched and cached: ${uri}`);
         return text;
@@ -46,10 +46,10 @@ export default function SvgImage({
   height = 48,
   style,
 }: {
-  uri: string;
-  width?: number;
-  height?: number;
-  style?: ViewStyle;
+  readonly uri: string;
+  readonly width?: number;
+  readonly height?: number;
+  readonly style?: ViewStyle;
 }) {
   const [xml, setXml] = React.useState<string | null | undefined>(undefined);
   const [pngFallback, setPngFallback] = React.useState<string | null>(null);
