@@ -5,6 +5,7 @@ import { GlassView } from "expo-glass-effect";
 import SegmentedControl from "@react-native-segmented-control/segmented-control";
 import { LegendList } from "@legendapp/list";
 import { searchStyles, SearchResult } from "@/components/SearchPage/constants";
+import SvgImage from "@/components/SvgImage";
 import { createScopedLog } from "@/utils/logger";
 import { useSearch } from "@/contexts/SearchContext";
 import { Background } from "@/components/background";
@@ -64,6 +65,7 @@ export default function SearchPage() {
       // Check if logo is a URL or emoji/text
       const isUrl =
         item.logo.startsWith("http://") || item.logo.startsWith("https://");
+      const isSvg = isUrl && item.logo.toLowerCase().endsWith(".svg");
 
       return (
         <Pressable
@@ -78,11 +80,15 @@ export default function SearchPage() {
             <View style={searchStyles.resultRow}>
               <View style={searchStyles.logoContainer}>
                 {isUrl ? (
-                  <Image
-                    source={{ uri: item.logo }}
-                    style={searchStyles.logoImage}
-                    resizeMode="contain"
-                  />
+                  isSvg ? (
+                    <SvgImage uri={item.logo} width={48} height={48} />
+                  ) : (
+                    <Image
+                      source={{ uri: item.logo }}
+                      style={searchStyles.logoImage}
+                      resizeMode="contain"
+                    />
+                  )
                 ) : (
                   <Text style={searchStyles.logoText}>{item.logo}</Text>
                 )}
