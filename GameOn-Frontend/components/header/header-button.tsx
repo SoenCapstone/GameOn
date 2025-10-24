@@ -9,7 +9,7 @@ type HeaderButtonProps =
   | { type: "back" }
   | { type: "custom"; icon: SFSymbols6_0; route: Href };
 
-export default function HeaderButton(props: HeaderButtonProps) {
+export function HeaderButton(props: HeaderButtonProps) {
   const iconName = props.type === "back" ? "chevron.left" : props.icon;
 
   return (
@@ -28,7 +28,8 @@ export default function HeaderButton(props: HeaderButtonProps) {
       }}
     >
       <GlassView
-        glassEffectStyle="regular"
+        glassEffectStyle={"clear"}
+        tintColor={"rgba(0,0,0,0.65)"}
         isInteractive={true}
         style={{
           width: 44,

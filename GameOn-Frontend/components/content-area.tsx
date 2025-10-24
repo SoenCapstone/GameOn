@@ -5,14 +5,14 @@ interface ContentAreaProps {
   readonly children: React.ReactNode;
 }
 
-export default function ContentArea({ children }: Readonly<ContentAreaProps>) {
+export function ContentArea({ children }: Readonly<ContentAreaProps>) {
   const headerHeight = useHeaderHeight();
 
   return (
     <View
       style={{
         flex: 1,
-        paddingTop: headerHeight + 10,
+        paddingTop: headerHeight + 8,
         paddingHorizontal: 16,
         rowGap: 14,
       }}
