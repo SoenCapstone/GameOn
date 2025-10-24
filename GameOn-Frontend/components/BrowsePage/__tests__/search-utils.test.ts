@@ -2,9 +2,9 @@ import {
   mapSportToEmoji,
   filterLocalLeagues,
   fetchTeamResults,
-} from "@/components/SearchPage/utils";
+} from "@/components/BrowsePage/utils";
 
-import axios from 'axios';
+import axios from "axios";
 
 // Mock SecureStore for fetchTeamResults
 jest.mock("expo-secure-store", () => ({
@@ -12,7 +12,7 @@ jest.mock("expo-secure-store", () => ({
 }));
 
 // Mock axios used by fetchTeamResults
-jest.mock('axios');
+jest.mock("axios");
 const mockedAxios = axios as jest.Mocked<typeof axios>;
 
 describe("mapSportToEmoji", () => {
@@ -90,7 +90,7 @@ describe("fetchTeamResults", () => {
     });
   });
   it("returns empty array if fetch fails", async () => {
-    mockedAxios.get.mockRejectedValueOnce(new Error('network error'));
+    mockedAxios.get.mockRejectedValueOnce(new Error("network error"));
     const results = await fetchTeamResults("fail");
     expect(results).toEqual([]);
   });

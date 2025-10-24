@@ -8,8 +8,11 @@ import React, {
 import {
   SearchResult,
   SearchContextValue,
-} from "@/components/SearchPage/constants";
-import { filterLocalLeagues, useTeamResults } from "@/components/SearchPage/utils";
+} from "@/components/BrowsePage/constants";
+import {
+  filterLocalLeagues,
+  useTeamResults,
+} from "@/components/BrowsePage/utils";
 import { createScopedLog } from "@/utils/logger";
 
 const ctxLog = createScopedLog("Search.context");
@@ -53,7 +56,9 @@ export const SearchProvider: React.FC<{ children: React.ReactNode }> = ({
         const mode = lastSearchRef.current.mode;
         const q = (query || "").toLowerCase().trim();
         displayedCount = combined
-          .filter((r) => (mode === "teams" ? r.type === "team" : r.type === "league"))
+          .filter((r) =>
+            mode === "teams" ? r.type === "team" : r.type === "league",
+          )
           .filter((r) => {
             if (!q) return true;
             return r.name.toLowerCase().includes(q);
@@ -64,7 +69,8 @@ export const SearchProvider: React.FC<{ children: React.ReactNode }> = ({
         resultCount: displayedCount,
         tookMs: 0,
       };
-      if (lastSearchRef.current?.mode) payload.mode = lastSearchRef.current.mode;
+      if (lastSearchRef.current?.mode)
+        payload.mode = lastSearchRef.current.mode;
       ctxLog.info("search completed", payload);
       lastSearchRef.current = null;
     } catch {
@@ -121,7 +127,14 @@ export const SearchProvider: React.FC<{ children: React.ReactNode }> = ({
       isLoading: teamQuery.isLoading,
       error: teamQuery.error ? String(teamQuery.error) : null,
     }),
-    [query, results, searchActive, logModeChange, teamQuery.isLoading, teamQuery.error],
+    [
+      query,
+      results,
+      searchActive,
+      logModeChange,
+      teamQuery.isLoading,
+      teamQuery.error,
+    ],
   );
 
   return (

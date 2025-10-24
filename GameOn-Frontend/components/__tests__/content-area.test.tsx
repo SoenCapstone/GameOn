@@ -1,7 +1,7 @@
 import React from "react";
 import { View, Text } from "react-native";
 import { render } from "@testing-library/react-native";
-import ContentArea from "@/components/content-area";
+import { ContentArea } from "@/components/content-area";
 
 const mockUseHeaderHeight = jest.fn();
 

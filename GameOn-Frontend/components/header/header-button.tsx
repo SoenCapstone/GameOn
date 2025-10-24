@@ -28,7 +28,7 @@ export function HeaderButton(props: HeaderButtonProps) {
       }}
     >
       <GlassView
-        glassEffectStyle={"clear"}
+        glassEffectStyle="regular"
         tintColor={"rgba(0,0,0,0.65)"}
         isInteractive={true}
         style={{

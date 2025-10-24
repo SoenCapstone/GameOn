@@ -1,9 +1,9 @@
 import { StyleSheet, Button, View } from "react-native";
 import { useRouter } from "expo-router";
-
 import { useAuth } from "@/contexts/auth";
 import { Background } from "@/components/background";
-import ContentArea from "@/components/content-area";
+import { ContentArea } from "@/components/content-area";
+import React from "react";
 
 export default function Profile() {
   const { signOut } = useAuth();
@@ -12,7 +12,7 @@ export default function Profile() {
   return (
     <ContentArea>
       <Background preset="orange" />
-      {/* Navigation + Sign out buttons */}
+      Navigation + Sign out buttons
       <View style={styles.stepContainer}>
         <Button
           title="Go to Feature Flags"

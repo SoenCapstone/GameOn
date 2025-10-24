@@ -1,7 +1,7 @@
 import {
   SearchResult,
   mockSearchResults,
-} from "@/components/SearchPage/constants";
+} from "@/components/BrowsePage/constants";
 import * as SecureStore from "expo-secure-store";
 import axios from "axios";
 import { useQuery } from "@tanstack/react-query";
@@ -86,7 +86,9 @@ async function fetchTeamResults(query: string): Promise<SearchResult[]> {
   };
 
   // Dev helper: inject X-User-Id header
-  const devUserId = (process.env.EXPO_PUBLIC_DEV_USER_ID as string) || (base.includes("localhost") ? "1001" : "");
+  const devUserId =
+    (process.env.EXPO_PUBLIC_DEV_USER_ID as string) ||
+    (base.includes("localhost") ? "1001" : "");
   if (devUserId) headers["X-User-Id"] = devUserId;
 
   try {
@@ -96,15 +98,17 @@ async function fetchTeamResults(query: string): Promise<SearchResult[]> {
       timeout: 5000,
     });
     const data = resp.data;
-    const mapped: SearchResult[] = (data.items || []).map((t: TeamSummaryResponse) => ({
-      id: String(t.id),
-      type: "team",
-      name: t.name,
-      subtitle: t.sport ? `${t.sport}` : "Team",
-      // Use logoUrl from backend if available, otherwise fallback to emoji
-      logo: t.logoUrl || mapSportToEmoji(t.sport),
-      league: "",
-    }));
+    const mapped: SearchResult[] = (data.items || []).map(
+      (t: TeamSummaryResponse) => ({
+        id: String(t.id),
+        type: "team",
+        name: t.name,
+        subtitle: t.sport ? `${t.sport}` : "Team",
+        // Use logoUrl from backend if available, otherwise fallback to emoji
+        logo: t.logoUrl || mapSportToEmoji(t.sport),
+        league: "",
+      }),
+    );
     return mapped;
   } catch (err) {
     console.warn("fetchTeamResults failed", err);

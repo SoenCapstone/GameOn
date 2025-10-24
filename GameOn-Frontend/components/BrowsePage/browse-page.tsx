@@ -4,17 +4,24 @@ import { IconSymbol } from "@/components/ui/icon-symbol";
 import { GlassView } from "expo-glass-effect";
 import SegmentedControl from "@react-native-segmented-control/segmented-control";
 import { LegendList } from "@legendapp/list";
-import { searchStyles, SearchResult } from "@/components/SearchPage/constants";
+import { searchStyles, SearchResult } from "@/components/BrowsePage/constants";
 import SvgImage from "@/components/svg-image";
 import { createScopedLog } from "@/utils/logger";
 import { useSearch } from "@/contexts/SearchContext";
 import { Background } from "@/components/background";
-import ContentArea from "@/components/content-area";
+import { ContentArea } from "@/components/content-area";
 
-export default function SearchPage() {
+export function BrowsePage() {
   const log = createScopedLog("Search");
-  const { query, results, markRendered, notifyModeChange, searchActive, isLoading, error } =
-    useSearch();
+  const {
+    query,
+    results,
+    markRendered,
+    notifyModeChange,
+    searchActive,
+    isLoading,
+    error,
+  } = useSearch();
   const q = (query || "").toLowerCase().trim();
   const renderT0 = useRef<number | null>(null);
   const renderLogged = useRef(false);
@@ -96,7 +103,9 @@ export default function SearchPage() {
                       );
                     }
                   } else {
-                    logoElement = <Text style={searchStyles.logoText}>{item.logo}</Text>;
+                    logoElement = (
+                      <Text style={searchStyles.logoText}>{item.logo}</Text>
+                    );
                   }
                   return logoElement;
                 })()}
@@ -150,7 +159,14 @@ export default function SearchPage() {
         </View>
       ) : null}
       {error ? (
-        <View style={{ backgroundColor: "#661313", padding: 8, marginVertical: 6, borderRadius: 8 }}>
+        <View
+          style={{
+            backgroundColor: "#661313",
+            padding: 8,
+            marginVertical: 6,
+            borderRadius: 8,
+          }}
+        >
           <Text style={{ color: "#fff" }}>Failed to load teams: {error}</Text>
         </View>
       ) : null}
@@ -162,7 +178,6 @@ export default function SearchPage() {
         renderItem={renderItem}
         contentContainerStyle={{
           ...searchStyles.resultsContentStatic,
-          marginTop: 15,
         }}
         onContentSizeChange={() => {
           if (renderT0.current !== null && !renderLogged.current) {
