@@ -1,4 +1,4 @@
-import { View } from "react-native";
+import { View, StyleSheet } from "react-native";
 import { useHeaderHeight } from "@react-navigation/elements";
 
 interface ContentAreaProps {
@@ -9,15 +9,16 @@ export function ContentArea({ children }: Readonly<ContentAreaProps>) {
   const headerHeight = useHeaderHeight();
 
   return (
-    <View
-      style={{
-        flex: 1,
-        paddingTop: headerHeight + 8,
-        paddingHorizontal: 16,
-        rowGap: 14,
-      }}
-    >
+    <View style={[styles.content, { paddingTop: headerHeight + 8 }]}>
       {children}
     </View>
   );
 }
+
+const styles = StyleSheet.create({
+  content: {
+    flex: 1,
+    paddingHorizontal: 16,
+    rowGap: 14,
+  },
+});

@@ -1,4 +1,4 @@
-import { Pressable } from "react-native";
+import { Pressable, StyleSheet } from "react-native";
 import { Href, router } from "expo-router";
 import { SymbolView } from "expo-symbols";
 import React from "react";
@@ -14,11 +14,7 @@ export function HeaderButton(props: HeaderButtonProps) {
 
   return (
     <Pressable
-      style={{
-        alignItems: "center",
-        flex: 1,
-        justifyContent: "center",
-      }}
+      style={styles.button}
       onPress={() => {
         if (props.type === "back") {
           router.back();
@@ -31,22 +27,34 @@ export function HeaderButton(props: HeaderButtonProps) {
         glassEffectStyle="clear"
         tintColor={"rgba(0,0,0,0.65)"}
         isInteractive={true}
-        style={{
-          width: 44,
-          height: 44,
-          borderRadius: "100%",
-          backgroundColor: "transparent",
-          alignSelf: "center",
-          justifyContent: "center",
-        }}
+        style={styles.glass}
       >
         <SymbolView
           name={iconName}
           tintColor="white"
           size={26}
-          style={{ alignSelf: "center" }}
+          style={styles.symbol}
         />
       </GlassView>
     </Pressable>
   );
 }
+
+const styles = StyleSheet.create({
+  button: {
+    alignItems: "center",
+    flex: 1,
+    justifyContent: "center",
+  },
+  glass: {
+    width: 44,
+    height: 44,
+    borderRadius: "100%",
+    backgroundColor: "transparent",
+    alignSelf: "center",
+    justifyContent: "center",
+  },
+  symbol: {
+    alignSelf: "center",
+  },
+});

@@ -1,4 +1,4 @@
-import { View, Text } from "react-native";
+import { View, Text, StyleSheet } from "react-native";
 
 interface TitleProps {
   title: string;
@@ -6,10 +6,19 @@ interface TitleProps {
 
 export function PageTitle({ title }: Readonly<TitleProps>) {
   return (
-    <View style={{ justifyContent: "center" }}>
-      <Text style={{ fontSize: 17, fontWeight: "600", color: "white" }}>
-        {title}
-      </Text>
+    <View style={styles.container}>
+      <Text style={styles.title}>{title}</Text>
     </View>
   );
 }
+
+const styles = StyleSheet.create({
+  container: {
+    justifyContent: "center",
+  },
+  title: {
+    fontSize: 17,
+    fontWeight: "600",
+    color: "white",
+  },
+});

@@ -4,7 +4,7 @@ import { StyleSheet } from "react-native";
 
 export function Logo() {
   return (
-    <GlassView style={{ width: 44, height: 44, borderRadius: 14 }}>
+    <GlassView style={styles.glass}>
       <Image
         source={require("@/assets/images/logo.png")}
         style={StyleSheet.absoluteFillObject}
@@ -13,3 +13,11 @@ export function Logo() {
     </GlassView>
   );
 }
+
+const styles = StyleSheet.create({
+  glass: {
+    width: 44,
+    height: 44,
+    borderRadius: 14,
+  },
+});
