@@ -31,12 +31,21 @@ export default function RootLayout() {
           <AuthGate>
             <QueryClientProvider client={queryClient}>
               <SearchProvider>
-              <Stack>
-                <Stack.Screen name="(auth)" options={{ headerShown: false }} />
-                <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-                <Stack.Screen name="search" options={{ headerShown: false }} />
-              </Stack>
-              <StatusBar style="auto" />
+                <Stack>
+                  <Stack.Screen
+                    name="(auth)"
+                    options={{ headerShown: false }}
+                  />
+                  <Stack.Screen
+                    name="(tabs)"
+                    options={{ headerShown: false }}
+                  />
+                  <Stack.Screen
+                    name="browse"
+                    options={{ headerShown: false }}
+                  />
+                </Stack>
+                <StatusBar style="auto" />
               </SearchProvider>
             </QueryClientProvider>
           </AuthGate>
