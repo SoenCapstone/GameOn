@@ -74,7 +74,7 @@ describe("HeaderButton", () => {
       render(<HeaderButton type="back" />);
 
       const call = (GlassView as jest.Mock).mock.calls[0][0];
-      expect(call.glassEffectStyle).toBe("regular");
+      expect(call.glassEffectStyle).toBe("clear");
       expect(call.isInteractive).toBe(true);
       expect(call.style.width).toBe(44);
       expect(call.style.height).toBe(44);
