@@ -3,7 +3,7 @@ import { Href, router } from "expo-router";
 import React from "react";
 import { SFSymbols6_0 } from "sf-symbols-typescript";
 import { GlassView } from "expo-glass-effect";
-import { IconSymbol } from "@/components/ui/icon-symbol.ios";
+import { IconSymbol } from "@/components/ui/icon-symbol";
 
 type HeaderButtonProps =
   | { type: "back" }

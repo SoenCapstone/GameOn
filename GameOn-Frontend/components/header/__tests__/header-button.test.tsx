@@ -2,7 +2,7 @@ import React from "react";
 import { render, fireEvent } from "@testing-library/react-native";
 import { router } from "expo-router";
 import { HeaderButton } from "@/components/header/header-button";
-import { SymbolView } from "expo-symbols";
+import { IconSymbol } from "@/components/ui/icon-symbol";
 import { GlassView } from "expo-glass-effect";
 
 jest.mock("expo-router", () => ({
@@ -12,8 +12,8 @@ jest.mock("expo-router", () => ({
   },
 }));
 
-jest.mock("expo-symbols", () => ({
-  SymbolView: jest.fn(() => null),
+jest.mock("@/components/ui/icon-symbol", () => ({
+  IconSymbol: jest.fn(() => null),
 }));
 
 jest.mock("expo-glass-effect", () => ({
@@ -29,10 +29,10 @@ describe("HeaderButton", () => {
     it("renders with chevron.left icon", () => {
       render(<HeaderButton type="back" />);
 
-      const call = (SymbolView as jest.Mock).mock.calls[0][0];
+      const call = (IconSymbol as jest.Mock).mock.calls[0][0];
       expect(call.name).toBe("chevron.left");
       expect(call.size).toBe(26);
-      expect(call.tintColor).toBe("white");
+      expect(call.color).toBe("white");
     });
 
     it("calls router.back when pressed", () => {
@@ -50,10 +50,10 @@ describe("HeaderButton", () => {
     it("renders with custom icon", () => {
       render(<HeaderButton type="custom" icon="house.fill" route="/home" />);
 
-      const call = (SymbolView as jest.Mock).mock.calls[0][0];
+      const call = (IconSymbol as jest.Mock).mock.calls[0][0];
       expect(call.name).toBe("house.fill");
       expect(call.size).toBe(26);
-      expect(call.tintColor).toBe("white");
+      expect(call.color).toBe("white");
     });
 
     it("calls router.push with route when pressed", () => {
@@ -80,11 +80,11 @@ describe("HeaderButton", () => {
       expect(call.style.height).toBe(44);
     });
 
-    it("renders SymbolView with correct styling props", () => {
+    it("renders IconSymbol with correct styling props", () => {
       render(<HeaderButton type="back" />);
 
-      const call = (SymbolView as jest.Mock).mock.calls[0][0];
-      expect(call.tintColor).toBe("white");
+      const call = (IconSymbol as jest.Mock).mock.calls[0][0];
+      expect(call.color).toBe("white");
       expect(call.size).toBe(26);
       expect(call.style.alignSelf).toBe("center");
     });
