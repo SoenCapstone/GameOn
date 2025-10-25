@@ -1,9 +1,9 @@
+import React from "react";
 import { StyleSheet, Button, View } from "react-native";
 import { useRouter } from "expo-router";
 import { useAuth } from "@/contexts/auth";
-import { Background } from "@/components/background";
-import { ContentArea } from "@/components/content-area";
-import React from "react";
+import { Background } from "@/components/ui/background";
+import { ContentArea } from "@/components/ui/content-area";
 
 export default function Profile() {
   const { signOut } = useAuth();

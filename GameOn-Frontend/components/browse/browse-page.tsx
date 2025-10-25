@@ -8,8 +8,8 @@ import { searchStyles, SearchResult } from "@/components/browse/constants";
 import SvgImage from "@/components/svg-image";
 import { createScopedLog } from "@/utils/logger";
 import { useSearch } from "@/contexts/SearchContext";
-import { Background } from "@/components/background";
-import { ContentArea } from "@/components/content-area";
+import { Background } from "@/components/ui/background";
+import { ContentArea } from "@/components/ui/content-area";
 
 export function BrowsePage() {
   const log = createScopedLog("Search");
