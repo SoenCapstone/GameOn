@@ -26,7 +26,7 @@ export function BrowsePage() {
   const renderT0 = useRef<number | null>(null);
   const renderLogged = useRef(false);
 
-  const uiLog = createScopedLog("Search.ui");
+  const uiLog = createScopedLog("Browse.ui");
   const [mode, setMode] = React.useState<"teams" | "leagues">("teams");
 
   // log when mode changes

@@ -109,7 +109,7 @@ async function fetchTeamResults(query: string): Promise<SearchResult[]> {
     return mapped;
   } catch (err) {
     console.warn("fetchTeamResults failed", err);
-    return [];
+    throw err;
   }
 }
 
