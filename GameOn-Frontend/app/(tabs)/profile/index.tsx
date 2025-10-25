@@ -12,7 +12,7 @@ export default function Profile() {
   return (
     <ContentArea>
       <Background preset="orange" />
-      Navigation + Sign out buttons
+      {/* Navigation + Sign out buttons */}
       <View style={styles.stepContainer}>
         <Button
           title="Go to Feature Flags"
