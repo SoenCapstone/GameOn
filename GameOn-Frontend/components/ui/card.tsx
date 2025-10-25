@@ -13,7 +13,7 @@ export function Card({ children, onPress }: Readonly<CardProps>) {
       <GlassView
         isInteractive={true}
         glassEffectStyle={"clear"}
-        tintColor={"rgba(0,0,0,0.4)"}
+        tintColor={"rgba(0,0,0,0.5)"}
         style={styles.card}
       >
         {children}
