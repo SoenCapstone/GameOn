@@ -89,9 +89,8 @@ describe("fetchTeamResults", () => {
       logo: "⚽",
     });
   });
-  it("returns empty array if fetch fails", async () => {
+  it("throws error if fetch fails", async () => {
     mockedAxios.get.mockRejectedValueOnce(new Error("network error"));
-    const results = await fetchTeamResults("fail");
-    expect(results).toEqual([]);
+    await expect(fetchTeamResults("fail")).rejects.toThrow("network error");
   });
 });

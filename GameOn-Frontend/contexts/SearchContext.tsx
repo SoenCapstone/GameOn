@@ -5,12 +5,10 @@ import React, {
   useMemo,
   useState,
 } from "react";
-import {
-  SearchResult,
-  SearchContextValue,
-} from "@/components/browse/constants";
-import { filterLocalLeagues, useTeamResults } from "@/components/browse/utils";
+import { SearchContextValue } from "@/components/browse/constants";
+import { useTeamLeagueResults } from "@/components/browse/hooks/useTeamLeagueResults";
 import { createScopedLog } from "@/utils/logger";
+import { errorToString } from "@/utils/error";
 
 const ctxLog = createScopedLog("Search.context");
 
@@ -21,8 +19,7 @@ export const SearchProvider: React.FC<{ children: React.ReactNode }> = ({
 }) => {
   const [query, setQuery] = useState("");
   const [searchActive, setSearchActive] = useState(false);
-  const [results, setResults] = useState<SearchResult[]>([]);
-  // track last search metadata so we can emit a single combined log after render
+  // track last search data to log a single combined log after render
   const lastSearchRef = React.useRef<{
     id: number;
     query: string;
@@ -31,16 +28,11 @@ export const SearchProvider: React.FC<{ children: React.ReactNode }> = ({
   } | null>(null);
   const nextId = React.useRef(1);
 
-  const teamQuery = useTeamResults(query);
+  const teamLeague = useTeamLeagueResults(query);
+  const combined = teamLeague.data;
 
-  // Combine team results with leagues when data changes
   useEffect(() => {
-    const teamItems = (teamQuery.data ?? []).slice().reverse();
-    const leagueItems = filterLocalLeagues(query);
-    const combined = [...teamItems, ...leagueItems];
-    setResults(combined);
-
-    // store metrics and wait for UI render to print a single combined log
+    // store metrics for later use by markRendered
     lastSearchRef.current = {
       id: nextId.current++,
       query,
@@ -61,6 +53,7 @@ export const SearchProvider: React.FC<{ children: React.ReactNode }> = ({
             return r.name.toLowerCase().includes(q);
           }).length;
       }
+
       const payload: Record<string, string | number> = {
         query,
         resultCount: displayedCount,
@@ -73,7 +66,7 @@ export const SearchProvider: React.FC<{ children: React.ReactNode }> = ({
     } catch {
       // ignore logging failures
     }
-  }, [teamQuery.data, query]);
+  }, [combined, query]);
 
   const markRendered = (
     renderTookMs: number,
@@ -116,21 +109,21 @@ export const SearchProvider: React.FC<{ children: React.ReactNode }> = ({
     () => ({
       query,
       setQuery,
-      results,
+      results: combined,
       searchActive,
       setSearchActive,
       markRendered,
       notifyModeChange: logModeChange,
-      isLoading: teamQuery.isLoading,
-      error: teamQuery.error ? String(teamQuery.error) : null,
+      isLoading: teamLeague.isLoading,
+      error: teamLeague.error ? errorToString(teamLeague.error) : null,
     }),
     [
       query,
-      results,
+      combined,
       searchActive,
       logModeChange,
-      teamQuery.isLoading,
-      teamQuery.error,
+      teamLeague.isLoading,
+      teamLeague.error,
     ],
   );
 

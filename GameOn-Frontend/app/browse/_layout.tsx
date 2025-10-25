@@ -1,12 +1,5 @@
-import {
-  DarkTheme,
-  DefaultTheme,
-  ThemeProvider,
-} from "@react-navigation/native";
 import { Stack } from "expo-router";
-import { StatusBar } from "expo-status-bar";
 import "react-native-reanimated";
-import { useColorScheme } from "@/hooks/use-color-scheme";
 import React from "react";
 import { Header } from "@/components/header/header";
 import { PageTitle } from "@/components/header/page-title";
@@ -21,32 +14,28 @@ const browseHeader = () => (
 );
 
 export default function RootLayout() {
-  const colorScheme = useColorScheme();
   const { setQuery, setSearchActive } = useSearch();
 
   return (
-    <ThemeProvider value={colorScheme === "dark" ? DarkTheme : DefaultTheme}>
-      <Stack>
-        <Stack.Screen
-          name="index"
-          options={{
-            headerBackVisible: false,
-            headerTitle: browseHeader,
-            headerTransparent: true,
-            headerSearchBarOptions: {
-              hideNavigationBar: false,
-              placement: "automatic",
-              onChangeText: (event) => {
-                const text = event.nativeEvent.text || "";
-                setQuery(text);
-              },
-              onFocus: () => setSearchActive(true),
-              onBlur: () => setSearchActive(false),
+    <Stack>
+      <Stack.Screen
+        name="index"
+        options={{
+          headerBackVisible: false,
+          headerTitle: browseHeader,
+          headerTransparent: true,
+          headerSearchBarOptions: {
+            hideNavigationBar: false,
+            placement: "automatic",
+            onChangeText: (event) => {
+              const text = event.nativeEvent.text || "";
+              setQuery(text);
             },
-          }}
-        />
-      </Stack>
-      <StatusBar style="auto" />
-    </ThemeProvider>
+            onFocus: () => setSearchActive(true),
+            onBlur: () => setSearchActive(false),
+          },
+        }}
+      />
+    </Stack>
   );
 }
