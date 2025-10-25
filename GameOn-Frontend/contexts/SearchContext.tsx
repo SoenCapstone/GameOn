@@ -8,6 +8,7 @@ import React, {
 import { SearchContextValue } from "@/components/browse/constants";
 import { useTeamLeagueResults } from "@/components/browse/hooks/useTeamLeagueResults";
 import { createScopedLog } from "@/utils/logger";
+import { errorToString } from "@/utils/error";
 
 const ctxLog = createScopedLog("Search.context");
 
@@ -104,15 +105,6 @@ export const SearchProvider: React.FC<{ children: React.ReactNode }> = ({
     },
     [query],
   );
-  const formatError = (err: unknown): string | null => {
-    if (!err) return null;
-    if (err instanceof Error) return err.message || String(err);
-    try {
-      return JSON.stringify(err as any);
-    } catch {
-      return String(err);
-    }
-  };
   const value = useMemo(
     () => ({
       query,
@@ -123,7 +115,7 @@ export const SearchProvider: React.FC<{ children: React.ReactNode }> = ({
       markRendered,
       notifyModeChange: logModeChange,
       isLoading: teamLeague.isLoading,
-      error: formatError(teamLeague.error),
+      error: teamLeague.error ? errorToString(teamLeague.error) : null,
     }),
     [
       query,

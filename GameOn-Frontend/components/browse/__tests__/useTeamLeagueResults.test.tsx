@@ -12,7 +12,7 @@ jest.mock("@/components/browse/utils", () => ({
 const useTeamResults = utils.useTeamResults as jest.MockedFunction<any>;
 const filterLocalLeagues = utils.filterLocalLeagues as jest.MockedFunction<any>;
 
-function TestComp({ query }: { query: Readonly<string> }) {
+function TestComp({ query }: Readonly<{ query: string }>) {
   const { data } = useTeamLeagueResults(query);
   return <Text testID="out">{JSON.stringify(data.map((d) => d.id))}</Text>;
 }
