@@ -27,9 +27,5 @@ const styles = StyleSheet.create({
     width: "100%",
     padding: 24,
     borderRadius: 34,
-    overflow: "hidden",
-    borderStyle: "solid",
-    borderColor: "rgba(108,108,113,0.1)",
-    borderWidth: 1,
   },
 });
