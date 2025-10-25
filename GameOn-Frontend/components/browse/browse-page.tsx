@@ -4,7 +4,7 @@ import { IconSymbol } from "@/components/ui/icon-symbol";
 import { GlassView } from "expo-glass-effect";
 import SegmentedControl from "@react-native-segmented-control/segmented-control";
 import { LegendList } from "@legendapp/list";
-import { searchStyles, SearchResult } from "@/components/BrowsePage/constants";
+import { searchStyles, SearchResult } from "@/components/browse/constants";
 import SvgImage from "@/components/svg-image";
 import { createScopedLog } from "@/utils/logger";
 import { useSearch } from "@/contexts/SearchContext";

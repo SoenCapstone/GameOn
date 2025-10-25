@@ -1,7 +1,4 @@
-import {
-  SearchResult,
-  mockSearchResults,
-} from "@/components/BrowsePage/constants";
+import { SearchResult, mockSearchResults } from "@/components/browse/constants";
 import * as SecureStore from "expo-secure-store";
 import axios from "axios";
 import { useQuery } from "@tanstack/react-query";

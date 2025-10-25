@@ -8,11 +8,8 @@ import React, {
 import {
   SearchResult,
   SearchContextValue,
-} from "@/components/BrowsePage/constants";
-import {
-  filterLocalLeagues,
-  useTeamResults,
-} from "@/components/BrowsePage/utils";
+} from "@/components/browse/constants";
+import { filterLocalLeagues, useTeamResults } from "@/components/browse/utils";
 import { createScopedLog } from "@/utils/logger";
 
 const ctxLog = createScopedLog("Search.context");

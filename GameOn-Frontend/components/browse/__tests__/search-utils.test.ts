@@ -2,7 +2,7 @@ import {
   mapSportToEmoji,
   filterLocalLeagues,
   fetchTeamResults,
-} from "@/components/BrowsePage/utils";
+} from "@/components/browse/utils";
 
 import axios from "axios";
 

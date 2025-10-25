@@ -1,4 +1,4 @@
-import { BrowsePage } from "@/components/BrowsePage/browse-page";
+import { BrowsePage } from "@/components/browse/browse-page";
 
 export default function Search() {
   return <BrowsePage />;
