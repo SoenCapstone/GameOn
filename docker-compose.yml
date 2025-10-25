@@ -68,6 +68,27 @@ services:
       - go-discovery-service
       - db
 
+  go-team-service:
+    build: ./GameOn-Backend/go-team-service
+    ports:
+      - "8091:8080"
+    environment:
+      SPRING_CONFIG_IMPORT: optional:configserver:http://go-config-server:8889
+      SPRING_CLOUD_CONFIG_OVERRIDE_SYSTEM_PROPERTIES: "true"
+      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://go-discovery-service:8761/eureka/
+      EUREKA_CLIENT_SERVICE_URL_DEFAULT_ZONE: http://go-discovery-service:8761/eureka/
+      JAVA_TOOL_OPTIONS: "-Deureka.client.serviceUrl.defaultZone=http://go-discovery-service:8761/eureka/ -Dspring.cloud.config.override-system-properties=true"
+      SERVER_PORT: 8080
+
+      SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/gameon_db
+      SPRING_DATASOURCE_USERNAME: username
+      SPRING_DATASOURCE_PASSWORD: password
+      SPRING_JPA_HIBERNATE_DDL_AUTO: update
+    depends_on:
+      - go-config-server
+      - go-discovery-service
+      - db
+      - keycloak
 
   keycloak:
     image: quay.io/keycloak/keycloak:26.4.0

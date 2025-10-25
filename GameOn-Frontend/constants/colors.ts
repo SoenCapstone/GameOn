@@ -2,7 +2,7 @@ export const Colors = {
   blue: "#0C456E",
   purple: "#58175D",
   green: "#005D29",
-  orange: "#CE721D",
+  orange: "#CE680A",
   red: "#8E0000",
 } as const;
 

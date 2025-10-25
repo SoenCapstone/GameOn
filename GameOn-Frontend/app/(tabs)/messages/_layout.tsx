@@ -1,10 +1,10 @@
 import { Stack } from "expo-router";
 import React from "react";
-import Header from "@/components/header/header";
+import { Header } from "@/components/header/header";
 import { Logo } from "@/components/header/logo";
-import PageTitle from "@/components/header/page-title";
+import { PageTitle } from "@/components/header/page-title";
 
-const header = () => (
+const messagesHeader = () => (
   <Header left={<Logo />} center={<PageTitle title="Messages" />} />
 );
 
@@ -16,7 +16,7 @@ export default function MessagesLayout() {
         options={{
           headerTransparent: true,
           headerShadowVisible: false,
-          headerTitle: header,
+          headerTitle: messagesHeader,
         }}
       />
     </Stack>
