@@ -91,6 +91,6 @@ describe("fetchTeamResults", () => {
   });
   it("throws error if fetch fails", async () => {
     mockedAxios.get.mockRejectedValueOnce(new Error("network error"));
-    await expect(fetchTeamResults("fail")).rejects.toThrow('network error');
+    await expect(fetchTeamResults("fail")).rejects.toThrow("network error");
   });
 });

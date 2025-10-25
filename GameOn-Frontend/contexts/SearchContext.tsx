@@ -44,7 +44,9 @@ export const SearchProvider: React.FC<{ children: React.ReactNode }> = ({
         const mode = lastSearchRef.current.mode;
         const q = (query || "").toLowerCase().trim();
         displayedCount = combined
-          .filter((r) => (mode === "teams" ? r.type === "team" : r.type === "league"))
+          .filter((r) =>
+            mode === "teams" ? r.type === "team" : r.type === "league",
+          )
           .filter((r) => {
             if (!q) return true;
             return r.name.toLowerCase().includes(q);
@@ -56,7 +58,8 @@ export const SearchProvider: React.FC<{ children: React.ReactNode }> = ({
         resultCount: displayedCount,
         tookMs: 0,
       };
-      if (lastSearchRef.current?.mode) payload.mode = lastSearchRef.current.mode;
+      if (lastSearchRef.current?.mode)
+        payload.mode = lastSearchRef.current.mode;
       ctxLog.info("search completed", payload);
       lastSearchRef.current = null;
     } catch {
@@ -101,6 +104,15 @@ export const SearchProvider: React.FC<{ children: React.ReactNode }> = ({
     },
     [query],
   );
+  const formatError = (err: unknown): string | null => {
+    if (!err) return null;
+    if (err instanceof Error) return err.message || String(err);
+    try {
+      return JSON.stringify(err as any);
+    } catch {
+      return String(err);
+    }
+  };
   const value = useMemo(
     () => ({
       query,
@@ -111,9 +123,16 @@ export const SearchProvider: React.FC<{ children: React.ReactNode }> = ({
       markRendered,
       notifyModeChange: logModeChange,
       isLoading: teamLeague.isLoading,
-      error: teamLeague.error ? String(teamLeague.error) : null,
+      error: formatError(teamLeague.error),
     }),
-    [query, combined, searchActive, logModeChange, teamLeague.isLoading, teamLeague.error],
+    [
+      query,
+      combined,
+      searchActive,
+      logModeChange,
+      teamLeague.isLoading,
+      teamLeague.error,
+    ],
   );
 
   return (

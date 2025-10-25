@@ -18,6 +18,6 @@ export function useTeamLeagueResults(query: string) {
   } as {
     data: SearchResult[];
     isLoading: boolean;
-    error: unknown | null;
+    error: unknown;
   };
 }
