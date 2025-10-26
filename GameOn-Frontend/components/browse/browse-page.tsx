@@ -84,13 +84,16 @@ export function BrowsePage() {
 
       const imageSource: ImageSourcePropType | undefined =
         isUrl && !isSvg ? { uri: item.logo } : undefined;
-      const logoElement: React.ReactNode = isUrl ? (
-        isSvg ? (
-          <SvgImage uri={item.logo} width={48} height={48} />
-        ) : null
-      ) : (
-        <Text style={searchStyles.logoText}>{item.logo}</Text>
-      );
+      let logoElement: React.ReactNode;
+      if (isUrl) {
+        if (isSvg) {
+          logoElement = <SvgImage uri={item.logo} width={48} height={48} />;
+        } else {
+          logoElement = null;
+        }
+      } else {
+        logoElement = <Text style={searchStyles.logoText}>{item.logo}</Text>;
+      }
 
       return (
         <InfoCard
@@ -169,7 +172,7 @@ export function BrowsePage() {
           }
         }}
         recycleItems={true}
-        ItemSeparatorComponent={() => <Separator />}
+        ItemSeparatorComponent={Separator}
       />
     </ContentArea>
   );
