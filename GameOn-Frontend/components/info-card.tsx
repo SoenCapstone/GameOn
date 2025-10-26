@@ -19,21 +19,21 @@ export function InfoCard({
   logo,
   onPress,
 }: Readonly<InfoCardProps>) {
+  const contentNode: React.ReactNode = logo ? (
+    logo
+  ) : image ? (
+    <Image
+      source={image}
+      style={StyleSheet.absoluteFillObject}
+      contentFit="contain"
+    />
+  ) : null;
+
   return (
     <Card onPress={onPress}>
       <View style={styles.card}>
         <View style={styles.content}>
-          <View style={styles.image}>
-            {logo ? (
-              <>{logo}</>
-            ) : image ? (
-              <Image
-                source={image}
-                style={StyleSheet.absoluteFillObject}
-                contentFit="contain"
-              />
-            ) : null}
-          </View>
+          <View style={styles.image}>{contentNode}</View>
           <View style={styles.text}>
             <Text style={styles.title}>{title}</Text>
             <Text style={styles.subtitle}>{subtitle}</Text>

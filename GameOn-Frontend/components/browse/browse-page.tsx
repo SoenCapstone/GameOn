@@ -1,5 +1,10 @@
 import React, { useRef } from "react";
-import { View, Text, ActivityIndicator, ImageSourcePropType } from "react-native";
+import {
+  View,
+  Text,
+  ActivityIndicator,
+  ImageSourcePropType,
+} from "react-native";
 import SegmentedControl from "@react-native-segmented-control/segmented-control";
 import { LegendList } from "@legendapp/list";
 import { searchStyles, SearchResult } from "@/components/browse/constants";
@@ -9,6 +14,10 @@ import { useSearch } from "@/contexts/SearchContext";
 import { Background } from "@/components/ui/background";
 import { ContentArea } from "@/components/ui/content-area";
 import { InfoCard } from "@/components/info-card";
+
+function Separator() {
+  return <View style={searchStyles.separator} />;
+}
 
 export function BrowsePage() {
   const log = createScopedLog("Search");
@@ -27,10 +36,6 @@ export function BrowsePage() {
 
   const uiLog = createScopedLog("Browse.ui");
   const [mode, setMode] = React.useState<"teams" | "leagues">("teams");
-
-  const Separator = () => (
-  <View style={searchStyles.separator} />
-);
 
   // log when mode changes
   React.useEffect(() => {
@@ -79,6 +84,13 @@ export function BrowsePage() {
 
       const imageSource: ImageSourcePropType | undefined =
         isUrl && !isSvg ? { uri: item.logo } : undefined;
+      const logoElement: React.ReactNode = isUrl ? (
+        isSvg ? (
+          <SvgImage uri={item.logo} width={48} height={48} />
+        ) : null
+      ) : (
+        <Text style={searchStyles.logoText}>{item.logo}</Text>
+      );
 
       return (
         <InfoCard
@@ -86,15 +98,7 @@ export function BrowsePage() {
           subtitle={item.subtitle}
           onPress={() => handleResultPress(item)}
           image={imageSource}
-          logo={
-            isUrl ? (
-              isSvg ? (
-                <SvgImage uri={item.logo} width={48} height={48} />
-              ) : null
-            ) : (
-              <Text style={searchStyles.logoText}>{item.logo}</Text>
-            )
-          }
+          logo={logoElement}
         />
       );
     },
@@ -136,7 +140,9 @@ export function BrowsePage() {
       ) : null}
       {error ? (
         <View style={searchStyles.errorContainer}>
-          <Text style={searchStyles.errorText}>Failed to load teams: {error}</Text>
+          <Text style={searchStyles.errorText}>
+            Failed to load teams: {error}
+          </Text>
         </View>
       ) : null}
 
@@ -163,7 +169,7 @@ export function BrowsePage() {
           }
         }}
         recycleItems={true}
-        ItemSeparatorComponent={Separator}
+        ItemSeparatorComponent={() => <Separator />}
       />
     </ContentArea>
   );
