@@ -142,4 +142,20 @@ export const searchStyles = StyleSheet.create({
   resultsContentStatic: {
     paddingVertical: 10,
   },
+  itemTextContainer: {
+    flex: 1,
+  },
+  loadingContainer: {
+    alignItems: "center",
+    padding: 8,
+  },
+  errorContainer: {
+    backgroundColor: "#661313",
+    padding: 8,
+    marginVertical: 6,
+    borderRadius: 8,
+  },
+  errorText: {
+    color: "#fff",
+  },
 });

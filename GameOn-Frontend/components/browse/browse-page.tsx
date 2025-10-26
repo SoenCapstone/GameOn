@@ -110,7 +110,7 @@ export function BrowsePage() {
                   return logoElement;
                 })()}
               </View>
-              <View style={{ flex: 1 }}>
+              <View style={searchStyles.itemTextContainer}>
                 <Text style={searchStyles.nameText}>{item.name}</Text>
                 <Text style={searchStyles.subtitleText}>{item.subtitle}</Text>
               </View>
@@ -154,20 +154,13 @@ export function BrowsePage() {
 
       {/* Loading spinner / error banner */}
       {isLoading ? (
-        <View style={{ alignItems: "center", padding: 8 }}>
+        <View style={searchStyles.loadingContainer}>
           <ActivityIndicator size="small" color="#FFFFFF" />
         </View>
       ) : null}
       {error ? (
-        <View
-          style={{
-            backgroundColor: "#661313",
-            padding: 8,
-            marginVertical: 6,
-            borderRadius: 8,
-          }}
-        >
-          <Text style={{ color: "#fff" }}>Failed to load teams: {error}</Text>
+        <View style={searchStyles.errorContainer}>
+          <Text style={searchStyles.errorText}>Failed to load teams: {error}</Text>
         </View>
       ) : null}
 
@@ -176,9 +169,7 @@ export function BrowsePage() {
         data={displayedResults}
         keyExtractor={(item) => item.id}
         renderItem={renderItem}
-        contentContainerStyle={{
-          ...searchStyles.resultsContentStatic,
-        }}
+        contentContainerStyle={searchStyles.resultsContentStatic}
         onContentSizeChange={() => {
           if (renderT0.current !== null && !renderLogged.current) {
             const took = Math.max(0, Math.round(now() - renderT0.current));
