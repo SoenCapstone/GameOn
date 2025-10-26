@@ -1,7 +1,5 @@
 import React, { useRef } from "react";
-import { Pressable, View, Text, Image, ActivityIndicator } from "react-native";
-import { IconSymbol } from "@/components/ui/icon-symbol";
-import { GlassView } from "expo-glass-effect";
+import { View, Text, ActivityIndicator, ImageSourcePropType } from "react-native";
 import SegmentedControl from "@react-native-segmented-control/segmented-control";
 import { LegendList } from "@legendapp/list";
 import { searchStyles, SearchResult } from "@/components/browse/constants";
@@ -10,6 +8,7 @@ import { createScopedLog } from "@/utils/logger";
 import { useSearch } from "@/contexts/SearchContext";
 import { Background } from "@/components/ui/background";
 import { ContentArea } from "@/components/ui/content-area";
+import { InfoCard } from "@/components/info-card";
 
 export function BrowsePage() {
   const log = createScopedLog("Search");
@@ -28,6 +27,10 @@ export function BrowsePage() {
 
   const uiLog = createScopedLog("Browse.ui");
   const [mode, setMode] = React.useState<"teams" | "leagues">("teams");
+
+  const Separator = () => (
+  <View style={searchStyles.separator} />
+);
 
   // log when mode changes
   React.useEffect(() => {
@@ -74,52 +77,25 @@ export function BrowsePage() {
         item.logo.startsWith("http://") || item.logo.startsWith("https://");
       const isSvg = isUrl && item.logo.toLowerCase().endsWith(".svg");
 
+      const imageSource: ImageSourcePropType | undefined =
+        isUrl && !isSvg ? { uri: item.logo } : undefined;
+
       return (
-        <Pressable
+        <InfoCard
+          title={item.name}
+          subtitle={item.subtitle}
           onPress={() => handleResultPress(item)}
-          style={searchStyles.pressableWrapper}
-        >
-          <GlassView
-            isInteractive={true}
-            glassEffectStyle="clear"
-            style={searchStyles.resultCard}
-          >
-            <View style={searchStyles.resultRow}>
-              <View style={searchStyles.logoContainer}>
-                {(() => {
-                  let logoElement: React.ReactNode;
-                  if (isUrl) {
-                    if (isSvg) {
-                      logoElement = (
-                        <SvgImage uri={item.logo} width={48} height={48} />
-                      );
-                    } else {
-                      logoElement = (
-                        <Image
-                          source={{ uri: item.logo }}
-                          style={searchStyles.logoImage}
-                          resizeMode="contain"
-                        />
-                      );
-                    }
-                  } else {
-                    logoElement = (
-                      <Text style={searchStyles.logoText}>{item.logo}</Text>
-                    );
-                  }
-                  return logoElement;
-                })()}
-              </View>
-              <View style={searchStyles.itemTextContainer}>
-                <Text style={searchStyles.nameText}>{item.name}</Text>
-                <Text style={searchStyles.subtitleText}>{item.subtitle}</Text>
-              </View>
-              <View style={searchStyles.rightIconContainer}>
-                <IconSymbol name="chevron.right" size={16} color="#FFFFFF60" />
-              </View>
-            </View>
-          </GlassView>
-        </Pressable>
+          image={imageSource}
+          logo={
+            isUrl ? (
+              isSvg ? (
+                <SvgImage uri={item.logo} width={48} height={48} />
+              ) : null
+            ) : (
+              <Text style={searchStyles.logoText}>{item.logo}</Text>
+            )
+          }
+        />
       );
     },
     [handleResultPress],
@@ -187,6 +163,7 @@ export function BrowsePage() {
           }
         }}
         recycleItems={true}
+        ItemSeparatorComponent={Separator}
       />
     </ContentArea>
   );

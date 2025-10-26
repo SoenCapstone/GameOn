@@ -8,19 +8,31 @@ interface InfoCardProps {
   readonly title: string;
   readonly subtitle: string;
   readonly image?: ImageSourcePropType;
+  readonly logo?: React.ReactNode;
+  readonly onPress?: () => void;
 }
 
-export function InfoCard({ title, subtitle, image }: Readonly<InfoCardProps>) {
+export function InfoCard({
+  title,
+  subtitle,
+  image,
+  logo,
+  onPress,
+}: Readonly<InfoCardProps>) {
   return (
-    <Card>
+    <Card onPress={onPress}>
       <View style={styles.card}>
         <View style={styles.content}>
           <View style={styles.image}>
-            <Image
-              source={image}
-              style={StyleSheet.absoluteFillObject}
-              contentFit="contain"
-            />
+            {logo ? (
+              <>{logo}</>
+            ) : image ? (
+              <Image
+                source={image}
+                style={StyleSheet.absoluteFillObject}
+                contentFit="contain"
+              />
+            ) : null}
           </View>
           <View style={styles.text}>
             <Text style={styles.title}>{title}</Text>
@@ -52,6 +64,8 @@ const styles = StyleSheet.create({
   image: {
     width: 40,
     height: 40,
+    alignItems: "center",
+    justifyContent: "center",
   },
   text: {
     width: "auto",

@@ -60,90 +60,14 @@ export const mockSearchResults: SearchResult[] = [
 ];
 
 export const searchStyles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: "#000",
-  },
-  topGradient: {
-    position: "absolute",
-    top: 0,
-    left: 0,
-    right: 0,
-    height: 700,
-  },
-  resultsWrapper: {
-    flex: 1,
-    height: "100%",
-    width: "100%",
-    alignSelf: "center",
-  },
-  pressableWrapper: {
-    width: "100%",
-    alignItems: "center",
-  },
-  resultCard: {
-    width: "90%",
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    backgroundColor: "rgba(255,255,255,0.02)",
-    paddingVertical: 12,
-    paddingHorizontal: 18,
-    marginBottom: 14,
-    borderRadius: 24,
-    borderWidth: 1,
-    borderColor: "rgba(255,255,255,0.06)",
-    overflow: "hidden",
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 0.28,
-    shadowRadius: 12,
-    elevation: 6,
-  },
-  resultRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    flex: 1,
-  },
-  logoContainer: {
-    width: 48,
-    height: 48,
-    borderRadius: 16,
-    alignItems: "center",
-    justifyContent: "center",
-    marginRight: 12,
-  },
-  logoImage: {
-    width: 48,
-    height: 48,
-    borderRadius: 16,
-  },
   logoText: {
-    fontSize: 20,
+    fontSize: 30,
   },
-  nameText: {
-    fontSize: 16,
-    fontWeight: "700",
-    color: "#FFFFFF",
-    marginBottom: 2,
-  },
-  subtitleText: {
-    fontSize: 14,
-    color: "#FFFFFF80",
-    fontWeight: "500",
-  },
-  rightIconContainer: {
-    marginLeft: 12,
-  },
-  scrollContainer: {
-    width: "100%",
-    height: "100%",
+  separator: {
+    height: 8,
   },
   resultsContentStatic: {
     paddingVertical: 10,
-  },
-  itemTextContainer: {
-    flex: 1,
   },
   loadingContainer: {
     alignItems: "center",
