@@ -1,9 +1,9 @@
 import { Pressable, StyleSheet } from "react-native";
 import { Href, router } from "expo-router";
-import { SymbolView } from "expo-symbols";
 import React from "react";
 import { SFSymbols6_0 } from "sf-symbols-typescript";
 import { GlassView } from "expo-glass-effect";
+import { IconSymbol } from "@/components/ui/icon-symbol";
 
 type HeaderButtonProps =
   | { type: "back" }
@@ -24,15 +24,14 @@ export function HeaderButton(props: HeaderButtonProps) {
       }}
     >
       <GlassView
-        glassEffectStyle="clear"
-        tintColor={"rgba(0,0,0,0.65)"}
+        glassEffectStyle="regular"
         isInteractive={true}
         style={styles.glass}
       >
-        <SymbolView
+        <IconSymbol
           name={iconName}
-          tintColor="white"
           size={26}
+          color="white"
           style={styles.symbol}
         />
       </GlassView>
