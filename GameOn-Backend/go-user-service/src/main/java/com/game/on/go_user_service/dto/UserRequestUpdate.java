@@ -5,7 +5,7 @@ import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 
-import static com.game.on.go_user_service.dto.DtoConstants.*;
+import static com.game.on.go_user_service.utils.constants.DtoConstants.*;
 
 public record UserRequestUpdate(
 
