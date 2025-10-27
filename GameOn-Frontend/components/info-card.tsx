@@ -1,5 +1,11 @@
 import React from "react";
-import { Text, View, StyleSheet, ImageSourcePropType } from "react-native";
+import {
+  Text,
+  View,
+  StyleSheet,
+  ImageSourcePropType,
+  Pressable,
+} from "react-native";
 import { Card } from "@/components/ui/card";
 import { Image } from "expo-image";
 import { IconSymbol } from "@/components/ui/icon-symbol";
@@ -9,7 +15,7 @@ interface InfoCardProps {
   readonly subtitle: string;
   readonly image?: ImageSourcePropType;
   readonly logo?: React.ReactNode;
-  readonly onPress?: () => void;
+  readonly onPress: () => void;
 }
 
 export function InfoCard({
@@ -35,20 +41,22 @@ export function InfoCard({
   }
 
   return (
-    <Card onPress={onPress}>
-      <View style={styles.card}>
-        <View style={styles.content}>
-          <View style={styles.image}>{contentNode}</View>
-          <View style={styles.text}>
-            <Text style={styles.title}>{title}</Text>
-            <Text style={styles.subtitle}>{subtitle}</Text>
+    <Pressable onPress={onPress}>
+      <Card>
+        <View style={styles.card}>
+          <View style={styles.content}>
+            <View style={styles.image}>{contentNode}</View>
+            <View style={styles.text}>
+              <Text style={styles.title}>{title}</Text>
+              <Text style={styles.subtitle}>{subtitle}</Text>
+            </View>
+          </View>
+          <View>
+            <IconSymbol name="chevron.right" color="#8C8C8C" size={18} />
           </View>
         </View>
-        <View>
-          <IconSymbol name="chevron.right" color="#8C8C8C" size={18} />
-        </View>
-      </View>
-    </Card>
+      </Card>
+    </Pressable>
   );
 }
 
