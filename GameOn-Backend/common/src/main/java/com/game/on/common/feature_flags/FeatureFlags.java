@@ -18,7 +18,7 @@ public interface FeatureFlags<T> {
      * Sets a feature flag to enabled or disabled
      * @param flag The flag to change
      * @param isEnabled Whether to enabled or disable the flag
-     * @return
+     * @return true if enabled, false otherwise
      */
     boolean setFlag(T flag, boolean isEnabled);
 }
