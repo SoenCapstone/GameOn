@@ -19,7 +19,7 @@ jobs:
     runs-on: ubuntu-latest
     defaults:
       run:
-        working-directory: GameOn-Backend
+        working-directory: GameOn-Backend/common
 
     steps:
       - name: Set up job
@@ -32,14 +32,22 @@ jobs:
           java-version: "21"
           cache: maven
           
-      - name: Create aggregate pom
+      - name: Build common
         run: |
-          mvn archetype:generate -DgroupId=com.game.on -DartifactId=parent &&
-          mvn archetype:generate -DgroupId=com.game.on -DartifactId=common &&
-          mvn archetype:generate -DgroupId=com.game.on -DartifactId=go-user-service
-        
-      - name: Build all projects
-        run: mvn -B -ntp -DskipITs
+          if [ -f mvnw ]; then
+            chmod +x mvnw
+            ./mvnw -B -ntp -DskipTests package
+          else
+            mvn -B -ntp -DskipTests package
+          fi
+
+      - name: Unit tests
+        run: |
+          if [ -f mvnw ]; then
+            ./mvnw -B -ntp -DskipITs test
+          else
+            mvn -B -ntp -DskipITs test
+          fi
 
       - name: Upload test reports
         if: always()
