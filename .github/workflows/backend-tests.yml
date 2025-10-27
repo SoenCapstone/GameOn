@@ -4,11 +4,13 @@ on:
   pull_request:
     branches: [main]
     paths:
+      - "GameOn-Backend/common/**"
       - "GameOn-Backend/go-user-service/**"
       - ".github/workflows/backend-tests.yml"
   push:
     branches: [main]
     paths:
+      - "GameOn-Backend/common/**"
       - "GameOn-Backend/go-user-service/**"
       - ".github/workflows/backend-tests.yml"
 
@@ -17,7 +19,7 @@ jobs:
     runs-on: ubuntu-latest
     defaults:
       run:
-        working-directory: GameOn-Backend/go-user-service
+        working-directory: GameOn-Backend/common
 
     steps:
       - name: Set up job
@@ -29,8 +31,8 @@ jobs:
           distribution: temurin
           java-version: "21"
           cache: maven
-
-      - name: Build
+          
+      - name: Build common
         run: |
           if [ -f mvnw ]; then
             chmod +x mvnw
