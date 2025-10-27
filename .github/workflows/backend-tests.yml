@@ -32,14 +32,14 @@ jobs:
           java-version: "21"
           cache: maven
           
-      - name: Build and test common
-        run: mvn -f "./common/pom.xml" -B -ntp -DskipITs package
+      - name: Create aggregate pom
+        run: |
+          mvn archetype:generate -DgroupId=com.game.on -DartifactId=parent &&
+          mvn archetype:generate -DgroupId=com.game.on -DartifactId=common &&
+          mvn archetype:generate -DgroupId=com.game.on -DartifactId=go-user-service
         
-      - name: Copy common jar to repository
-        run: cp "./common/target/common-1.0-SNAPSHOT.jar" "~/.m2/repository"
-
-      - name: Build and test user service
-        run: mvn -f "./go-user-service/pom.xml" -B -ntp -DskipITs test
+      - name: Build all projects
+        run: mvn -B -ntp -DskipITs
 
       - name: Upload test reports
         if: always()
