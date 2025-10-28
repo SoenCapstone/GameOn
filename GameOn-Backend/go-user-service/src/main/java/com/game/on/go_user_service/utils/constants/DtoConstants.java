@@ -1,4 +1,4 @@
-package com.game.on.go_user_service.dto;
+package com.game.on.go_user_service.utils.constants;
 
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
