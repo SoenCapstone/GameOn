@@ -1,12 +1,13 @@
 import React from 'react';
 import { Image } from 'expo-image';
-import { FlatList, StyleSheet, View, ScrollView, Pressable } from 'react-native';
+import { FlatList, StyleSheet, View, ScrollView, Pressable, Text } from 'react-native';
 import { ThemedText } from '@/components/themed-text';
 import { LinearGradient } from 'expo-linear-gradient';
 import { images } from '@/constants/images';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { createScopedLog } from '@/utils/logger'; 
 import { confirmLogout } from '@/utils/onLogout-utils'
+import { router } from 'expo-router'
 
 
 // Sample league data (replace with fetched data later)
@@ -30,7 +31,7 @@ const UserProfile = () => {
   return (
     <SafeAreaView style={{ flex: 1 }}>
       <LinearGradient 
-        colors ={['#824300ff', '#000000']}
+        colors ={['#dd7200ff', '#000000']}
         locations={[0, 0.7]}
         style={styles.gradient}>
     <ScrollView 
@@ -40,7 +41,7 @@ const UserProfile = () => {
       {/* User Section */}
       <View style={styles.header}>
         <Image source={ user.image ? user.image : images.defaultProfile } style={styles.profileImage} />
-        <ThemedText style={styles.name}>{user.name}</ThemedText>
+        <Text style={styles.name}>{user.name}</Text>
         <ThemedText style={styles.email}>{user.email}</ThemedText>
 
       {/* Edit Profile */}
@@ -49,29 +50,33 @@ const UserProfile = () => {
         styles.editButton,
         pressed && { backgroundColor: 'rgba(255, 255, 255, 0.25)' },
         ]}
-        onPress={() => log.info('Clicked on Edit Profile')}
+        onPress={() => {log.info('Clicked on Edit Profile');
+        router.push("/(auth)/editProfile");
+        }}
         >
           <ThemedText style={styles.buttonText}>Edit Profile</ThemedText>
         </Pressable>
+
+        <View style={styles.separator} />
+
       
 
       {/* Leagues Section */}
-        <ThemedText style={styles.sectionTitle}>My Leagues</ThemedText>
+        <Text style={styles.sectionTitle}>My Leagues</Text>
         <FlatList
           data={leagues}
           keyExtractor={(item) => item.id}
           scrollEnabled={false}
           renderItem={({ item }) => (
             <Pressable
-      onPress={() => log.info('Clicked: ', item.name)}
-      style = {({pressed}) => [
-      styles.leagueItem,
-      pressed && { backgroundColor: 'rgba(89, 38, 184, 0.56)'}
-    ]}
-    >
+            onPress={() => log.info('Clicked: ', item.name)}
+            style = {({pressed}) => [
+            styles.leagueItem,
+            pressed && { backgroundColor: 'rgba(89, 38, 184, 0.56)'}
+            ]}>
             <View>
               <ThemedText style={styles.leagueName}>{item.name}</ThemedText>
-              <ThemedText style={styles.leagueDivision}>{item.role}</ThemedText>
+              <ThemedText style={styles.leagueRole}>{item.role}</ThemedText>
             </View>
             </Pressable>
           )}
@@ -80,7 +85,7 @@ const UserProfile = () => {
       {/* Logout */}
         <Pressable style={({pressed}) => [
           styles.buttonLogOut,
-          pressed && { backgroundColor: 'rgba(240, 11, 11, 0.37)'},
+          pressed && { backgroundColor: 'rgba(240, 11, 11, 0.37)'}
         ]}
         onPress={() => confirmLogout()}>
           <ThemedText style={styles.buttonLogoutText}>Logout</ThemedText>
@@ -100,22 +105,31 @@ const styles = StyleSheet.create({
     marginTop: 20,
   },
   profileImage: {
-    width: 100,
-    height: 100,
+    width: 180,
+    height: 180,
     borderRadius: 60,
-    marginBottom: 1,
-    marginTop: 40,
+    marginBottom: 10,
+    marginTop: 50,
     marginHorizontal: 1,
     
   },
+  separator: {
+    height: 1,
+    backgroundColor: 'rgba(255, 255, 255, 0.3)', // faint white line
+    marginTop: 20,
+    alignSelf: 'center',
+    width: 350
+  },
   name: {
-    fontSize: 18,
+    fontSize: 32,
     fontWeight: '700',
     color: '#ffffffff',
+    marginTop: 10
   },
   email: {
     color: '#6b7280',
     marginBottom: 8,
+    fontSize: 20
   },
   gradient: { 
     flex: 1,
@@ -126,12 +140,11 @@ const styles = StyleSheet.create({
     bottom: 0
   },
   sectionTitle: {
-    fontSize: 18,
+    fontSize: 32,
     fontWeight: '600',
-    marginBottom: 8,
-    marginTop: 10,
+    marginBottom: 20,
+    marginTop: 20,
     color: '#ffffffff',
-    textDecorationLine: 'underline'
   },
   editButton: {
   marginTop: 5,
@@ -144,7 +157,7 @@ const styles = StyleSheet.create({
 },
 buttonText: {
   color: 'rgba(255, 255, 255, 0.8)',
-  fontSize: 15,
+  fontSize: 20,
   fontWeight: '400',
 },
 
@@ -160,7 +173,7 @@ buttonLogOut: {
   borderColor: 'rgba(243, 166, 166, 0.8)', 
 },
   buttonLogoutText: {  
-    fontSize: 15,
+    fontSize: 20,
     fontWeight: '400',
     color: 'rgba(243, 166, 166, 0.8)',
   },
@@ -169,17 +182,17 @@ buttonLogOut: {
     borderColor: '#444444ff',
     borderWidth: 1,
     padding: 14,
-    paddingHorizontal: 30,
+    paddingHorizontal: 60,
     borderRadius: 10,
     marginBottom: 10,
   },
   leagueName: {
-    fontSize: 16,
+    fontSize: 20,
     fontWeight: '500',
     color: '#ffffffff',
   },
-  leagueDivision: {
+  leagueRole: {
     color: '#6b7280',
-    fontSize: 14,
+    fontSize: 16,
   },
 });
