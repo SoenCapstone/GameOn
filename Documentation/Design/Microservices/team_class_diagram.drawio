@@ -1,0 +1,447 @@
+<mxGraphModel dx="0" dy="0" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="0" pageScale="1" background="none" math="0" shadow="0">
+  <root>
+    <mxCell id="0" />
+    <mxCell id="1" parent="0" />
+    <mxCell id="node39" parent="1" vertex="1" value="&lt;p style=&quot;margin:0px;margin-top:4px;text-align:center;&quot;&gt;&lt;b&gt;AuthInterceptor&lt;/b&gt;&lt;/p&gt;&lt;hr size=&quot;1&quot;/&gt;&lt;p style=&quot;margin:0 0 0 4px;line-height:1.6;&quot;&gt;+ AuthInterceptor(): &lt;/p&gt;&lt;hr size=&quot;1&quot;/&gt;&lt;p style=&quot;margin:0 0 0 4px;line-height:1.6;&quot;&gt;+ USER_EMAIL_HEADER: String&lt;br/&gt;- EXCLUDED_PATHS: Set&amp;lt;String&amp;gt;&lt;br/&gt;+ USER_ID_HEADER: String&lt;/p&gt;&lt;hr size=&quot;1&quot;/&gt;&lt;p style=&quot;margin:0 0 0 4px;line-height:1.6;&quot;&gt;+ preHandle(HttpServletRequest, HttpServletResponse, Object): boolean&lt;br/&gt;+ afterCompletion(HttpServletRequest, HttpServletResponse, Object, Exception): void&lt;/p&gt;" style="verticalAlign=top;align=left;overflow=fill;fontSize=14;fontFamily=Helvetica;html=1;rounded=0;shadow=0;comic=0;labelBackgroundColor=none;strokeWidth=1;">
+      <mxGeometry x="1931" y="1059" width="482" height="185" as="geometry" />
+    </mxCell>
+    <mxCell id="node5" parent="1" vertex="1" value="&lt;p style=&quot;margin:0px;margin-top:4px;text-align:center;&quot;&gt;&lt;b&gt;BadRequestException&lt;/b&gt;&lt;/p&gt;&lt;hr size=&quot;1&quot;/&gt;&lt;p style=&quot;margin:0 0 0 4px;line-height:1.6;&quot;&gt;+ BadRequestException(String): &lt;/p&gt;" style="verticalAlign=top;align=left;overflow=fill;fontSize=14;fontFamily=Helvetica;html=1;rounded=0;shadow=0;comic=0;labelBackgroundColor=none;strokeWidth=1;">
+      <mxGeometry x="635" y="2180" width="234" height="68" as="geometry" />
+    </mxCell>
+    <mxCell id="node26" parent="1" vertex="1" value="&lt;p style=&quot;margin:0px;margin-top:4px;text-align:center;&quot;&gt;&lt;b&gt;ConflictException&lt;/b&gt;&lt;/p&gt;&lt;hr size=&quot;1&quot;/&gt;&lt;p style=&quot;margin:0 0 0 4px;line-height:1.6;&quot;&gt;+ ConflictException(String): &lt;/p&gt;" style="verticalAlign=top;align=left;overflow=fill;fontSize=14;fontFamily=Helvetica;html=1;rounded=0;shadow=0;comic=0;labelBackgroundColor=none;strokeWidth=1;">
+      <mxGeometry x="368" y="2180" width="208" height="68" as="geometry" />
+    </mxCell>
+    <mxCell id="node22" parent="1" vertex="1" value="&lt;p style=&quot;margin:0px;margin-top:4px;text-align:center;&quot;&gt;&lt;b&gt;CurrentUserProvider&lt;/b&gt;&lt;/p&gt;&lt;hr size=&quot;1&quot;/&gt;&lt;p style=&quot;margin:0 0 0 4px;line-height:1.6;&quot;&gt;+ CurrentUserProvider(): &lt;/p&gt;&lt;hr size=&quot;1&quot;/&gt;&lt;p style=&quot;margin:0 0 0 4px;line-height:1.6;&quot;&gt;+ currentEmail(): Optional&amp;lt;String&amp;gt;&lt;br/&gt;+ requireUserId(): Long&lt;/p&gt;" style="verticalAlign=top;align=left;overflow=fill;fontSize=14;fontFamily=Helvetica;html=1;rounded=0;shadow=0;comic=0;labelBackgroundColor=none;strokeWidth=1;">
+      <mxGeometry x="1389" y="1095" width="246" height="121" as="geometry" />
+    </mxCell>
+    <mxCell id="node17" parent="1" vertex="1" value="&lt;p style=&quot;margin:0px;margin-top:4px;text-align:center;&quot;&gt;&lt;i&gt;&amp;lt;&amp;lt;record&amp;gt;&amp;gt;&lt;/i&gt;&lt;br/&gt;&lt;b&gt;ErrorResponse&lt;/b&gt;&lt;/p&gt;&lt;hr size=&quot;1&quot;/&gt;&lt;p style=&quot;margin:0 0 0 4px;line-height:1.6;&quot;&gt;+ ErrorResponse(String, String, OffsetDateTime): &lt;/p&gt;&lt;hr size=&quot;1&quot;/&gt;&lt;p style=&quot;margin:0 0 0 4px;line-height:1.6;&quot;&gt;- message: String&lt;br/&gt;- timestamp: OffsetDateTime&lt;br/&gt;- error: String&lt;/p&gt;&lt;hr size=&quot;1&quot;/&gt;&lt;p style=&quot;margin:0 0 0 4px;line-height:1.6;&quot;&gt;+ error(): String&lt;br/&gt;+ timestamp(): OffsetDateTime&lt;br/&gt;+ of(String, String): ErrorResponse&lt;br/&gt;+ message(): String&lt;/p&gt;" style="verticalAlign=top;align=left;overflow=fill;fontSize=14;fontFamily=Helvetica;html=1;rounded=0;shadow=0;comic=0;labelBackgroundColor=none;strokeWidth=1;">
+      <mxGeometry x="2023" y="295" width="338" height="233" as="geometry" />
+    </mxCell>
+    <mxCell id="node36" parent="1" vertex="1" value="&lt;p style=&quot;margin:0px;margin-top:4px;text-align:center;&quot;&gt;&lt;b&gt;ForbiddenException&lt;/b&gt;&lt;/p&gt;&lt;hr size=&quot;1&quot;/&gt;&lt;p style=&quot;margin:0 0 0 4px;line-height:1.6;&quot;&gt;+ ForbiddenException(String): &lt;/p&gt;" style="verticalAlign=top;align=left;overflow=fill;fontSize=14;fontFamily=Helvetica;html=1;rounded=0;shadow=0;comic=0;labelBackgroundColor=none;strokeWidth=1;">
+      <mxGeometry x="501" y="2760" width="223" height="68" as="geometry" />
+    </mxCell>
+    <mxCell id="node28" parent="1" vertex="1" value="&lt;p style=&quot;margin:0px;margin-top:4px;text-align:center;&quot;&gt;&lt;b&gt;GlobalExceptionHandler&lt;/b&gt;&lt;/p&gt;&lt;hr size=&quot;1&quot;/&gt;&lt;p style=&quot;margin:0 0 0 4px;line-height:1.6;&quot;&gt;+ GlobalExceptionHandler(): &lt;/p&gt;&lt;hr size=&quot;1&quot;/&gt;&lt;p style=&quot;margin:0 0 0 4px;line-height:1.6;&quot;&gt;- log: Logger&lt;/p&gt;&lt;hr size=&quot;1&quot;/&gt;&lt;p style=&quot;margin:0 0 0 4px;line-height:1.6;&quot;&gt;+ handleConstraintViolation(ConstraintViolationException): ResponseEntity&amp;lt;ErrorResponse&amp;gt;&lt;br/&gt;+ handleTypeMismatch(MethodArgumentTypeMismatchException): ResponseEntity&amp;lt;ErrorResponse&amp;gt;&lt;br/&gt;- build(HttpStatus, String): ResponseEntity&amp;lt;ErrorResponse&amp;gt;&lt;br/&gt;+ handleForbidden(ForbiddenException): ResponseEntity&amp;lt;ErrorResponse&amp;gt;&lt;br/&gt;+ handleMissingHeader(MissingRequestHeaderException): ResponseEntity&amp;lt;ErrorResponse&amp;gt;&lt;br/&gt;+ handleUnknown(Exception): ResponseEntity&amp;lt;ErrorResponse&amp;gt;&lt;br/&gt;+ handleValidation(MethodArgumentNotValidException): ResponseEntity&amp;lt;ErrorResponse&amp;gt;&lt;br/&gt;+ handleBadRequest(BadRequestException): ResponseEntity&amp;lt;ErrorResponse&amp;gt;&lt;br/&gt;+ handleUnreadable(HttpMessageNotReadableException): ResponseEntity&amp;lt;ErrorResponse&amp;gt;&lt;br/&gt;+ handleConflict(ConflictException): ResponseEntity&amp;lt;ErrorResponse&amp;gt;&lt;br/&gt;+ handleNotFound(NotFoundException): ResponseEntity&amp;lt;ErrorResponse&amp;gt;&lt;br/&gt;+ handleUnauthorized(UnauthorizedException): ResponseEntity&amp;lt;ErrorResponse&amp;gt;&lt;/p&gt;" style="verticalAlign=top;align=left;overflow=fill;fontSize=14;fontFamily=Helvetica;html=1;rounded=0;shadow=0;comic=0;labelBackgroundColor=none;strokeWidth=1;">
+      <mxGeometry x="463" y="223" width="658" height="377" as="geometry" />
+    </mxCell>
+    <mxCell id="node15" parent="1" vertex="1" value="&lt;p style=&quot;margin:0px;margin-top:4px;text-align:center;&quot;&gt;&lt;b&gt;GoTeamServiceApplication&lt;/b&gt;&lt;/p&gt;&lt;hr size=&quot;1&quot;/&gt;&lt;p style=&quot;margin:0 0 0 4px;line-height:1.6;&quot;&gt;+ GoTeamServiceApplication(): &lt;/p&gt;&lt;hr size=&quot;1&quot;/&gt;&lt;p style=&quot;margin:0 0 0 4px;line-height:1.6;&quot;&gt;+ main(String[]): void&lt;/p&gt;" style="verticalAlign=top;align=left;overflow=fill;fontSize=14;fontFamily=Helvetica;html=1;rounded=0;shadow=0;comic=0;labelBackgroundColor=none;strokeWidth=1;">
+      <mxGeometry x="2302" y="1787" width="260" height="95" as="geometry" />
+    </mxCell>
+    <mxCell id="node12" parent="1" vertex="1" value="&lt;p style=&quot;margin:0px;margin-top:4px;text-align:center;&quot;&gt;&lt;b&gt;InviteController&lt;/b&gt;&lt;/p&gt;&lt;hr size=&quot;1&quot;/&gt;&lt;p style=&quot;margin:0 0 0 4px;line-height:1.6;&quot;&gt;+ InviteController(TeamService, CurrentUserProvider): &lt;/p&gt;&lt;hr size=&quot;1&quot;/&gt;&lt;p style=&quot;margin:0 0 0 4px;line-height:1.6;&quot;&gt;- teamService: TeamService&lt;br/&gt;- currentUserProvider: CurrentUserProvider&lt;/p&gt;&lt;hr size=&quot;1&quot;/&gt;&lt;p style=&quot;margin:0 0 0 4px;line-height:1.6;&quot;&gt;+ acceptInvite(UUID): ResponseEntity&amp;lt;TeamMemberResponse&amp;gt;&lt;br/&gt;+ declineInvite(UUID): ResponseEntity&amp;lt;Void&amp;gt;&lt;/p&gt;" style="verticalAlign=top;align=left;overflow=fill;fontSize=14;fontFamily=Helvetica;html=1;rounded=0;shadow=0;comic=0;labelBackgroundColor=none;strokeWidth=1;">
+      <mxGeometry x="-23" y="331" width="430" height="161" as="geometry" />
+    </mxCell>
+    <mxCell id="node33" parent="1" vertex="1" value="&lt;p style=&quot;margin:0px;margin-top:4px;text-align:center;&quot;&gt;&lt;b&gt;JpaConfig&lt;/b&gt;&lt;/p&gt;&lt;hr size=&quot;1&quot;/&gt;&lt;p style=&quot;margin:0 0 0 4px;line-height:1.6;&quot;&gt;+ JpaConfig(): &lt;/p&gt;&lt;hr size=&quot;1&quot;/&gt;&lt;p style=&quot;margin:0 0 0 4px;line-height:1.6;&quot;&gt;+ auditingDateTimeProvider(): DateTimeProvider&lt;/p&gt;" style="verticalAlign=top;align=left;overflow=fill;fontSize=14;fontFamily=Helvetica;html=1;rounded=0;shadow=0;comic=0;labelBackgroundColor=none;strokeWidth=1;">
+      <mxGeometry x="265" y="47" width="334" height="95" as="geometry" />
+    </mxCell>
+    <mxCell id="node4" parent="1" vertex="1" value="&lt;p style=&quot;margin:0px;margin-top:4px;text-align:center;&quot;&gt;&lt;b&gt;NotFoundException&lt;/b&gt;&lt;/p&gt;&lt;hr size=&quot;1&quot;/&gt;&lt;p style=&quot;margin:0 0 0 4px;line-height:1.6;&quot;&gt;+ NotFoundException(String): &lt;/p&gt;" style="verticalAlign=top;align=left;overflow=fill;fontSize=14;fontFamily=Helvetica;html=1;rounded=0;shadow=0;comic=0;labelBackgroundColor=none;strokeWidth=1;">
+      <mxGeometry x="-118" y="2180" width="221" height="68" as="geometry" />
+    </mxCell>
+    <mxCell id="node7" parent="1" vertex="1" value="&lt;p style=&quot;margin:0px;margin-top:4px;text-align:center;&quot;&gt;&lt;i&gt;&amp;lt;&amp;lt;record&amp;gt;&amp;gt;&lt;/i&gt;&lt;br/&gt;&lt;b&gt;OwnershipTransferRequest&lt;/b&gt;&lt;/p&gt;&lt;hr size=&quot;1&quot;/&gt;&lt;p style=&quot;margin:0 0 0 4px;line-height:1.6;&quot;&gt;+ OwnershipTransferRequest(Long): &lt;/p&gt;&lt;hr size=&quot;1&quot;/&gt;&lt;p style=&quot;margin:0 0 0 4px;line-height:1.6;&quot;&gt;- newOwnerUserId: Long&lt;/p&gt;&lt;hr size=&quot;1&quot;/&gt;&lt;p style=&quot;margin:0 0 0 4px;line-height:1.6;&quot;&gt;+ newOwnerUserId(): Long&lt;/p&gt;" style="verticalAlign=top;align=left;overflow=fill;fontSize=14;fontFamily=Helvetica;html=1;rounded=0;shadow=0;comic=0;labelBackgroundColor=none;strokeWidth=1;">
+      <mxGeometry x="2861" y="355" width="263" height="141" as="geometry" />
+    </mxCell>
+    <mxCell id="node0" parent="1" vertex="1" value="&lt;p style=&quot;margin:0px;margin-top:4px;text-align:center;&quot;&gt;&lt;i&gt;&amp;lt;&amp;lt;record&amp;gt;&amp;gt;&lt;/i&gt;&lt;br/&gt;&lt;b&gt;RequestContext&lt;/b&gt;&lt;/p&gt;&lt;hr size=&quot;1&quot;/&gt;&lt;p style=&quot;margin:0 0 0 4px;line-height:1.6;&quot;&gt;+ RequestContext(Long, String): &lt;/p&gt;&lt;hr size=&quot;1&quot;/&gt;&lt;p style=&quot;margin:0 0 0 4px;line-height:1.6;&quot;&gt;- email: String&lt;br/&gt;- userId: Long&lt;/p&gt;&lt;hr size=&quot;1&quot;/&gt;&lt;p style=&quot;margin:0 0 0 4px;line-height:1.6;&quot;&gt;+ userId(): Long&lt;br/&gt;+ email(): String&lt;/p&gt;" style="verticalAlign=top;align=left;overflow=fill;fontSize=14;fontFamily=Helvetica;html=1;rounded=0;shadow=0;comic=0;labelBackgroundColor=none;strokeWidth=1;">
+      <mxGeometry x="2474" y="2131" width="236" height="161" as="geometry" />
+    </mxCell>
+    <mxCell id="node8" parent="1" vertex="1" value="&lt;p style=&quot;margin:0px;margin-top:4px;text-align:center;&quot;&gt;&lt;b&gt;RequestContextHolder&lt;/b&gt;&lt;/p&gt;&lt;hr size=&quot;1&quot;/&gt;&lt;p style=&quot;margin:0 0 0 4px;line-height:1.6;&quot;&gt;- RequestContextHolder(): &lt;/p&gt;&lt;hr size=&quot;1&quot;/&gt;&lt;p style=&quot;margin:0 0 0 4px;line-height:1.6;&quot;&gt;- CONTEXT: ThreadLocal&amp;lt;RequestContext&amp;gt;&lt;/p&gt;&lt;hr size=&quot;1&quot;/&gt;&lt;p style=&quot;margin:0 0 0 4px;line-height:1.6;&quot;&gt;+ get(): RequestContext&lt;br/&gt;+ clear(): void&lt;br/&gt;+ set(RequestContext): void&lt;/p&gt;" style="verticalAlign=top;align=left;overflow=fill;fontSize=14;fontFamily=Helvetica;html=1;rounded=0;shadow=0;comic=0;labelBackgroundColor=none;strokeWidth=1;">
+      <mxGeometry x="2478" y="331" width="308" height="161" as="geometry" />
+    </mxCell>
+    <mxCell id="node42" parent="1" vertex="1" value="&lt;p style=&quot;margin:0px;margin-top:4px;text-align:center;&quot;&gt;&lt;b&gt;RestUserDirectoryClient&lt;/b&gt;&lt;/p&gt;&lt;hr size=&quot;1&quot;/&gt;&lt;p style=&quot;margin:0 0 0 4px;line-height:1.6;&quot;&gt;+ RestUserDirectoryClient(RestClient): &lt;/p&gt;&lt;hr size=&quot;1&quot;/&gt;&lt;p style=&quot;margin:0 0 0 4px;line-height:1.6;&quot;&gt;- userServiceRestClient: RestClient&lt;/p&gt;&lt;hr size=&quot;1&quot;/&gt;&lt;p style=&quot;margin:0 0 0 4px;line-height:1.6;&quot;&gt;+ userExists(Long): boolean&lt;/p&gt;" style="verticalAlign=top;align=left;overflow=fill;fontSize=14;fontFamily=Helvetica;html=1;rounded=0;shadow=0;comic=0;labelBackgroundColor=none;strokeWidth=1;">
+      <mxGeometry x="1215" y="1775" width="274" height="122" as="geometry" />
+    </mxCell>
+    <mxCell id="node35" parent="1" vertex="1" value="&lt;p style=&quot;margin:0px;margin-top:4px;text-align:center;&quot;&gt;&lt;b&gt;SlugGenerator&lt;/b&gt;&lt;/p&gt;&lt;hr size=&quot;1&quot;/&gt;&lt;p style=&quot;margin:0 0 0 4px;line-height:1.6;&quot;&gt;- SlugGenerator(): &lt;/p&gt;&lt;hr size=&quot;1&quot;/&gt;&lt;p style=&quot;margin:0 0 0 4px;line-height:1.6;&quot;&gt;+ from(String): String&lt;/p&gt;" style="verticalAlign=top;align=left;overflow=fill;fontSize=14;fontFamily=Helvetica;html=1;rounded=0;shadow=0;comic=0;labelBackgroundColor=none;strokeWidth=1;">
+      <mxGeometry x="-130" y="47" width="165" height="95" as="geometry" />
+    </mxCell>
+    <mxCell id="node2" parent="1" vertex="1" value="&lt;p style=&quot;margin:0px;margin-top:4px;text-align:center;&quot;&gt;&lt;b&gt;Team&lt;/b&gt;&lt;/p&gt;&lt;hr size=&quot;1&quot;/&gt;&lt;p style=&quot;margin:0 0 0 4px;line-height:1.6;&quot;&gt;+ Team(UUID, String, String, UUID, Long, String, String, String, Integer, TeamPrivacy, OffsetDateTime, OffsetDateTime, OffsetDateTime, List&amp;lt;TeamMember&amp;gt;, List&amp;lt;TeamInvite&amp;gt;): &lt;br/&gt;+ Team(): &lt;/p&gt;&lt;hr size=&quot;1&quot;/&gt;&lt;p style=&quot;margin:0 0 0 4px;line-height:1.6;&quot;&gt;- id: UUID&lt;br/&gt;- name: String&lt;br/&gt;- updatedAt: OffsetDateTime&lt;br/&gt;- leagueId: UUID&lt;br/&gt;- invites: List&amp;lt;TeamInvite&amp;gt;&lt;br/&gt;- sport: String&lt;br/&gt;- slug: String&lt;br/&gt;- location: String&lt;br/&gt;- logoUrl: String&lt;br/&gt;- maxRoster: Integer&lt;br/&gt;- ownerUserId: Long&lt;br/&gt;- members: List&amp;lt;TeamMember&amp;gt;&lt;br/&gt;- privacy: TeamPrivacy&lt;br/&gt;- createdAt: OffsetDateTime&lt;br/&gt;- deletedAt: OffsetDateTime&lt;/p&gt;&lt;hr size=&quot;1&quot;/&gt;&lt;p style=&quot;margin:0 0 0 4px;line-height:1.6;&quot;&gt;+ getPrivacy(): TeamPrivacy&lt;br/&gt;+ equals(Object): boolean&lt;br/&gt;# canEqual(Object): boolean&lt;br/&gt;+ getMaxRoster(): Integer&lt;br/&gt;+ setSlug(String): void&lt;br/&gt;+ setCreatedAt(OffsetDateTime): void&lt;br/&gt;+ setUpdatedAt(OffsetDateTime): void&lt;br/&gt;+ hashCode(): int&lt;br/&gt;+ getOwnerUserId(): Long&lt;br/&gt;+ setMaxRoster(Integer): void&lt;br/&gt;+ setPrivacy(TeamPrivacy): void&lt;br/&gt;+ getMembers(): List&amp;lt;TeamMember&amp;gt;&lt;br/&gt;+ setId(UUID): void&lt;br/&gt;+ setLogoUrl(String): void&lt;br/&gt;+ getInvites(): List&amp;lt;TeamInvite&amp;gt;&lt;br/&gt;+ getId(): UUID&lt;br/&gt;+ setMembers(List&amp;lt;TeamMember&amp;gt;): void&lt;br/&gt;+ getName(): String&lt;br/&gt;+ setSport(String): void&lt;br/&gt;+ builder(): TeamBuilder&lt;br/&gt;- $default$members(): List&amp;lt;TeamMember&amp;gt;&lt;br/&gt;- $default$invites(): List&amp;lt;TeamInvite&amp;gt;&lt;br/&gt;+ setLeagueId(UUID): void&lt;br/&gt;+ getLogoUrl(): String&lt;br/&gt;+ setOwnerUserId(Long): void&lt;br/&gt;+ setDeletedAt(OffsetDateTime): void&lt;br/&gt;+ setInvites(List&amp;lt;TeamInvite&amp;gt;): void&lt;br/&gt;+ getCreatedAt(): OffsetDateTime&lt;br/&gt;+ getSport(): String&lt;br/&gt;+ getUpdatedAt(): OffsetDateTime&lt;br/&gt;+ setName(String): void&lt;br/&gt;+ getSlug(): String&lt;br/&gt;+ getDeletedAt(): OffsetDateTime&lt;br/&gt;+ setLocation(String): void&lt;br/&gt;+ getLeagueId(): UUID&lt;br/&gt;+ getLocation(): String&lt;br/&gt;+ isArchived(): boolean&lt;/p&gt;" style="verticalAlign=top;align=left;overflow=fill;fontSize=14;fontFamily=Helvetica;html=1;rounded=0;shadow=0;comic=0;labelBackgroundColor=none;strokeWidth=1;">
+      <mxGeometry x="2351" y="3363" width="402" height="1337" as="geometry" />
+    </mxCell>
+    <mxCell id="node9" parent="1" vertex="1" value="&lt;p style=&quot;margin:0px;margin-top:4px;text-align:center;&quot;&gt;&lt;b&gt;TeamController&lt;/b&gt;&lt;/p&gt;&lt;hr size=&quot;1&quot;/&gt;&lt;p style=&quot;margin:0 0 0 4px;line-height:1.6;&quot;&gt;+ TeamController(TeamService, CurrentUserProvider): &lt;/p&gt;&lt;hr size=&quot;1&quot;/&gt;&lt;p style=&quot;margin:0 0 0 4px;line-height:1.6;&quot;&gt;- teamService: TeamService&lt;br/&gt;- currentUserProvider: CurrentUserProvider&lt;/p&gt;&lt;hr size=&quot;1&quot;/&gt;&lt;p style=&quot;margin:0 0 0 4px;line-height:1.6;&quot;&gt;+ listInvites(UUID): ResponseEntity&amp;lt;List&amp;lt;TeamInviteResponse&amp;gt;&amp;gt;&lt;br/&gt;+ transferOwnership(UUID, OwnershipTransferRequest): ResponseEntity&amp;lt;TeamDetailResponse&amp;gt;&lt;br/&gt;+ listTeams(boolean, UUID, String, String, int, int): ResponseEntity&amp;lt;TeamListResponse&amp;gt;&lt;br/&gt;+ getTeam(String): ResponseEntity&amp;lt;TeamDetailResponse&amp;gt;&lt;br/&gt;+ demoteSelf(UUID): ResponseEntity&amp;lt;TeamMemberResponse&amp;gt;&lt;br/&gt;+ createInvite(UUID, TeamInviteCreateRequest): ResponseEntity&amp;lt;TeamInviteResponse&amp;gt;&lt;br/&gt;+ createTeam(TeamCreateRequest): ResponseEntity&amp;lt;TeamDetailResponse&amp;gt;&lt;br/&gt;+ archiveTeam(UUID): ResponseEntity&amp;lt;Void&amp;gt;&lt;br/&gt;+ updateTeam(UUID, TeamUpdateRequest): ResponseEntity&amp;lt;TeamDetailResponse&amp;gt;&lt;br/&gt;+ listMembers(UUID): ResponseEntity&amp;lt;List&amp;lt;TeamMemberResponse&amp;gt;&amp;gt;&lt;br/&gt;+ removeMember(UUID, Long): ResponseEntity&amp;lt;Void&amp;gt;&lt;/p&gt;" style="verticalAlign=top;align=left;overflow=fill;fontSize=14;fontFamily=Helvetica;html=1;rounded=0;shadow=0;comic=0;labelBackgroundColor=none;strokeWidth=1;">
+      <mxGeometry x="1178" y="223" width="628" height="377" as="geometry" />
+    </mxCell>
+    <mxCell id="node11" parent="1" vertex="1" value="&lt;p style=&quot;margin:0px;margin-top:4px;text-align:center;&quot;&gt;&lt;i&gt;&amp;lt;&amp;lt;record&amp;gt;&amp;gt;&lt;/i&gt;&lt;br/&gt;&lt;b&gt;TeamCreateRequest&lt;/b&gt;&lt;/p&gt;&lt;hr size=&quot;1&quot;/&gt;&lt;p style=&quot;margin:0 0 0 4px;line-height:1.6;&quot;&gt;+ TeamCreateRequest(String, String, UUID, String, String, Integer, TeamPrivacy): &lt;/p&gt;&lt;hr size=&quot;1&quot;/&gt;&lt;p style=&quot;margin:0 0 0 4px;line-height:1.6;&quot;&gt;- location: String&lt;br/&gt;- name: String&lt;br/&gt;- logoUrl: String&lt;br/&gt;- leagueId: UUID&lt;br/&gt;- sport: String&lt;br/&gt;- privacy: TeamPrivacy&lt;br/&gt;- maxRoster: Integer&lt;/p&gt;&lt;hr size=&quot;1&quot;/&gt;&lt;p style=&quot;margin:0 0 0 4px;line-height:1.6;&quot;&gt;+ logoUrl(): String&lt;br/&gt;+ sport(): String&lt;br/&gt;+ name(): String&lt;br/&gt;+ privacy(): TeamPrivacy&lt;br/&gt;+ leagueId(): UUID&lt;br/&gt;+ maxRoster(): Integer&lt;br/&gt;+ location(): String&lt;/p&gt;" style="verticalAlign=top;align=left;overflow=fill;fontSize=14;fontFamily=Helvetica;html=1;rounded=0;shadow=0;comic=0;labelBackgroundColor=none;strokeWidth=1;">
+      <mxGeometry x="2464" y="951" width="416" height="401" as="geometry" />
+    </mxCell>
+    <mxCell id="node13" parent="1" vertex="1" value="&lt;p style=&quot;margin:0px;margin-top:4px;text-align:center;&quot;&gt;&lt;i&gt;&amp;lt;&amp;lt;record&amp;gt;&amp;gt;&lt;/i&gt;&lt;br/&gt;&lt;b&gt;TeamDetailResponse&lt;/b&gt;&lt;/p&gt;&lt;hr size=&quot;1&quot;/&gt;&lt;p style=&quot;margin:0 0 0 4px;line-height:1.6;&quot;&gt;+ TeamDetailResponse(UUID, String, String, UUID, Long, String, String, String, Integer, TeamPrivacy, boolean, OffsetDateTime, OffsetDateTime, List&amp;lt;TeamMemberResponse&amp;gt;): &lt;/p&gt;&lt;hr size=&quot;1&quot;/&gt;&lt;p style=&quot;margin:0 0 0 4px;line-height:1.6;&quot;&gt;- name: String&lt;br/&gt;- privacy: TeamPrivacy&lt;br/&gt;- slug: String&lt;br/&gt;- leagueId: UUID&lt;br/&gt;- sport: String&lt;br/&gt;- logoUrl: String&lt;br/&gt;- id: UUID&lt;br/&gt;- ownerUserId: Long&lt;br/&gt;- members: List&amp;lt;TeamMemberResponse&amp;gt;&lt;br/&gt;- createdAt: OffsetDateTime&lt;br/&gt;- location: String&lt;br/&gt;- maxRoster: Integer&lt;br/&gt;- archived: boolean&lt;br/&gt;- updatedAt: OffsetDateTime&lt;/p&gt;&lt;hr size=&quot;1&quot;/&gt;&lt;p style=&quot;margin:0 0 0 4px;line-height:1.6;&quot;&gt;+ ownerUserId(): Long&lt;br/&gt;+ leagueId(): UUID&lt;br/&gt;+ updatedAt(): OffsetDateTime&lt;br/&gt;+ members(): List&amp;lt;TeamMemberResponse&amp;gt;&lt;br/&gt;+ sport(): String&lt;br/&gt;+ maxRoster(): Integer&lt;br/&gt;+ privacy(): TeamPrivacy&lt;br/&gt;+ location(): String&lt;br/&gt;+ name(): String&lt;br/&gt;+ id(): UUID&lt;br/&gt;+ archived(): boolean&lt;br/&gt;+ logoUrl(): String&lt;br/&gt;+ slug(): String&lt;br/&gt;+ createdAt(): OffsetDateTime&lt;/p&gt;" style="verticalAlign=top;align=left;overflow=fill;fontSize=14;fontFamily=Helvetica;html=1;rounded=0;shadow=0;comic=0;labelBackgroundColor=none;strokeWidth=1;">
+      <mxGeometry x="1329" y="3663" width="407" height="737" as="geometry" />
+    </mxCell>
+    <mxCell id="node40" parent="1" vertex="1" value="&lt;p style=&quot;margin:0px;margin-top:4px;text-align:center;&quot;&gt;&lt;b&gt;TeamInvite&lt;/b&gt;&lt;/p&gt;&lt;hr size=&quot;1&quot;/&gt;&lt;p style=&quot;margin:0 0 0 4px;line-height:1.6;&quot;&gt;+ TeamInvite(UUID, Team, Long, Long, String, TeamInviteStatus, OffsetDateTime, OffsetDateTime, OffsetDateTime, OffsetDateTime): &lt;br/&gt;+ TeamInvite(): &lt;/p&gt;&lt;hr size=&quot;1&quot;/&gt;&lt;p style=&quot;margin:0 0 0 4px;line-height:1.6;&quot;&gt;- respondedAt: OffsetDateTime&lt;br/&gt;- inviteeUserId: Long&lt;br/&gt;- team: Team&lt;br/&gt;- inviteeEmail: String&lt;br/&gt;- updatedAt: OffsetDateTime&lt;br/&gt;- expiresAt: OffsetDateTime&lt;br/&gt;- id: UUID&lt;br/&gt;- invitedByUserId: Long&lt;br/&gt;- createdAt: OffsetDateTime&lt;br/&gt;- status: TeamInviteStatus&lt;/p&gt;&lt;hr size=&quot;1&quot;/&gt;&lt;p style=&quot;margin:0 0 0 4px;line-height:1.6;&quot;&gt;+ hashCode(): int&lt;br/&gt;+ setInviteeUserId(Long): void&lt;br/&gt;+ setInviteeEmail(String): void&lt;br/&gt;+ setTeam(Team): void&lt;br/&gt;+ getStatus(): TeamInviteStatus&lt;br/&gt;+ setInvitedByUserId(Long): void&lt;br/&gt;+ setExpiresAt(OffsetDateTime): void&lt;br/&gt;+ getExpiresAt(): OffsetDateTime&lt;br/&gt;+ equals(Object): boolean&lt;br/&gt;# canEqual(Object): boolean&lt;br/&gt;+ getUpdatedAt(): OffsetDateTime&lt;br/&gt;+ getRespondedAt(): OffsetDateTime&lt;br/&gt;+ setStatus(TeamInviteStatus): void&lt;br/&gt;+ setRespondedAt(OffsetDateTime): void&lt;br/&gt;+ getId(): UUID&lt;br/&gt;+ builder(): TeamInviteBuilder&lt;br/&gt;+ setId(UUID): void&lt;br/&gt;+ getTeam(): Team&lt;br/&gt;+ getInvitedByUserId(): Long&lt;br/&gt;+ getInviteeUserId(): Long&lt;br/&gt;+ setCreatedAt(OffsetDateTime): void&lt;br/&gt;+ setUpdatedAt(OffsetDateTime): void&lt;br/&gt;+ getInviteeEmail(): String&lt;br/&gt;+ getCreatedAt(): OffsetDateTime&lt;br/&gt;~ prePersist(): void&lt;/p&gt;" style="verticalAlign=top;align=left;overflow=fill;fontSize=14;fontFamily=Helvetica;html=1;rounded=0;shadow=0;comic=0;labelBackgroundColor=none;strokeWidth=1;">
+      <mxGeometry x="2624" y="2327" width="416" height="929" as="geometry" />
+    </mxCell>
+    <mxCell id="node14" parent="1" vertex="1" value="&lt;p style=&quot;margin:0px;margin-top:4px;text-align:center;&quot;&gt;&lt;i&gt;&amp;lt;&amp;lt;record&amp;gt;&amp;gt;&lt;/i&gt;&lt;br/&gt;&lt;b&gt;TeamInviteCreateRequest&lt;/b&gt;&lt;/p&gt;&lt;hr size=&quot;1&quot;/&gt;&lt;p style=&quot;margin:0 0 0 4px;line-height:1.6;&quot;&gt;+ TeamInviteCreateRequest(Long, String, OffsetDateTime): &lt;/p&gt;&lt;hr size=&quot;1&quot;/&gt;&lt;p style=&quot;margin:0 0 0 4px;line-height:1.6;&quot;&gt;- inviteeUserId: Long&lt;br/&gt;- inviteeEmail: String&lt;br/&gt;- expiresAt: OffsetDateTime&lt;/p&gt;&lt;hr size=&quot;1&quot;/&gt;&lt;p style=&quot;margin:0 0 0 4px;line-height:1.6;&quot;&gt;+ inviteeEmail(): String&lt;br/&gt;+ inviteeUserId(): Long&lt;br/&gt;+ expiresAt(): OffsetDateTime&lt;/p&gt;" style="verticalAlign=top;align=left;overflow=fill;fontSize=14;fontFamily=Helvetica;html=1;rounded=0;shadow=0;comic=0;labelBackgroundColor=none;strokeWidth=1;">
+      <mxGeometry x="2211" y="-13" width="402" height="209" as="geometry" />
+    </mxCell>
+    <mxCell id="node21" parent="1" vertex="1" value="&lt;p style=&quot;margin:0px;margin-top:4px;text-align:center;&quot;&gt;&lt;i&gt;&amp;lt;&amp;lt;interface&amp;gt;&amp;gt;&lt;/i&gt;&lt;br/&gt;&lt;b&gt;TeamInviteRepository&lt;/b&gt;&lt;/p&gt;&lt;hr size=&quot;1&quot;/&gt;&lt;p style=&quot;margin:0 0 0 4px;line-height:1.6;&quot;&gt;+ findByTeamIdAndInviteeUserIdAndStatus(UUID, Long, TeamInviteStatus): Optional&amp;lt;TeamInvite&amp;gt;&lt;br/&gt;+ findByIdAndStatus(UUID, TeamInviteStatus): Optional&amp;lt;TeamInvite&amp;gt;&lt;br/&gt;+ findByTeamId(UUID): List&amp;lt;TeamInvite&amp;gt;&lt;br/&gt;+ findByExpiresAtBeforeAndStatus(OffsetDateTime, TeamInviteStatus): List&amp;lt;TeamInvite&amp;gt;&lt;br/&gt;+ findByIdAndTeamId(UUID, UUID): Optional&amp;lt;TeamInvite&amp;gt;&lt;br/&gt;+ findByTeamIdAndInviteeEmailIgnoreCaseAndStatus(UUID, String, TeamInviteStatus): Optional&amp;lt;TeamInvite&amp;gt;&lt;/p&gt;" style="verticalAlign=top;align=left;overflow=fill;fontSize=14;fontFamily=Helvetica;html=1;rounded=0;shadow=0;comic=0;labelBackgroundColor=none;strokeWidth=1;">
+      <mxGeometry x="1186" y="2700" width="573" height="183" as="geometry" />
+    </mxCell>
+    <mxCell id="node3" parent="1" vertex="1" value="&lt;p style=&quot;margin:0px;margin-top:4px;text-align:center;&quot;&gt;&lt;i&gt;&amp;lt;&amp;lt;record&amp;gt;&amp;gt;&lt;/i&gt;&lt;br/&gt;&lt;b&gt;TeamInviteResponse&lt;/b&gt;&lt;/p&gt;&lt;hr size=&quot;1&quot;/&gt;&lt;p style=&quot;margin:0 0 0 4px;line-height:1.6;&quot;&gt;+ TeamInviteResponse(UUID, UUID, Long, Long, String, TeamInviteStatus, OffsetDateTime, OffsetDateTime, OffsetDateTime, OffsetDateTime): &lt;/p&gt;&lt;hr size=&quot;1&quot;/&gt;&lt;p style=&quot;margin:0 0 0 4px;line-height:1.6;&quot;&gt;- status: TeamInviteStatus&lt;br/&gt;- teamId: UUID&lt;br/&gt;- createdAt: OffsetDateTime&lt;br/&gt;- updatedAt: OffsetDateTime&lt;br/&gt;- respondedAt: OffsetDateTime&lt;br/&gt;- inviteeEmail: String&lt;br/&gt;- id: UUID&lt;br/&gt;- inviteeUserId: Long&lt;br/&gt;- invitedByUserId: Long&lt;br/&gt;- expiresAt: OffsetDateTime&lt;/p&gt;&lt;hr size=&quot;1&quot;/&gt;&lt;p style=&quot;margin:0 0 0 4px;line-height:1.6;&quot;&gt;+ updatedAt(): OffsetDateTime&lt;br/&gt;+ inviteeUserId(): Long&lt;br/&gt;+ id(): UUID&lt;br/&gt;+ inviteeEmail(): String&lt;br/&gt;+ createdAt(): OffsetDateTime&lt;br/&gt;+ expiresAt(): OffsetDateTime&lt;br/&gt;+ respondedAt(): OffsetDateTime&lt;br/&gt;+ status(): TeamInviteStatus&lt;br/&gt;+ teamId(): UUID&lt;br/&gt;+ invitedByUserId(): Long&lt;/p&gt;" style="verticalAlign=top;align=left;overflow=fill;fontSize=14;fontFamily=Helvetica;html=1;rounded=0;shadow=0;comic=0;labelBackgroundColor=none;strokeWidth=1;">
+      <mxGeometry x="1084" y="4719" width="417" height="545" as="geometry" />
+    </mxCell>
+    <mxCell id="node20" parent="1" vertex="1" value="&lt;p style=&quot;margin:0px;margin-top:4px;text-align:center;&quot;&gt;&lt;i&gt;&amp;lt;&amp;lt;enumeration&amp;gt;&amp;gt;&lt;/i&gt;&lt;br/&gt;&lt;b&gt;TeamInviteStatus&lt;/b&gt;&lt;/p&gt;&lt;hr size=&quot;1&quot;/&gt;&lt;p style=&quot;margin:0 0 0 4px;line-height:1.6;&quot;&gt;+ TeamInviteStatus(): &lt;/p&gt;&lt;hr size=&quot;1&quot;/&gt;&lt;p style=&quot;margin:0 0 0 4px;line-height:1.6;&quot;&gt;+ REVOKED: &lt;br/&gt;+ EXPIRED: &lt;br/&gt;+ ACCEPTED: &lt;br/&gt;+ PENDING: &lt;br/&gt;+ DECLINED: &lt;/p&gt;&lt;hr size=&quot;1&quot;/&gt;&lt;p style=&quot;margin:0 0 0 4px;line-height:1.6;&quot;&gt;+ valueOf(String): TeamInviteStatus&lt;br/&gt;+ values(): TeamInviteStatus[]&lt;/p&gt;" style="verticalAlign=top;align=left;overflow=fill;fontSize=14;fontFamily=Helvetica;html=1;rounded=0;shadow=0;comic=0;labelBackgroundColor=none;strokeWidth=1;">
+      <mxGeometry x="2805" y="3915" width="255" height="233" as="geometry" />
+    </mxCell>
+    <mxCell id="node31" parent="1" vertex="1" value="&lt;p style=&quot;margin:0px;margin-top:4px;text-align:center;&quot;&gt;&lt;i&gt;&amp;lt;&amp;lt;record&amp;gt;&amp;gt;&lt;/i&gt;&lt;br/&gt;&lt;b&gt;TeamListResponse&lt;/b&gt;&lt;/p&gt;&lt;hr size=&quot;1&quot;/&gt;&lt;p style=&quot;margin:0 0 0 4px;line-height:1.6;&quot;&gt;+ TeamListResponse(List&amp;lt;TeamSummaryResponse&amp;gt;, long, int, int, boolean): &lt;/p&gt;&lt;hr size=&quot;1&quot;/&gt;&lt;p style=&quot;margin:0 0 0 4px;line-height:1.6;&quot;&gt;- page: int&lt;br/&gt;- items: List&amp;lt;TeamSummaryResponse&amp;gt;&lt;br/&gt;- hasNext: boolean&lt;br/&gt;- totalElements: long&lt;br/&gt;- size: int&lt;/p&gt;&lt;hr size=&quot;1&quot;/&gt;&lt;p style=&quot;margin:0 0 0 4px;line-height:1.6;&quot;&gt;+ size(): int&lt;br/&gt;+ hasNext(): boolean&lt;br/&gt;+ items(): List&amp;lt;TeamSummaryResponse&amp;gt;&lt;br/&gt;+ totalElements(): long&lt;br/&gt;+ page(): int&lt;/p&gt;" style="verticalAlign=top;align=left;overflow=fill;fontSize=14;fontFamily=Helvetica;html=1;rounded=0;shadow=0;comic=0;labelBackgroundColor=none;strokeWidth=1;">
+      <mxGeometry x="9" y="2639" width="447" height="305" as="geometry" />
+    </mxCell>
+    <mxCell id="node32" parent="1" vertex="1" value="&lt;p style=&quot;margin:0px;margin-top:4px;text-align:center;&quot;&gt;&lt;b&gt;TeamMapper&lt;/b&gt;&lt;/p&gt;&lt;hr size=&quot;1&quot;/&gt;&lt;p style=&quot;margin:0 0 0 4px;line-height:1.6;&quot;&gt;+ TeamMapper(): &lt;/p&gt;&lt;hr size=&quot;1&quot;/&gt;&lt;p style=&quot;margin:0 0 0 4px;line-height:1.6;&quot;&gt;+ toDetail(Team, List&amp;lt;TeamMember&amp;gt;): TeamDetailResponse&lt;br/&gt;+ toMember(TeamMember): TeamMemberResponse&lt;br/&gt;+ toSummary(Team): TeamSummaryResponse&lt;br/&gt;+ toInviteResponse(TeamInvite): TeamInviteResponse&lt;/p&gt;" style="verticalAlign=top;align=left;overflow=fill;fontSize=14;fontFamily=Helvetica;html=1;rounded=0;shadow=0;comic=0;labelBackgroundColor=none;strokeWidth=1;">
+      <mxGeometry x="1588" y="2131" width="408" height="160" as="geometry" />
+    </mxCell>
+    <mxCell id="node29" parent="1" vertex="1" value="&lt;p style=&quot;margin:0px;margin-top:4px;text-align:center;&quot;&gt;&lt;b&gt;TeamMember&lt;/b&gt;&lt;/p&gt;&lt;hr size=&quot;1&quot;/&gt;&lt;p style=&quot;margin:0 0 0 4px;line-height:1.6;&quot;&gt;+ TeamMember(UUID, Team, Long, TeamRole, TeamMemberStatus, OffsetDateTime, OffsetDateTime, OffsetDateTime): &lt;br/&gt;+ TeamMember(): &lt;/p&gt;&lt;hr size=&quot;1&quot;/&gt;&lt;p style=&quot;margin:0 0 0 4px;line-height:1.6;&quot;&gt;- createdAt: OffsetDateTime&lt;br/&gt;- id: UUID&lt;br/&gt;- updatedAt: OffsetDateTime&lt;br/&gt;- role: TeamRole&lt;br/&gt;- team: Team&lt;br/&gt;- userId: Long&lt;br/&gt;- joinedAt: OffsetDateTime&lt;br/&gt;- status: TeamMemberStatus&lt;/p&gt;&lt;hr size=&quot;1&quot;/&gt;&lt;p style=&quot;margin:0 0 0 4px;line-height:1.6;&quot;&gt;+ equals(Object): boolean&lt;br/&gt;+ setUserId(Long): void&lt;br/&gt;# canEqual(Object): boolean&lt;br/&gt;+ hashCode(): int&lt;br/&gt;+ getJoinedAt(): OffsetDateTime&lt;br/&gt;+ setStatus(TeamMemberStatus): void&lt;br/&gt;+ setId(UUID): void&lt;br/&gt;+ getId(): UUID&lt;br/&gt;+ getCreatedAt(): OffsetDateTime&lt;br/&gt;+ setTeam(Team): void&lt;br/&gt;+ setJoinedAt(OffsetDateTime): void&lt;br/&gt;+ getUpdatedAt(): OffsetDateTime&lt;br/&gt;+ getTeam(): Team&lt;br/&gt;+ setCreatedAt(OffsetDateTime): void&lt;br/&gt;+ setUpdatedAt(OffsetDateTime): void&lt;br/&gt;+ getUserId(): Long&lt;br/&gt;+ setRole(TeamRole): void&lt;br/&gt;+ getRole(): TeamRole&lt;br/&gt;+ getStatus(): TeamMemberStatus&lt;br/&gt;+ builder(): TeamMemberBuilder&lt;br/&gt;~ prePersist(): void&lt;/p&gt;" style="verticalAlign=top;align=left;overflow=fill;fontSize=14;fontFamily=Helvetica;html=1;rounded=0;shadow=0;comic=0;labelBackgroundColor=none;strokeWidth=1;">
+      <mxGeometry x="2289" y="5359" width="447" height="785" as="geometry" />
+    </mxCell>
+    <mxCell id="node43" parent="1" vertex="1" value="&lt;p style=&quot;margin:0px;margin-top:4px;text-align:center;&quot;&gt;&lt;i&gt;&amp;lt;&amp;lt;interface&amp;gt;&amp;gt;&lt;/i&gt;&lt;br/&gt;&lt;b&gt;TeamMemberRepository&lt;/b&gt;&lt;/p&gt;&lt;hr size=&quot;1&quot;/&gt;&lt;p style=&quot;margin:0 0 0 4px;line-height:1.6;&quot;&gt;+ existsByTeamIdAndUserId(UUID, Long): boolean&lt;br/&gt;+ existsByTeamIdAndRole(UUID, TeamRole): boolean&lt;br/&gt;+ findActiveMemberships(Long): List&amp;lt;TeamMember&amp;gt;&lt;br/&gt;+ findByTeamId(UUID): List&amp;lt;TeamMember&amp;gt;&lt;br/&gt;+ countByTeamIdAndStatus(UUID, TeamMemberStatus): long&lt;br/&gt;+ findByTeamIdAndUserId(UUID, Long): Optional&amp;lt;TeamMember&amp;gt;&lt;/p&gt;" style="verticalAlign=top;align=left;overflow=fill;fontSize=14;fontFamily=Helvetica;html=1;rounded=0;shadow=0;comic=0;labelBackgroundColor=none;strokeWidth=1;">
+      <mxGeometry x="934" y="2120" width="437" height="183" as="geometry" />
+    </mxCell>
+    <mxCell id="node18" parent="1" vertex="1" value="&lt;p style=&quot;margin:0px;margin-top:4px;text-align:center;&quot;&gt;&lt;i&gt;&amp;lt;&amp;lt;record&amp;gt;&amp;gt;&lt;/i&gt;&lt;br/&gt;&lt;b&gt;TeamMemberResponse&lt;/b&gt;&lt;/p&gt;&lt;hr size=&quot;1&quot;/&gt;&lt;p style=&quot;margin:0 0 0 4px;line-height:1.6;&quot;&gt;+ TeamMemberResponse(Long, TeamRole, TeamMemberStatus, OffsetDateTime): &lt;/p&gt;&lt;hr size=&quot;1&quot;/&gt;&lt;p style=&quot;margin:0 0 0 4px;line-height:1.6;&quot;&gt;- status: TeamMemberStatus&lt;br/&gt;- role: TeamRole&lt;br/&gt;- joinedAt: OffsetDateTime&lt;br/&gt;- userId: Long&lt;/p&gt;&lt;hr size=&quot;1&quot;/&gt;&lt;p style=&quot;margin:0 0 0 4px;line-height:1.6;&quot;&gt;+ userId(): Long&lt;br/&gt;+ joinedAt(): OffsetDateTime&lt;br/&gt;+ status(): TeamMemberStatus&lt;br/&gt;+ role(): TeamRole&lt;/p&gt;" style="verticalAlign=top;align=left;overflow=fill;fontSize=14;fontFamily=Helvetica;html=1;rounded=0;shadow=0;comic=0;labelBackgroundColor=none;strokeWidth=1;">
+      <mxGeometry x="1552" y="4863" width="480" height="257" as="geometry" />
+    </mxCell>
+    <mxCell id="node41" parent="1" vertex="1" value="&lt;p style=&quot;margin:0px;margin-top:4px;text-align:center;&quot;&gt;&lt;i&gt;&amp;lt;&amp;lt;enumeration&amp;gt;&amp;gt;&lt;/i&gt;&lt;br/&gt;&lt;b&gt;TeamMemberStatus&lt;/b&gt;&lt;/p&gt;&lt;hr size=&quot;1&quot;/&gt;&lt;p style=&quot;margin:0 0 0 4px;line-height:1.6;&quot;&gt;+ TeamMemberStatus(): &lt;/p&gt;&lt;hr size=&quot;1&quot;/&gt;&lt;p style=&quot;margin:0 0 0 4px;line-height:1.6;&quot;&gt;+ SUSPENDED: &lt;br/&gt;+ ACTIVE: &lt;/p&gt;&lt;hr size=&quot;1&quot;/&gt;&lt;p style=&quot;margin:0 0 0 4px;line-height:1.6;&quot;&gt;+ values(): TeamMemberStatus[]&lt;br/&gt;+ valueOf(String): TeamMemberStatus&lt;/p&gt;" style="verticalAlign=top;align=left;overflow=fill;fontSize=14;fontFamily=Helvetica;html=1;rounded=0;shadow=0;comic=0;labelBackgroundColor=none;strokeWidth=1;">
+      <mxGeometry x="2616" y="6251" width="272" height="161" as="geometry" />
+    </mxCell>
+    <mxCell id="node24" parent="1" vertex="1" value="&lt;p style=&quot;margin:0px;margin-top:4px;text-align:center;&quot;&gt;&lt;b&gt;TeamMetricsPublisher&lt;/b&gt;&lt;/p&gt;&lt;hr size=&quot;1&quot;/&gt;&lt;p style=&quot;margin:0 0 0 4px;line-height:1.6;&quot;&gt;+ TeamMetricsPublisher(MeterRegistry): &lt;/p&gt;&lt;hr size=&quot;1&quot;/&gt;&lt;p style=&quot;margin:0 0 0 4px;line-height:1.6;&quot;&gt;- inviteDeclined: Counter&lt;br/&gt;- ownershipTransferred: Counter&lt;br/&gt;- teamCreated: Counter&lt;br/&gt;- teamArchived: Counter&lt;br/&gt;- inviteAccepted: Counter&lt;br/&gt;- inviteSent: Counter&lt;/p&gt;&lt;hr size=&quot;1&quot;/&gt;&lt;p style=&quot;margin:0 0 0 4px;line-height:1.6;&quot;&gt;+ teamCreated(): void&lt;br/&gt;+ inviteSent(): void&lt;br/&gt;+ teamArchived(): void&lt;br/&gt;+ ownershipTransferred(): void&lt;br/&gt;+ inviteDeclined(): void&lt;br/&gt;+ inviteAccepted(): void&lt;/p&gt;" style="verticalAlign=top;align=left;overflow=fill;fontSize=14;fontFamily=Helvetica;html=1;rounded=0;shadow=0;comic=0;labelBackgroundColor=none;strokeWidth=1;">
+      <mxGeometry x="769" y="2615" width="287" height="353" as="geometry" />
+    </mxCell>
+    <mxCell id="node16" parent="1" vertex="1" value="&lt;p style=&quot;margin:0px;margin-top:4px;text-align:center;&quot;&gt;&lt;i&gt;&amp;lt;&amp;lt;enumeration&amp;gt;&amp;gt;&lt;/i&gt;&lt;br/&gt;&lt;b&gt;TeamPrivacy&lt;/b&gt;&lt;/p&gt;&lt;hr size=&quot;1&quot;/&gt;&lt;p style=&quot;margin:0 0 0 4px;line-height:1.6;&quot;&gt;+ TeamPrivacy(): &lt;/p&gt;&lt;hr size=&quot;1&quot;/&gt;&lt;p style=&quot;margin:0 0 0 4px;line-height:1.6;&quot;&gt;+ PUBLIC: &lt;br/&gt;+ PRIVATE: &lt;/p&gt;&lt;hr size=&quot;1&quot;/&gt;&lt;p style=&quot;margin:0 0 0 4px;line-height:1.6;&quot;&gt;+ values(): TeamPrivacy[]&lt;br/&gt;+ valueOf(String): TeamPrivacy&lt;/p&gt;" style="verticalAlign=top;align=left;overflow=fill;fontSize=14;fontFamily=Helvetica;html=1;rounded=0;shadow=0;comic=0;labelBackgroundColor=none;strokeWidth=1;">
+      <mxGeometry x="2779" y="5671" width="227" height="161" as="geometry" />
+    </mxCell>
+    <mxCell id="node37" parent="1" vertex="1" value="&lt;p style=&quot;margin:0px;margin-top:4px;text-align:center;&quot;&gt;&lt;i&gt;&amp;lt;&amp;lt;interface&amp;gt;&amp;gt;&lt;/i&gt;&lt;br/&gt;&lt;b&gt;TeamRepository&lt;/b&gt;&lt;/p&gt;&lt;hr size=&quot;1&quot;/&gt;&lt;p style=&quot;margin:0 0 0 4px;line-height:1.6;&quot;&gt;+ existsByIdAndOwnerUserId(UUID, Long): boolean&lt;br/&gt;+ findBySlugIgnoreCaseAndDeletedAtIsNull(String): Optional&amp;lt;Team&amp;gt;&lt;br/&gt;+ findByIdAndDeletedAtIsNull(UUID): Optional&amp;lt;Team&amp;gt;&lt;br/&gt;+ existsBySlug(String): boolean&lt;/p&gt;" style="verticalAlign=top;align=left;overflow=fill;fontSize=14;fontFamily=Helvetica;html=1;rounded=0;shadow=0;comic=0;labelBackgroundColor=none;strokeWidth=1;">
+      <mxGeometry x="1823" y="2724" width="459" height="169" as="geometry" />
+    </mxCell>
+    <mxCell id="node10" parent="1" vertex="1" value="&lt;p style=&quot;margin:0px;margin-top:4px;text-align:center;&quot;&gt;&lt;i&gt;&amp;lt;&amp;lt;enumeration&amp;gt;&amp;gt;&lt;/i&gt;&lt;br/&gt;&lt;b&gt;TeamRole&lt;/b&gt;&lt;/p&gt;&lt;hr size=&quot;1&quot;/&gt;&lt;p style=&quot;margin:0 0 0 4px;line-height:1.6;&quot;&gt;+ TeamRole(): &lt;/p&gt;&lt;hr size=&quot;1&quot;/&gt;&lt;p style=&quot;margin:0 0 0 4px;line-height:1.6;&quot;&gt;+ OWNER: &lt;br/&gt;+ MANAGER: &lt;br/&gt;+ PLAYER: &lt;/p&gt;&lt;hr size=&quot;1&quot;/&gt;&lt;p style=&quot;margin:0 0 0 4px;line-height:1.6;&quot;&gt;+ valueOf(String): TeamRole&lt;br/&gt;+ values(): TeamRole[]&lt;/p&gt;" style="verticalAlign=top;align=left;overflow=fill;fontSize=14;fontFamily=Helvetica;html=1;rounded=0;shadow=0;comic=0;labelBackgroundColor=none;strokeWidth=1;">
+      <mxGeometry x="2928" y="6239" width="209" height="185" as="geometry" />
+    </mxCell>
+    <mxCell id="node1" parent="1" vertex="1" value="&lt;p style=&quot;margin:0px;margin-top:4px;text-align:center;&quot;&gt;&lt;i&gt;&amp;lt;&amp;lt;record&amp;gt;&amp;gt;&lt;/i&gt;&lt;br/&gt;&lt;b&gt;TeamSearchCriteria&lt;/b&gt;&lt;/p&gt;&lt;hr size=&quot;1&quot;/&gt;&lt;p style=&quot;margin:0 0 0 4px;line-height:1.6;&quot;&gt;+ TeamSearchCriteria(boolean, UUID, String, String): &lt;/p&gt;&lt;hr size=&quot;1&quot;/&gt;&lt;p style=&quot;margin:0 0 0 4px;line-height:1.6;&quot;&gt;- query: String&lt;br/&gt;- leagueId: UUID&lt;br/&gt;- onlyMine: boolean&lt;br/&gt;- sport: String&lt;/p&gt;&lt;hr size=&quot;1&quot;/&gt;&lt;p style=&quot;margin:0 0 0 4px;line-height:1.6;&quot;&gt;+ sport(): String&lt;br/&gt;+ onlyMine(): boolean&lt;br/&gt;+ query(): String&lt;br/&gt;+ leagueId(): UUID&lt;/p&gt;" style="verticalAlign=top;align=left;overflow=fill;fontSize=14;fontFamily=Helvetica;html=1;rounded=0;shadow=0;comic=0;labelBackgroundColor=none;strokeWidth=1;">
+      <mxGeometry x="1532" y="1703" width="361" height="257" as="geometry" />
+    </mxCell>
+    <mxCell id="node27" parent="1" vertex="1" value="&lt;p style=&quot;margin:0px;margin-top:4px;text-align:center;&quot;&gt;&lt;b&gt;TeamService&lt;/b&gt;&lt;/p&gt;&lt;hr size=&quot;1&quot;/&gt;&lt;p style=&quot;margin:0 0 0 4px;line-height:1.6;&quot;&gt;+ TeamService(TeamRepository, TeamMemberRepository, TeamInviteRepository, TeamMapper, TeamMetricsPublisher, UserDirectoryClient): &lt;/p&gt;&lt;hr size=&quot;1&quot;/&gt;&lt;p style=&quot;margin:0 0 0 4px;line-height:1.6;&quot;&gt;- teamInviteRepository: TeamInviteRepository&lt;br/&gt;- teamMapper: TeamMapper&lt;br/&gt;- log: Logger&lt;br/&gt;- metricsPublisher: TeamMetricsPublisher&lt;br/&gt;- userDirectoryClient: UserDirectoryClient&lt;br/&gt;- teamRepository: TeamRepository&lt;br/&gt;- DEFAULT_INVITE_EXPIRY_DAYS: int&lt;br/&gt;- teamMemberRepository: TeamMemberRepository&lt;/p&gt;&lt;hr size=&quot;1&quot;/&gt;&lt;p style=&quot;margin:0 0 0 4px;line-height:1.6;&quot;&gt;+ getTeam(UUID): TeamDetailResponse&lt;br/&gt;- ensureRole(TeamMember, Set&amp;lt;TeamRole&amp;gt;, String): void&lt;br/&gt;- validateMaxRoster(Integer): void&lt;br/&gt;- requireActiveTeam(UUID): Team&lt;br/&gt;- trimToNull(String): String?&lt;br/&gt;+ listTeams(TeamSearchCriteria, int, int, Long): TeamListResponse&lt;br/&gt;- requestEqualsNoChange(TeamUpdateRequest): boolean&lt;br/&gt;- generateUniqueSlug(String): String&lt;br/&gt;- enforceInviteOwnership(TeamInvite, Long, Optional&amp;lt;String&amp;gt;): void&lt;br/&gt;- enforceInviteFresh(TeamInvite): void&lt;br/&gt;+ updateTeam(UUID, TeamUpdateRequest, Long): TeamDetailResponse&lt;br/&gt;+ removeMember(UUID, Long, Long): void&lt;br/&gt;+ acceptInvite(UUID, Long, Optional&amp;lt;String&amp;gt;): TeamMemberResponse&lt;br/&gt;+ archiveTeam(UUID, Long): void&lt;br/&gt;+ transferOwnership(UUID, Long, Long): TeamDetailResponse&lt;br/&gt;+ getTeamBySlug(String): TeamDetailResponse&lt;br/&gt;+ createInvite(UUID, TeamInviteCreateRequest, Long): TeamInviteResponse&lt;br/&gt;- enforceRosterLimit(Team): void&lt;br/&gt;- roleWeight(TeamRole): int&lt;br/&gt;+ listInvites(UUID, Long): List&amp;lt;TeamInviteResponse&amp;gt;&lt;br/&gt;+ demoteSelfToPlayer(UUID, Long): TeamMemberResponse&lt;br/&gt;+ declineInvite(UUID, Long, Optional&amp;lt;String&amp;gt;): void&lt;br/&gt;+ createTeam(TeamCreateRequest, Long): TeamDetailResponse&lt;br/&gt;+ listMembers(UUID, Long): List&amp;lt;TeamMemberResponse&amp;gt;&lt;br/&gt;- requireActiveMembership(UUID, Long): TeamMember&lt;br/&gt;- sortMembers(List&amp;lt;TeamMember&amp;gt;): List&amp;lt;TeamMember&amp;gt;&lt;/p&gt;" style="verticalAlign=top;align=left;overflow=fill;fontSize=14;fontFamily=Helvetica;html=1;rounded=0;shadow=0;comic=0;labelBackgroundColor=none;strokeWidth=1;">
+      <mxGeometry x="341" y="711" width="502" height="881" as="geometry" />
+    </mxCell>
+    <mxCell id="node23" parent="1" vertex="1" value="&lt;p style=&quot;margin:0px;margin-top:4px;text-align:center;&quot;&gt;&lt;b&gt;TeamSpecifications&lt;/b&gt;&lt;/p&gt;&lt;hr size=&quot;1&quot;/&gt;&lt;p style=&quot;margin:0 0 0 4px;line-height:1.6;&quot;&gt;- TeamSpecifications(): &lt;/p&gt;&lt;hr size=&quot;1&quot;/&gt;&lt;p style=&quot;margin:0 0 0 4px;line-height:1.6;&quot;&gt;+ notArchived(): Specification&amp;lt;Team&amp;gt;&lt;br/&gt;+ mine(Long): Specification&amp;lt;Team&amp;gt;&lt;br/&gt;+ search(String): Specification&amp;lt;Team&amp;gt;&lt;br/&gt;- like(String): String&lt;br/&gt;+ withSport(String): Specification&amp;lt;Team&amp;gt;&lt;br/&gt;+ withLeague(UUID): Specification&amp;lt;Team&amp;gt;&lt;/p&gt;" style="verticalAlign=top;align=left;overflow=fill;fontSize=14;fontFamily=Helvetica;html=1;rounded=0;shadow=0;comic=0;labelBackgroundColor=none;strokeWidth=1;">
+      <mxGeometry x="1843" y="-13" width="298" height="208" as="geometry" />
+    </mxCell>
+    <mxCell id="node30" parent="1" vertex="1" value="&lt;p style=&quot;margin:0px;margin-top:4px;text-align:center;&quot;&gt;&lt;i&gt;&amp;lt;&amp;lt;record&amp;gt;&amp;gt;&lt;/i&gt;&lt;br/&gt;&lt;b&gt;TeamSummaryResponse&lt;/b&gt;&lt;/p&gt;&lt;hr size=&quot;1&quot;/&gt;&lt;p style=&quot;margin:0 0 0 4px;line-height:1.6;&quot;&gt;+ TeamSummaryResponse(UUID, String, String, UUID, String, TeamPrivacy, Integer, boolean, OffsetDateTime, OffsetDateTime): &lt;/p&gt;&lt;hr size=&quot;1&quot;/&gt;&lt;p style=&quot;margin:0 0 0 4px;line-height:1.6;&quot;&gt;- maxRoster: Integer&lt;br/&gt;- updatedAt: OffsetDateTime&lt;br/&gt;- archived: boolean&lt;br/&gt;- leagueId: UUID&lt;br/&gt;- slug: String&lt;br/&gt;- sport: String&lt;br/&gt;- privacy: TeamPrivacy&lt;br/&gt;- name: String&lt;br/&gt;- createdAt: OffsetDateTime&lt;br/&gt;- id: UUID&lt;/p&gt;&lt;hr size=&quot;1&quot;/&gt;&lt;p style=&quot;margin:0 0 0 4px;line-height:1.6;&quot;&gt;+ updatedAt(): OffsetDateTime&lt;br/&gt;+ maxRoster(): Integer&lt;br/&gt;+ createdAt(): OffsetDateTime&lt;br/&gt;+ id(): UUID&lt;br/&gt;+ privacy(): TeamPrivacy&lt;br/&gt;+ name(): String&lt;br/&gt;+ sport(): String&lt;br/&gt;+ archived(): boolean&lt;br/&gt;+ slug(): String&lt;br/&gt;+ leagueId(): UUID&lt;/p&gt;" style="verticalAlign=top;align=left;overflow=fill;fontSize=14;fontFamily=Helvetica;html=1;rounded=0;shadow=0;comic=0;labelBackgroundColor=none;strokeWidth=1;">
+      <mxGeometry x="123" y="3759" width="418" height="545" as="geometry" />
+    </mxCell>
+    <mxCell id="node6" parent="1" vertex="1" value="&lt;p style=&quot;margin:0px;margin-top:4px;text-align:center;&quot;&gt;&lt;i&gt;&amp;lt;&amp;lt;record&amp;gt;&amp;gt;&lt;/i&gt;&lt;br/&gt;&lt;b&gt;TeamUpdateRequest&lt;/b&gt;&lt;/p&gt;&lt;hr size=&quot;1&quot;/&gt;&lt;p style=&quot;margin:0 0 0 4px;line-height:1.6;&quot;&gt;+ TeamUpdateRequest(String, String, UUID, String, String, Integer, TeamPrivacy): &lt;/p&gt;&lt;hr size=&quot;1&quot;/&gt;&lt;p style=&quot;margin:0 0 0 4px;line-height:1.6;&quot;&gt;- leagueId: UUID&lt;br/&gt;- privacy: TeamPrivacy&lt;br/&gt;- logoUrl: String&lt;br/&gt;- maxRoster: Integer&lt;br/&gt;- name: String&lt;br/&gt;- location: String&lt;br/&gt;- sport: String&lt;/p&gt;&lt;hr size=&quot;1&quot;/&gt;&lt;p style=&quot;margin:0 0 0 4px;line-height:1.6;&quot;&gt;+ name(): String&lt;br/&gt;+ sport(): String&lt;br/&gt;+ leagueId(): UUID&lt;br/&gt;+ maxRoster(): Integer&lt;br/&gt;+ logoUrl(): String&lt;br/&gt;+ location(): String&lt;br/&gt;+ privacy(): TeamPrivacy&lt;/p&gt;" style="verticalAlign=top;align=left;overflow=fill;fontSize=14;fontFamily=Helvetica;html=1;rounded=0;shadow=0;comic=0;labelBackgroundColor=none;strokeWidth=1;">
+      <mxGeometry x="2703" y="1631" width="419" height="401" as="geometry" />
+    </mxCell>
+    <mxCell id="node38" parent="1" vertex="1" value="&lt;p style=&quot;margin:0px;margin-top:4px;text-align:center;&quot;&gt;&lt;b&gt;UnauthorizedException&lt;/b&gt;&lt;/p&gt;&lt;hr size=&quot;1&quot;/&gt;&lt;p style=&quot;margin:0 0 0 4px;line-height:1.6;&quot;&gt;+ UnauthorizedException(String): &lt;/p&gt;" style="verticalAlign=top;align=left;overflow=fill;fontSize=14;fontFamily=Helvetica;html=1;rounded=0;shadow=0;comic=0;labelBackgroundColor=none;strokeWidth=1;">
+      <mxGeometry x="2331" y="2760" width="243" height="68" as="geometry" />
+    </mxCell>
+    <mxCell id="node19" parent="1" vertex="1" value="&lt;p style=&quot;margin:0px;margin-top:4px;text-align:center;&quot;&gt;&lt;i&gt;&amp;lt;&amp;lt;interface&amp;gt;&amp;gt;&lt;/i&gt;&lt;br/&gt;&lt;b&gt;UserDirectoryClient&lt;/b&gt;&lt;/p&gt;&lt;hr size=&quot;1&quot;/&gt;&lt;p style=&quot;margin:0 0 0 4px;line-height:1.6;&quot;&gt;+ userExists(Long): boolean&lt;/p&gt;" style="verticalAlign=top;align=left;overflow=fill;fontSize=14;fontFamily=Helvetica;html=1;rounded=0;shadow=0;comic=0;labelBackgroundColor=none;strokeWidth=1;">
+      <mxGeometry x="2209" y="2180" width="206" height="79" as="geometry" />
+    </mxCell>
+    <mxCell id="node25" parent="1" vertex="1" value="&lt;p style=&quot;margin:0px;margin-top:4px;text-align:center;&quot;&gt;&lt;b&gt;UserServiceClientConfig&lt;/b&gt;&lt;/p&gt;&lt;hr size=&quot;1&quot;/&gt;&lt;p style=&quot;margin:0 0 0 4px;line-height:1.6;&quot;&gt;+ UserServiceClientConfig(): &lt;/p&gt;&lt;hr size=&quot;1&quot;/&gt;&lt;p style=&quot;margin:0 0 0 4px;line-height:1.6;&quot;&gt;+ userServiceRestClient(UserServiceClientProperties): RestClient&lt;/p&gt;" style="verticalAlign=top;align=left;overflow=fill;fontSize=14;fontFamily=Helvetica;html=1;rounded=0;shadow=0;comic=0;labelBackgroundColor=none;strokeWidth=1;">
+      <mxGeometry x="935" y="47" width="435" height="95" as="geometry" />
+    </mxCell>
+    <mxCell id="node34" parent="1" vertex="1" value="&lt;p style=&quot;margin:0px;margin-top:4px;text-align:center;&quot;&gt;&lt;b&gt;WebConfig&lt;/b&gt;&lt;/p&gt;&lt;hr size=&quot;1&quot;/&gt;&lt;p style=&quot;margin:0 0 0 4px;line-height:1.6;&quot;&gt;+ WebConfig(): &lt;/p&gt;&lt;hr size=&quot;1&quot;/&gt;&lt;p style=&quot;margin:0 0 0 4px;line-height:1.6;&quot;&gt;+ addInterceptors(InterceptorRegistry): void&lt;br/&gt;+ authInterceptor(): AuthInterceptor&lt;/p&gt;" style="verticalAlign=top;align=left;overflow=fill;fontSize=14;fontFamily=Helvetica;html=1;rounded=0;shadow=0;comic=0;labelBackgroundColor=none;strokeWidth=1;">
+      <mxGeometry x="2659" y="35" width="307" height="121" as="geometry" />
+    </mxCell>
+    <mxCell id="edge7" edge="1" value="" parent="1" source="node39" target="node0" style="html=1;rounded=1;edgeStyle=orthogonalEdgeStyle;dashed=1;startArrow=none;endArrow=openThin;endSize=12;strokeColor=#595959;exitX=0.500;exitY=1.000;exitDx=0;exitDy=0;entryX=0.500;entryY=0.000;entryDx=0;entryDy=0;">
+      <mxGeometry width="50" height="50" relative="1" as="geometry">
+        <Array as="points">
+          <mxPoint x="2172" y="1891" />
+          <mxPoint x="2332" y="1891" />
+          <mxPoint x="2332" y="1911" />
+          <mxPoint x="2592" y="1911" />
+        </Array>
+      </mxGeometry>
+    </mxCell>
+    <mxCell id="edge26" edge="1" value="" parent="1" source="node39" target="node38" style="html=1;rounded=1;edgeStyle=orthogonalEdgeStyle;dashed=1;startArrow=none;endArrow=openThin;endSize=12;strokeColor=#595959;exitX=0.500;exitY=1.000;exitDx=0;exitDy=0;entryX=0.500;entryY=0.001;entryDx=0;entryDy=0;">
+      <mxGeometry width="50" height="50" relative="1" as="geometry">
+        <Array as="points">
+          <mxPoint x="2172" y="1891" />
+          <mxPoint x="2332" y="1891" />
+          <mxPoint x="2332" y="2151" />
+          <mxPoint x="2452" y="2151" />
+        </Array>
+      </mxGeometry>
+    </mxCell>
+    <mxCell id="edge24" edge="1" value="" parent="1" source="node22" target="node38" style="html=1;rounded=1;edgeStyle=orthogonalEdgeStyle;dashed=1;startArrow=none;endArrow=openThin;endSize=12;strokeColor=#595959;exitX=0.500;exitY=1.000;exitDx=0;exitDy=0;entryX=0.500;entryY=0.001;entryDx=0;entryDy=0;">
+      <mxGeometry width="50" height="50" relative="1" as="geometry">
+        <Array as="points">
+          <mxPoint x="1512" y="2071" />
+          <mxPoint x="2332" y="2071" />
+          <mxPoint x="2332" y="2151" />
+          <mxPoint x="2452" y="2151" />
+        </Array>
+      </mxGeometry>
+    </mxCell>
+    <mxCell id="edge4" edge="1" value="" parent="1" source="node12" target="node22" style="html=1;rounded=1;edgeStyle=orthogonalEdgeStyle;dashed=0;startArrow=diamondThinstartSize=12;endArrow=openThin;endSize=12;strokeColor=#595959;exitX=0.500;exitY=1.000;exitDx=0;exitDy=0;entryX=0.500;entryY=0.000;entryDx=0;entryDy=0;">
+      <mxGeometry width="50" height="50" relative="1" as="geometry">
+        <Array as="points">
+          <mxPoint x="192" y="651" />
+          <mxPoint x="1332" y="651" />
+          <mxPoint x="1332" y="1071" />
+          <mxPoint x="1512" y="1071" />
+        </Array>
+      </mxGeometry>
+    </mxCell>
+    <mxCell id="edge27" edge="1" value="" parent="1" source="node12" target="node27" style="html=1;rounded=1;edgeStyle=orthogonalEdgeStyle;dashed=0;startArrow=diamondThinstartSize=12;endArrow=openThin;endSize=12;strokeColor=#595959;exitX=0.500;exitY=1.000;exitDx=0;exitDy=0;entryX=0.750;entryY=1.000;entryDx=0;entryDy=0;">
+      <mxGeometry width="50" height="50" relative="1" as="geometry">
+        <Array as="points">
+          <mxPoint x="192" y="1651" />
+          <mxPoint x="718" y="1651" />
+        </Array>
+      </mxGeometry>
+    </mxCell>
+    <mxCell id="edge0" edge="1" value="" parent="1" source="node42" target="node19" style="html=1;rounded=1;edgeStyle=orthogonalEdgeStyle;dashed=1;startArrow=none;endArrow=block;endSize=12;strokeColor=#008200;exitX=0.500;exitY=1.000;exitDx=0;exitDy=0;entryX=0.750;entryY=0.000;entryDx=0;entryDy=0;">
+      <mxGeometry width="50" height="50" relative="1" as="geometry">
+        <Array as="points">
+          <mxPoint x="1352" y="1971" />
+          <mxPoint x="2364" y="1971" />
+        </Array>
+      </mxGeometry>
+    </mxCell>
+    <mxCell id="edge17" edge="1" value="" parent="1" source="node2" target="node40" style="html=1;rounded=1;edgeStyle=orthogonalEdgeStyle;dashed=0;startArrow=diamondThinstartSize=12;endArrow=openThin;endSize=12;strokeColor=#595959;exitX=0.500;exitY=1.000;exitDx=0;exitDy=0;entryX=0.500;entryY=1.000;entryDx=0;entryDy=0;">
+      <mxGeometry width="50" height="50" relative="1" as="geometry">
+        <Array as="points">
+          <mxPoint x="2552" y="4731" />
+          <mxPoint x="2332" y="4731" />
+          <mxPoint x="2332" y="3291" />
+          <mxPoint x="2832" y="3291" />
+        </Array>
+      </mxGeometry>
+    </mxCell>
+    <mxCell id="edge12" edge="1" value="" parent="1" source="node2" target="node29" style="html=1;rounded=1;edgeStyle=orthogonalEdgeStyle;dashed=0;startArrow=diamondThinstartSize=12;endArrow=openThin;endSize=12;strokeColor=#595959;exitX=0.500;exitY=1.000;exitDx=0;exitDy=0;entryX=0.500;entryY=0.000;entryDx=0;entryDy=0;">
+      <mxGeometry width="50" height="50" relative="1" as="geometry">
+        <Array as="points">
+          <mxPoint x="2552" y="5311" />
+          <mxPoint x="2512" y="5311" />
+        </Array>
+      </mxGeometry>
+    </mxCell>
+    <mxCell id="edge15" edge="1" value="" parent="1" source="node2" target="node16" style="html=1;rounded=1;edgeStyle=orthogonalEdgeStyle;dashed=0;startArrow=diamondThinstartSize=12;endArrow=openThin;endSize=12;strokeColor=#595959;exitX=0.500;exitY=1.000;exitDx=0;exitDy=0;entryX=0.500;entryY=0.000;entryDx=0;entryDy=0;">
+      <mxGeometry width="50" height="50" relative="1" as="geometry">
+        <Array as="points">
+          <mxPoint x="2552" y="5311" />
+          <mxPoint x="2892" y="5311" />
+        </Array>
+      </mxGeometry>
+    </mxCell>
+    <mxCell id="edge6" edge="1" value="" parent="1" source="node9" target="node22" style="html=1;rounded=1;edgeStyle=orthogonalEdgeStyle;dashed=0;startArrow=diamondThinstartSize=12;endArrow=openThin;endSize=12;strokeColor=#595959;exitX=0.250;exitY=1.000;exitDx=0;exitDy=0;entryX=0.500;entryY=0.000;entryDx=0;entryDy=0;">
+      <mxGeometry width="50" height="50" relative="1" as="geometry">
+        <Array as="points">
+          <mxPoint x="1335" y="631" />
+          <mxPoint x="1332" y="631" />
+          <mxPoint x="1332" y="1071" />
+          <mxPoint x="1512" y="1071" />
+        </Array>
+      </mxGeometry>
+    </mxCell>
+    <mxCell id="edge1" edge="1" value="" parent="1" source="node9" target="node1" style="html=1;rounded=1;edgeStyle=orthogonalEdgeStyle;dashed=1;startArrow=none;endArrow=openThin;endSize=12;strokeColor=#595959;exitX=0.750;exitY=1.000;exitDx=0;exitDy=0;entryX=0.500;entryY=0.000;entryDx=0;entryDy=0;">
+      <mxGeometry width="50" height="50" relative="1" as="geometry">
+        <Array as="points">
+          <mxPoint x="1649" y="631" />
+          <mxPoint x="1712" y="631" />
+        </Array>
+      </mxGeometry>
+    </mxCell>
+    <mxCell id="edge29" edge="1" value="" parent="1" source="node9" target="node27" style="html=1;rounded=1;edgeStyle=orthogonalEdgeStyle;dashed=0;startArrow=diamondThinstartSize=12;endArrow=openThin;endSize=12;strokeColor=#595959;exitX=0.250;exitY=1.000;exitDx=0;exitDy=0;entryX=0.750;entryY=1.000;entryDx=0;entryDy=0;">
+      <mxGeometry width="50" height="50" relative="1" as="geometry">
+        <Array as="points">
+          <mxPoint x="1335" y="631" />
+          <mxPoint x="1332" y="631" />
+          <mxPoint x="1332" y="691" />
+          <mxPoint x="192" y="691" />
+          <mxPoint x="192" y="1651" />
+          <mxPoint x="718" y="1651" />
+        </Array>
+      </mxGeometry>
+    </mxCell>
+    <mxCell id="edge16" edge="1" value="" parent="1" source="node40" target="node2" style="html=1;rounded=1;edgeStyle=orthogonalEdgeStyle;dashed=0;startArrow=diamondThinstartSize=12;endArrow=openThin;endSize=12;strokeColor=#595959;exitX=0.500;exitY=1.000;exitDx=0;exitDy=0;entryX=0.500;entryY=1.000;entryDx=0;entryDy=0;">
+      <mxGeometry width="50" height="50" relative="1" as="geometry">
+        <Array as="points">
+          <mxPoint x="2832" y="3891" />
+          <mxPoint x="2772" y="3891" />
+          <mxPoint x="2772" y="4751" />
+          <mxPoint x="2552" y="4751" />
+        </Array>
+      </mxGeometry>
+    </mxCell>
+    <mxCell id="edge8" edge="1" value="" parent="1" source="node40" target="node20" style="html=1;rounded=1;edgeStyle=orthogonalEdgeStyle;dashed=0;startArrow=diamondThinstartSize=12;endArrow=openThin;endSize=12;strokeColor=#595959;exitX=0.500;exitY=1.000;exitDx=0;exitDy=0;entryX=0.500;entryY=0.000;entryDx=0;entryDy=0;">
+      <mxGeometry width="50" height="50" relative="1" as="geometry">
+        <Array as="points">
+          <mxPoint x="2832" y="3891" />
+          <mxPoint x="2932" y="3891" />
+        </Array>
+      </mxGeometry>
+    </mxCell>
+    <mxCell id="edge5" edge="1" value="" parent="1" source="node31" target="node30" style="html=1;rounded=1;edgeStyle=orthogonalEdgeStyle;dashed=0;startArrow=diamondThinstartSize=12;endArrow=openThin;endSize=12;strokeColor=#595959;exitX=0.500;exitY=1.000;exitDx=0;exitDy=0;entryX=0.250;entryY=0.000;entryDx=0;entryDy=0;">
+      <mxGeometry width="50" height="50" relative="1" as="geometry">
+        <Array as="points">
+          <mxPoint x="232" y="2971" />
+          <mxPoint x="228" y="2971" />
+        </Array>
+      </mxGeometry>
+    </mxCell>
+    <mxCell id="edge2" edge="1" value="" parent="1" source="node32" target="node13" style="html=1;rounded=1;edgeStyle=orthogonalEdgeStyle;dashed=1;startArrow=none;endArrow=openThin;endSize=12;strokeColor=#595959;exitX=0.500;exitY=1.000;exitDx=0;exitDy=0;entryX=0.500;entryY=0.000;entryDx=0;entryDy=0;">
+      <mxGeometry width="50" height="50" relative="1" as="geometry">
+        <Array as="points">
+          <mxPoint x="1792" y="2991" />
+          <mxPoint x="1532" y="2991" />
+        </Array>
+      </mxGeometry>
+    </mxCell>
+    <mxCell id="edge25" edge="1" value="" parent="1" source="node32" target="node3" style="html=1;rounded=1;edgeStyle=orthogonalEdgeStyle;dashed=1;startArrow=none;endArrow=openThin;endSize=12;strokeColor=#595959;exitX=0.500;exitY=1.000;exitDx=0;exitDy=0;entryX=0.500;entryY=0.000;entryDx=0;entryDy=0;">
+      <mxGeometry width="50" height="50" relative="1" as="geometry">
+        <Array as="points">
+          <mxPoint x="1792" y="2991" />
+          <mxPoint x="1292" y="2991" />
+        </Array>
+      </mxGeometry>
+    </mxCell>
+    <mxCell id="edge30" edge="1" value="" parent="1" source="node32" target="node18" style="html=1;rounded=1;edgeStyle=orthogonalEdgeStyle;dashed=1;startArrow=none;endArrow=openThin;endSize=12;strokeColor=#595959;exitX=0.500;exitY=1.000;exitDx=0;exitDy=0;entryX=0.500;entryY=0.000;entryDx=0;entryDy=0;">
+      <mxGeometry width="50" height="50" relative="1" as="geometry">
+        <Array as="points" />
+      </mxGeometry>
+    </mxCell>
+    <mxCell id="edge32" edge="1" value="" parent="1" source="node32" target="node30" style="html=1;rounded=1;edgeStyle=orthogonalEdgeStyle;dashed=1;startArrow=none;endArrow=openThin;endSize=12;strokeColor=#595959;exitX=0.500;exitY=1.000;exitDx=0;exitDy=0;entryX=0.750;entryY=0.000;entryDx=0;entryDy=0;">
+      <mxGeometry width="50" height="50" relative="1" as="geometry">
+        <Array as="points">
+          <mxPoint x="1792" y="2991" />
+          <mxPoint x="437" y="2991" />
+        </Array>
+      </mxGeometry>
+    </mxCell>
+    <mxCell id="edge21" edge="1" value="" parent="1" source="node29" target="node2" style="html=1;rounded=1;edgeStyle=orthogonalEdgeStyle;dashed=0;startArrow=diamondThinstartSize=12;endArrow=openThin;endSize=12;strokeColor=#595959;exitX=0.500;exitY=0.000;exitDx=0;exitDy=0;entryX=0.500;entryY=1.000;entryDx=0;entryDy=0;">
+      <mxGeometry width="50" height="50" relative="1" as="geometry">
+        <Array as="points">
+          <mxPoint x="2512" y="4771" />
+          <mxPoint x="2552" y="4771" />
+        </Array>
+      </mxGeometry>
+    </mxCell>
+    <mxCell id="edge20" edge="1" value="" parent="1" source="node29" target="node41" style="html=1;rounded=1;edgeStyle=orthogonalEdgeStyle;dashed=0;startArrow=diamondThinstartSize=12;endArrow=openThin;endSize=12;strokeColor=#595959;exitX=0.500;exitY=0.000;exitDx=0;exitDy=0;entryX=0.500;entryY=0.000;entryDx=0;entryDy=0;">
+      <mxGeometry width="50" height="50" relative="1" as="geometry">
+        <Array as="points">
+          <mxPoint x="2512" y="5331" />
+          <mxPoint x="2752" y="5331" />
+        </Array>
+      </mxGeometry>
+    </mxCell>
+    <mxCell id="edge28" edge="1" value="" parent="1" source="node29" target="node10" style="html=1;rounded=1;edgeStyle=orthogonalEdgeStyle;dashed=0;startArrow=diamondThinstartSize=12;endArrow=openThin;endSize=12;strokeColor=#595959;exitX=0.500;exitY=0.000;exitDx=0;exitDy=0;entryX=0.500;entryY=0.000;entryDx=0;entryDy=0;">
+      <mxGeometry width="50" height="50" relative="1" as="geometry">
+        <Array as="points">
+          <mxPoint x="2512" y="5331" />
+          <mxPoint x="2752" y="5331" />
+          <mxPoint x="2752" y="5851" />
+          <mxPoint x="3032" y="5851" />
+        </Array>
+      </mxGeometry>
+    </mxCell>
+    <mxCell id="edge33" edge="1" value="" parent="1" source="node27" target="node5" style="html=1;rounded=1;edgeStyle=orthogonalEdgeStyle;dashed=1;startArrow=none;endArrow=openThin;endSize=12;strokeColor=#595959;exitX=0.250;exitY=1.000;exitDx=0;exitDy=0;entryX=0.500;entryY=0.000;entryDx=0;entryDy=0;">
+      <mxGeometry width="50" height="50" relative="1" as="geometry">
+        <Array as="points">
+          <mxPoint x="467" y="1631" />
+          <mxPoint x="472" y="1631" />
+          <mxPoint x="472" y="2151" />
+          <mxPoint x="752" y="2151" />
+        </Array>
+      </mxGeometry>
+    </mxCell>
+    <mxCell id="edge19" edge="1" value="" parent="1" source="node27" target="node26" style="html=1;rounded=1;edgeStyle=orthogonalEdgeStyle;dashed=1;startArrow=none;endArrow=openThin;endSize=12;strokeColor=#595959;exitX=0.250;exitY=1.000;exitDx=0;exitDy=0;entryX=0.500;entryY=0.001;entryDx=0;entryDy=0;">
+      <mxGeometry width="50" height="50" relative="1" as="geometry">
+        <Array as="points">
+          <mxPoint x="467" y="1631" />
+          <mxPoint x="472" y="1631" />
+        </Array>
+      </mxGeometry>
+    </mxCell>
+    <mxCell id="edge9" edge="1" value="" parent="1" source="node27" target="node36" style="html=1;rounded=1;edgeStyle=orthogonalEdgeStyle;dashed=1;startArrow=none;endArrow=openThin;endSize=12;strokeColor=#595959;exitX=0.250;exitY=1.000;exitDx=0;exitDy=0;entryX=0.500;entryY=0.001;entryDx=0;entryDy=0;">
+      <mxGeometry width="50" height="50" relative="1" as="geometry">
+        <Array as="points">
+          <mxPoint x="467" y="1631" />
+          <mxPoint x="472" y="1631" />
+          <mxPoint x="472" y="2151" />
+          <mxPoint x="612" y="2151" />
+        </Array>
+      </mxGeometry>
+    </mxCell>
+    <mxCell id="edge13" edge="1" value="" parent="1" source="node27" target="node4" style="html=1;rounded=1;edgeStyle=orthogonalEdgeStyle;dashed=1;startArrow=none;endArrow=openThin;endSize=12;strokeColor=#595959;exitX=0.250;exitY=1.000;exitDx=0;exitDy=0;entryX=0.500;entryY=0.000;entryDx=0;entryDy=0;">
+      <mxGeometry width="50" height="50" relative="1" as="geometry">
+        <Array as="points">
+          <mxPoint x="467" y="1631" />
+          <mxPoint x="472" y="1631" />
+          <mxPoint x="472" y="2151" />
+          <mxPoint x="-8" y="2151" />
+        </Array>
+      </mxGeometry>
+    </mxCell>
+    <mxCell id="edge10" edge="1" value="" parent="1" source="node27" target="node21" style="html=1;rounded=1;edgeStyle=orthogonalEdgeStyle;dashed=0;startArrow=diamondThinstartSize=12;endArrow=openThin;endSize=12;strokeColor=#595959;exitX=0.750;exitY=1.000;exitDx=0;exitDy=0;entryX=0.500;entryY=0.000;entryDx=0;entryDy=0;">
+      <mxGeometry width="50" height="50" relative="1" as="geometry">
+        <Array as="points">
+          <mxPoint x="718" y="1631" />
+          <mxPoint x="1152" y="1631" />
+          <mxPoint x="1152" y="2091" />
+          <mxPoint x="1472" y="2091" />
+        </Array>
+      </mxGeometry>
+    </mxCell>
+    <mxCell id="edge18" edge="1" value="" parent="1" source="node27" target="node31" style="html=1;rounded=1;edgeStyle=orthogonalEdgeStyle;dashed=1;startArrow=none;endArrow=openThin;endSize=12;strokeColor=#595959;exitX=0.250;exitY=1.000;exitDx=0;exitDy=0;entryX=0.500;entryY=0.000;entryDx=0;entryDy=0;">
+      <mxGeometry width="50" height="50" relative="1" as="geometry">
+        <Array as="points">
+          <mxPoint x="467" y="1631" />
+          <mxPoint x="472" y="1631" />
+          <mxPoint x="472" y="2151" />
+          <mxPoint x="232" y="2151" />
+        </Array>
+      </mxGeometry>
+    </mxCell>
+    <mxCell id="edge14" edge="1" value="" parent="1" source="node27" target="node32" style="html=1;rounded=1;edgeStyle=orthogonalEdgeStyle;dashed=0;startArrow=diamondThinstartSize=12;endArrow=openThin;endSize=12;strokeColor=#595959;exitX=0.750;exitY=1.000;exitDx=0;exitDy=0;entryX=0.500;entryY=0.000;entryDx=0;entryDy=0;">
+      <mxGeometry width="50" height="50" relative="1" as="geometry">
+        <Array as="points">
+          <mxPoint x="718" y="1631" />
+          <mxPoint x="1152" y="1631" />
+          <mxPoint x="1152" y="2091" />
+          <mxPoint x="1792" y="2091" />
+        </Array>
+      </mxGeometry>
+    </mxCell>
+    <mxCell id="edge23" edge="1" value="" parent="1" source="node27" target="node43" style="html=1;rounded=1;edgeStyle=orthogonalEdgeStyle;dashed=0;startArrow=diamondThinstartSize=12;endArrow=openThin;endSize=12;strokeColor=#595959;exitX=0.750;exitY=1.000;exitDx=0;exitDy=0;entryX=0.500;entryY=0.000;entryDx=0;entryDy=0;">
+      <mxGeometry width="50" height="50" relative="1" as="geometry">
+        <Array as="points">
+          <mxPoint x="718" y="1631" />
+          <mxPoint x="1152" y="1631" />
+        </Array>
+      </mxGeometry>
+    </mxCell>
+    <mxCell id="edge22" edge="1" value="" parent="1" source="node27" target="node24" style="html=1;rounded=1;edgeStyle=orthogonalEdgeStyle;dashed=0;startArrow=diamondThinstartSize=12;endArrow=openThin;endSize=12;strokeColor=#595959;exitX=0.750;exitY=1.000;exitDx=0;exitDy=0;entryX=0.500;entryY=0.000;entryDx=0;entryDy=0;">
+      <mxGeometry width="50" height="50" relative="1" as="geometry">
+        <Array as="points">
+          <mxPoint x="718" y="1631" />
+          <mxPoint x="1152" y="1631" />
+          <mxPoint x="1152" y="2091" />
+          <mxPoint x="912" y="2091" />
+        </Array>
+      </mxGeometry>
+    </mxCell>
+    <mxCell id="edge11" edge="1" value="" parent="1" source="node27" target="node37" style="html=1;rounded=1;edgeStyle=orthogonalEdgeStyle;dashed=0;startArrow=diamondThinstartSize=12;endArrow=openThin;endSize=12;strokeColor=#595959;exitX=0.750;exitY=1.000;exitDx=0;exitDy=0;entryX=0.500;entryY=0.000;entryDx=0;entryDy=0;">
+      <mxGeometry width="50" height="50" relative="1" as="geometry">
+        <Array as="points">
+          <mxPoint x="718" y="1631" />
+          <mxPoint x="1152" y="1631" />
+          <mxPoint x="1152" y="2091" />
+          <mxPoint x="2052" y="2091" />
+        </Array>
+      </mxGeometry>
+    </mxCell>
+    <mxCell id="edge3" edge="1" value="" parent="1" source="node27" target="node19" style="html=1;rounded=1;edgeStyle=orthogonalEdgeStyle;dashed=0;startArrow=diamondThinstartSize=12;endArrow=openThin;endSize=12;strokeColor=#595959;exitX=0.750;exitY=1.000;exitDx=0;exitDy=0;entryX=0.250;entryY=0.001;entryDx=0;entryDy=0;">
+      <mxGeometry width="50" height="50" relative="1" as="geometry">
+        <Array as="points">
+          <mxPoint x="718" y="1631" />
+          <mxPoint x="1152" y="1631" />
+          <mxPoint x="1152" y="2091" />
+          <mxPoint x="2261" y="2091" />
+        </Array>
+      </mxGeometry>
+    </mxCell>
+    <mxCell id="edge31" edge="1" value="" parent="1" source="node34" target="node39" style="html=1;rounded=1;edgeStyle=orthogonalEdgeStyle;dashed=1;startArrow=none;endArrow=openThin;endSize=12;strokeColor=#595959;exitX=0.500;exitY=1.000;exitDx=0;exitDy=0;entryX=0.500;entryY=1.000;entryDx=0;entryDy=0;">
+      <mxGeometry width="50" height="50" relative="1" as="geometry">
+        <Array as="points">
+          <mxPoint x="2812" y="551" />
+          <mxPoint x="1912" y="551" />
+          <mxPoint x="1912" y="1911" />
+          <mxPoint x="2172" y="1911" />
+        </Array>
+      </mxGeometry>
+    </mxCell>
+  </root>
+</mxGraphModel>
