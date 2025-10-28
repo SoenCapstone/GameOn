@@ -22,12 +22,12 @@ type CustomBackgroundProps = BackgroundBaseProps & {
 
 type BackgroundProps = PresetBackgroundProps | CustomBackgroundProps;
 
-export const Background: React.FC<BackgroundProps> = ({
+export function Background({
   preset,
   color,
   mode = "default",
   style,
-}) => {
+}: Readonly<BackgroundProps>) {
   const baseColor: ColorValue =
     (preset && Colors[preset]) || color || Colors.blue;
 
@@ -46,4 +46,4 @@ export const Background: React.FC<BackgroundProps> = ({
       />
     </View>
   );
-};
+}

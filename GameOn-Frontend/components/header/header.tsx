@@ -1,4 +1,4 @@
-import { View } from "react-native";
+import { StyleSheet, View } from "react-native";
 import React from "react";
 
 type HeaderProps = {
@@ -7,19 +7,33 @@ type HeaderProps = {
   right?: React.ReactNode;
 };
 
-export default function Header({ left, center, right }: Readonly<HeaderProps>) {
+export function Header({ left, center, right }: Readonly<HeaderProps>) {
   return (
-    <View
-      style={{
-        width: "100%",
-        height: "100%",
-        flexDirection: "row",
-        alignItems: "center",
-      }}
-    >
-      <View style={{ flex: 1, alignItems: "flex-start" }}>{left}</View>
-      <View style={{ flex: 1, alignItems: "center" }}>{center}</View>
-      <View style={{ flex: 1, alignItems: "flex-end" }}>{right}</View>
+    <View style={styles.header}>
+      <View style={styles.left}>{left}</View>
+      <View style={styles.center}>{center}</View>
+      <View style={styles.right}>{right}</View>
     </View>
   );
 }
+
+const styles = StyleSheet.create({
+  header: {
+    width: "100%",
+    height: "100%",
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  left: {
+    flex: 1,
+    alignItems: "flex-start",
+  },
+  center: {
+    flex: 1,
+    alignItems: "center",
+  },
+  right: {
+    flex: 1,
+    alignItems: "flex-end",
+  },
+});
