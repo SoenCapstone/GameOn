@@ -1,5 +1,5 @@
 import { BrowsePage } from "@/components/browse/browse-page";
 
-export default function Search() {
+export default function Browse() {
   return <BrowsePage />;
 }
