@@ -13,7 +13,7 @@ const browseHeader = () => (
   />
 );
 
-export default function RootLayout() {
+export default function BrowseLayout() {
   const { setQuery, setSearchActive } = useSearch();
 
   return (
