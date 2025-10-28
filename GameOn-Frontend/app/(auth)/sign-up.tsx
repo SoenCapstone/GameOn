@@ -3,7 +3,6 @@ import DateTimePicker from '@react-native-community/datetimepicker';
 import { authStyles } from '@/constants/auth-styles';
 import { images } from '@/constants/images';
 import { Ionicons } from '@expo/vector-icons';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
 import { Formik } from 'formik';
@@ -27,7 +26,11 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { getAuthHeroLayout } from '@/constants/auth-layout';
 import * as Yup from 'yup';
 
-type User = { name: string; birth: string; email: string; pwd: string };
+import { useMutation } from '@tanstack/react-query';
+import { api } from '@/utils/api';
+
+
+type User = { firstname: string; lastname: string; birth: string; email: string; password: string };
 const { HERO_TOP, TOP_GRADIENT_H, FORM_PADDING_TOP, RENDER_W, RENDER_H } = getAuthHeroLayout();
 
 const POLICY_URL =
@@ -45,12 +48,16 @@ const openPolicy = async () => {
 const log = createScopedLog('SignUp');
 
 const SignUpSchema = Yup.object({
-  name: Yup.string()
+  firstname: Yup.string()
     .trim()
-    .min(2, 'Enter your full name')
-    .required('Full name is required'),
+    .min(2, 'Enter your first name')
+    .required('First name is required'),
+  lastname: Yup.string()
+    .trim()
+    .min(2, 'Enter your last name')
+    .required('Last name is required'),
   email: Yup.string().email('Enter a valid email').required('Email is required'),
-  pwd: Yup.string().min(6, 'Min 6 characters').required('Password is required'),
+  password: Yup.string().min(6, 'Min 6 characters').required('Password is required'),
   birth: Yup.string()
   .required('Date of birth is required')
   .test('dob-valid', 'Enter a valid past date', v => {
@@ -68,50 +75,14 @@ export default function SignUpScreen() {
   const [loadingSeed, setLoadingSeed] = useState(false);
   const [showDob, setShowDob] = useState(false);
 
-  useEffect(() => {
-    (async () => {
-      try {
-        setLoadingSeed(true);
-        const raw = await AsyncStorage.getItem('users');
-        if (!raw) {
-          await AsyncStorage.setItem('users', JSON.stringify([] as User[]));
-        }
-      } catch (e) {
-        console.warn('Seed users error:', e);
-      } finally {
-        setLoadingSeed(false);
-      }
-    })();
-  }, []);
-
-  const handleSaveAndGo = async (values: User) => {
-  try {
-    const raw = await AsyncStorage.getItem('users');
-    const list: User[] = raw ? JSON.parse(raw) : [];
-    list.push(values);
-    await AsyncStorage.setItem('users', JSON.stringify(list));
-
-    log.info('Account successfully created', { email: values.email });
-
-    if (Platform.OS === 'android') {
-      ToastAndroid.show('Account successfully created', ToastAndroid.SHORT);
-      router.replace('/(auth)/sign-in');
-    } else {
-      Alert.alert(
-        'Success',
-        'Account successfully created',
-        [{ text: 'OK', onPress: () => router.replace('/(auth)/sign-in') }],
-        { cancelable: false }
-      );
-    }
-  } catch (e) {
-    log.error('Save error', e);
-    Alert.alert('Error', 'Could not save your account locally.');
-    console.warn('Save error:', e);
-  }
-};
-
-
+const signUpMutation = useMutation({
+  mutationFn: (body: {
+    firstname: string;
+    lastname: string;
+    email: string;
+    password: string;
+  }) => api.postJSON('/api/v1/user/create', body),
+});
 
   return (
     <SafeAreaView style={authStyles.safe}>
@@ -137,12 +108,34 @@ export default function SignUpScreen() {
       >
         <View style={[authStyles.container, { paddingTop: FORM_PADDING_TOP }]}>
           <Formik<User>
-            initialValues={{ name: '', birth: new Date().toISOString(), email: '', pwd: '' }}
+            initialValues={{ firstname: '', lastname: '', birth: new Date().toISOString(), email: '', password: '' }}
             validationSchema={SignUpSchema}
             onSubmit={async (vals, { setSubmitting }) => {
-              await handleSaveAndGo(vals);
-              setSubmitting(false);
+              try {
+                await signUpMutation.mutateAsync({
+                  firstname: vals.firstname.trim(),
+                  lastname: vals.lastname.trim(),
+                  email: vals.email.trim(),
+                  password: vals.password,
+                });
+
+                log.info('Account successfully created', { email: vals.email });
+
+                if (Platform.OS === 'android') {
+                  ToastAndroid.show('Account successfully created', ToastAndroid.SHORT);
+                } else {
+                  Alert.alert('Success', 'Account successfully created');
+                }
+
+                router.replace('/(auth)/sign-in');
+              } catch (e: any) {
+                log.error('Sign-up failed', e);
+                Alert.alert('Error', e?.message || 'Sign-up failed, please try again.');
+              } finally {
+                setSubmitting(false);
+              }
             }}
+
           >
             {({
               values,
@@ -157,21 +150,31 @@ export default function SignUpScreen() {
               <>
                 <View style={{ gap: 16 }}>
                   <LabeledInput
-                    label="Full name"
-                    placeholder="john doe"
-                    value={values.name}
-                    onChangeText={handleChange('name')}
-                    onBlur={() => handleBlur('name')}
+                    label="First name"
+                    placeholder="john"
+                    value={values.firstname}
+                    onChangeText={handleChange('firstname')}
+                    onBlur={() => handleBlur('firstname')}
                     autoCapitalize="words"
-                    error={touched.name && errors.name ? errors.name : undefined}
+                    error={touched.firstname && errors.firstname ? errors.firstname : undefined}
+                  />
+
+                  <LabeledInput
+                    label="Last name"
+                    placeholder="doe"
+                    value={values.lastname}
+                    onChangeText={handleChange('lastname')}
+                    onBlur={() => handleBlur('lastname')}
+                    autoCapitalize="words"
+                    error={touched.lastname && errors.lastname ? errors.lastname : undefined}
                   />
 
                   <LabeledInput
                     label="Password"
                     placeholder="••••••••••••"
-                    value={values.pwd}
-                    onChangeText={handleChange('pwd')}
-                    onBlur={() => handleBlur('pwd')}
+                    value={values.password}
+                    onChangeText={handleChange('password')}
+                    onBlur={() => handleBlur('password')}
                     secureTextEntry={!showPwd}
                     rightIcon={
                       <Pressable onPress={() => setShowPwd(s => !s)} hitSlop={8}>
@@ -182,7 +185,7 @@ export default function SignUpScreen() {
                         />
                       </Pressable>
                     }
-                    error={touched.pwd && errors.pwd ? errors.pwd : undefined}
+                    error={touched.password && errors.password ? errors.password : undefined}
                   />
 
                   <LabeledInput
@@ -297,20 +300,19 @@ export default function SignUpScreen() {
                 </View>
 
                 <Pressable
-                  onPress={() => handleSubmit()}
-                  disabled={isSubmitting || loadingSeed}
-                  style={({ pressed }) => [
-                    styles.cta,
-                    (pressed || isSubmitting) && { opacity: 0.85 },
-                    (isSubmitting || loadingSeed) && { opacity: 0.6 },
-                  ]}
-                >
-                  {isSubmitting || loadingSeed ? (
-                    <ActivityIndicator />
-                  ) : (
-                    <Text style={styles.ctaText}>Sign Up</Text>
-                  )}
-                </Pressable>
+                onPress={() => handleSubmit()}
+                disabled={isSubmitting || signUpMutation.isPending}
+                style={({ pressed }) => [
+                  styles.cta,
+                  (pressed || isSubmitting || signUpMutation.isPending) && { opacity: 0.85 },
+                  (isSubmitting || signUpMutation.isPending) && { opacity: 0.6 },
+                ]}
+              >
+                {(isSubmitting || signUpMutation.isPending)
+                  ? <ActivityIndicator />
+                  : <Text style={styles.ctaText}>Sign Up</Text>}
+              </Pressable>
+
               </>
             )}
           </Formik>

@@ -22,7 +22,7 @@ spring:
           keycloak-admin:
             provider: keycloak
             client-id: gameon-client
-            client-secret: uYkNTIU9pcffRmuGxzvWKgo2uTTC2R4L
+            client-secret: 3OAGFa4oS1XIM564ehHnObROtMHu0mQ2
             authorization-grant-type: client_credentials
         provider:
           keycloak:

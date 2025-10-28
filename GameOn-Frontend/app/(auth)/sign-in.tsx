@@ -1,7 +1,6 @@
 import { createScopedLog } from '@/utils/logger'; 
 import { authStyles } from '@/constants/auth-styles';
 import { Ionicons } from '@expo/vector-icons';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Link } from 'expo-router';
 import { Formik } from 'formik';
@@ -24,12 +23,16 @@ import * as Yup from 'yup';
 import { images } from '@/constants/images';
 import { useAuth } from '../../contexts/auth';
 
-type User = { name: string; birth: string; email: string; pwd: string };
+import { useMutation } from '@tanstack/react-query';
+import { api } from '@/utils/api';
+
+
+type User = { firstname: string; lastname: string; birth: string; email: string; password: string };
 const { HERO_TOP, TOP_GRADIENT_H, FORM_PADDING_TOP, RENDER_W, RENDER_H } = getAuthHeroLayout();
 
 const SignInSchema = Yup.object({
   email: Yup.string().email('Enter a valid email').required('Email is required'),
-  pwd: Yup.string().min(6, 'Min 6 characters').required('Password is required'),
+  password: Yup.string().min(6, 'Min 6 characters').required('Password is required'),
 });
 
 const log = createScopedLog('SignIn');
@@ -37,7 +40,11 @@ const log = createScopedLog('SignIn');
 export default function SignInScreen() {
   const { signIn } = useAuth();
   const [showPwd, setShowPwd] = useState(false);
-  
+
+  const loginMutation = useMutation({
+  mutationFn: ({ email, password }: { email: string; password: string }) =>
+    api.tokenWithPassword(email, password),
+  });
 
   return (
     <SafeAreaView style={authStyles.safe}>
@@ -56,38 +63,28 @@ export default function SignInScreen() {
       <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
         <View style={[authStyles.container, { paddingTop: FORM_PADDING_TOP }]}>
           <Formik
-            initialValues={{ email: '', pwd: '' }}
+            initialValues={{ email: '', password: '' }}
             validationSchema={SignInSchema}
             onSubmit={async (vals, { setSubmitting, setStatus }) => {
               const started = Date.now();
               try {
                 log.debug('Sign-in attempt', { email: vals.email });
 
-                const raw = await AsyncStorage.getItem('users');
-                const list: User[] = raw ? JSON.parse(raw) : [];
-                const match = list.find(
-                  (u) =>
-                    u.email.trim().toLowerCase() === vals.email.trim().toLowerCase() &&
-                    u.pwd === vals.pwd
-                );
+                const { accessToken } = await loginMutation.mutateAsync({
+                  email: vals.email.trim(),
+                  password: vals.password,
+                });
 
-                if (match) {
-                  log.info('Sign-in success', {
-                    email: vals.email,
-                    ms: Date.now() - started,
-                  });
-                  await signIn('demo-token');
-                } else {
-                  log.warn('Invalid credentials', { email: vals.email });
-                  setStatus('Invalid email or password');
-                }
-              } catch (e) {
-                log.error('Sign-in failed with exception', { error: String(e) });
-                setStatus('Sign in failed. Please try again.');
+                await signIn(accessToken); 
+                log.info('Sign-in success', { email: vals.email, ms: Date.now() - started });
+              } catch (e: any) {
+                log.error('Sign-in failed', { email: vals.email, error: String(e?.message || e) });
+                setStatus(e?.message || 'Invalid email or password');
               } finally {
                 setSubmitting(false);
               }
             }}
+
           >
             {({
               values,
@@ -120,19 +117,19 @@ export default function SignInScreen() {
                   <LabeledInput
                     label="Password"
                     placeholder="**********"
-                    value={values.pwd}
+                    value={values.password}
                     onChangeText={(t: string) => {
                       setStatus(undefined);        
-                      setFieldValue('pwd', t);
+                      setFieldValue('password', t);
                     }}
-                    onBlur={() => handleBlur('pwd')}
+                    onBlur={() => handleBlur('password')}
                     secureTextEntry={!showPwd}
                     rightIcon={
                       <Pressable onPress={() => setShowPwd((s) => !s)} hitSlop={8}>
                         <Ionicons name={showPwd ? 'eye-off-outline' : 'eye-outline'} size={20} color="#000000" />
                       </Pressable>
                     }
-                    error={touched.pwd && errors.pwd ? errors.pwd : undefined}
+                    error={touched.password && errors.password ? errors.password : undefined}
                   />
 
                   <Pressable onPress={() => { /* forgot password flow */ }} style={styles.forgotWrap}>
@@ -148,14 +145,16 @@ export default function SignInScreen() {
 
                 <Pressable
                   onPress={() => handleSubmit()}
-                  disabled={isSubmitting}
+                  disabled={isSubmitting || loginMutation.isPending}
                   style={({ pressed }) => [
                     styles.cta,
-                    (pressed || isSubmitting) && { opacity: 0.85 },
-                    isSubmitting && { opacity: 0.6 },
+                    (pressed || isSubmitting || loginMutation.isPending) && { opacity: 0.85 },
+                    (isSubmitting || loginMutation.isPending) && { opacity: 0.6 },
                   ]}
                 >
-                  {isSubmitting ? <ActivityIndicator /> : <Text style={styles.ctaText}>Log In</Text>}
+                  {(isSubmitting || loginMutation.isPending)
+                    ? <ActivityIndicator />
+                    : <Text style={styles.ctaText}>Log In</Text>}
                 </Pressable>
 
                 <View style={{ marginTop: 'auto' }}>
