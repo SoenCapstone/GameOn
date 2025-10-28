@@ -17,8 +17,7 @@ const EditProfile = () => {
     const [profilePic, setProfilePic] = useState(images.defaultProfile);
 
     const validateEmail = (email: string) => {
-        const emailRegex = /^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$/
-;
+        const emailRegex = /^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$/;
         return emailRegex.test(email);
     };
 
@@ -106,7 +105,7 @@ const EditProfile = () => {
                 <Pressable style={({pressed}) => [
                 styles.cancelButton,
                 pressed && { backgroundColor: 'rgba(240, 11, 11, 0.37)'}]} 
-                onPress={() => router.back()}>
+                onPress={() => {router.back(); log.info('Cancelled Profile edit, returning to User Profile page.')}}>
                     <Text style={styles.cancelButtonText}>Cancel</Text>
                 </Pressable>
             </ScrollView>
