@@ -39,7 +39,7 @@ Each service runs integration tests against a temporary database (PostgreSQL) in
 </li>
 <li>
 <p><strong>Authentication Integration:</strong><br>
-Integration tests validate <strong>Keycloak</strong> authentication and authorization, ensuring endpoints correctly handle valid and invalid JWT tokens.</p>
+Integration tests validate <strong>clerk </strong> authentication and authorization, ensuring endpoints correctly handle valid and invalid JWT tokens.</p>
 </li>
 </ul>
 <p><strong>Goal:</strong> Confirm that all services communicate seamlessly and securely under production-like configurations.</p>
