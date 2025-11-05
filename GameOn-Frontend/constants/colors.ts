@@ -4,6 +4,7 @@ export const Colors = {
   green: "#005D29",
   orange: "#CE721D",
   red: "#8E0000",
+  salmon: '#F3A6A6CC'
 } as const;
 
 export const AccentColors = {
