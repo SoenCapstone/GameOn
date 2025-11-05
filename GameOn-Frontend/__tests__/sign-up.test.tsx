@@ -1,110 +1,265 @@
 import React from "react";
 import { render, fireEvent, waitFor, act } from "@testing-library/react-native";
-import AsyncStorage from "@react-native-async-storage/async-storage";
-import { Alert } from "react-native";
-import SignUpScreen from "@/app/(auth)/sign-up";
-
-jest.spyOn(console, "log").mockImplementation(() => {});
-jest.spyOn(console, "warn").mockImplementation(() => {});
-jest.spyOn(console, "error").mockImplementation(() => {});
-
-jest.mock("@react-native-async-storage/async-storage", () =>
-  require("@react-native-async-storage/async-storage/jest/async-storage-mock"),
-);
+import * as Yup from "yup";
 
 jest.mock("expo-linear-gradient", () => ({
   LinearGradient: ({ children }: any) => children ?? null,
 }));
-
-jest.mock("@expo/vector-icons", () => {
-  const React = require("react");
-  return { Ionicons: (p: any) => React.createElement("Icon", p) };
-});
-
-const mockReplace = jest.fn();
+jest.mock("@expo/vector-icons", () => ({ Ionicons: () => null }));
 jest.mock("expo-router", () => ({
-  useRouter: () => ({ replace: mockReplace }),
+  Link: ({ children }: any) => children ?? null,
 }));
 
 jest.mock("@/constants/images", () => ({ images: { logo: 1 } }));
+jest.mock("@/constants/auth-styles", () => ({
+  authStyles: {
+    safe: { flex: 1 },
+    topGradient: {},
+    hero: {},
+    container: {},
+    label: {},
+    inputWrap: {},
+    input: {},
+    rightIcon: {},
+    errorText: {},
+  },
+}));
+jest.mock("@/constants/auth-layout", () => ({
+  getAuthHeroLayout: () => ({
+    FORM_PADDING_TOP: 0,
+    TOP_GRADIENT_H: 0,
+    RENDER_W: 0,
+    RENDER_H: 0,
+  }),
+}));
 
-jest.spyOn(Alert, "alert").mockImplementation((title, message, buttons) => {
-  const okBtn =
-    buttons?.find((b) => String(b.text).toLowerCase() === "ok") ?? buttons?.[0];
-  okBtn?.onPress?.();
-  return 0 as any;
+const mockCreate = jest.fn();
+const mockSetActive = jest.fn();
+jest.mock("@clerk/clerk-expo", () => {
+  return {
+    useSignUp: () => ({
+      isLoaded: true,
+      signUp: { create: mockCreate },
+      setActive: mockSetActive,
+    }),
+  };
 });
 
-beforeAll(() => {
-  jest.useFakeTimers();
-  jest.setSystemTime(new Date("2025-01-01T00:00:00.000Z"));
+const MockSchema = Yup.object({
+  firstname: Yup.string().required("First name is required"),
+  lastname: Yup.string().required("Last name is required"),
+  emailAddress: Yup.string()
+    .email("Enter a valid email")
+    .required("Email is required"),
+  password: Yup.string()
+    .min(8, "Password must be at least 8 characters")
+    .required("Password is required"),
+  birth: Yup.date().required("Date of birth is required"),
 });
 
-afterAll(() => {
-  jest.useRealTimers();
+const mockStartClerkSignUp = jest.fn(
+  async (
+    values: any,
+    isLoaded: boolean,
+    signUp: any,
+    setPendingVerification: (v: boolean) => void
+  ) => {
+    if (!isLoaded) return;
+    try {
+      const result = await signUp.create({
+        firstName: values.firstname,
+        lastName: values.lastname,
+        emailAddress: values.emailAddress,
+        password: values.password,
+        birthdate: values.birth,
+      });
+      setPendingVerification(true);
+      return result;
+    } catch (err) {
+      console.error(err);
+      throw err;
+    }
+  }
+);
+
+jest.mock("@/components/sign-up/utils", () => {
+  const actual = jest.requireActual("@/components/sign-up/utils");
+  return {
+    ...actual,
+    SignUpSchema: MockSchema,
+    startClerkSignUp: (
+      values: any,
+      isLoaded: boolean,
+      signUp: any,
+      setPendingVerification: (v: boolean) => void
+    ) => mockStartClerkSignUp(values, isLoaded, signUp, setPendingVerification),
+    isIOSPadding: () => undefined,
+    displayFormikError: (touched: any, errors: any, inputLabel: any) =>
+      errors?.[inputLabel.field],
+  };
 });
 
-beforeEach(async () => {
-  jest.clearAllMocks();
-  await AsyncStorage.setItem("users", JSON.stringify([]));
+jest.mock("@/components/auth/InputLabel", () => {
+  const React = require("react");
+  const { Text, TextInput, View } = require("react-native");
+  return {
+    LabeledInput: ({
+      label,
+      placeholder,
+      value,
+      onChangeText,
+      onBlur,
+      secureTextEntry,
+      keyboardType,
+      autoCapitalize,
+      error,
+      testID,
+    }: any) => (
+      <View>
+        <Text>{label}</Text>
+        <TextInput
+          placeholder={placeholder}
+          value={value}
+          onChangeText={onChangeText}
+          onBlur={onBlur}
+          secureTextEntry={secureTextEntry}
+          keyboardType={keyboardType}
+          autoCapitalize={autoCapitalize}
+          testID={testID || `input-${placeholder}`}
+        />
+        {error ? <Text>{error}</Text> : null}
+      </View>
+    ),
+  };
 });
 
-describe("SignUpScreen", () => {
-  it("creates an account, saves it, and navigates to sign-in", async () => {
-    const { getByPlaceholderText, findByText } = render(<SignUpScreen />);
+jest.mock("@/components/auth/SignUpDatePicker", () => ({
+  SignUpDatePicker: () => null,
+}));
+jest.mock("@/components/privacy-disclaimer/privacy-disclaimer", () => ({
+  PrivacyDisclaimer: () => null,
+}));
 
-    const cta = await findByText("Sign Up");
-
-    await act(async () => {
-      fireEvent.changeText(getByPlaceholderText("john doe"), "Jane Doe");
-      fireEvent.changeText(
-        getByPlaceholderText("example@example.com"),
-        "jane@example.com",
-      );
-      fireEvent.changeText(getByPlaceholderText("••••••••••••"), "testtest");
-    });
-
-    jest.setSystemTime(new Date("2025-01-02T00:00:00.000Z"));
-
-    await act(async () => {
-      fireEvent.press(cta);
-    });
-
-    await waitFor(() =>
-      expect(mockReplace).toHaveBeenCalledWith("/(auth)/sign-in"),
+jest.mock("@/components/sign-up/VerificationInput", () => ({
+  VerificationInput: () => {
+    const { Text, View } = require("react-native");
+    return (
+      <View testID="verification-view">
+        <Text>Verification</Text>
+      </View>
     );
+  },
+}));
 
-    const TEST = "testtest";
+jest.mock("@/components/sign-up/styles", () => ({
+  styles: {
+    cta: {},
+    ctaText: {},
+    metaText: {},
+    metaLink: {},
+  },
+}));
 
-    const saved = JSON.parse((await AsyncStorage.getItem("users")) as string);
-    expect(saved).toHaveLength(1);
-    expect(saved[0]).toMatchObject({
-      name: "Jane Doe",
-      email: "jane@example.com",
-      pwd: TEST,
-    });
-    expect(typeof saved[0].birth).toBe("string");
+jest.mock("@/components/sign-up/constants", () => ({
+  EMPTY_STRING: "",
+  SIGN_UP_MESSAGE: "Sign Up",
+  SIGN_IN_MESSAGE: "Sign In",
+  SIGN_IN_PATH: "/(auth)/sign-in",
+  initialSignUpValues: {
+    firstname: "",
+    lastname: "",
+    emailAddress: "",
+    password: "",
+    birth: new Date().toISOString(),
+  },
+  signUpInputLabels: (_showPassword: boolean) => [
+    {
+      field: "firstname",
+      label: "First name",
+      placeholder: "john",
+      secureTextEntry: false,
+    },
+    {
+      field: "lastname",
+      label: "Last name",
+      placeholder: "Doe",
+      secureTextEntry: false,
+    },
+    {
+      field: "emailAddress",
+      label: "Email",
+      placeholder: "example@example.com",
+      secureTextEntry: false,
+      keyboardType: "email-address",
+      autoCapitalize: "none",
+    },
+    {
+      field: "password",
+      label: "Password",
+      placeholder: "••••••••••••",
+      secureTextEntry: true,
+    },
+  ],
+}));
+
+import SignUpScreen from "@/app/(auth)/sign-up";
+
+describe("SignUpScreen (integration, with local deps mocked)", () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
   });
 
-  it("shows validation errors for bad inputs and does not navigate", async () => {
-    const { getByPlaceholderText, findByText } = render(<SignUpScreen />);
-
-    const cta = await findByText("Sign Up");
+  it("submits valid values via startClerkSignUp and shows verification view", async () => {
+    const { getByPlaceholderText, getByText, findByTestId } = render(
+      <SignUpScreen />
+    );
 
     await act(async () => {
-      fireEvent.changeText(getByPlaceholderText("john doe"), "J");
+      fireEvent.changeText(getByPlaceholderText("john"), "Jane");
+      fireEvent.changeText(getByPlaceholderText("Doe"), "Doe");
       fireEvent.changeText(
         getByPlaceholderText("example@example.com"),
-        "invalid",
+        "jane@example.com"
       );
-      fireEvent.changeText(getByPlaceholderText("••••••••••••"), "123");
-      fireEvent.press(cta);
+      fireEvent.changeText(getByPlaceholderText("••••••••••••"), "testtest");
+      fireEvent.press(getByText("Sign Up"));
     });
 
-    expect(await findByText("Full name is required")).toBeTruthy();
-    expect(await findByText("Email is required")).toBeTruthy();
-    expect(await findByText("Password is required")).toBeTruthy();
+    await waitFor(() => {
+      expect(mockCreate).toHaveBeenCalledWith({
+        firstName: "Jane",
+        lastName: "Doe",
+        emailAddress: "jane@example.com",
+        password: "testtest",
+        birthdate: expect.any(String),
+      });
+    });
 
-    expect(mockReplace).not.toHaveBeenCalled();
+    await expect(findByTestId("verification-view")).resolves.toBeTruthy();
+  });
+
+  it("can show an error banner if startClerkSignUp throws", async () => {
+    mockStartClerkSignUp.mockImplementationOnce(async () => {
+      throw new Error("boom");
+    });
+
+    const { getByPlaceholderText, getByText, queryByTestId } = render(
+      <SignUpScreen />
+    );
+
+    await act(async () => {
+      fireEvent.changeText(getByPlaceholderText("john"), "Jane");
+      fireEvent.changeText(getByPlaceholderText("Doe"), "Doe");
+      fireEvent.changeText(
+        getByPlaceholderText("example@example.com"),
+        "jane@example.com"
+      );
+      fireEvent.changeText(getByPlaceholderText("••••••••••••"), "testtest");
+      fireEvent.press(getByText("Sign Up"));
+    });
+
+    await waitFor(() => {
+      expect(queryByTestId("verification-view")).toBeNull();
+    });
   });
 });

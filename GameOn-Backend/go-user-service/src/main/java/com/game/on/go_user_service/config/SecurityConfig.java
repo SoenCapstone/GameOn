@@ -15,7 +15,7 @@ import org.springframework.security.web.SecurityFilterChain;
  * <ul>
  *   <li>Allow unauthenticated access to {@code /actuator/health}.</li>
  *   <li>Require authentication for all other endpoints.</li>
- *   <li>Enable JWT-based authentication with Keycloak as the OAuth2 provider.</li>
+ *   <li>Enable JWT-based authentication with Clerk as the OAuth2 provider.</li>
  *   <li>Allow method-level security using {@code @PreAuthorize} and similar annotations.</li>
  * </ul>
  * </p>
@@ -31,13 +31,14 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
+                .csrf(csrf -> csrf.disable())
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/actuator/health").permitAll()
+                        .requestMatchers(
+                                "/actuator/health"
+                        ).permitAll()
                         .anyRequest().authenticated()
                 )
-                .oauth2ResourceServer(oauth2 ->
-                        oauth2.jwt(Customizer.withDefaults())
-                );
+                .oauth2ResourceServer(oauth2 -> oauth2.jwt(Customizer.withDefaults()));
 
         return http.build();
     }
