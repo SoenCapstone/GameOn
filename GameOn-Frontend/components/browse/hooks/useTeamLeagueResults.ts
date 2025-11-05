@@ -6,8 +6,13 @@ export function useTeamLeagueResults(query: string) {
   const teamQuery = useTeamResults(query);
 
   const combined = useMemo(() => {
-    const teamItems = (teamQuery.data ?? []).slice().reverse();
-    const leagueItems = filterLocalLeagues(query);
+    const teamItems = (teamQuery.data ?? []).slice();
+    const leagueItems = filterLocalLeagues(query).slice();
+
+    // sort alphabetically
+    teamItems.sort((a, b) => a.name.localeCompare(b.name, undefined, { sensitivity: "base" }));
+    leagueItems.sort((a, b) => a.name.localeCompare(b.name, undefined, { sensitivity: "base" }));
+
     return [...teamItems, ...leagueItems];
   }, [teamQuery.data, query]);
 
