@@ -15,18 +15,7 @@ spring:
     oauth2:
       resourceserver:
         jwt:
-          issuer-uri: http://localhost:8080/realms/gameon
-
-      client:
-        registration:
-          keycloak-admin:
-            provider: keycloak
-            client-id: gameon-client
-            client-secret: uYkNTIU9pcffRmuGxzvWKgo2uTTC2R4L
-            authorization-grant-type: client_credentials
-        provider:
-          keycloak:
-            token-uri: http://localhost:8080/realms/gameon/protocol/openid-connect/token
+          issuer-uri: https://one-magpie-92.clerk.accounts.dev
 
 server:
   port: 8090
