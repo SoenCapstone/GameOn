@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { View, Text, TextInput, Pressable, StyleSheet, ScrollView, Image, Alert  } from "react-native";
+import { View, Text, TextInput, Pressable, ScrollView, Image, Alert  } from "react-native";
 import { useRouter } from "expo-router";
 import { LinearGradient } from 'expo-linear-gradient';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -7,6 +7,9 @@ import * as ImagePicker from 'expo-image-picker';
 import { ThemedText } from '@/components/themed-text';
 import { images } from '@/constants/images';
 import { createScopedLog } from '@/utils/logger'; 
+import { Colors } from '@/constants/colors'
+import { profileStyles } from '@/components/UserProfile/profile-styles';
+
 
 const EditProfile = () => {
     const router = useRouter();
@@ -54,28 +57,28 @@ const EditProfile = () => {
     return (
     <SafeAreaView style={{ flex: 1 }}>
         <LinearGradient 
-            colors ={['#dd7200ff', '#000000']}
+            colors ={[Colors.orange, '#000000']}
             locations={[0, 0.7]}
-            style={styles.gradient}>
+            style={profileStyles.gradient}>
 
             <ScrollView 
             showsVerticalScrollIndicator={false}
-            contentContainerStyle={styles.container}>
-                <Text style={styles.header}>Edit Profile</Text>
+            contentContainerStyle={profileStyles.container}>
+                <Text style={profileStyles.header}>Edit Profile</Text>
 
                     {/* Profile Image */}
                     <Pressable style={({ pressed }) => [ 
-                    styles.picture,
+                    profileStyles.pictureBorder,
                     pressed && { backgroundColor: 'rgba(255, 255, 255, 0.25)' },
                     ]}
                     onPress={pickImage}>
-                        <Image source={profilePic} style={styles.profileImage} />
-                        <ThemedText style={styles.changePicText}>Change Profile Picture</ThemedText>
+                        <Image source={profilePic} style={profileStyles.profileImage} />
+                        <ThemedText style={profileStyles.changePicText}>Change Profile Picture</ThemedText>
                     </Pressable>
-                <View style={styles.formGroup}>
-                    <Text style={styles.label}>Name</Text>
+                <View style={profileStyles.formGroup}>
+                    <Text style={profileStyles.label}>Name</Text>
                     <TextInput
-                    style={styles.input}
+                    style={profileStyles.input}
                     value={name}
                     onChangeText={setName}
                     placeholder="Enter your name"
@@ -83,10 +86,10 @@ const EditProfile = () => {
                     />
                 </View>
 
-                <View style={styles.formGroup}>
-                    <Text style={styles.label}>Email</Text>
+                <View style={profileStyles.formGroup}>
+                    <Text style={profileStyles.label}>Email</Text>
                     <TextInput
-                    style={styles.input}
+                    style={profileStyles.input}
                     value={email}
                     onChangeText={setEmail}
                     placeholder="Enter your email"
@@ -96,17 +99,17 @@ const EditProfile = () => {
                 </View>
 
                 <Pressable style={({pressed}) => [
-                    styles.saveButton,
-                    pressed && { backgroundColor: 'rgba(0, 179, 0, 0.56)'}]} 
+                    profileStyles.saveButton,
+                    pressed && { backgroundColor: Colors.green}]} 
                     onPress={handleSave}>
-                    <Text style={styles.saveButtonText}>Save Changes</Text>
+                    <Text style={profileStyles.saveButtonText}>Save Changes</Text>
                 </Pressable>
 
                 <Pressable style={({pressed}) => [
-                styles.cancelButton,
+                profileStyles.cancelButton,
                 pressed && { backgroundColor: 'rgba(240, 11, 11, 0.37)'}]} 
                 onPress={() => {router.back(); log.info('Cancelled Profile edit, returning to User Profile page.')}}>
-                    <Text style={styles.cancelButtonText}>Cancel</Text>
+                    <Text style={profileStyles.cancelButtonText}>Cancel</Text>
                 </Pressable>
             </ScrollView>
         </LinearGradient>
@@ -116,104 +119,3 @@ const EditProfile = () => {
 
 export default EditProfile;
 
-// Styles (matching your user profile styling)
-const styles = StyleSheet.create({
-    gradient:{
-        flex: 1,
-        position: 'absolute', 
-        top: 0,
-        left: 0, 
-        right: 0, 
-        bottom: 0
-    },
-    container: {
-        flexGrow: 1,
-        padding: 20,
-    },
-    header: {
-        fontSize: 36,
-        fontWeight: "bold",
-        color: "#fff",
-        marginTop: 40,
-        marginBottom: 20,
-        textAlign: "center",
-    },
-    formGroup: {
-        marginBottom: 10,
-        marginTop: 10
-    },
-    label: {
-        color: "#bbb",
-        fontSize: 20,
-        marginBottom: 6,
-    },
-    input: {
-        backgroundColor: "#1e1e1e",
-        color: "#fff",
-        borderRadius: 10,
-        paddingHorizontal: 12,
-        paddingVertical: 10,
-        fontSize: 16,
-        borderColor: 'rgba(255, 255, 255, 0.3)',
-        borderWidth: 1,
-    },
-    textArea: {
-        height: 100,
-        textAlignVertical: "top",
-    },
-    profileImage: {
-        width: 180,
-        height: 180,
-        borderRadius: 90,
-        marginBottom: 1,
-        marginHorizontal: 1,
-        borderColor: "#858585ff",
-        borderWidth: 2,
-        alignSelf: "center"
-    },
-    changePicText: {
-        color: 'rgba(128, 219, 255, 0.8)',
-        marginTop: 8,
-        textDecorationLine: 'underline',
-        fontSize: 20,
-        textAlign: 'center',
-    },
-    saveButton: {
-        backgroundColor: "#13a1003b",
-        paddingVertical: 14,
-        borderRadius: 20,
-        alignItems: "center",
-        marginTop: 20,
-        borderColor: "#0f8000ff",
-        borderWidth: 2,
-        width: 150,
-        alignSelf: "center"
-    },
-    saveButtonText: {
-        color: "#ffffffff",
-        fontSize: 18,
-        fontWeight: "bold",
-    },
-    cancelButton: {
-        marginTop: 20,
-        alignItems: "center",
-        backgroundColor: 'rgba(253, 95, 95, 0.1)',
-        borderColor: 'rgba(243, 166, 166, 0.8)',
-        borderWidth: 1,
-        borderRadius: 20,
-        paddingTop: 10,
-        paddingBottom: 10,
-        width: 150,
-        alignSelf: "center"
-    },
-    cancelButtonText: {
-        color: "#ffffffff",
-        fontSize: 16,
-    },
-
-    picture: {
-        borderRadius: 12,
-        width: 220,
-        alignSelf:"center"
-    },
-    });
