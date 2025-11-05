@@ -1,12 +1,11 @@
-import { StyleSheet } from "react-native";
-
 export interface SearchResult {
   id: string;
   type: "team" | "league";
   name: string;
   subtitle: string;
   logo: string;
-  league: string;
+  league?: string;
+  sport: string;
 }
 
 export type SearchContextValue = {
@@ -26,60 +25,75 @@ export type SearchContextValue = {
 
 export const mockSearchResults: SearchResult[] = [
   {
-    id: "9",
+    id: "1",
     type: "league",
-    name: "La Liga",
+    name: "LaLiga",
     subtitle: "Spanish League",
-    logo: "🇪🇸",
-    league: "La Liga",
+    logo: "https://7jyhwes2xx.ufs.sh/f/ly3h7E4B73Ywe0Ww4kLBQkyTvZ4NKYblsP2DpHoJdLeOCtha",
+    sport: "Soccer",
   },
   {
-    id: "10",
+    id: "2",
     type: "league",
     name: "Premier League",
     subtitle: "English League",
-    logo: "🇬🇧",
-    league: "Premier League",
+    logo: "https://7jyhwes2xx.ufs.sh/f/ly3h7E4B73YwphSzaZcwESdRnsKtCl6Q1GZf40A5bNUTOoDj",
+    sport: "Soccer",
   },
   {
-    id: "11",
+    id: "3",
     type: "league",
     name: "Bundesliga",
     subtitle: "German League",
-    logo: "🇩🇪",
-    league: "Bundesliga",
+    logo: "https://7jyhwes2xx.ufs.sh/f/ly3h7E4B73Ywgz2c3TkMlKNOHzgpc1tIBJXdAY6WRxiPf8eb",
+    sport: "Soccer",
   },
   {
-    id: "12",
+    id: "4",
     type: "league",
     name: "Serie A",
     subtitle: "Italian League",
-    logo: "🇮🇹",
-    league: "Serie A",
+    logo: "https://7jyhwes2xx.ufs.sh/f/ly3h7E4B73Ywz9cECa2VCWqp2Qhv1TjJSfE4eobVwDUcMYFI",
+    sport: "Soccer",
+  },
+  {
+    id: "5",
+    type: "league",
+    name: "LaLiga",
+    subtitle: "Spanish League",
+    logo: "https://7jyhwes2xx.ufs.sh/f/ly3h7E4B73Ywe0Ww4kLBQkyTvZ4NKYblsP2DpHoJdLeOCtha",
+    sport: "Soccer",
+  },
+  {
+    id: "6",
+    type: "league",
+    name: "Premier League",
+    subtitle: "English League",
+    logo: "https://7jyhwes2xx.ufs.sh/f/ly3h7E4B73YwphSzaZcwESdRnsKtCl6Q1GZf40A5bNUTOoDj",
+    sport: "Soccer",
+  },
+  {
+    id: "7",
+    type: "league",
+    name: "Bundesliga",
+    subtitle: "German League",
+    logo: "https://7jyhwes2xx.ufs.sh/f/ly3h7E4B73Ywgz2c3TkMlKNOHzgpc1tIBJXdAY6WRxiPf8eb",
+    sport: "Soccer",
+  },
+  {
+    id: "8",
+    type: "league",
+    name: "Serie A",
+    subtitle: "Italian League",
+    logo: "https://7jyhwes2xx.ufs.sh/f/ly3h7E4B73Ywz9cECa2VCWqp2Qhv1TjJSfE4eobVwDUcMYFI",
+    sport: "Soccer",
+  },
+  {
+    id: "9",
+    type: "team",
+    name: "LA Lakers",
+    subtitle: "Italian League",
+    logo: "https://7jyhwes2xx.ufs.sh/f/ly3h7E4B73Ywz9cECa2VCWqp2Qhv1TjJSfE4eobVwDUcMYFI",
+    sport: "Basketball",
   },
 ];
-
-export const searchStyles = StyleSheet.create({
-  logoText: {
-    fontSize: 30,
-  },
-  separator: {
-    height: 8,
-  },
-  resultsContentStatic: {
-    paddingVertical: 10,
-  },
-  loadingContainer: {
-    alignItems: "center",
-    padding: 8,
-  },
-  errorContainer: {
-    backgroundColor: "#661313",
-    padding: 8,
-    marginVertical: 6,
-    borderRadius: 8,
-  },
-  errorText: {
-    color: "#fff",
-  },
-});

@@ -4,14 +4,14 @@ import {
   Text,
   ActivityIndicator,
   ImageSourcePropType,
+  StyleSheet,
 } from "react-native";
 import SegmentedControl from "@react-native-segmented-control/segmented-control";
 import { LegendList } from "@legendapp/list";
-import { searchStyles, SearchResult } from "@/components/browse/constants";
+import { SearchResult } from "@/components/browse/constants";
 import SvgImage from "@/components/svg-image";
 import { createScopedLog } from "@/utils/logger";
 import { useSearch } from "@/contexts/SearchContext";
-import { Background } from "@/components/ui/background";
 import { ContentArea } from "@/components/ui/content-area";
 import { InfoCard } from "@/components/info-card";
 
@@ -124,16 +124,21 @@ export function BrowsePage() {
   }, [results, mode, q, searchActive]);
 
   return (
-    <ContentArea>
-      <Background preset="blue" mode="default" />
-
-      <SegmentedControl
-        values={["Teams", "Leagues"]}
-        selectedIndex={mode === "teams" ? 0 : 1}
-        onValueChange={(value) => {
-          setMode(value === "Teams" ? "teams" : "leagues");
-        }}
-      />
+    <ContentArea
+      scrollable
+      segmentedControl
+      backgroundProps={{ preset: "blue" }}
+    >
+      {!q && !searchActive && (
+        <SegmentedControl
+          values={["Teams", "Leagues"]}
+          selectedIndex={mode === "teams" ? 0 : 1}
+          onValueChange={(value) => {
+            setMode(value === "Teams" ? "teams" : "leagues");
+          }}
+          style={{ height: 40 }}
+        />
+      )}
 
       {/* Loading spinner / error banner */}
       {isLoading ? (
@@ -154,6 +159,7 @@ export function BrowsePage() {
         data={displayedResults}
         keyExtractor={(item) => item.id}
         renderItem={renderItem}
+        style={{ overflow: "visible" }}
         contentContainerStyle={searchStyles.resultsContentStatic}
         onContentSizeChange={() => {
           if (renderT0.current !== null && !renderLogged.current) {
@@ -177,3 +183,28 @@ export function BrowsePage() {
     </ContentArea>
   );
 }
+
+const searchStyles = StyleSheet.create({
+  logoText: {
+    fontSize: 30,
+  },
+  separator: {
+    height: 14,
+  },
+  resultsContentStatic: {
+    paddingVertical: 0.1,
+  },
+  loadingContainer: {
+    alignItems: "center",
+    padding: 8,
+  },
+  errorContainer: {
+    backgroundColor: "#661313",
+    padding: 8,
+    marginVertical: 6,
+    borderRadius: 8,
+  },
+  errorText: {
+    color: "#fff",
+  },
+});

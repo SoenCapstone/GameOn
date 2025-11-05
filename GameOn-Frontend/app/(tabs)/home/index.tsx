@@ -1,11 +1,11 @@
 import React from "react";
 import { ContentArea } from "@/components/ui/content-area";
-import { Background } from "@/components/ui/background";
+import { View } from "react-native";
 
 export default function Home() {
   return (
-    <ContentArea>
-      <Background preset="blue" mode="default" />
+    <ContentArea backgroundProps={{ preset: "blue" }}>
+      <View />
     </ContentArea>
   );
 }

@@ -2,7 +2,6 @@ import React from "react";
 import { StyleSheet, Button, View } from "react-native";
 import { useRouter } from "expo-router";
 import { useAuth } from "@/contexts/auth";
-import { Background } from "@/components/ui/background";
 import { ContentArea } from "@/components/ui/content-area";
 
 export default function Profile() {
@@ -10,8 +9,7 @@ export default function Profile() {
   const router = useRouter();
 
   return (
-    <ContentArea>
-      <Background preset="orange" />
+    <ContentArea backgroundProps={{ preset: "orange" }}>
       {/* Navigation + Sign out buttons */}
       <View style={styles.stepContainer}>
         <Button

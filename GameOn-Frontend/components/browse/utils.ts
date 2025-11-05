@@ -45,14 +45,14 @@ export function filterLocalLeagues(query: string): SearchResult[] {
     (r) =>
       r.name.toLowerCase().includes(q) ||
       r.subtitle.toLowerCase().includes(q) ||
-      r.league.toLowerCase().includes(q),
+      r.league?.toLowerCase().includes(q),
   );
 }
 
 type TeamSummaryResponse = {
   id: string;
   name: string;
-  sport?: string | null;
+  sport: string;
   leagueId?: string | null;
   slug: string;
   logoUrl?: string | null;
@@ -101,6 +101,7 @@ async function fetchTeamResults(query: string): Promise<SearchResult[]> {
         type: "team",
         name: t.name,
         subtitle: t.sport ? `${t.sport}` : "Team",
+        sport: t.sport,
         // Use logoUrl from backend if available, otherwise fallback to emoji
         logo: t.logoUrl || mapSportToEmoji(t.sport),
         league: "",

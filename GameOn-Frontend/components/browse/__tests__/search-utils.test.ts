@@ -43,13 +43,17 @@ describe("filterLocalLeagues", () => {
   });
   it("filters leagues by name", () => {
     const leagues = filterLocalLeagues("bundes");
-    expect(leagues.length).toBe(1);
-    expect(leagues[0].name.toLowerCase()).toContain("bundes");
+    expect(leagues.length).toBe(2);
+    expect(leagues.every((l) => l.name.toLowerCase().includes("bundes"))).toBe(
+      true,
+    );
   });
   it("is case-insensitive", () => {
     const leagues = filterLocalLeagues("PREMIER");
-    expect(leagues.length).toBe(1);
-    expect(leagues[0].name).toMatch(/Premier/i);
+    expect(leagues.length).toBe(2);
+    expect(leagues.every((l) => l.name.toLowerCase().includes("premier"))).toBe(
+      true,
+    );
   });
 });
 

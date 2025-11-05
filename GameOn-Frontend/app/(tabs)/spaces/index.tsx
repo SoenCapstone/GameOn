@@ -1,11 +1,11 @@
 import React from "react";
 import { ContentArea } from "@/components/ui/content-area";
-import { Background } from "@/components/ui/background";
+import { View } from "react-native";
 
 export default function Spaces() {
   return (
-    <ContentArea>
-      <Background preset="purple" mode="default" />
+    <ContentArea backgroundProps={{ preset: "purple" }}>
+      <View />
     </ContentArea>
   );
 }
