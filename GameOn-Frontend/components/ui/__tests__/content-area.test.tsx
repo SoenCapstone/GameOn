@@ -98,7 +98,28 @@ describe("ContentArea", () => {
     const scrollView = UNSAFE_getByType(ScrollView);
     const contentContainerStyle = scrollView.props.contentContainerStyle;
 
-    expect(contentContainerStyle.paddingBottom).toBe(84); // insets.bottom (34) + 50
+    expect(contentContainerStyle.paddingBottom).toBe(34); // insets.bottom (34) + paddingBottom (0, default)
+    expect(contentContainerStyle.gap).toBe(14);
+  });
+
+  it("applies custom paddingBottom when provided", () => {
+    mockUseSafeAreaInsets.mockReturnValue({
+      top: 44,
+      bottom: 34,
+      left: 0,
+      right: 0,
+    });
+
+    const { UNSAFE_getByType } = render(
+      <ContentArea backgroundProps={{ preset: "blue" }} scrollable={true} paddingBottom={50}>
+        <Text>Content</Text>
+      </ContentArea>,
+    );
+
+    const scrollView = UNSAFE_getByType(ScrollView);
+    const contentContainerStyle = scrollView.props.contentContainerStyle;
+
+    expect(contentContainerStyle.paddingBottom).toBe(84); // insets.bottom (34) + paddingBottom (50)
     expect(contentContainerStyle.gap).toBe(14);
   });
 

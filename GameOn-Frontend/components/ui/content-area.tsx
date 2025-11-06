@@ -9,6 +9,7 @@ interface ContentAreaProps {
   readonly backgroundProps: ComponentProps<typeof Background>;
   readonly segmentedControl?: boolean;
   readonly scrollable?: boolean;
+  readonly paddingBottom?: number;
 }
 
 export function ContentArea({
@@ -16,6 +17,7 @@ export function ContentArea({
   backgroundProps,
   segmentedControl,
   scrollable,
+  paddingBottom,
 }: Readonly<ContentAreaProps>) {
   const headerHeight = useHeaderHeight();
   const insets = useSafeAreaInsets();
@@ -26,7 +28,10 @@ export function ContentArea({
     <>
       <Background {...backgroundProps} />
       <Container
-        contentContainerStyle={{ paddingBottom: insets.bottom + 50, gap: 14 }}
+        contentContainerStyle={{
+          paddingBottom: insets.bottom + (paddingBottom ?? 0),
+          gap: 14,
+        }}
         style={[styles.content, { paddingTop: headerHeight + 8 }]}
         {...(segmentedControl ? { stickyHeaderIndices: [0] } : {})}
       >

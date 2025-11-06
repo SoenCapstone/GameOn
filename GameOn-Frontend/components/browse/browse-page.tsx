@@ -127,6 +127,7 @@ export function BrowsePage() {
     <ContentArea
       scrollable
       segmentedControl
+      paddingBottom={60}
       backgroundProps={{ preset: "blue" }}
     >
       {!q && !searchActive && (
