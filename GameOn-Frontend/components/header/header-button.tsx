@@ -48,7 +48,7 @@ const styles = StyleSheet.create({
   glass: {
     width: 44,
     height: 44,
-    borderRadius: "100%",
+    borderRadius: 100,
     backgroundColor: "transparent",
     alignSelf: "center",
     justifyContent: "center",
