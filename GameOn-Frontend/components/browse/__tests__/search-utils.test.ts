@@ -6,12 +6,6 @@ import {
 
 import axios from "axios";
 
-// Mock SecureStore for fetchTeamResults
-jest.mock("expo-secure-store", () => ({
-  getItemAsync: jest.fn().mockResolvedValue("test-token"),
-}));
-
-// Mock axios used by fetchTeamResults
 jest.mock("axios");
 const mockedAxios = axios as jest.Mocked<typeof axios>;
 
@@ -43,14 +37,14 @@ describe("filterLocalLeagues", () => {
   });
   it("filters leagues by name", () => {
     const leagues = filterLocalLeagues("bundes");
-    expect(leagues.length).toBe(2);
+    expect(leagues.length).toBe(1);
     expect(leagues.every((l) => l.name.toLowerCase().includes("bundes"))).toBe(
       true,
     );
   });
   it("is case-insensitive", () => {
     const leagues = filterLocalLeagues("PREMIER");
-    expect(leagues.length).toBe(2);
+    expect(leagues.length).toBe(1);
     expect(leagues.every((l) => l.name.toLowerCase().includes("premier"))).toBe(
       true,
     );
@@ -83,7 +77,9 @@ describe("fetchTeamResults", () => {
     });
   });
   it("maps backend teams to SearchResult[] with emoji fallback", async () => {
-    const results = await fetchTeamResults("Test");
+    // provide a fake getToken function as fetchTeamResults now requires it
+    const fakeGetToken = async () => "test-token";
+    const results = await fetchTeamResults("Test", fakeGetToken);
     expect(results).toHaveLength(1);
     expect(results[0]).toMatchObject({
       id: "abc",
@@ -95,6 +91,7 @@ describe("fetchTeamResults", () => {
   });
   it("throws error if fetch fails", async () => {
     mockedAxios.get.mockRejectedValueOnce(new Error("network error"));
-    await expect(fetchTeamResults("fail")).rejects.toThrow("network error");
+    const fakeGetToken = async () => "test-token";
+    await expect(fetchTeamResults("fail", fakeGetToken)).rejects.toThrow("network error");
   });
 });

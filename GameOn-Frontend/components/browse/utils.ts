@@ -1,7 +1,8 @@
 import { SearchResult, mockSearchResults } from "@/components/browse/constants";
-import * as SecureStore from "expo-secure-store";
 import axios from "axios";
 import { useQuery } from "@tanstack/react-query";
+import { useAuth } from "@clerk/clerk-expo";
+import { GetToken } from "@clerk/types";
 
 // Map common sports to emoji as a fallback for missing logos.
 export function mapSportToEmoji(sport?: string | null): string {
@@ -71,12 +72,15 @@ type TeamListResponse = {
   hasNext: boolean;
 };
 
-async function fetchTeamResults(query: string): Promise<SearchResult[]> {
-  const params: Record<string, string> = { size: "20" };
+async function fetchTeamResults(
+  query: string,
+  getToken: GetToken,
+): Promise<SearchResult[]> {
+  const params: Record<string, string> = { size: "200" };
   if (query && query.trim().length > 0) params.q = query.trim();
 
-  const base = "http://localhost:8091";
-  const token = await SecureStore.getItemAsync("token");
+  const base = "http://localhost:8222";
+  const token = await getToken();
   const headers: Record<string, string> = {
     Accept: "application/json",
     ...(token ? { Authorization: `Bearer ${token}` } : {}),
@@ -115,9 +119,10 @@ async function fetchTeamResults(query: string): Promise<SearchResult[]> {
 }
 
 export function useTeamResults(query: string) {
+  const { getToken } = useAuth();
   return useQuery<SearchResult[], Error>({
     queryKey: ["teams", query],
-    queryFn: () => fetchTeamResults(query),
+    queryFn: async () => fetchTeamResults(query, getToken),
     retry: 1,
   });
 }
