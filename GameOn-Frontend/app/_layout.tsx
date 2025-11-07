@@ -19,9 +19,8 @@ export const unstable_settings = { anchor: "(tabs)" };
 
 export default function RootLayout() {
   const colorScheme = useColorScheme();
-
   SystemUI.setBackgroundColorAsync("black");
-
+  
   return (
     <ClerkProvider
       tokenCache={tokenCache}
