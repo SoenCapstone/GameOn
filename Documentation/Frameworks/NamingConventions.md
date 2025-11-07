@@ -118,9 +118,18 @@ Following these conventions ensures that:
 These rules are not meant to be strict limitations, but rather a shared standard to help keep the GameOn project clean, professional, and scalable.
 
 ---
+## Reference Links
 
-## Acceptance Criteria
+### Java / Spring Boot  
+- [Google Java Style Guide](https://google.github.io/styleguide/javaguide.html)  
+- [Spring Boot Naming Conventions](https://docs.spring.io/spring-boot/reference/using/structuring-your-code.html)
 
-- Naming conventions documented for code and assets.
-- Patterns follow project-wide standards.
-- Examples are included for clarity.
+### React Native  
+- [React Native Official – Code Style](https://reactnative.dev/docs/style)
+
+### Testing  
+- [JUnit Best Practices & Naming Conventions (Baeldung)](https://www.baeldung.com/java-unit-testing-best-practices)  
+- [Jest Testing Best Practices](https://jestjs.io/docs/tutorial-react-native)
+
+
+For more details, refer to the official documentation linked above. These external guides define the formatting, naming, and structure standards our team follows across all parts of the project.
