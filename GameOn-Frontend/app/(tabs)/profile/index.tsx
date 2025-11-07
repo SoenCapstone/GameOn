@@ -1,12 +1,14 @@
 import React from "react";
 import { StyleSheet, Button, View } from "react-native";
 import { useRouter } from "expo-router";
-import { useAuth } from "@/contexts/auth";
 import { ContentArea } from "@/components/ui/content-area";
+import { useAuth } from "@clerk/clerk-expo";
+// import { BACKEND_TEST } from "./backendConnectionTest";
 
 export default function Profile() {
   const { signOut } = useAuth();
   const router = useRouter();
+  // const { getToken } = useAuth();
 
   return (
     <ContentArea backgroundProps={{ preset: "orange" }}>
@@ -16,7 +18,13 @@ export default function Profile() {
           title="Go to Feature Flags"
           onPress={() => router.push("/flags")}
         />
-        <Button title="Sign out" onPress={signOut} />
+        {/* <BACKEND_TEST getToken={getToken} /> */}
+        <Button
+          title="Sign out"
+          onPress={async () => {
+            await signOut();
+          }}
+        />
       </View>
     </ContentArea>
   );
