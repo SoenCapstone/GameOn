@@ -1,15 +1,10 @@
 import React from "react";
 import { render, fireEvent, waitFor } from "@testing-library/react-native";
-import AsyncStorage from "@react-native-async-storage/async-storage";
 import SignInScreen from "@/app/(auth)/sign-in";
 
 jest.spyOn(console, "log").mockImplementation(() => {});
 jest.spyOn(console, "warn").mockImplementation(() => {});
 jest.spyOn(console, "error").mockImplementation(() => {});
-
-jest.mock("@react-native-async-storage/async-storage", () =>
-  require("@react-native-async-storage/async-storage/jest/async-storage-mock"),
-);
 
 jest.mock("expo-linear-gradient", () => ({
   LinearGradient: ({ children }: any) => children ?? null,
@@ -24,58 +19,48 @@ jest.mock("expo-router", () => ({
   Link: ({ children }: any) => children ?? null,
 }));
 
-const mockSignIn = jest.fn();
-jest.mock("@/contexts/auth", () => ({
-  useAuth: () => ({ signIn: mockSignIn }),
+const mockCreate = jest.fn();
+const mockSetActive = jest.fn();
+jest.mock("@clerk/clerk-expo", () => ({
+  useSignIn: () => ({
+    signIn: { create: mockCreate },
+    setActive: mockSetActive,
+    isLoaded: true,
+  }),
 }));
 
 jest.mock("@/constants/images", () => ({ images: { logo: 1 } }));
 
-const TEST = "testtest";
-
-beforeEach(async () => {
+beforeEach(() => {
   jest.clearAllMocks();
-
-  await AsyncStorage.setItem(
-    "users",
-    JSON.stringify([
-      {
-        name: "Jane",
-        birth: "01/01/1990",
-        email: "jane@example.com",
-        pwd: TEST,
-      },
-    ]),
-  );
 });
 
 describe("SignInScreen", () => {
-  it("signs in with valid credentials", async () => {
+  it("attempts to sign in with credentials", async () => {
     const { getByPlaceholderText, getByText } = render(<SignInScreen />);
 
     fireEvent.changeText(
       getByPlaceholderText("example@example.com"),
-      "jane@example.com",
+      "test@example.com"
     );
-    fireEvent.changeText(getByPlaceholderText("**********"), "testtest");
-    fireEvent.press(getByText("Log In"));
+    fireEvent.changeText(getByPlaceholderText("••••••••••••"), "password123");
+    fireEvent.press(getByText("Sign In"));
 
-    await waitFor(() => expect(mockSignIn).toHaveBeenCalledWith("demo-token"));
+    await waitFor(() => {
+      expect(mockCreate).toHaveBeenCalledWith({
+        identifier: "test@example.com",
+        password: "password123",
+      });
+    });
   });
 
-  it("shows an error with invalid credentials", async () => {
-    const { getByPlaceholderText, getByText, findByText } = render(
-      <SignInScreen />,
-    );
+  it("shows validation errors for empty fields", async () => {
+    const { getByText, findByText } = render(<SignInScreen />);
 
-    fireEvent.changeText(
-      getByPlaceholderText("example@example.com"),
-      "jane@example.com",
-    );
-    fireEvent.changeText(getByPlaceholderText("**********"), "wrongpass");
-    fireEvent.press(getByText("Log In"));
+    fireEvent.press(getByText("Sign In"));
 
-    expect(await findByText("Invalid email or password")).toBeTruthy();
-    expect(mockSignIn).not.toHaveBeenCalled();
+    expect(await findByText("Email is required")).toBeTruthy();
+    expect(await findByText("Password is required")).toBeTruthy();
+    expect(mockCreate).not.toHaveBeenCalled();
   });
 });

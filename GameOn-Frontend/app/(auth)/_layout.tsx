@@ -1,12 +1,14 @@
-import { Stack } from 'expo-router';
+import { Slot, Redirect } from "expo-router";
+import { ClerkLoaded, SignedIn } from "@clerk/clerk-expo";
+import { HOME_PATH } from "@/constants/navigation";
 
 export default function AuthLayout() {
   return (
-    <Stack
-      screenOptions={{
-        headerShown: false,
-        contentStyle: { backgroundColor: '#000' },
-      }}
-    />
+    <ClerkLoaded>
+      <SignedIn>
+        <Redirect href={HOME_PATH} />
+      </SignedIn>
+      <Slot />
+    </ClerkLoaded>
   );
 }
