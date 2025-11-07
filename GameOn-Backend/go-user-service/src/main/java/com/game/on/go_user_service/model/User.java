@@ -3,7 +3,6 @@ package com.game.on.go_user_service.model;
 import jakarta.persistence.*;
 import lombok.*;
 
-
 @Data
 @Table(name = "users")
 @Entity
@@ -11,16 +10,13 @@ import lombok.*;
 @AllArgsConstructor
 @RequiredArgsConstructor
 public class User {
-
+    /* Clerk ID */
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
-    private Long id;
+    private String id;
 
-    @Column(nullable = false, unique = true)
-    @NonNull
-    private String keycloakId;
+    private String firstname;
 
-    public User() {
+    private String lastname;
 
-    }
+    private String email;
 }

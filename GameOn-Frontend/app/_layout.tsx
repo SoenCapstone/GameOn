@@ -7,30 +7,33 @@ import { Stack } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import "react-native-reanimated";
 import * as SystemUI from "expo-system-ui";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { ClerkProvider, ClerkLoaded } from "@clerk/clerk-expo";
+import { tokenCache } from "@clerk/clerk-expo/token-cache";
 import { useColorScheme } from "@/hooks/use-color-scheme";
-import { AuthGate, AuthProvider } from "@/contexts/auth";
 import { FeatureFlagsProvider } from "@/contexts/featureFlags/FeatureFlagsContext";
 import { SearchProvider } from "@/contexts/SearchContext";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 
 const queryClient = new QueryClient();
-
-export const unstable_settings = {
-  anchor: "(tabs)",
-};
+export const unstable_settings = { anchor: "(tabs)" };
 
 export default function RootLayout() {
   const colorScheme = useColorScheme();
-
+  
   SystemUI.setBackgroundColorAsync("black");
-
+  
   return (
-    <FeatureFlagsProvider>
-      <ThemeProvider value={colorScheme === "dark" ? DarkTheme : DefaultTheme}>
-        <AuthProvider>
-          <AuthGate>
-            <QueryClientProvider client={queryClient}>
-              <SearchProvider>
+    <ClerkProvider
+      tokenCache={tokenCache}
+      publishableKey={process.env.EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY!}
+    >
+      <QueryClientProvider client={queryClient}>
+        <FeatureFlagsProvider>
+          <ThemeProvider
+            value={colorScheme === "dark" ? DarkTheme : DefaultTheme}
+          >
+            <SearchProvider>
+              <ClerkLoaded>
                 <Stack>
                   <Stack.Screen
                     name="(auth)"
@@ -46,11 +49,11 @@ export default function RootLayout() {
                   />
                 </Stack>
                 <StatusBar style="auto" />
-              </SearchProvider>
-            </QueryClientProvider>
-          </AuthGate>
-        </AuthProvider>
-      </ThemeProvider>
-    </FeatureFlagsProvider>
+              </ClerkLoaded>
+            </SearchProvider>
+          </ThemeProvider>
+        </FeatureFlagsProvider>
+      </QueryClientProvider>
+    </ClerkProvider>
   );
 }
