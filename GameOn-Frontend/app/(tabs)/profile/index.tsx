@@ -8,7 +8,6 @@ import { useAuth } from "@clerk/clerk-expo";
 export default function Profile() {
   const { signOut } = useAuth();
   const router = useRouter();
-  // const { getToken } = useAuth();
 
   return (
     <ContentArea backgroundProps={{ preset: "orange" }}>
@@ -18,7 +17,8 @@ export default function Profile() {
           title="Go to Feature Flags"
           onPress={() => router.push("/flags")}
         />
-        {/* <BACKEND_TEST getToken={getToken} /> */}
+        {/* Uncomment the component to test backend connection */}
+        {/* <BACKEND_TEST /> */}
         <Button
           title="Sign out"
           onPress={async () => {

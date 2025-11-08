@@ -71,4 +71,7 @@ export const signUpInputLabels = (showPassword : boolean) => [
 ]
 
 export const EMAIL_VERIFICATION_STATUS = 'complete';
+export const SIGN_UP_SUCCESS_MESSAGE = "Profile created successfully!";
+export const SIGN_UP_CLERK_ERROR_MESSAGE = 'Clerk is not loaded or user is not signed in';
+export const SIGN_UP_BACKEND_ERROR_MESSAGE = "Error while creating profile! Please try again"
 
