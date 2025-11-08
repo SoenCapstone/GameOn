@@ -79,24 +79,23 @@ async function fetchTeamResults(
   const params: Record<string, string> = { size: "200" };
   if (query && query.trim().length > 0) params.q = query.trim();
 
-  const base = "http://localhost:8222";
   const token = await getToken();
   const headers: Record<string, string> = {
     Accept: "application/json",
     ...(token ? { Authorization: `Bearer ${token}` } : {}),
   };
 
-  const devUserId =
-    (process.env.EXPO_PUBLIC_DEV_USER_ID as string) ||
-    (base.includes("localhost") ? "1001" : "");
-  if (devUserId) headers["X-User-Id"] = devUserId;
+  headers["X-User-Id"] = "1001";
 
   try {
-    const resp = await axios.get<TeamListResponse>(`${base}/api/v1/teams`, {
-      headers,
-      params,
-      timeout: 5000,
-    });
+    const resp = await axios.get<TeamListResponse>(
+      `${process.env.EXPO_PUBLIC_API_BASE_URL}/api/v1/teams`,
+      {
+        headers,
+        params,
+        timeout: 5000,
+      },
+    );
     const data = resp.data;
     const mapped: SearchResult[] = (data.items || []).map(
       (t: TeamSummaryResponse) => ({
