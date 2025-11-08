@@ -89,16 +89,13 @@ export const completeVerificationAndUpsert = async (values: User, isLoaded : boo
     if (attempt.status === EMAIL_VERIFICATION_STATUS) {
       await setActive({ session: attempt.createdSessionId });
       
-      try {
       await upsertUser.mutateAsync({
-        id: attempt.createdUserId,
+        id: attempt?.createdUserId,
         email: values.emailAddress,
         firstname: values.firstname,
         lastname: values.lastname,
       });
-    } catch (err) {
-      console.error("Error connecting to BE", err);
-    }
+
     } else {
       Alert.alert('Verification incomplete', 'Please complete the required steps.');
     }
