@@ -1,41 +1,35 @@
 import { useMutation } from "@tanstack/react-query";
-import { useAuth } from "@clerk/clerk-expo";
+import { useAuth, useUser } from "@clerk/clerk-expo";
+import type { UserResource } from "@clerk/types";
 import { toast } from "@/components/sign-up/utils"; 
+import { GO_USER_SERVICE_ROUTES, useAxiosWithClerk } from "@/hooks/use-axios-clerk";
+import { SIGN_UP_SUCCESS_MESSAGE, SIGN_UP_CLERK_ERROR_MESSAGE, SIGN_UP_BACKEND_ERROR_MESSAGE } from "../constants";
 
-export function useUpsertUser() {
-  const { getToken, isLoaded, isSignedIn } = useAuth();
+export const useUpsertUser = () => {
+  const { isLoaded, isSignedIn } = useAuth();
+  const {user} = useUser();
+  const api = useAxiosWithClerk();
   
   return useMutation({
     retry: 3,    
     retryDelay: 400,
     mutationFn: async (payload) => {
-      if (!isLoaded || !isSignedIn) {
-        throw new Error("Clerk is not loaded or user is not signed in");
-      }
-
-      const url = `${process.env.EXPO_PUBLIC_API_BASE_URL}/api/v1/user/create`;
-      const token = await getToken();
-
-      const res = await fetch(url, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify(payload),
-      });
-
-      if (!res.ok) {
-        const text = await res.text();
-        throw new Error(`Request failed with ${res.status}: ${text}`);
-      }
-
-      const data = await res.json();
-      return data;
+      VerifyHasLoadedAndIsSignedIn(isLoaded, isSignedIn);
+      return await api.post(GO_USER_SERVICE_ROUTES.CREATE, payload);
     },
-    onSuccess: () => {
-      toast("Profile created successfully!");
-    },
-    onError: () => toast("Error while creating profile!")
+    onSuccess: () => toast(SIGN_UP_SUCCESS_MESSAGE),
+    onError: () =>  signOutClerkAndDisplayErrorToast(user),
   });
+}
+
+const VerifyHasLoadedAndIsSignedIn = (isLoaded : boolean, isSignedIn: boolean | undefined) => {
+  if (!isLoaded || !isSignedIn) {
+        throw new Error(SIGN_UP_CLERK_ERROR_MESSAGE);
+      }
+}
+
+/* Delete account from clerk to avoid an inconsistent user state */
+const signOutClerkAndDisplayErrorToast = async (user: UserResource | null | undefined) => {
+  await user?.delete();
+  toast(SIGN_UP_BACKEND_ERROR_MESSAGE)
 }
