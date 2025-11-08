@@ -36,11 +36,17 @@ enum VERSIONING  {
 
 enum SERVICE {
     USER = 'user',
+    TEAMS = 'teams',
 }
 
-const buildUserRoute = (version : string, service : string, path : string) => `${API}/${version}/${service}/${path}`;
+const buildUserRoute = (version: string, service: string, path?: string) =>
+  `${API}/${version}/${service}${path ? `/${path}` : ""}`;
 
 export const GO_USER_SERVICE_ROUTES = {
     TEST : buildUserRoute(VERSIONING.v1, SERVICE.USER, "test"),
     CREATE : buildUserRoute(VERSIONING.v1, SERVICE.USER ,"create")
+}
+
+export const GO_TEAM_SERVICE_ROUTES = {
+    ALL : buildUserRoute(VERSIONING.v1, SERVICE.TEAMS),
 }

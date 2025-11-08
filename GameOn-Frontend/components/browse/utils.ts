@@ -1,8 +1,7 @@
 import { SearchResult, mockSearchResults } from "@/components/browse/constants";
-import axios from "axios";
+import { AxiosInstance } from "axios";
 import { useQuery } from "@tanstack/react-query";
-import { useAuth } from "@clerk/clerk-expo";
-import { GetToken } from "@clerk/types";
+import { useAxiosWithClerk, GO_TEAM_SERVICE_ROUTES } from "@/hooks/use-axios-clerk";
 
 // Map common sports to emoji as fallback for missing logos
 export function mapSportToEmoji(sport?: string | null): string {
@@ -73,42 +72,20 @@ type TeamListResponse = {
 };
 
 async function fetchTeamResults(
+  api: AxiosInstance,
   query: string,
-  getToken: GetToken,
 ): Promise<SearchResult[]> {
   const params: Record<string, string> = { size: "200" };
   if (query && query.trim().length > 0) params.q = query.trim();
 
-  const token = await getToken();
-  const headers: Record<string, string> = {
-    Accept: "application/json",
-    ...(token ? { Authorization: `Bearer ${token}` } : {}),
-  };
-
-  headers["X-User-Id"] = "1001";
-
   try {
-    const resp = await axios.get<TeamListResponse>(
-      `${process.env.EXPO_PUBLIC_API_BASE_URL}/api/v1/teams`,
-      {
-        headers,
-        params,
-        timeout: 5000,
-      },
-    );
-    const data = resp.data;
-    const mapped: SearchResult[] = (data.items || []).map(
-      (t: TeamSummaryResponse) => ({
-        id: String(t.id),
-        type: "team",
-        name: t.name,
-        subtitle: t.sport ? `${t.sport}` : "Team",
-        sport: t.sport,
-        logo: t.logoUrl || mapSportToEmoji(t.sport),
-        league: "",
-      }),
-    );
-    return mapped;
+
+    const resp = await api.get<TeamListResponse>(GO_TEAM_SERVICE_ROUTES.ALL, {
+      headers: { ["X-User-Id"]: "1001" },
+      params,
+      timeout: 5000,
+    });
+    return resp.data;
   } catch (err) {
     console.warn("fetchTeamResults failed", err);
     throw err;
@@ -116,12 +93,39 @@ async function fetchTeamResults(
 }
 
 export function useTeamResults(query: string) {
-  const { getToken } = useAuth();
-  return useQuery<SearchResult[], Error>({
+  const api = useAxiosWithClerk();
+
+  const queryResult = useQuery<TeamListResponse, Error>({
     queryKey: ["teams", query],
-    queryFn: async () => fetchTeamResults(query, getToken),
+    queryFn: async () => fetchTeamResults(api, query),
     retry: 1,
   });
+
+  const raw = queryResult.data ?? null;
+  const items: TeamSummaryResponse[] = raw?.items ?? [];
+  const data: SearchResult[] = items.map((t) => ({
+    id: String(t.id),
+    type: "team",
+    name: t.name,
+    subtitle: t.sport ? `${t.sport}` : "Team",
+    sport: t.sport,
+    logo: t.logoUrl || mapSportToEmoji(t.sport),
+    league: "",
+  }));
+
+  return {
+    data,
+    raw,
+    isLoading: queryResult.isLoading,
+    isFetching: queryResult.isFetching,
+    error: queryResult.error ?? null,
+  } as {
+    data: SearchResult[];
+    raw: TeamListResponse | null;
+    isLoading: boolean;
+    isFetching: boolean;
+    error: unknown;
+  };
 }
 
 export { fetchTeamResults };

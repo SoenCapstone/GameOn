@@ -77,20 +77,51 @@ describe("fetchTeamResults", () => {
     });
   });
   it("maps backend teams to SearchResult[] with emoji fallback", async () => {
-    const fakeGetToken = async () => "test-token";
-    const results = await fetchTeamResults("Test", fakeGetToken);
-    expect(results).toHaveLength(1);
-    expect(results[0]).toMatchObject({
+    const fakeApi = {
+      get: mockedAxios.get,
+      defaults: { headers: { common: {} } },
+    } as any;
+    const results = await fetchTeamResults(fakeApi, "Test");
+    expect(results.items).toHaveLength(1);
+    expect(results.items[0]).toMatchObject({
       id: "abc",
-      type: "team",
       name: "Test Team",
-      subtitle: "soccer",
-      logo: "⚽",
+      sport: "soccer",
     });
   });
   it("throws error if fetch fails", async () => {
     mockedAxios.get.mockRejectedValueOnce(new Error("network error"));
-    const fakeGetToken = async () => "test-token";
-    await expect(fetchTeamResults("fail", fakeGetToken)).rejects.toThrow("network error");
+    const fakeApi = {
+      get: mockedAxios.get,
+      defaults: { headers: { common: {} } },
+    } as any;
+    await expect(fetchTeamResults(fakeApi, "fail")).rejects.toThrow("network error");
+  });
+
+  it("sends query param when query is provided", async () => {
+    mockedAxios.get.mockClear();
+    const fakeApi = {
+      get: mockedAxios.get,
+      defaults: { headers: { common: {} } },
+    } as any;
+    await fetchTeamResults(fakeApi, "SearchTerm");
+    expect(mockedAxios.get).toHaveBeenCalledTimes(1);
+    const callArgs = mockedAxios.get.mock.calls[0];
+    expect(callArgs[0]).toBeDefined(); // url
+    expect(callArgs[1]).toBeDefined(); // config
+    expect(callArgs[1].params).toMatchObject({ size: "200", q: "SearchTerm" });
+  });
+
+  it("does not send q param when query is empty", async () => {
+    mockedAxios.get.mockClear();
+    const fakeApi = {
+      get: mockedAxios.get,
+      defaults: { headers: { common: {} } },
+    } as any;
+    await fetchTeamResults(fakeApi, "");
+    expect(mockedAxios.get).toHaveBeenCalledTimes(1);
+    const callArgs = mockedAxios.get.mock.calls[0];
+    expect(callArgs[1].params).toMatchObject({ size: "200" });
+    expect(callArgs[1].params.q).toBeUndefined();
   });
 });
