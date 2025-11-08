@@ -83,3 +83,9 @@
 | Development | 46           | 161       | \$7,245.00      |
 | **Total**   | **77**       | **269.5** | **\$12,127.50** |
 
+---
+
+### Cost Justification
+The total estimated project cost of **$12,127.50 CAD** is based on a rate of $45/hour, which corresponds to an average developer rate in Canada. Each story point was estimated at **3.5** hours, giving a total of **269.5** hours across all iterations. With **11** team members this equals to **1,102.50 CAD** per person where time was spent on architecture,setup, devops and design. The cost is realistic for the amount of work completed, considering the time spent on setup, development, and coordination across all team members.
+
+
