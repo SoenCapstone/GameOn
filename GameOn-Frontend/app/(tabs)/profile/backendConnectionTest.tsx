@@ -1,39 +1,25 @@
-/* Uncomment the component to test the backend connection in local */
+/* Note that this code is used to the test a backend connection  & is not an actual component */
 
-// export const BACKEND_TEST = (getToken) => {
-//   return (
-//     <Button
-//       title="test backend"
-//       onPress={async () => {
-//         console.log(process.env.EXPO_PUBLIC_API_BASE_URL);
+import { Button } from "react-native";
+import {
+  GO_USER_SERVICE_ROUTES,
+  useAxiosWithClerk,
+} from "@/hooks/use-axios-clerk";
+import { useMutation } from "@tanstack/react-query";
 
-//         const token = await getToken();
+export const BACKEND_TEST = () => {
+  const backendTestMutate = useBackendTestMutate();
+  return (
+    <Button title="test backend" onPress={() => backendTestMutate.mutate()} />
+  );
+};
 
-//         console.log(token);
+const useBackendTestMutate = () => {
+  const api = useAxiosWithClerk();
 
-//         const base64Url = token?.split(".")[1];
-//         const base64 = base64Url?.replace(/-/g, "+").replace(/_/g, "/");
-//         const jsonPayload = JSON.parse(atob(base64));
-
-//         console.log("iss:", jsonPayload.iss);
-//         console.log("aud:", jsonPayload.aud);
-
-//         const res = await fetch(
-//           `${process.env.EXPO_PUBLIC_API_BASE_URL}/api/v1/user/test`,
-//           {
-//             method: "POST",
-//             headers: {
-//               "Content-Type": "application/json",
-//               Authorization: `Bearer ${token}`,
-//             },
-//             body: JSON.stringify({ ping: "pong" }),
-//           }
-//         );
-
-//         const text = await res.text();
-//         console.log("Status:", res.status);
-//         console.log("Response:", text);
-//       }}
-//     />
-//   );
-// };
+  return useMutation({
+    mutationFn: async () => (await api.post(GO_USER_SERVICE_ROUTES.TEST)).data,
+    onSuccess: (data) => console.log(data),
+    onError: (error) => console.log(error),
+  });
+};
