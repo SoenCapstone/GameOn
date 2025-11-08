@@ -32,7 +32,6 @@ export const SearchProvider: React.FC<{ children: React.ReactNode }> = ({
   const combined = teamLeague.data;
 
   useEffect(() => {
-    // store metrics for later use by markRendered
     lastSearchRef.current = {
       id: nextId.current++,
       query,
@@ -80,17 +79,14 @@ export const SearchProvider: React.FC<{ children: React.ReactNode }> = ({
       tookMs: renderTookMs,
     };
 
-    // if caller provided mode, include it in the log
     if (opts?.mode) payload.mode = opts.mode;
 
     ctxLog.info("search completed", payload);
-    // avoid duplicate logs
     lastSearchRef.current = null;
   };
 
   const logModeChange = React.useCallback(
     (mode: "teams" | "leagues", resultCount: number) => {
-      // update lastSearchRef so markRendered will include the mode
       if (lastSearchRef.current) {
         lastSearchRef.current.mode = mode;
         lastSearchRef.current.resultCount = resultCount;

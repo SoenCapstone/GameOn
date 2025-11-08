@@ -3,7 +3,6 @@ import { View, ActivityIndicator, StyleSheet, ViewStyle, Image } from "react-nat
 import { SvgXml } from "react-native-svg";
 import { createScopedLog } from "@/utils/logger";
 
-// In-memory cache for fetched SVG XML strings. null means fetch failed.
 const svgCache = new Map<string, string | null>();
 const inFlight = new Map<string, Promise<string | null>>();
 

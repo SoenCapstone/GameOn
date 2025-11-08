@@ -4,7 +4,7 @@ import { useQuery } from "@tanstack/react-query";
 import { useAuth } from "@clerk/clerk-expo";
 import { GetToken } from "@clerk/types";
 
-// Map common sports to emoji as a fallback for missing logos.
+// Map common sports to emoji as fallback for missing logos
 export function mapSportToEmoji(sport?: string | null): string {
   const s = (sport || "").toLowerCase();
   switch (s) {
@@ -37,7 +37,7 @@ export function mapSportToEmoji(sport?: string | null): string {
   }
 }
 
-// Filter for mock leagues only (until backend provides leagues endpoint)
+// Filter for mock leagues (until backend has leagues endpoint)
 export function filterLocalLeagues(query: string): SearchResult[] {
   const q = (query || "").toLowerCase().trim();
   const leagues = mockSearchResults.filter((r) => r.type === "league");
@@ -86,7 +86,6 @@ async function fetchTeamResults(
     ...(token ? { Authorization: `Bearer ${token}` } : {}),
   };
 
-  // Dev helper: inject X-User-Id header
   const devUserId =
     (process.env.EXPO_PUBLIC_DEV_USER_ID as string) ||
     (base.includes("localhost") ? "1001" : "");
@@ -106,7 +105,6 @@ async function fetchTeamResults(
         name: t.name,
         subtitle: t.sport ? `${t.sport}` : "Team",
         sport: t.sport,
-        // Use logoUrl from backend if available, otherwise fallback to emoji
         logo: t.logoUrl || mapSportToEmoji(t.sport),
         league: "",
       }),

@@ -9,7 +9,6 @@ export function useTeamLeagueResults(query: string) {
     const teamItems = (teamQuery.data ?? []).slice();
     const leagueItems = filterLocalLeagues(query).slice();
 
-    // sort alphabetically
     teamItems.sort((a, b) => a.name.localeCompare(b.name, undefined, { sensitivity: "base" }));
     leagueItems.sort((a, b) => a.name.localeCompare(b.name, undefined, { sensitivity: "base" }));
 

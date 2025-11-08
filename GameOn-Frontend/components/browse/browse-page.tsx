@@ -49,7 +49,6 @@ export function BrowsePage() {
     }
   }, [mode, notifyModeChange, results, uiLog]);
 
-  // prefer high-resolution timer when available
   const now = () =>
     typeof performance !== "undefined" && performance.now
       ? performance.now()
@@ -77,7 +76,6 @@ export function BrowsePage() {
   const renderItem = React.useCallback(
     (args: { item: SearchResult }) => {
       const { item } = args;
-      // Check if logo is a URL or emoji/text
       const isUrl =
         item.logo.startsWith("http://") || item.logo.startsWith("https://");
       const isSvg = isUrl && item.logo.toLowerCase().endsWith(".svg");

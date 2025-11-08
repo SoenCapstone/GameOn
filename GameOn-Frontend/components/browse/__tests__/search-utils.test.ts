@@ -77,7 +77,6 @@ describe("fetchTeamResults", () => {
     });
   });
   it("maps backend teams to SearchResult[] with emoji fallback", async () => {
-    // provide a fake getToken function as fetchTeamResults now requires it
     const fakeGetToken = async () => "test-token";
     const results = await fetchTeamResults("Test", fakeGetToken);
     expect(results).toHaveLength(1);

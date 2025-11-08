@@ -1,13 +1,10 @@
 export function errorToString(err: unknown): string {
-  // Treat null/undefined as unknown
   if (err === null || err === undefined) return "Unknown error";
 
-  // Native Error
   if (err instanceof Error) return err.message || String(err);
 
   const anyErr: any = err as any;
 
-  // Axios-like error with response
   if (anyErr?.response) {
     try {
       const resp = anyErr.response;
@@ -23,7 +20,6 @@ export function errorToString(err: unknown): string {
     }
   }
 
-  // Plain object with message
   if (
     typeof anyErr === "object" &&
     anyErr !== null &&
@@ -32,7 +28,6 @@ export function errorToString(err: unknown): string {
     return anyErr.message;
   }
 
-  // Primitives
   if (
     typeof anyErr === "string" ||
     typeof anyErr === "number" ||
@@ -41,7 +36,6 @@ export function errorToString(err: unknown): string {
     return String(anyErr);
   }
 
-  // Fallback to JSON
   try {
     return JSON.stringify(anyErr);
   } catch {
