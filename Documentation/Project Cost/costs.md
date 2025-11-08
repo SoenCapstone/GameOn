@@ -1,12 +1,10 @@
 # 6.2 Planning & Development Costs
 
 **Conversion:** 3.5 hours / story point  
-**Rate:** $45 / hour (avg. developer rate)
+**Rate:** $45 / hour (average developer rate)
 
----
 
 ## 6.2.1 Planning
-
 **Definition:** Pre-implementation work: architecture, environments, CI/CD, design/mockups, quality tooling, and risk/iteration planning.
 
 ### Iteration 1 (Planning)
@@ -29,18 +27,20 @@
 
 ### Iteration 3 (Planning)
 
-- #47 Feature Flag **Design** (5)
+- #47 Feature Flag Design (5)
 
 **Points:** 5 → **Hours:** 17.5 → **Cost:** \$787.50
 
-**Planning Totals:**  
-**Points:** 31 • **Hours:** 108.5 • **Cost:** **\$4,882.50**
+**Total Planning:**  
+- **Points:** 31
+- **Hours:** 108.5
+- **Cost:** **\$4,882.50**
 
 ---
 
 ## 6.2.2 Development
 
-**Definition:** Feature implementation and integration: UI, APIs, security, CRUD, feature flags, navigation, and Keycloak/OpenFeign work.
+**Definition:** Feature implementation and integration: UI, APIs, security, CRUD, feature flags, navigation, and Keycloak.
 
 ### Iteration 1 (Development)
 
@@ -64,16 +64,18 @@
 - #7 Login/Sign-up Page (5)
 - #76 Initial Navigation Structure & Page Layout (4)
 - #94 Backend Compatibility for User CRUD (5)
-- #50 Backend Feature Flags (5) _(implementation work in this iteration)_
-
+- #50 Backend Feature Flags (5)
+  
 **Points:** 19 → **Hours:** 66.5 → **Cost:** \$2,992.50
 
-**Development Totals:**  
-**Points:** 46 • **Hours:** 161 • **Cost:** **\$7,245.00**
+**Total Development:**  
+- **Points:** 46
+- **Hours:** 161
+- **Cost:** **\$7,245.00**
 
 ---
 
-## Grand Total
+## Total Cost
 
 | Phase       | Story Points | Hours     | Cost (CAD)      |
 | ----------- | ------------ | --------- | --------------- |
@@ -81,4 +83,3 @@
 | Development | 46           | 161       | \$7,245.00      |
 | **Total**   | **77**       | **269.5** | **\$12,127.50** |
 
-> Calculations based on completed story points recorded in GitHub releases for Iterations 1–3.
