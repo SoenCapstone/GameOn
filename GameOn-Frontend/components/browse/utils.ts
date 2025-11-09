@@ -77,7 +77,7 @@ type TeamListResponse = {
 async function fetchTeamResults(
   api: AxiosInstance,
   query: string,
-): Promise<SearchResult[]> {
+): Promise<TeamListResponse> {
   const params: Record<string, string> = { size: "200" };
   if (query && query.trim().length > 0) params.q = query.trim();
 
