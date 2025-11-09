@@ -44,8 +44,10 @@ enum SERVICE {
   TEAMS = "teams",
 }
 
-const buildUserRoute = (version: string, service: string, path?: string) =>
-  `${API}/${version}/${service}${path ? `/${path}` : ""}`;
+const buildUserRoute = (version: string, service: string, path?: string) => {
+  const base = `${API}/${version}/${service}`;
+  return path ? `${base}/${path}` : base;
+};
 
 export const GO_USER_SERVICE_ROUTES = {
   TEST: buildUserRoute(VERSIONING.v1, SERVICE.USER, "test"),
