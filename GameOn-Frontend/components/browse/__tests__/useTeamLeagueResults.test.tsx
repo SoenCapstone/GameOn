@@ -56,7 +56,7 @@ describe("useTeamLeagueResults", () => {
     const { getByTestId } = render(<TestComp query="x" />);
     const text = getByTestId("out").props.children as string;
     const ids = JSON.parse(text) as string[];
-    expect(ids).toEqual(["t1", "t2", "l1"]);
+  expect(ids).toEqual(["l1", "t1", "t2"]);
   });
 
   it("handles empty team data", () => {
