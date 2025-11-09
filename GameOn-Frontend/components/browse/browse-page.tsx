@@ -109,14 +109,15 @@ export function BrowsePage() {
   const displayedResults = React.useMemo(() => {
     if (!q && searchActive) return [] as SearchResult[];
 
+    if (searchActive && q) {
+      return results.filter((r) => r.name.toLowerCase().includes(q));
+    }
+
     const list = results
       .filter((r) =>
         mode === "teams" ? r.type === "team" : r.type === "league",
       )
-      .filter((r) => {
-        if (mode === "teams") return r.name.toLowerCase().includes(q);
-        return r.name.toLowerCase().includes(q);
-      });
+      .filter((r) => r.name.toLowerCase().includes(q));
 
     return list;
   }, [results, mode, q, searchActive]);

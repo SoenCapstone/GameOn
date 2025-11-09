@@ -1,7 +1,10 @@
 import { SearchResult, mockSearchResults } from "@/components/browse/constants";
 import { AxiosInstance } from "axios";
 import { useQuery } from "@tanstack/react-query";
-import { useAxiosWithClerk, GO_TEAM_SERVICE_ROUTES } from "@/hooks/use-axios-clerk";
+import {
+  useAxiosWithClerk,
+  GO_TEAM_SERVICE_ROUTES,
+} from "@/hooks/use-axios-clerk";
 
 // Map common sports to emoji as fallback for missing logos
 export function mapSportToEmoji(sport?: string | null): string {
@@ -79,7 +82,6 @@ async function fetchTeamResults(
   if (query && query.trim().length > 0) params.q = query.trim();
 
   try {
-
     const resp = await api.get<TeamListResponse>(GO_TEAM_SERVICE_ROUTES.ALL, {
       headers: { ["X-User-Id"]: "1001" },
       params,

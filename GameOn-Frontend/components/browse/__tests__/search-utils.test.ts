@@ -95,7 +95,9 @@ describe("fetchTeamResults", () => {
       get: mockedAxios.get,
       defaults: { headers: { common: {} } },
     } as any;
-    await expect(fetchTeamResults(fakeApi, "fail")).rejects.toThrow("network error");
+    await expect(fetchTeamResults(fakeApi, "fail")).rejects.toThrow(
+      "network error",
+    );
   });
 
   it("sends query param when query is provided", async () => {

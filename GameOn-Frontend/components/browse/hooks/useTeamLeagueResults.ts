@@ -9,10 +9,12 @@ export function useTeamLeagueResults(query: string) {
     const teamItems = (teamQuery.data ?? []).slice();
     const leagueItems = filterLocalLeagues(query).slice();
 
-    teamItems.sort((a, b) => a.name.localeCompare(b.name, undefined, { sensitivity: "base" }));
-    leagueItems.sort((a, b) => a.name.localeCompare(b.name, undefined, { sensitivity: "base" }));
+    const merged = [...teamItems, ...leagueItems];
+    merged.sort((a, b) =>
+      a.name.localeCompare(b.name, undefined, { sensitivity: "base" }),
+    );
 
-    return [...teamItems, ...leagueItems];
+    return merged;
   }, [teamQuery.data, query]);
 
   return {
