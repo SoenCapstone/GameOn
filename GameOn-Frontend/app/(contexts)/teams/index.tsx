@@ -13,9 +13,6 @@ export default function Teams() {
     <ContentArea>
       <Background preset="red" mode="default" />
 
-      <Pressable onPress={() => router.push("/(contexts)/teams/createTeam")}>
-        <Text>Create a Team</Text>
-      </Pressable>
     </ContentArea>
   );
 }

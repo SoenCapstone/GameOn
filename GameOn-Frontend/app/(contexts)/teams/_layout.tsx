@@ -9,7 +9,7 @@ const header = () => (
 );
 
 const createTeamHeader = () => (
-  <Header center={<PageTitle title="Create New Team" />} />
+  <Header center={<PageTitle title="Create Team" />} />
 );
 
 export default function TeamsLayout() {
