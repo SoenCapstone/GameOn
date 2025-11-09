@@ -8,7 +8,10 @@ import { ThemedText } from "@/components/themed-text";
 import { images } from "@/constants/images";
 import { createScopedLog } from "@/utils/logger";
 import { useAuth } from "@/contexts/auth";
+import ContentArea from "@/components/content-area";
+import { Background } from "@/components/background";
 import { profileStyles as styles } from "./profileStyle";
+
 
 const leagues = [
   { id: "1", name: "Champions League", role: "Player" },
@@ -48,102 +51,102 @@ export default function Profile() {
   };
 
   return (
-    <SafeAreaView style={{ flex: 1 }}>
-      <LinearGradient
-        colors={["#824300ff", "#000000"]}
-        locations={[0, 0.7]}
-        style={styles.gradient}
-      >
+    <ContentArea>
+      <Background preset="orange" mode="default" />
         <ScrollView
           showsVerticalScrollIndicator={false}
-          contentContainerStyle={{ flexGrow: 1, paddingBottom: 20 }}
+          contentContainerStyle={{ flexGrow: 1, paddingBottom: 100 }}
         >
-          {/* User Section */}
-          <View style={styles.header}>
-            <Image
-              source={user.image ? user.image : images.defaultProfile}
-              style={styles.profileImage}
-            />
-            <ThemedText style={styles.name}>{user.name}</ThemedText>
-            <ThemedText style={styles.email}>{user.email}</ThemedText>
+        
+        {/* User Section */}
+        <View style={styles.header}>
+          <Image
+            source={user.image ? user.image : images.defaultProfile}
+            style={styles.profileImage}
+          />
+          <ThemedText style={styles.name}>{user.name}</ThemedText>
+          <ThemedText style={styles.email}>{user.email}</ThemedText>
 
-            {/* Edit Profile */}
-            <Pressable
-              style={({ pressed }) => [
-                styles.editButton,
-                pressed && { backgroundColor: "rgba(255, 255, 255, 0.25)" },
-              ]}
-              onPress={() => log.info("Clicked on Edit Profile")}
-            >
-              <ThemedText style={styles.buttonText}>Edit Profile</ThemedText>
-            </Pressable>
+          {/* Edit Profile */}
+          <Pressable
+            style={({ pressed }) => [
+              styles.editButton,
+              pressed && { backgroundColor: "rgba(255, 255, 255, 0.25)" },
+            ]}
+            onPress={() => log.info("Clicked on Edit Profile")}
+          >
+            <ThemedText style={styles.buttonText}>Edit Profile</ThemedText>
+          </Pressable>
 
-            {/* Dev / Feature flags button */}
+          
+
+          {/* Leagues Section */}
+          <ThemedText style={styles.sectionTitle}>My Leagues</ThemedText>
+          <FlatList
+            data={leagues}
+            keyExtractor={(item) => item.id}
+            scrollEnabled={false}
+            renderItem={({ item }) => (
+              <Pressable
+                onPress={() => log.info("Clicked league: ", item.name)}
+                style={({ pressed }) => [
+                  styles.leagueItem,
+                  pressed && {
+                    backgroundColor: "rgba(89, 38, 184, 0.56)",
+                  },
+                ]}
+              >
+                <View>
+                  <ThemedText style={styles.leagueName}>
+                    {item.name}
+                  </ThemedText>
+                  <ThemedText style={styles.leagueDivision}>
+                    {item.role}
+                  </ThemedText>
+                </View>
+              </Pressable>
+            )}
+          />
+
+          {/* Logout */}
+          <Pressable
+            style={({ pressed }) => [
+              styles.buttonLogOut,
+              pressed && { backgroundColor: "rgba(240, 11, 11, 0.37)" },
+            ]}
+            onPress={handleLogout}
+          >
+            <ThemedText style={styles.buttonLogoutText}>Logout</ThemedText>
+          </Pressable>
+
+          {/* Dev / Feature flags button */}
+          {__DEV__ && (
             <Pressable
               style={({ pressed }) => [
                 styles.flagsButton,
                 pressed && { backgroundColor: "rgba(255, 255, 255, 0.18)" },
               ]}
-              onPress={() => router.push("/flags")}
+              onPress={() => router.push("/(contexts)/featureFlags")}
             >
               <ThemedText style={styles.flagsButtonText}>
                 Feature Flags
               </ThemedText>
             </Pressable>
-
-            {/* Leagues Section */}
-            <ThemedText style={styles.sectionTitle}>My Leagues</ThemedText>
-            <FlatList
-              data={leagues}
-              keyExtractor={(item) => item.id}
-              scrollEnabled={false}
-              renderItem={({ item }) => (
-                <Pressable
-                  onPress={() => log.info("Clicked league: ", item.name)}
-                  style={({ pressed }) => [
-                    styles.leagueItem,
-                    pressed && {
-                      backgroundColor: "rgba(89, 38, 184, 0.56)",
-                    },
-                  ]}
-                >
-                  <View>
-                    <ThemedText style={styles.leagueName}>
-                      {item.name}
-                    </ThemedText>
-                    <ThemedText style={styles.leagueDivision}>
-                      {item.role}
-                    </ThemedText>
-                  </View>
-                </Pressable>
-              )}
-            />
-
-            {/* Logout */}
+          )}
+          
+          {__DEV__ && (
             <Pressable
               style={({ pressed }) => [
-                styles.buttonLogOut,
-                pressed && { backgroundColor: "rgba(240, 11, 11, 0.37)" },
+                styles.flagsButton,
+                pressed && { backgroundColor: "rgba(255, 255, 255, 0.18)" },
               ]}
-              onPress={handleLogout}
+              onPress={() => router.push("/_sitemap")}
             >
-              <ThemedText style={styles.buttonLogoutText}>Logout</ThemedText>
+              <ThemedText style={styles.flagsButtonText}> Open Sitemap </ThemedText>
             </Pressable>
-
-            {__DEV__ && (
-              <Pressable
-                style={({ pressed }) => [
-                  styles.flagsButton,
-                  pressed && { backgroundColor: "rgba(255, 255, 255, 0.18)" },
-                ]}
-                onPress={() => router.push("/_sitemap")}
-              >
-                <ThemedText style={styles.flagsButtonText}> Open Sitemap </ThemedText>
-              </Pressable>
-            )}
-          </View>
-        </ScrollView>
-      </LinearGradient>
-    </SafeAreaView>
+          )}
+        </View>
+      </ScrollView>
+    </ContentArea>
   );
 }
