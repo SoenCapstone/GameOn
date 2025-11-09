@@ -180,7 +180,7 @@ export default function SignInScreen() {
                   </Text>
                   <Text style={styles.metaText}>
                     go to teams page{' '}
-                    <Link href="/(tabs)/teams" style={styles.metaLink}>
+                    <Link href="/(contexts)/teams" style={styles.metaLink}>
                       here
                     </Link>
                   </Text>

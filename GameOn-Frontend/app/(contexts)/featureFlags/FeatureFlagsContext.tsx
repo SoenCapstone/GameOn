@@ -18,7 +18,7 @@ type FeatureFlagsContextType = {
   toggleFlag: (key: keyof Flags) => void;
 };
 
-// 🧠 Future enhancement: sync feature flags with backend for global propagation
+// Future enhancement: sync feature flags with backend for global propagation
 const syncWithServer = async (updatedFlags: Record<string, boolean>) => {
   try {
     // Example placeholder for future API sync
@@ -41,7 +41,7 @@ export const FeatureFlagsProvider: React.FC<{ children: React.ReactNode }> = ({ 
     betaMode: false,
   });
 
-  // ✅ Load flags on startup
+  // Load flags on startup
   useEffect(() => {
     (async () => {
       try {
@@ -57,7 +57,7 @@ export const FeatureFlagsProvider: React.FC<{ children: React.ReactNode }> = ({ 
     })();
   }, []);
 
-  // ✅ Save flags on change
+  // Save flags on change
   useEffect(() => {
     (async () => {
       try {
@@ -75,7 +75,7 @@ export const FeatureFlagsProvider: React.FC<{ children: React.ReactNode }> = ({ 
     setFlags((prev) => ({ ...prev, [key]: !prev[key] }));
   };
 
-  // ✅ useMemo prevents Sonar warning: “object changes every render”
+  // useMemo prevents Sonar warning: “object changes every render”
   const value = useMemo(() => ({ flags, toggleFlag }), [flags]);
 
   return (
