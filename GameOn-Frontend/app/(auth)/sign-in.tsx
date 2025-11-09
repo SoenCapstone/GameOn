@@ -169,17 +169,23 @@ export default function SignInScreen() {
 
 
                 
-                {/*To test user profile*/}
+                {/*To test tabs*/}
+                {__DEV__ && (
                 <View style={{ marginTop: 'auto' }}>
                   <Text style={styles.metaText}>
-                    go to profile{' '}
-                    <Link href="/(auth)/userProfile" style={styles.metaLink}>
+                    enter app{' '}
+                    <Link href="/(tabs)/profile" style={styles.metaLink}>
+                      here
+                    </Link>
+                  </Text>
+                  <Text style={styles.metaText}>
+                    go to teams page{' '}
+                    <Link href="/(tabs)/teams" style={styles.metaLink}>
                       here
                     </Link>
                   </Text>
                 </View>
-
-
+                )}
               </>
             )}
           </Formik>
