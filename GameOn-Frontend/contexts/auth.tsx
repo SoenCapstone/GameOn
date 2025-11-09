@@ -67,6 +67,12 @@ export function AuthGate({ children }: Readonly<{ children: React.ReactNode }>) 
 
   useEffect(() => {
     if (loading) return;
+
+    //dev bypass for the auth so that we can test
+    if(__DEV__){
+      return;
+    }
+
     const inAuth = segments[0] === "(auth)";
     if (!user && !inAuth) router.replace("/(auth)/sign-in");
     else if (user && inAuth) router.replace("/(tabs)");
