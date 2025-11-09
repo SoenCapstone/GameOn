@@ -7,8 +7,8 @@ export default function AuthLayout() {
     <ClerkLoaded>
       <SignedIn>
         <Redirect href={HOME_PATH} />
-      </SignedIn>
-      <Slot />
-    </ClerkLoaded>
+       </SignedIn>
+       <Slot />
+     </ClerkLoaded>
   );
 }
