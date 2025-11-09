@@ -8,6 +8,10 @@ const header = () => (
   <Header left={<Logo />} center={<PageTitle title="Teams" />} />
 );
 
+const createTeamHeader = () => (
+  <Header center={<PageTitle title="Create New Team" />} />
+);
+
 export default function TeamsLayout() {
   return (
     <Stack>
@@ -19,6 +23,16 @@ export default function TeamsLayout() {
           headerTitle: header,
         }}
       />
+      <Stack.Screen
+        name="createTeam"
+        options={{
+          headerTransparent: true,
+          headerShadowVisible: false,
+          headerTitle: createTeamHeader,
+        }}
+      />
     </Stack>
+    
   );
+  
 }
