@@ -15,17 +15,17 @@ export const authStyles = StyleSheet.create({
 
   container: { flex: 1, paddingHorizontal: 24, gap: 20 },
 
-  label: { color: '#fff', fontSize: 14, fontWeight: '600' },
+  label: { color: '#938e8eff', fontSize: 18, fontWeight: '600' },
 
   inputWrap: {
-    backgroundColor: '#787878',
+    backgroundColor: 'transparent',
     borderRadius: 24,
-    paddingVertical: 12,
+    paddingVertical: 9,
     paddingHorizontal: 16,
     flexDirection: 'row',
     alignItems: 'center',
   },
-  input: { flex: 1, fontSize: 16, color: '#111' },
+  input: { flex: 1, fontSize: 18, color: '#bab8b8ff' },
   rightIcon: { marginLeft: 8 },
 
   errorText: { color: '#EF4444', fontSize: 12 },

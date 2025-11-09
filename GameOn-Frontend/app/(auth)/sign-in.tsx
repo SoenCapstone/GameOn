@@ -17,7 +17,6 @@ import { isIOSPadding, displayFormikError } from "@/components/sign-up/utils";
 import { PasswordVisbilityToggle } from "@/components/auth/PasswordVisibilityToggle";
 import { SignUpInputLabel } from "@/components/sign-up/models";
 import { LabeledInput } from "@/components/auth/InputLabel";
-import { DisplayLogo } from "@/components/auth/DisplayLogo";
 import { SubmitAuthButton } from "@/components/auth/SubmitAuthButton";
 import {
   SIGN_IN_MESSAGE,
@@ -27,6 +26,7 @@ import { AuthSwitchLink } from "@/components/auth/AuthSwitchLink";
 import { SIGN_UP_PATH } from "@/constants/navigation";
 import { AuthLinearGradient } from "@/components/auth/AuthLinearGradient";
 import { useSignIn } from "@clerk/clerk-expo";
+import { BlurView } from "expo-blur";
 
 const { HERO_TOP, TOP_GRADIENT_H, FORM_PADDING_TOP, RENDER_W, RENDER_H } =
   getAuthHeroLayout();
@@ -39,14 +39,20 @@ export default function SignInScreen() {
     <SafeAreaView style={authStyles.safe}>
       <AuthLinearGradient top={TOP_GRADIENT_H} />
 
-      <DisplayLogo
-        top={HERO_TOP}
-        styleRenderWidth={RENDER_W}
-        styleRenderHeight={RENDER_H}
-      />
-
       <KeyboardAvoidingView style={{ flex: 1 }} behavior={isIOSPadding()}>
         <View style={[authStyles.container, { paddingTop: FORM_PADDING_TOP }]}>
+          <Text
+              accessibilityRole="header"
+              style={{
+                alignSelf: "center",
+                color: "#fff",
+                fontSize: 18,
+                fontWeight: "700",
+                marginBottom: 6,
+              }}
+            >
+              Login
+          </Text>
           <Formik
             initialValues={initialSignInValue}
             validationSchema={SignInSchema}
@@ -102,7 +108,6 @@ export default function SignInScreen() {
                   authMessage={SIGN_UP_MESSAGE}
                 />
 
-                <UserProfileTest />
               </>
             )}
           </Formik>
@@ -128,18 +133,4 @@ const displayStatus = (status: string) => {
   ) : null;
 };
 
-{
-  /*To test user profile - TO BE REMOVED IN THE FUTURE*/
-}
-const UserProfileTest = () => {
-  return (
-    <View style={{ marginTop: "auto" }}>
-      <Text style={styles.metaText}>
-        go to profile{" "}
-        <Link href="/(auth)/userProfile" style={styles.metaLink}>
-          here
-        </Link>
-      </Text>
-    </View>
-  );
-};
+

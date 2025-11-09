@@ -1,4 +1,5 @@
 import { StyleSheet } from "react-native";
+import { BlurView } from "expo-blur";
 
 export const styles = StyleSheet.create({
   forgotWrap: { alignSelf: "flex-end", marginTop: 8 },
@@ -22,14 +23,21 @@ export const styles = StyleSheet.create({
 
   cta: {
     alignSelf: "center",
-    width: "50%",
-    backgroundColor: "#fff",
+    width: "90%",
     borderRadius: 999,
     paddingVertical: 14,
     alignItems: "center",
     marginTop: 8,
+    backgroundColor: "transparent",       
+    overflow: "hidden",                   
+    borderWidth: 1,
+    borderColor: "rgba(255,255,255,0.25)",
+    shadowColor: "#000",
+    shadowOpacity: 0.25,
+    shadowRadius: 10,
+    shadowOffset: { width: 0, height: 4 },
   },
-  ctaText: { color: "#111", fontSize: 18, fontWeight: "700" },
+  ctaText: { color: "#b0adadff", fontSize: 18, fontWeight: "700" },
 
   metaText: { textAlign: "center", color: "#9CA3AF" },
   metaLink: { color: "#fff", fontWeight: "600" },

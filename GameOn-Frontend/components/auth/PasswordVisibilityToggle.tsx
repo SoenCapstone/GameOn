@@ -10,7 +10,7 @@ export const PasswordVisbilityToggle: React.FC<{
       <Ionicons
         name={showpassword ? "eye-off-outline" : "eye-outline"}
         size={20}
-        color="#000000"
+        color="#bab8b8ff"
       />
     </Pressable>
   );

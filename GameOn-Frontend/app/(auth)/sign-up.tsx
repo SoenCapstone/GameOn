@@ -1,5 +1,5 @@
 import { authStyles } from "@/constants/auth-styles";
-import { KeyboardAvoidingView, View, ScrollView } from "react-native";
+import { KeyboardAvoidingView, View, ScrollView, Text } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { getAuthHeroLayout } from "@/constants/auth-layout";
 import { Formik } from "formik";
@@ -25,7 +25,6 @@ import {
 } from "@/components/sign-up/constants";
 import { SignUpDatePicker } from "@/components/auth/SignUpDatePicker";
 import { SIGN_IN_PATH } from "@/constants/navigation";
-import { DisplayLogo } from "@/components/auth/DisplayLogo";
 import { SubmitAuthButton } from "@/components/auth/SubmitAuthButton";
 import { PasswordVisbilityToggle } from "@/components/auth/PasswordVisibilityToggle";
 import { AuthSwitchLink } from "@/components/auth/AuthSwitchLink";
@@ -56,14 +55,22 @@ export default function SignUpScreen() {
           keyboardShouldPersistTaps="handled"
           showsVerticalScrollIndicator={false}
         >
-          <DisplayLogo
-            top={-55}
-            styleRenderWidth={RENDER_W}
-            styleRenderHeight={RENDER_H}
-          />
+          
           <View
             style={[authStyles.container, { paddingTop: FORM_PADDING_TOP }]}
           >
+            <Text
+              accessibilityRole="header"
+              style={{
+                alignSelf: "center",
+                color: "#fff",
+                fontSize: 18,
+                fontWeight: "700",
+                marginBottom: 6,
+              }}
+            >
+              Create Account
+            </Text>
             <Formik<User>
               initialValues={initialSignUpValues}
               validationSchema={SignUpSchema}
