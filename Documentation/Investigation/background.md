@@ -37,3 +37,8 @@ GameOn differentiates itself with:
 * a cross-sport template, which allows administrators with the reconfiguration of rules and scoring immediately. 
 
 These kinds of innovations allows the enhancement of operational reliability of small to medium sized leagues, while taking care of inclusivity and engagement in different sport communities. 
+
+# References
+[PlayPass](https://playpass.com/sports-software/league-scheduler)
+[LeagureRepublic](https://www.leaguerepublic.com/index.html)
+[TeamSnap](https://www.teamsnap.com/)
