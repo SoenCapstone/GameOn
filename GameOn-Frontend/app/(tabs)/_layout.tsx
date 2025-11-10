@@ -3,13 +3,13 @@ import { NativeTabs, Label, Icon } from "expo-router/unstable-native-tabs";
 import { AccentColors } from "@/constants/colors";
 import { ClerkLoaded, SignedOut } from "@clerk/clerk-expo";
 import { Redirect } from "expo-router";
-import { SIGN_IN_PATH } from "@/constants/navigation";
+import { WELCOME_PATH } from "@/constants/navigation";
 
 export default function TabLayout() {
   return (
     <ClerkLoaded>
       <SignedOut>
-        <Redirect href={SIGN_IN_PATH} />
+        <Redirect href={WELCOME_PATH} />
       </SignedOut>
       <NativeTabs>
         <NativeTabs.Trigger name="home">

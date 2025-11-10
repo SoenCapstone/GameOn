@@ -8,14 +8,14 @@ export const styles = StyleSheet.create({
   
     cta: {
       alignSelf: 'center',
-      width: '50%',
-      backgroundColor: '#fff',
+      width: '80%',
+      backgroundColor: 'transparent',
       borderRadius: 999,
       paddingVertical: 14,
       alignItems: 'center',
       marginTop: 12,
     },
-    ctaText: { color: '#111', fontSize: 18, fontWeight: '700' },
+    ctaText: { color: '#b6b6b6ff', fontSize: 18, fontWeight: '700' },
   
     modalBackdrop: {
     flex: 1,
