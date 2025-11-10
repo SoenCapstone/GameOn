@@ -1,6 +1,6 @@
 import React from "react";
 import { render } from "@testing-library/react-native";
-import { Background } from "@/components/background";
+import { Background } from "@/components/ui/background";
 import { Colors } from "@/constants/colors";
 import { LinearGradient } from "expo-linear-gradient";
 
