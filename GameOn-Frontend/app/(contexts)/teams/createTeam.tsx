@@ -12,6 +12,8 @@ export default function CreateTeamScreen() {
     const router = useRouter();
 
     type Option = { id: string; label: string };
+    type PickerType = "sport" | "scope" | "city";
+
     const SCOPE_OPTIONS: Option[] = [
     { id: "casual", label: "Casual" },
     { id: "managed", label: "Managed" },
@@ -40,7 +42,7 @@ export default function CreateTeamScreen() {
     const [logoUri, setLogoUri] = useState<string | null>(null);
     const [isPublic, setIsPublic] = useState(true);
 
-    const [openPicker, setOpenPicker] = useState<null | "sport" | "scope" | "city">(null);
+    const [openPicker, setOpenPicker] = useState<PickerType | null>(null);
 
     const sportLabel = selectedSport?.label ?? "None";
     const scopeLabel = selectedScope.label;
@@ -58,6 +60,29 @@ export default function CreateTeamScreen() {
         });
         router.back();
     };
+
+    const pickerConfig: Record<
+        PickerType,
+        { title: string; options: Option[]; setter: (option: Option) => void }
+        > = {
+            sport: {
+                title: "Select Sport",
+                options: MOCK_SPORTS,
+                setter: setSelectedSport,
+            },
+            scope: {
+                title: "Select Scope",
+                options: SCOPE_OPTIONS,
+                setter: setSelectedScope,
+            },
+            city: {
+                title: "Select City",
+                options: MOCK_CITIES,
+                setter: setSelectedCity,
+            },
+        };
+
+    const currentConfig = openPicker ? pickerConfig[openPicker] : undefined;
 
     const handlePickLogo = async () => {
         const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
@@ -199,32 +224,16 @@ export default function CreateTeamScreen() {
                 </Pressable>
                 <PickerModal
                     visible={openPicker !== null}
-                    title={
-                        openPicker === "sport"
-                        ? "Select Sport"
-                        : openPicker === "scope"
-                        ? "Select Scope"
-                        : openPicker === "city"
-                        ? "Select City"
-                        : ""
-                    }
-                    options={
-                        openPicker === "sport"
-                        ? MOCK_SPORTS
-                        : openPicker === "scope"
-                        ? SCOPE_OPTIONS
-                        : openPicker === "city"
-                        ? MOCK_CITIES
-                        : []
-                    }
+                    title={currentConfig?.title ?? ""}
+                    options={currentConfig?.options ?? []}
                     onClose={() => setOpenPicker(null)}
                     onSelect={(option) => {
-                        if (openPicker === "sport") setSelectedSport(option);
-                        if (openPicker === "scope") setSelectedScope(option);
-                        if (openPicker === "city") setSelectedCity(option);
+                        if (!openPicker) return;
+                        pickerConfig[openPicker].setter(option);
                         setOpenPicker(null);
                     }}
                     />
+
             </ScrollView>
         </ContentArea>
     );

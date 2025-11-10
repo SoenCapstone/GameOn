@@ -1,8 +1,6 @@
 import React from "react";
 import { Image } from "expo-image";
-import { FlatList ,StyleSheet, View, ScrollView, Pressable, Alert} from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
-import { LinearGradient } from "expo-linear-gradient";
+import { FlatList , View, ScrollView, Pressable, Alert} from "react-native";
 import { useRouter } from "expo-router";
 import { ThemedText } from "@/components/themed-text";
 import { images } from "@/constants/images";
