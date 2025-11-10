@@ -1,11 +1,11 @@
 import React from "react";
-import ContentArea from "@/components/content-area";
-import { Background } from "@/components/background";
+import { ContentArea } from "@/components/ui/content-area";
+import { View } from "react-native";
 
 export default function Messages() {
   return (
-    <ContentArea>
-      <Background preset="green" mode="default" />
+    <ContentArea backgroundProps={{ preset: "green" }}>
+      <View />
     </ContentArea>
   );
 }

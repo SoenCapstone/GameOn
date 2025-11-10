@@ -1,24 +1,20 @@
-import { Pressable } from "react-native";
+import { Pressable, StyleSheet } from "react-native";
 import { Href, router } from "expo-router";
-import { SymbolView } from "expo-symbols";
 import React from "react";
 import { SFSymbols6_0 } from "sf-symbols-typescript";
 import { GlassView } from "expo-glass-effect";
+import { IconSymbol } from "@/components/ui/icon-symbol";
 
 type HeaderButtonProps =
   | { type: "back" }
   | { type: "custom"; icon: SFSymbols6_0; route: Href };
 
-export default function HeaderButton(props: HeaderButtonProps) {
+export function HeaderButton(props: HeaderButtonProps) {
   const iconName = props.type === "back" ? "chevron.left" : props.icon;
 
   return (
     <Pressable
-      style={{
-        alignItems: "center",
-        flex: 1,
-        justifyContent: "center",
-      }}
+      style={styles.button}
       onPress={() => {
         if (props.type === "back") {
           router.back();
@@ -30,22 +26,34 @@ export default function HeaderButton(props: HeaderButtonProps) {
       <GlassView
         glassEffectStyle="regular"
         isInteractive={true}
-        style={{
-          width: 44,
-          height: 44,
-          borderRadius: "100%",
-          backgroundColor: "transparent",
-          alignSelf: "center",
-          justifyContent: "center",
-        }}
+        style={styles.glass}
       >
-        <SymbolView
+        <IconSymbol
           name={iconName}
-          tintColor="white"
           size={26}
-          style={{ alignSelf: "center" }}
+          color="white"
+          style={styles.symbol}
         />
       </GlassView>
     </Pressable>
   );
 }
+
+const styles = StyleSheet.create({
+  button: {
+    alignItems: "center",
+    flex: 1,
+    justifyContent: "center",
+  },
+  glass: {
+    width: 44,
+    height: 44,
+    borderRadius: 100,
+    backgroundColor: "transparent",
+    alignSelf: "center",
+    justifyContent: "center",
+  },
+  symbol: {
+    alignSelf: "center",
+  },
+});

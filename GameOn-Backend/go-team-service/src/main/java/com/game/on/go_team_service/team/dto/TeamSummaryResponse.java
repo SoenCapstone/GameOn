@@ -11,6 +11,7 @@ public record TeamSummaryResponse(
         String sport,
         UUID leagueId,
         String slug,
+        String logoUrl,
         TeamPrivacy privacy,
         Integer maxRoster,
         boolean archived,
