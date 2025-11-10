@@ -11,11 +11,11 @@ import {
 export type Option = { id: string; label: string };
 
 type PickerModalProps = {
-  visible: boolean;
-  title: string;
-  options: Option[];
-  onClose: () => void;
-  onSelect: (option: Option) => void;
+  readonly visible: boolean;
+  readonly title: string;
+  readonly options: readonly Option[];
+  readonly onClose: () => void;
+  readonly onSelect: (option: Option) => void;
 };
 
 export default function PickerModal({
