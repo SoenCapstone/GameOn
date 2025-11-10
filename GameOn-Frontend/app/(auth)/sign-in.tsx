@@ -1,5 +1,4 @@
 import { authStyles } from "@/constants/auth-styles";
-import { Link } from "expo-router";
 import { Formik } from "formik";
 import React, { useState } from "react";
 import { KeyboardAvoidingView, Pressable, Text, View } from "react-native";
@@ -26,9 +25,8 @@ import { AuthSwitchLink } from "@/components/auth/AuthSwitchLink";
 import { SIGN_UP_PATH } from "@/constants/navigation";
 import { AuthLinearGradient } from "@/components/auth/AuthLinearGradient";
 import { useSignIn } from "@clerk/clerk-expo";
-import { BlurView } from "expo-blur";
 
-const { HERO_TOP, TOP_GRADIENT_H, FORM_PADDING_TOP, RENDER_W, RENDER_H } =
+const { TOP_GRADIENT_H, FORM_PADDING_TOP} =
   getAuthHeroLayout();
 
 export default function SignInScreen() {
