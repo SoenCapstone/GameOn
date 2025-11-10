@@ -14,7 +14,9 @@ export function PageTitle({ title }: Readonly<TitleProps>) {
 
 const styles = StyleSheet.create({
   container: {
+    flex: 1,
     justifyContent: "center",
+    alignItems: "center",
   },
   title: {
     fontSize: 17,

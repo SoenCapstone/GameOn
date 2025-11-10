@@ -1,0 +1,103 @@
+import { StyleSheet } from "react-native";
+
+export const profileStyles = StyleSheet.create({
+  header: {
+    alignItems: "center",
+    marginTop: 20,
+  },
+  profileImage: {
+    width: 100,
+    height: 100,
+    borderRadius: 60,
+    marginBottom: 1,
+    marginTop: 40,
+    marginHorizontal: 1,
+  },
+  name: {
+    fontSize: 18,
+    fontWeight: "700",
+    color: "#ffffffff",
+  },
+  email: {
+    color: "#6b7280",
+    marginBottom: 8,
+  },
+  gradient: {
+    flex: 1,
+    position: "absolute",
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+  },
+  sectionTitle: {
+    fontSize: 18,
+    fontWeight: "600",
+    marginBottom: 8,
+    marginTop: 10,
+    color: "#ffffffff",
+    textDecorationLine: "underline",
+  },
+  editButton: {
+    marginTop: 5,
+    backgroundColor: "rgba(255, 255, 255, 0.1)",
+    paddingHorizontal: 20,
+    paddingVertical: 8,
+    borderRadius: 25,
+    borderWidth: 1,
+    borderColor: "rgba(255, 255, 255, 0.3)",
+  },
+  buttonText: {
+    color: "rgba(255, 255, 255, 0.8)",
+    fontSize: 15,
+    fontWeight: "400",
+  },
+  flagsButton: {
+    marginTop: 10,
+    backgroundColor: "rgba(255, 255, 255, 0.12)",
+    paddingHorizontal: 20,
+    paddingVertical: 8,
+    borderRadius: 25,
+    borderWidth: 1,
+    borderColor: "rgba(255, 255, 255, 0.35)",
+  },
+  flagsButtonText: {
+    color: "#ffffff",
+    fontSize: 14,
+    fontWeight: "500",
+  },
+  buttonLogOut: {
+    borderRadius: 25,
+    marginBottom: 70,
+    marginTop: 10,
+    paddingHorizontal: 20,
+    paddingVertical: 8,
+    borderWidth: 1,
+    alignItems: "center",
+    backgroundColor: "rgba(255, 255, 255, 0.1)",
+    borderColor: "rgba(243, 166, 166, 0.8)",
+  },
+  buttonLogoutText: {
+    fontSize: 15,
+    fontWeight: "400",
+    color: "rgba(243, 166, 166, 0.8)",
+  },
+  leagueItem: {
+    backgroundColor: "transparent",
+    borderColor: "#444444ff",
+    borderWidth: 1,
+    padding: 14,
+    paddingHorizontal: 30,
+    borderRadius: 10,
+    marginBottom: 10,
+  },
+  leagueName: {
+    fontSize: 16,
+    fontWeight: "500",
+    color: "#ffffffff",
+  },
+  leagueDivision: {
+    color: "#6b7280",
+    fontSize: 14,
+  },
+});

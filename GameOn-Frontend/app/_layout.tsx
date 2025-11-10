@@ -11,8 +11,8 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { ClerkProvider, ClerkLoaded } from "@clerk/clerk-expo";
 import { tokenCache } from "@clerk/clerk-expo/token-cache";
 import { useColorScheme } from "@/hooks/use-color-scheme";
-import { FeatureFlagsProvider } from "@/contexts/featureFlags/FeatureFlagsContext";
 import { SearchProvider } from "@/contexts/SearchContext";
+import { FeatureFlagsProvider } from "@/components/feature-flags/feature-flags-context";
 
 const queryClient = new QueryClient();
 export const unstable_settings = { anchor: "(tabs)" };
@@ -45,6 +45,10 @@ export default function RootLayout() {
                   <Stack.Screen
                     name="browse"
                     options={{ headerShown: false }}
+                  />
+                  <Stack.Screen
+                  name="(contexts)"
+                  options={{ headerShown: false }}
                   />
                 </Stack>
                 <StatusBar style="auto" />
