@@ -1,4 +1,5 @@
 import { authStyles } from "@/constants/auth-styles";
+import { Link } from "expo-router";
 import { Formik } from "formik";
 import React, { useState } from "react";
 import { KeyboardAvoidingView, Pressable, Text, View } from "react-native";
