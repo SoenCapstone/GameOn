@@ -29,6 +29,7 @@ import { useSignIn } from "@clerk/clerk-expo";
 const { TOP_GRADIENT_H, FORM_PADDING_TOP} =
   getAuthHeroLayout();
 
+
 export default function SignInScreen() {
   const [showpassword, setShowpassword] = useState(false);
   const { signIn, setActive, isLoaded } = useSignIn();
@@ -106,6 +107,10 @@ export default function SignInScreen() {
                   authMessage={SIGN_UP_MESSAGE}
                 />
 
+                {__DEV__ && (
+                  <DevTools />
+                )}
+
               </>
             )}
           </Formik>
@@ -132,3 +137,21 @@ const displayStatus = (status: string) => {
 };
 
 
+const DevTools = () => {
+  return (
+    <View style={{ marginTop: "auto" }}>
+      <Text style={styles.metaText}>
+        enter app{' '}
+        <Link href="/(tabs)/profile" style={styles.metaLink}>
+          here
+        </Link>
+      </Text>
+      <Text style={styles.metaText}>
+        open site maps{' '}
+        <Link href="/_sitemap" style={styles.metaLink}>
+          here
+        </Link>
+      </Text>
+    </View>
+  );
+};
