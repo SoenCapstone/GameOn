@@ -24,7 +24,7 @@ export default function TeamsLayout() {
         }}
       />
       <Stack.Screen
-        name="createTeam"
+        name="create-team"
         options={{
           headerTransparent: true,
           headerShadowVisible: false,

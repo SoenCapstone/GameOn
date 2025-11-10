@@ -8,7 +8,7 @@ import { createScopedLog } from "@/utils/logger";
 import { useAuth } from "@clerk/clerk-expo";
 import ContentArea from "@/components/content-area";
 import { Background } from "@/components/background";
-import { profileStyles as styles } from "./profileStyle";
+import { profileStyles as styles } from "@/components/profile/profileStyle";
 // import { BACKEND_TEST } from "./backendConnectionTest";
 
 
@@ -125,7 +125,7 @@ export default function Profile() {
                 styles.flagsButton,
                 pressed && { backgroundColor: "rgba(255, 255, 255, 0.18)" },
               ]}
-              onPress={() => router.push("/(contexts)/featureFlags")}
+              onPress={() => router.push("/(contexts)/feature-flags")}
             >
               <ThemedText style={styles.flagsButtonText}>
                 Feature Flags

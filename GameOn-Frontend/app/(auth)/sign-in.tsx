@@ -51,14 +51,9 @@ export default function SignInScreen() {
           <Formik
             initialValues={initialSignInValue}
             validationSchema={SignInSchema}
-            onSubmit={async (values, { setStatus }) => {
-              if (!isLoaded || !signIn || !setActive) {
-                setStatus?.("Authentication is not ready, please try again.");
-                return;
-              }
-
-              await login(values, signIn, setActive, isLoaded);
-            }}
+            onSubmit={async (values) =>
+              await login(values, signIn, setActive, isLoaded)
+            }
           >
             {({
               values,
