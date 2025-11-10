@@ -1,5 +1,4 @@
 import { StyleSheet } from "react-native";
-import { BlurView } from "expo-blur";
 
 export const styles = StyleSheet.create({
   forgotWrap: { alignSelf: "flex-end", marginTop: 8 },
