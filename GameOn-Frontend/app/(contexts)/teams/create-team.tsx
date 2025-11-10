@@ -3,8 +3,7 @@ import { Pressable, ScrollView, Text } from "react-native";
 import { useRouter } from "expo-router";
 import PickerModal, { Option } from "@/components/ui/pickerModal";
 import { createTeamStyles as styles } from "../../../components/teams/teams-styles";
-import ContentArea from "@/components/content-area";
-import { Background } from "@/components/background";
+import { ContentArea } from "@/components/ui/content-area";
 import { TeamLogoSection } from "@/components/teams/logo-picker";
 import { TeamNameField } from "@/components/teams/name-field";
 import { TeamDetailsCard } from "@/components/teams/details-card";
@@ -81,8 +80,9 @@ export default function CreateTeamScreen() {
   };
 
   return (
-    <ContentArea>
-      <Background preset="purple" mode="default" />
+    <ContentArea
+      backgroundProps={{ preset: "purple" }}
+    >
       <ScrollView
         contentContainerStyle={styles.content}
         showsVerticalScrollIndicator={false}
