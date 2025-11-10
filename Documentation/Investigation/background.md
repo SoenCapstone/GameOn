@@ -40,5 +40,7 @@ These kinds of innovations allows the enhancement of operational reliability of 
 
 # References
 [PlayPass](https://playpass.com/sports-software/league-scheduler)
+
 [LeagureRepublic](https://www.leaguerepublic.com/index.html)
+
 [TeamSnap](https://www.teamsnap.com/)
