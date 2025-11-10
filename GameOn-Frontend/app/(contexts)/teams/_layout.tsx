@@ -2,14 +2,17 @@ import { Stack } from "expo-router";
 import React from "react";
 import Header from "@/components/header/header";
 import { Logo } from "@/components/header/logo";
-import { AddButton } from "@/components/header/add-button";
 import PageTitle from "@/components/header/page-title";
 
 const header = () => (
-  <Header left={<Logo />} center={<PageTitle title="Spaces" />} right={<AddButton/>}/>
+  <Header left={<Logo />} center={<PageTitle title="Teams" />} />
 );
 
-export default function SpacesLayout() {
+const createTeamHeader = () => (
+  <Header center={<PageTitle title="Create Team" />} />
+);
+
+export default function TeamsLayout() {
   return (
     <Stack>
       <Stack.Screen
@@ -20,6 +23,16 @@ export default function SpacesLayout() {
           headerTitle: header,
         }}
       />
+      <Stack.Screen
+        name="create-team"
+        options={{
+          headerTransparent: true,
+          headerShadowVisible: false,
+          headerTitle: createTeamHeader,
+        }}
+      />
     </Stack>
+    
   );
+  
 }
