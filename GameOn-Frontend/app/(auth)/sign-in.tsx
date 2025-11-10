@@ -1,92 +1,63 @@
-import { createScopedLog } from '@/utils/logger'; 
-import { authStyles } from '@/constants/auth-styles';
-import { Ionicons } from '@expo/vector-icons';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import { LinearGradient } from 'expo-linear-gradient';
-import { Link } from 'expo-router';
-import { Formik } from 'formik';
-import React, { useState } from 'react';
+import { authStyles } from "@/constants/auth-styles";
+import { Link } from "expo-router";
+import { Formik } from "formik";
+import React, { useState } from "react";
+import { KeyboardAvoidingView, Pressable, Text, View } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
+import { getAuthHeroLayout } from "@/constants/auth-layout";
+import { SignInSchema, login } from "@/components/sign-in/utils";
+import { styles } from "@/components/sign-in/styles";
 import {
-  ActivityIndicator,
-  Image,
-  KeyboardAvoidingView,
-  Platform,
-  Pressable,
-  StyleSheet,
-  Text,
-  TextInput,
-  View,
-} from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { getAuthHeroLayout } from '@/constants/auth-layout';
-import * as Yup from 'yup';
+  initialSignInValue,
+  signInInputLabels,
+  FORGOT_PASSWORD_TEXT,
+  SIGN_UP_TEXT,
+} from "@/components/sign-in/constants";
+import { isIOSPadding, displayFormikError } from "@/components/sign-up/utils";
+import { PasswordVisbilityToggle } from "@/components/auth/PasswordVisibilityToggle";
+import { SignUpInputLabel } from "@/components/sign-up/models";
+import { LabeledInput } from "@/components/auth/InputLabel";
+import { DisplayLogo } from "@/components/auth/DisplayLogo";
+import { SubmitAuthButton } from "@/components/auth/SubmitAuthButton";
+import {
+  SIGN_IN_MESSAGE,
+  SIGN_UP_MESSAGE,
+} from "@/components/sign-up/constants";
+import { AuthSwitchLink } from "@/components/auth/AuthSwitchLink";
+import { SIGN_UP_PATH } from "@/constants/navigation";
+import { AuthLinearGradient } from "@/components/auth/AuthLinearGradient";
+import { useSignIn } from "@clerk/clerk-expo";
 
-import { images } from '@/constants/images';
-import { useAuth } from '../../contexts/auth';
+const { HERO_TOP, TOP_GRADIENT_H, FORM_PADDING_TOP, RENDER_W, RENDER_H } =
+  getAuthHeroLayout();
 
-type User = { name: string; birth: string; email: string; pwd: string };
-const { HERO_TOP, TOP_GRADIENT_H, FORM_PADDING_TOP, RENDER_W, RENDER_H } = getAuthHeroLayout();
-
-const SignInSchema = Yup.object({
-  email: Yup.string().email('Enter a valid email').required('Email is required'),
-  pwd: Yup.string().min(6, 'Min 6 characters').required('Password is required'),
-});
-
-const log = createScopedLog('SignIn');
 
 export default function SignInScreen() {
-  const { signIn } = useAuth();
-  const [showPwd, setShowPwd] = useState(false);
-  
+  const [showpassword, setShowpassword] = useState(false);
+  const { signIn, setActive, isLoaded } = useSignIn();
 
   return (
     <SafeAreaView style={authStyles.safe}>
-      <LinearGradient
-        colors={['#1473B7', 'rgba(0,0,0,0)']}
-        start={{ x: 0, y: 0 }}
-        end={{ x: 0, y: 1 }}
-        style={[authStyles.topGradient, { height: TOP_GRADIENT_H }]}
-        pointerEvents="none"
+      <AuthLinearGradient top={TOP_GRADIENT_H} />
+
+      <DisplayLogo
+        top={HERO_TOP}
+        styleRenderWidth={RENDER_W}
+        styleRenderHeight={RENDER_H}
       />
 
-      <View style={[authStyles.hero, { top: HERO_TOP }]}>
-        <Image source={images.logo} style={{ width: RENDER_W, height: RENDER_H }} resizeMode="contain" />
-      </View>
-
-      <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+      <KeyboardAvoidingView style={{ flex: 1 }} behavior={isIOSPadding()}>
         <View style={[authStyles.container, { paddingTop: FORM_PADDING_TOP }]}>
           <Formik
-            initialValues={{ email: '', pwd: '' }}
+            initialValues={initialSignInValue}
             validationSchema={SignInSchema}
-            onSubmit={async (vals, { setSubmitting, setStatus }) => {
-              const started = Date.now();
-              try {
-                log.debug('Sign-in attempt', { email: vals.email });
-
-                const raw = await AsyncStorage.getItem('users');
-                const list: User[] = raw ? JSON.parse(raw) : [];
-                const match = list.find(
-                  (u) =>
-                    u.email.trim().toLowerCase() === vals.email.trim().toLowerCase() &&
-                    u.pwd === vals.pwd
-                );
-
-                if (match) {
-                  log.info('Sign-in success', {
-                    email: vals.email,
-                    ms: Date.now() - started,
-                  });
-                  await signIn('demo-token');
-                } else {
-                  log.warn('Invalid credentials', { email: vals.email });
-                  setStatus('Invalid email or password');
-                }
-              } catch (e) {
-                log.error('Sign-in failed with exception', { error: String(e) });
-                setStatus('Sign in failed. Please try again.');
-              } finally {
-                setSubmitting(false);
+            onSubmit={async (values, { setStatus }) => {
+              if (!isLoaded || !signIn || !setActive) {
+                setStatus?.("Authentication is not ready, please try again.");
+                return;
               }
+
+              await login(values, signIn, setActive, isLoaded);
             }}
           >
             {({
@@ -94,98 +65,53 @@ export default function SignInScreen() {
               errors,
               touched,
               handleBlur,
-              handleSubmit,
-              isSubmitting,
+              handleChange,
               status,
-              setStatus,
-              setFieldValue,
             }) => (
               <>
-                
                 <View style={{ gap: 16 }}>
-                  <LabeledInput
-                    label="Email"
-                    placeholder="example@example.com"
-                    value={values.email}
-                    onChangeText={(t: string) => {
-                      setStatus(undefined);        
-                      setFieldValue('email', t);
-                    }}
-                    onBlur={() => handleBlur('email')}
-                    keyboardType="email-address"
-                    autoCapitalize="none"
-                    error={touched.email && errors.email ? errors.email : undefined}
-                  />
+                  {signInInputLabels(showpassword).map(
+                    (inputLabel: SignUpInputLabel) => (
+                      <LabeledInput
+                        key={inputLabel.field}
+                        label={inputLabel.label}
+                        placeholder={inputLabel.placeholder}
+                        value={values?.[inputLabel.field]}
+                        onChangeText={handleChange(inputLabel.field)}
+                        onBlur={() => handleBlur(inputLabel.field)}
+                        keyboardType={inputLabel.keyboardType}
+                        autoCapitalize={inputLabel?.autoCapitalize}
+                        secureTextEntry={inputLabel.secureTextEntry}
+                        rightIcon={
+                          inputLabel.rightIcon && (
+                            <PasswordVisbilityToggle
+                              showpassword={showpassword}
+                              setShowpassword={setShowpassword}
+                            />
+                          )
+                        }
+                        error={displayFormikError(touched, errors, inputLabel)}
+                      />
+                    )
+                  )}
 
-                  <LabeledInput
-                    label="Password"
-                    placeholder="**********"
-                    value={values.pwd}
-                    onChangeText={(t: string) => {
-                      setStatus(undefined);        
-                      setFieldValue('pwd', t);
-                    }}
-                    onBlur={() => handleBlur('pwd')}
-                    secureTextEntry={!showPwd}
-                    rightIcon={
-                      <Pressable onPress={() => setShowPwd((s) => !s)} hitSlop={8}>
-                        <Ionicons name={showPwd ? 'eye-off-outline' : 'eye-outline'} size={20} color="#000000" />
-                      </Pressable>
-                    }
-                    error={touched.pwd && errors.pwd ? errors.pwd : undefined}
-                  />
-
-                  <Pressable onPress={() => { /* forgot password flow */ }} style={styles.forgotWrap}>
-                    <Text style={styles.forgotText}>Forgot Password</Text>
-                  </Pressable>
+                  <ForgotPassword />
                 </View>
 
-                {status ? (
-                  <View style={styles.statusBox}>
-                    <Text style={styles.statusText}>{status}</Text>
-                  </View>
-                ) : null}
+                {displayStatus(status)}
 
-                <Pressable
-                  onPress={() => handleSubmit()}
-                  disabled={isSubmitting}
-                  style={({ pressed }) => [
-                    styles.cta,
-                    (pressed || isSubmitting) && { opacity: 0.85 },
-                    isSubmitting && { opacity: 0.6 },
-                  ]}
-                >
-                  {isSubmitting ? <ActivityIndicator /> : <Text style={styles.ctaText}>Log In</Text>}
-                </Pressable>
+                <SubmitAuthButton actionMessage={SIGN_IN_MESSAGE} />
 
-                <View style={{ marginTop: 'auto' }}>
-                  <Text style={styles.metaText}>
-                    Don&apos;t have an account?{' '}
-                    <Link href="/(auth)/sign-up" style={styles.metaLink}>
-                      Sign Up
-                    </Link>
-                  </Text>
-                </View>
+                <AuthSwitchLink
+                  text={SIGN_UP_TEXT}
+                  path={SIGN_UP_PATH}
+                  authMessage={SIGN_UP_MESSAGE}
+                />
 
-
-                
-                {/*To test tabs*/}
                 {__DEV__ && (
-                <View style={{ marginTop: 'auto' }}>
-                  <Text style={styles.metaText}>
-                    enter app{' '}
-                    <Link href="/(tabs)/profile" style={styles.metaLink}>
-                      here
-                    </Link>
-                  </Text>
-                  <Text style={styles.metaText}>
-                    go to teams page{' '}
-                    <Link href="/(contexts)/teams" style={styles.metaLink}>
-                      here
-                    </Link>
-                  </Text>
-                </View>
+                  <DevTools />
                 )}
+
               </>
             )}
           </Formik>
@@ -195,66 +121,38 @@ export default function SignInScreen() {
   );
 }
 
-
-type LabeledInputProps = {
-  label: string;
-  placeholder?: string;
-  value: string;
-  onChangeText: (t: string) => void;
-  onBlur?: () => void;
-  keyboardType?: any;
-  autoCapitalize?: 'none' | 'sentences' | 'words' | 'characters';
-  secureTextEntry?: boolean;
-  rightIcon?: React.ReactNode;
-  error?: string;
-};
-function LabeledInput({ label, rightIcon, error, ...inputProps }: Readonly<LabeledInputProps>) {
+const ForgotPassword = () => {
   return (
-    <View style={{ gap: 8 }}>
-      <Text style={authStyles.label}>{label}</Text>
-      <View style={[authStyles.inputWrap, error ? { borderWidth: 1, borderColor: '#EF4444' } : null]}>
-        <TextInput {...inputProps} style={authStyles.input} placeholderTextColor="#FFFFFF" />
-        {rightIcon ? <View style={authStyles.rightIcon}>{rightIcon}</View> : null}
-      </View>
-      {error ? <Text style={authStyles.errorText}>{error}</Text> : null}
+    <Pressable onPress={() => {}} style={styles.forgotWrap}>
+      <Text style={styles.forgotText}>{FORGOT_PASSWORD_TEXT}</Text>
+    </Pressable>
+  );
+};
+
+const displayStatus = (status: string) => {
+  return status ? (
+    <View style={styles.statusBox}>
+      <Text style={styles.statusText}>{status}</Text>
+    </View>
+  ) : null;
+};
+
+
+const DevTools = () => {
+  return (
+    <View style={{ marginTop: "auto" }}>
+      <Text style={styles.metaText}>
+        enter app{' '}
+        <Link href="/(tabs)/profile" style={styles.metaLink}>
+          here
+        </Link>
+      </Text>
+      <Text style={styles.metaText}>
+        go to teams page{' '}
+        <Link href="/(contexts)/teams" style={styles.metaLink}>
+          here
+        </Link>
+      </Text>
     </View>
   );
-}
-
-
-const styles = StyleSheet.create({
-
-  forgotWrap: { alignSelf: 'flex-end', marginTop: 8 },
-  forgotText: { color: '#D1D5DB', fontSize: 12 },
-
-
-  statusBox: {
-    marginTop: 8,
-    borderRadius: 10,
-    paddingVertical: 10,
-    paddingHorizontal: 12,
-    backgroundColor: '#7F1D1D', 
-    borderWidth: 1,
-    borderColor: '#EF4444',
-  },
-  statusText: {
-    color: '#FCA5A5',
-    textAlign: 'center',
-    fontSize: 13,
-    fontWeight: '600',
-  },
-
-  cta: {
-    alignSelf: 'center',
-    width: '50%',
-    backgroundColor: '#fff',
-    borderRadius: 999,
-    paddingVertical: 14,
-    alignItems: 'center',
-    marginTop: 8,
-  },
-  ctaText: { color: '#111', fontSize: 18, fontWeight: '700' },
-
-  metaText: { textAlign: 'center', color: '#9CA3AF' },
-  metaLink: { color: '#fff', fontWeight: '600' },
-});
+};

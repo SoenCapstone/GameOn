@@ -1,0 +1,46 @@
+import axios, { AxiosInstance, InternalAxiosRequestConfig } from "axios";
+import { useAuth } from "@clerk/clerk-expo"; 
+import { useMemo } from "react";
+import { AXIOS_BEARER } from "@/constants/hook-constants";
+
+export const useAxiosWithClerk = () => {
+  const { getToken } = useAuth();
+
+  return useMemo(() => {
+    const axiosInstance = axios.create({
+      baseURL: process.env.EXPO_PUBLIC_API_BASE_URL
+    });
+
+    attachAxiosInterceptor(axiosInstance, getToken);
+    return axiosInstance;
+  }, [getToken]);  
+};
+
+const attachAxiosInterceptor = (axiosInstance : AxiosInstance, getToken : () => Promise<string | null>) => {
+    return axiosInstance.interceptors.request.use(async (config : InternalAxiosRequestConfig) => {
+      const token = await getToken();
+      
+      if (token) {
+        config.headers.Authorization = `${AXIOS_BEARER} ${token}`;
+      }
+      return config;
+    },
+    (error) => Promise.reject(error));
+}
+
+const API = 'api';
+
+enum VERSIONING  {
+    v1 = 'v1'
+}
+
+enum SERVICE {
+    USER = 'user',
+}
+
+const buildUserRoute = (version : string, service : string, path : string) => `${API}/${version}/${service}/${path}`;
+
+export const GO_USER_SERVICE_ROUTES = {
+    TEST : buildUserRoute(VERSIONING.v1, SERVICE.USER, "test"),
+    CREATE : buildUserRoute(VERSIONING.v1, SERVICE.USER ,"create")
+}
