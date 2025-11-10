@@ -1,0 +1,66 @@
+<mxfile host="app.diagrams.net" agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:144.0) Gecko/20100101 Firefox/144.0" version="28.2.9">
+  <diagram name="Page-1" id="0uYK3GJKYT4rUbN9kLLW">
+    <mxGraphModel dx="1426" dy="751" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="850" pageHeight="1100" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="5IQH26cxt2a6-ze0qwvW-60" style="edgeStyle=none;curved=1;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0;exitY=0;exitDx=0;exitDy=0;entryX=0;entryY=0.75;entryDx=0;entryDy=0;fontSize=12;startSize=8;endSize=8;dashed=1;dashPattern=8 8;" parent="1" edge="1">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="-60" y="390" />
+            </Array>
+            <mxPoint x="370" y="130" as="sourcePoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="TV8iW-BtUPNCIPLugGdl-37" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;startArrow=classic;startFill=1;startSize=12;endSize=12;" edge="1" parent="1" source="TV8iW-BtUPNCIPLugGdl-20" target="TV8iW-BtUPNCIPLugGdl-28">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="TV8iW-BtUPNCIPLugGdl-20" value="&lt;br&gt;&lt;div&gt;&lt;br&gt;&lt;/div&gt;&lt;div&gt;&lt;br&gt;&lt;/div&gt;&lt;div&gt;&lt;br&gt;&lt;/div&gt;&lt;div&gt;&lt;br&gt;&lt;/div&gt;&lt;div&gt;&lt;br&gt;&lt;/div&gt;&lt;div&gt;&lt;br&gt;&lt;/div&gt;&lt;div&gt;&lt;br&gt;&lt;/div&gt;&lt;div&gt;&lt;br&gt;&lt;/div&gt;&lt;div&gt;&lt;br&gt;&lt;/div&gt;&lt;div&gt;&lt;br&gt;&lt;/div&gt;&lt;div&gt;&lt;br&gt;&lt;/div&gt;&lt;div&gt;&lt;br&gt;&lt;/div&gt;&lt;div&gt;&lt;br&gt;&lt;/div&gt;&lt;pre align=&quot;left&quot; style=&quot;margin-top: 0px; margin-bottom: 12px;&quot;&gt;React/Expo WebApp&lt;/pre&gt;" style="html=1;whiteSpace=wrap;align=left;" vertex="1" parent="1">
+          <mxGeometry x="60" y="70" width="670" height="230" as="geometry" />
+        </mxCell>
+        <mxCell id="TV8iW-BtUPNCIPLugGdl-22" value="Front-End Components" style="html=1;whiteSpace=wrap;" vertex="1" parent="1">
+          <mxGeometry x="400" y="90" width="150" height="90" as="geometry" />
+        </mxCell>
+        <mxCell id="TV8iW-BtUPNCIPLugGdl-23" value="Web Pages" style="html=1;whiteSpace=wrap;" vertex="1" parent="1">
+          <mxGeometry x="80" y="90" width="150" height="90" as="geometry" />
+        </mxCell>
+        <mxCell id="TV8iW-BtUPNCIPLugGdl-24" value="Page Routing" style="html=1;whiteSpace=wrap;" vertex="1" parent="1">
+          <mxGeometry x="240" y="90" width="150" height="90" as="geometry" />
+        </mxCell>
+        <mxCell id="TV8iW-BtUPNCIPLugGdl-26" value="Back-end requests" style="html=1;whiteSpace=wrap;" vertex="1" parent="1">
+          <mxGeometry x="560" y="90" width="150" height="90" as="geometry" />
+        </mxCell>
+        <mxCell id="TV8iW-BtUPNCIPLugGdl-27" value="&lt;div&gt;User Authentication&lt;/div&gt;&lt;div&gt;(via 3rd party)&lt;/div&gt;" style="html=1;whiteSpace=wrap;" vertex="1" parent="1">
+          <mxGeometry x="400" y="190" width="150" height="90" as="geometry" />
+        </mxCell>
+        <mxCell id="TV8iW-BtUPNCIPLugGdl-28" value="&lt;div&gt;&lt;br&gt;&lt;/div&gt;&lt;div&gt;&lt;br&gt;&lt;/div&gt;&lt;div&gt;&lt;br&gt;&lt;/div&gt;&lt;div&gt;&lt;br&gt;&lt;/div&gt;&lt;div&gt;&lt;br&gt;&lt;/div&gt;&lt;div&gt;&lt;br&gt;&lt;/div&gt;&lt;div&gt;&lt;br&gt;&lt;/div&gt;&lt;div&gt;&lt;br&gt;&lt;/div&gt;&lt;div&gt;&lt;br&gt;&lt;/div&gt;&lt;div&gt;&lt;br&gt;&lt;/div&gt;&lt;div&gt;&lt;br&gt;&lt;/div&gt;&lt;div&gt;&lt;br&gt;&lt;/div&gt;&lt;div&gt;&lt;br&gt;&lt;/div&gt;&lt;div&gt;&lt;br&gt;&lt;/div&gt;&lt;div&gt;&lt;br&gt;&lt;/div&gt;&lt;div&gt;Springboot Projects&lt;/div&gt;" style="html=1;whiteSpace=wrap;align=left;" vertex="1" parent="1">
+          <mxGeometry x="60" y="390" width="670" height="230" as="geometry" />
+        </mxCell>
+        <mxCell id="TV8iW-BtUPNCIPLugGdl-29" value="Internal User Microservice" style="html=1;whiteSpace=wrap;" vertex="1" parent="1">
+          <mxGeometry x="80" y="410" width="150" height="90" as="geometry" />
+        </mxCell>
+        <mxCell id="TV8iW-BtUPNCIPLugGdl-30" value="&quot;Teams&quot; Microservice" style="html=1;whiteSpace=wrap;" vertex="1" parent="1">
+          <mxGeometry x="240" y="410" width="150" height="90" as="geometry" />
+        </mxCell>
+        <mxCell id="TV8iW-BtUPNCIPLugGdl-31" value="&quot;Leagues&quot; Microservice" style="html=1;whiteSpace=wrap;" vertex="1" parent="1">
+          <mxGeometry x="400" y="410" width="150" height="90" as="geometry" />
+        </mxCell>
+        <mxCell id="TV8iW-BtUPNCIPLugGdl-32" value="Role Manager Microservice" style="html=1;whiteSpace=wrap;" vertex="1" parent="1">
+          <mxGeometry x="560" y="410" width="150" height="90" as="geometry" />
+        </mxCell>
+        <mxCell id="TV8iW-BtUPNCIPLugGdl-33" value="Databases (PostgreSQL)" style="html=1;whiteSpace=wrap;" vertex="1" parent="1">
+          <mxGeometry x="240" y="510" width="150" height="90" as="geometry" />
+        </mxCell>
+        <mxCell id="TV8iW-BtUPNCIPLugGdl-34" value="Administrative Pages" style="html=1;whiteSpace=wrap;" vertex="1" parent="1">
+          <mxGeometry x="240" y="190" width="150" height="90" as="geometry" />
+        </mxCell>
+        <mxCell id="TV8iW-BtUPNCIPLugGdl-35" value="Feature Flags" style="html=1;whiteSpace=wrap;" vertex="1" parent="1">
+          <mxGeometry x="560" y="190" width="150" height="90" as="geometry" />
+        </mxCell>
+        <mxCell id="TV8iW-BtUPNCIPLugGdl-36" value="Feature Flags" style="html=1;whiteSpace=wrap;" vertex="1" parent="1">
+          <mxGeometry x="400" y="510" width="150" height="90" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>
