@@ -6,17 +6,26 @@ import com.game.on.go_user_service.dto.UserResponse;
 import com.game.on.go_user_service.service.UserService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
+@Slf4j
 @RestController
 @RequestMapping("/api/v1")
 @RequiredArgsConstructor
 public class UserController {
 
     private final UserService userService;
+
+    /* Test endpoint to test FE->BE connection - Uncomment for testing purposes */
+//    @PostMapping("/user/test")
+//    public String testEndpoint() {
+//        log.info("Test endpoint called");
+//        return "FE can connect to BE!";
+//    }
 
     @GetMapping("/user/getAllUsers")
     public ResponseEntity<List<UserResponse>> getAllUsers(){
@@ -28,18 +37,14 @@ public class UserController {
         return ResponseEntity.ok(userService.fetchUserByEmail(userEmail));
     }
 
-    @GetMapping("/user/keycloak/{keycloakId}")
-    public ResponseEntity<UserResponse> fetchUserByKeycloakId(@PathVariable String keycloakId) {
-        return ResponseEntity.ok(userService.fetchUserByKeycloakId(keycloakId));
-    }
-
    @GetMapping("/user/id/{userId}")
-   public ResponseEntity<UserResponse> fetchUserById(@PathVariable Long userId) {
+   public ResponseEntity<UserResponse> fetchUserById(@PathVariable String userId) {
        return ResponseEntity.ok(userService.fetchUserById(userId));
    }
 
     @PostMapping("/user/create")
     public ResponseEntity<UserResponse> createUser(@Valid @RequestBody UserRequestCreate userRequestCreate){
+        log.info("Creating user with email: {}", userRequestCreate.email());
         return ResponseEntity.ok(userService.createUser(userRequestCreate));
     }
 

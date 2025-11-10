@@ -1,299 +1,220 @@
 package com.game.on.go_user_service;
 
-import com.game.on.go_user_service.config.KeycloakProperties;
 import com.game.on.go_user_service.dto.UserRequestCreate;
 import com.game.on.go_user_service.dto.UserRequestUpdate;
 import com.game.on.go_user_service.dto.UserResponse;
 import com.game.on.go_user_service.exception.UserAlreadyExistsException;
 import com.game.on.go_user_service.exception.UserNotFoundException;
 import com.game.on.go_user_service.mapper.UserMapper;
-import com.game.on.go_user_service.model.KeycloakUser;
 import com.game.on.go_user_service.model.User;
 import com.game.on.go_user_service.repository.UserRepository;
 import com.game.on.go_user_service.service.UserService;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.mockito.junit.jupiter.MockitoSettings;
-import org.mockito.quality.Strictness;
-import org.springframework.core.ParameterizedTypeReference;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpMethod;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.client.HttpClientErrorException;
-import org.springframework.web.client.RestTemplate;
 
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.mockito.ArgumentMatchers.*;
+import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
-@MockitoSettings(strictness = Strictness.LENIENT)
-class UserServiceTest {
+public class UserServiceTest {
 
     @InjectMocks
     private UserService userService;
 
     @Mock
-    private RestTemplate restTemplate;
+    private UserRepository userRepository;
 
     @Mock
     private UserMapper userMapper;
 
-    @Mock
-    private UserRepository userRepository;
-
-    @Mock
-    private KeycloakProperties keycloakProperties;
-
-    @BeforeEach
-    void setup() {
-        userService = spy(userService);
-        doReturn("fake-admin-token").when(userService).getKeycloakAdminToken();
-
-        lenient().when(keycloakProperties.getAdminUsersUrl()).thenReturn("http://localhost/users");
-        lenient().when(keycloakProperties.getTokenUrl()).thenReturn("http://localhost/token");
-        lenient().when(keycloakProperties.getClientId()).thenReturn("client-id");
-        lenient().when(keycloakProperties.getClientSecret()).thenReturn("client-secret");
+    private static UserRequestCreate requestCreate(String id, String firstname, String lastname, String email){
+        return new UserRequestCreate(id, firstname, lastname, email);
     }
 
-    private static UserRequestCreate requestCreate(String firstname, String lastname, String email, String password) {
-        return new UserRequestCreate(firstname, lastname, email, password);
+    private static UserRequestUpdate requestUpdate(String id, String firstname, String lastname, String email){
+        return new UserRequestUpdate(id, firstname, lastname, email);
     }
 
-    private static UserRequestUpdate requestUpdate(String firstname, String lastname, String email, String password) {
-        return new UserRequestUpdate(firstname, lastname, email, password);
+    private static User user(String id, String firstname, String lastname, String email){
+        return User.builder()
+                .id(id)
+                .firstname(firstname)
+                .lastname(lastname)
+                .email(email)
+                .build();
     }
 
-    private static UserResponse response(String firstname, String lastname, String email) {
-        return new UserResponse(email, firstname, lastname);
-    }
-
-    private static KeycloakUser kcUser(String username, String email) {
-        return new KeycloakUser(username, email, "Person", "One", true, null);
-    }
-
-    private static User userEntity(String keycloakId) {
-        return new User(keycloakId);
+    private static UserResponse response(String id, String firstname, String lastname, String email){
+        return new UserResponse(id, email, firstname, lastname);
     }
 
     @Test
-    void fetchUserByEmail_returnsUser() {
-        String email = "test1@email.com";
-        Map<String, Object> kcMap = Map.of(
-                "username", "test1",
-                "email", email,
-                "firstName", "Person",
-                "lastName", "One",
-                "enabled", true,
-                "id", "123"
-        );
+    void getAllUsersTest(){
+        var user1 = user("1234", "Person","One","test1@email.com");
+        var user2 = user("5678", "Person", "Two","test2@email.com");
 
-        KeycloakUser kcUser = kcUser("test1", email);
-        when(restTemplate.exchange(
-                contains("/users?email=" + email),
-                eq(HttpMethod.GET),
-                any(HttpEntity.class),
-                any(ParameterizedTypeReference.class)
-        )).thenReturn(new ResponseEntity<>(List.of(kcMap), HttpStatus.OK));
+        when(userRepository.findAll()).thenReturn(List.of(user1, user2));
+        when(userMapper.toUserResponse(user1)).thenReturn(response("1234","Person", "One", "test1@email.com"));
+        when(userMapper.toUserResponse(user2)).thenReturn(response("5678","Person", "Two", "test2@email.com"));
 
-        when(userMapper.fromMap(kcMap)).thenReturn(kcUser);
-        when(userMapper.toUserResponse(kcUser)).thenReturn(response("Person", "One", email));
+        var getAllUsersResponse = userService.getAllUsers();
 
-        UserResponse result = userService.fetchUserByEmail(email);
+        assertThat(getAllUsersResponse).hasSize(2);
+        assertThat(getAllUsersResponse.get(0).email()).isEqualTo("test1@email.com");
+        assertThat(getAllUsersResponse.get(1).email()).isEqualTo("test2@email.com");
 
-        assertThat(result.email()).isEqualTo(email);
-        assertThat(result.firstname()).isEqualTo("Person");
-        assertThat(result.lastname()).isEqualTo("One");
+        verify(userRepository).findAll();
+        verify(userMapper).toUserResponse(user1);
+        verify(userMapper).toUserResponse(user2);
     }
 
     @Test
-    void fetchUserByEmail_missingUser_throws() {
-        String email = "missing@email.com";
+    void fetchUserByEmailTest(){
+        var u = user("1234", "Person","One","test1@email.com");
 
-        when(restTemplate.exchange(
-                contains("/users?email=" + email),
-                eq(HttpMethod.GET),
-                any(HttpEntity.class),
-                any(ParameterizedTypeReference.class)
-        )).thenReturn(new ResponseEntity<>(List.of(), HttpStatus.OK));
+        when(userRepository.findByEmail("test1@email.com")).thenReturn(Optional.of(u));
+        when(userMapper.toUserResponse(u)).thenReturn(response("1234","Person", "One", "test1@email.com"));
 
-        assertThatThrownBy(() -> userService.fetchUserByEmail(email))
+        var res = userService.fetchUserByEmail("test1@email.com");
+
+        assertThat(res.email()).isEqualTo("test1@email.com");
+
+        verify(userRepository).findByEmail("test1@email.com");
+        verify(userMapper).toUserResponse(u);
+    }
+
+    @Test
+    void fetchUserByEmailTestUserNotFoundException(){
+        when(userRepository.findByEmail("userNotFound@email.com")).thenReturn(Optional.empty());
+
+        assertThatThrownBy(() -> userService.fetchUserByEmail("userNotFound@email.com"))
                 .isInstanceOf(UserNotFoundException.class)
-                .hasMessageContaining(email);
+                .hasMessageContaining("User with Email userNotFound@email.com is not found");
+
+        verify(userRepository).findByEmail("userNotFound@email.com");
+        verifyNoInteractions(userMapper);
     }
 
     @Test
-    void fetchUserById_delegatesToKeycloak() {
-        Long id = 1L;
-        User userEntity = new User("kc-123");
-        Map<String, Object> kcMap = Map.of(
-                "username", "test1",
-                "email", "test1@email.com",
-                "firstName", "Person",
-                "lastName", "One",
-                "enabled", true
-        );
-        KeycloakUser kcUser = kcUser("test1", "test1@email.com");
+    public void createUserTest(){
+        var req = requestCreate("1234","Person","One","test1@email.com");
+        var u = user("1234","Person","One","test1@email.com");
 
-        when(userRepository.findById(id)).thenReturn(Optional.of(userEntity));
-        when(restTemplate.exchange(
-                contains("/users/kc-123"),
-                eq(HttpMethod.GET),
-                any(HttpEntity.class),
-                any(ParameterizedTypeReference.class)
-        )).thenReturn(new ResponseEntity<>(kcMap, HttpStatus.OK));
-        when(userMapper.fromMap(kcMap)).thenReturn(kcUser);
-        when(userMapper.toUserResponse(kcUser)).thenReturn(response("Person", "One", "test1@email.com"));
+        when(userRepository.findById("1234")).thenReturn(Optional.empty());
+        when(userMapper.toUser(req)).thenReturn(u);
+        when(userRepository.save(u)).thenReturn(u);
 
-        UserResponse result = userService.fetchUserById(id);
+        var createUserResponse = userService.createUser(req);
 
-        assertThat(result.email()).isEqualTo("test1@email.com");
+        assertThat(createUserResponse.id()).isEqualTo("1234");
+        assertThat(createUserResponse.email()).isEqualTo("test1@email.com");
+
+        verify(userRepository).findById("1234");
+        verify(userMapper).toUser(req);
+        verify(userRepository).save(u);
+        verifyNoMoreInteractions(userMapper);
     }
 
     @Test
-    void fetchUserById_missingLocalUser_throws() {
-        when(userRepository.findById(99L)).thenReturn(Optional.empty());
+    void createUserUserAlreadyExistsExceptionTest() {
+        var req = requestCreate("1234","Person", "One", "test1@email.com");
+        when(userRepository.findById("1234")).thenReturn(Optional.of(
+                user("1234","Person", "One", "test1@email.com")));
 
-        assertThatThrownBy(() -> userService.fetchUserById(99L))
-                .isInstanceOf(UserNotFoundException.class);
-    }
-
-    @Test
-    void createUser_createsInKeycloakAndDb() {
-        UserRequestCreate request = requestCreate("Person", "One", "test1@email.com", "Password123");
-
-        when(restTemplate.postForEntity(anyString(), any(HttpEntity.class), eq(String.class)))
-                .thenReturn(ResponseEntity.status(HttpStatus.CREATED)
-                        .header(HttpHeaders.LOCATION, "http://localhost/users/123")
-                        .build());
-
-        User userEntity = userEntity("123");
-        when(userMapper.toUser(request, "123")).thenReturn(userEntity);
-
-        UserResponse result = userService.createUser(request);
-
-        assertThat(result.email()).isEqualTo(request.email());
-        verify(userRepository).save(userEntity);
-    }
-
-    @Test
-    void createUser_existingKeycloakUser_throws() {
-        UserRequestCreate request = requestCreate("Person", "One", "test1@email.com", "Password123");
-
-        when(restTemplate.postForEntity(anyString(), any(HttpEntity.class), eq(String.class)))
-                .thenThrow(new HttpClientErrorException(HttpStatus.CONFLICT));
-
-        assertThatThrownBy(() -> userService.createUser(request))
+        assertThatThrownBy(() -> userService.createUser(req))
                 .isInstanceOf(UserAlreadyExistsException.class)
-                .hasMessageContaining(request.email());
+                .hasMessageContaining("User with ID 1234 already exists");
+
+        verify(userRepository).findById("1234");
+        verify(userRepository, never()).save(any());
+        verifyNoInteractions(userMapper);
     }
 
     @Test
-    void updateUser_updatesKeycloakAndDb() {
-        UserRequestUpdate request = requestUpdate("NewFirst", "NewLast", "test1@email.com", "");
-        Map<String, Object> kcMap = Map.of(
-                "username", "test1",
-                "email", request.email(),
-                "firstName", "OldFirst",
-                "lastName", "OldLast",
-                "enabled", true,
-                "id", "123"
-        );
+    void updateUserSomeFieldsTest() {
+        var existing = user("1234", "oldFirstname", "oldLastname","test1@email.com");
+        var req = requestUpdate("1234","newFirstname","","test1@email.com");
+        var newInfo = user("1234","newFirstname", "   ","test1@email.com"); // lastname blank -> ignored
 
-        when(restTemplate.exchange(
-                contains("/users?email=" + request.email()),
-                eq(HttpMethod.GET),
-                any(HttpEntity.class),
-                any(ParameterizedTypeReference.class)
-        )).thenReturn(new ResponseEntity<>(List.of(kcMap), HttpStatus.OK));
-        when(restTemplate.exchange(
-                contains("/users/123"),
-                eq(HttpMethod.PUT),
-                any(HttpEntity.class),
-                eq(Void.class)
-        )).thenReturn(new ResponseEntity<>(HttpStatus.NO_CONTENT));
+        when(userRepository.findById("1234")).thenReturn(Optional.of(existing));
+        when(userMapper.toUser(req)).thenReturn(newInfo);
+        when(userRepository.save(any(User.class))).thenAnswer(inv -> inv.getArgument(0));
 
-        User dbUser = userEntity("123");
-        when(userRepository.findByKeycloakId("123")).thenReturn(Optional.of(dbUser));
+        userService.updateUser(req);
 
-        userService.updateUser(request);
+        verify(userRepository).findById("1234");
+        verify(userMapper).toUser(req);
+        verify(userRepository).save(existing);
 
-        verify(restTemplate).exchange(contains("/users/123"), eq(HttpMethod.PUT), any(HttpEntity.class), eq(Void.class));
-        verify(userRepository).save(dbUser);
+        assertThat(existing.getEmail()).isEqualTo("test1@email.com");
+        assertThat(existing.getFirstname()).isEqualTo("newFirstname");
+        assertThat(existing.getLastname()).isEqualTo("oldLastname"); // unchanged because blank in req
     }
 
     @Test
-    void updateUser_missingKeycloakUser_throws() {
-        UserRequestUpdate request = requestUpdate("NewFirst", "NewLast", "missing@email.com", "");
+    void updateUserAllFieldsTest() {
+        var existing = user("1234", "oldFirstname", "oldLastname","test1@email.com");
+        var req = requestUpdate("1234","newFirstname", "newLastname", "test1@email.com");
+        var newInfo = user("1234", "newFirstname", "newLastname", "test1@email.com");
 
-        when(restTemplate.exchange(
-                contains("/users?email=" + request.email()),
-                eq(HttpMethod.GET),
-                any(HttpEntity.class),
-                any(ParameterizedTypeReference.class)
-        )).thenReturn(new ResponseEntity<>(List.of(), HttpStatus.OK));
+        when(userRepository.findById("1234")).thenReturn(Optional.of(existing));
+        when(userMapper.toUser(req)).thenReturn(newInfo);
 
-        assertThatThrownBy(() -> userService.updateUser(request))
-                .isInstanceOf(UserNotFoundException.class);
+        userService.updateUser(req);
+
+        verify(userRepository).findById("1234");
+        verify(userMapper).toUser(req);
+        verify(userRepository).save(existing);
+
+        assertThat(existing.getFirstname()).isEqualTo("newFirstname");
+        assertThat(existing.getLastname()).isEqualTo("newLastname");
+        assertThat(existing.getEmail()).isEqualTo("test1@email.com");
     }
 
     @Test
-    void deleteUser_deletesFromKeycloakAndDb() {
-        String email = "test1@email.com";
-        Map<String, Object> kcMap = Map.of(
-                "username", "test1",
-                "email", email,
-                "firstName", "Person",
-                "lastName", "One",
-                "enabled", true,
-                "id", "123"
-        );
+    void updateUserUserNotFoundExceptionTest() {
+        var req = requestUpdate("1234","Person", "One","test1@email.com");
+        when(userRepository.findById("1234")).thenReturn(Optional.empty());
 
-        when(restTemplate.exchange(
-                contains("/users?email=" + email),
-                eq(HttpMethod.GET),
-                any(HttpEntity.class),
-                any(ParameterizedTypeReference.class)
-        )).thenReturn(new ResponseEntity<>(List.of(kcMap), HttpStatus.OK));
-        when(restTemplate.exchange(
-                contains("/users/123"),
-                eq(HttpMethod.DELETE),
-                any(HttpEntity.class),
-                eq(Void.class)
-        )).thenReturn(new ResponseEntity<>(HttpStatus.NO_CONTENT));
+        assertThatThrownBy(() -> userService.updateUser(req))
+                .isInstanceOf(UserNotFoundException.class)
+                .hasMessageContaining("User with Keycloak ID 1234 not found in DB");
 
-        User dbUser = userEntity("123");
-        when(userRepository.findByKeycloakId("123")).thenReturn(Optional.of(dbUser));
-
-        userService.deleteUser(email);
-
-        verify(restTemplate).exchange(contains("/users/123"), eq(HttpMethod.DELETE), any(HttpEntity.class), eq(Void.class));
-        verify(userRepository).delete(dbUser);
+        verify(userRepository).findById("1234");
+        verify(userRepository, never()).save(any());
+        verifyNoInteractions(userMapper);
     }
 
     @Test
-    void deleteUser_missingKeycloakUser_throws() {
-        String email = "missing@email.com";
+    void deleteUserTest() {
+        var existing = user("1234", "firstname", "lastname", "test1@email.com");
 
-        when(restTemplate.exchange(
-                contains("/users?email=" + email),
-                eq(HttpMethod.GET),
-                any(HttpEntity.class),
-                any(ParameterizedTypeReference.class)
-        )).thenReturn(new ResponseEntity<>(List.of(), HttpStatus.OK));
+        when(userRepository.findById("1234")).thenReturn(Optional.of(existing));
 
-        assertThatThrownBy(() -> userService.deleteUser(email))
-                .isInstanceOf(UserNotFoundException.class);
+        userService.deleteUser("1234");
+
+        verify(userRepository).findById("1234");
+        verify(userRepository).deleteById("1234");
+    }
+
+    @Test
+    void deleteUser_missing_throwsNotFound() {
+        when(userRepository.findById("1234")).thenReturn(Optional.empty());
+
+        assertThatThrownBy(() -> userService.deleteUser("1234"))
+                .isInstanceOf(UserNotFoundException.class)
+                .hasMessageContaining("User with id 1234 was not found");
+
+        verify(userRepository).findById("1234");
+        verify(userRepository, never()).deleteById(anyString());
     }
 }

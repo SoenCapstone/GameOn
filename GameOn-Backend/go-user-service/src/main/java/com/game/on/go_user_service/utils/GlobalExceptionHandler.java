@@ -1,7 +1,5 @@
 package com.game.on.go_user_service.utils;
 
-import com.game.on.go_user_service.exception.KeycloakResponseParsingException;
-import com.game.on.go_user_service.exception.KeycloakUserCreationException;
 import com.game.on.go_user_service.exception.UserAlreadyExistsException;
 import com.game.on.go_user_service.exception.UserNotFoundException;
 import com.game.on.go_user_service.model.ErrorResponse;
@@ -40,15 +38,4 @@ public class GlobalExceptionHandler {
                 });
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ErrorResponse(errors));
     }
-
-    @ExceptionHandler(KeycloakUserCreationException.class)
-    public ResponseEntity<String> handleKeycloakUserCreationException(KeycloakUserCreationException e) {
-        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(e.getMessage());
-    }
-
-    @ExceptionHandler(KeycloakResponseParsingException.class)
-    public ResponseEntity<String> handleKeycloakResponseParsingException(KeycloakResponseParsingException e) {
-        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(e.getMessage());
-    }
-
 }

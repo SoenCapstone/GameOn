@@ -1,38 +1,25 @@
 package com.game.on.go_user_service.mapper;
 
-import com.game.on.go_user_service.model.KeycloakUser;
-import com.game.on.go_user_service.dto.UserRequestCreate;
+import com.game.on.go_user_service.dto.UserRequest;
+
 import com.game.on.go_user_service.dto.UserResponse;
 import com.game.on.go_user_service.model.User;
 import org.springframework.stereotype.Component;
 
-import java.util.Map;
 
 @Component
 public class UserMapper {
 
-    // Keycloak -> Response
-    public UserResponse toUserResponse(KeycloakUser user) {
-        return new UserResponse( user.email(), user.firstName(), user.lastName());
+    public User toUser(UserRequest userRequest) {
+       return User.builder()
+               .id(userRequest.id())
+               .firstname(userRequest.firstname())
+               .lastname(userRequest.lastname())
+               .email(userRequest.email())
+               .build();
     }
 
-    // Map Keycloak API -> KeycloakUser
-    public KeycloakUser fromMap(Map<String, Object> userMap) {
-        return new KeycloakUser(
-                (String) userMap.get("username"),
-                (String) userMap.get("email"),
-                (String) userMap.get("firstName"),
-                (String) userMap.get("lastName"),
-                (Boolean) userMap.get("enabled"),
-                null
-        );
+    public UserResponse toUserResponse(User user){
+        return new UserResponse(user.getId(), user.getEmail(), user.getFirstname(), user.getLastname());
     }
-
-    // Request -> User entity (local DB)
-    public User toUser(UserRequestCreate request, String keycloakId) {
-        User entity = new User();
-        entity.setKeycloakId(keycloakId);
-        return entity;
-    }
-
 }

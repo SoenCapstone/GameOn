@@ -7,10 +7,11 @@ import { useRouter } from "expo-router";
 import { ThemedText } from "@/components/themed-text";
 import { images } from "@/constants/images";
 import { createScopedLog } from "@/utils/logger";
-import { useAuth } from "@/contexts/auth";
+import { useAuth } from "@clerk/clerk-expo";
 import ContentArea from "@/components/content-area";
 import { Background } from "@/components/background";
 import { profileStyles as styles } from "./profileStyle";
+// import { BACKEND_TEST } from "./backendConnectionTest";
 
 
 const leagues = [
