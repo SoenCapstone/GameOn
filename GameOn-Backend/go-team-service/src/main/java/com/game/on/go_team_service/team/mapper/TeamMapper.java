@@ -40,6 +40,7 @@ public class TeamMapper {
                 team.getSport(),
                 team.getLeagueId(),
                 team.getSlug(),
+                team.getLogoUrl(),
                 team.getPrivacy(),
                 team.getMaxRoster(),
                 team.isArchived(),

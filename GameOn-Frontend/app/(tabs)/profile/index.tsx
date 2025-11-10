@@ -6,8 +6,7 @@ import { ThemedText } from "@/components/themed-text";
 import { images } from "@/constants/images";
 import { createScopedLog } from "@/utils/logger";
 import { useAuth } from "@clerk/clerk-expo";
-import ContentArea from "@/components/content-area";
-import { Background } from "@/components/background";
+import { ContentArea } from "@/components/ui/content-area";
 import { profileStyles as styles } from "@/components/profile/profileStyle";
 // import { BACKEND_TEST } from "./backendConnectionTest";
 
@@ -50,8 +49,7 @@ export default function Profile() {
   };
 
   return (
-    <ContentArea>
-      <Background preset="orange" mode="default" />
+    <ContentArea backgroundProps={{ preset: "orange" }}>
         <ScrollView
           showsVerticalScrollIndicator={false}
           contentContainerStyle={{ flexGrow: 1, paddingBottom: 100 }}
@@ -125,7 +123,7 @@ export default function Profile() {
                 styles.flagsButton,
                 pressed && { backgroundColor: "rgba(255, 255, 255, 0.18)" },
               ]}
-              onPress={() => router.push("/(contexts)/feature-flags")}
+              onPress={() => router.push("../(contexts)/feature-flags")}
             >
               <ThemedText style={styles.flagsButtonText}>
                 Feature Flags
