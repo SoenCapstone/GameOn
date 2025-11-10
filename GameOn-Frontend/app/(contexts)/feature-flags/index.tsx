@@ -1,7 +1,7 @@
 import React from "react";
 import { View, Text, Switch } from "react-native";
-import { useFeatureFlags } from "./FeatureFlagsContext";
-import { styles } from "./FeatureFlagsPage.styles";
+import { useFeatureFlags } from "@/components/feature-flags/feature-flags-context";
+import { styles } from "@/components/feature-flags/feature-flags-page.styles";
 import ContentArea from "@/components/content-area";
 import { Background } from "@/components/background";
 
