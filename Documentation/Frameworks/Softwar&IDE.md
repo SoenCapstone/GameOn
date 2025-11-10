@@ -34,3 +34,23 @@ PostgreSQL 15
 Maven / npm Latest Build 
 
 Docker Latest stable Containerization for local DB
+
+***
+## Reference
+[IntelliJ IDEA](https://www.jetbrains.com/idea/resources/)
+
+[Visual Studio Code](https://code.visualstudio.com/docs)
+
+[Maven Build Tool](https://maven.apache.org/guides/index.html)
+
+[npm](https://docs.npmjs.com/)
+
+[Git & GitHub](https://git-scm.com/docs)
+
+[GitHub Actions](https://docs.github.com/en/actions)
+
+[SonarQube](https://docs.sonarsource.com/sonarqube-server)
+
+[Docker](https://docs.docker.com/)
+
+[Docker Compose](https://docs.docker.com/compose/)
