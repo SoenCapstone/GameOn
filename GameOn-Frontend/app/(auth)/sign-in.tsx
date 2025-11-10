@@ -148,8 +148,8 @@ const DevTools = () => {
         </Link>
       </Text>
       <Text style={styles.metaText}>
-        go to teams page{' '}
-        <Link href="/(contexts)/teams" style={styles.metaLink}>
+        open site maps{' '}
+        <Link href="/_sitemap" style={styles.metaLink}>
           here
         </Link>
       </Text>

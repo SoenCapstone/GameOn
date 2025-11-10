@@ -8,9 +8,12 @@ import { SIGN_IN_PATH } from "@/constants/navigation";
 export default function TabLayout() {
   return (
     <ClerkLoaded>
-      <SignedOut>
-        <Redirect href={SIGN_IN_PATH} />
-      </SignedOut>
+      {!__DEV__ && (
+        <SignedOut>
+          <Redirect href={SIGN_IN_PATH} />
+        </SignedOut>
+      )}
+
       <NativeTabs>
         <NativeTabs.Trigger name="home">
           <Label>Home</Label>
