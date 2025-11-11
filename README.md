@@ -32,7 +32,6 @@ GameOn targets last-minute player absences, complex scheduling, messy payments, 
 | Release 1  |              |
 | Release 2  |              |
 | Release 3  |              |
-| Release 4  |              |
 
 <a id="team-members"></a>
 # 👥 Team Members
