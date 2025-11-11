@@ -6,7 +6,8 @@
 - Each admin gets **10 free games** to try the app.  
 - After 10 games, they pay a **monthly subscription** for continued scheduling.  
 - **Fee:** $15/month per league admin  
-- **Assumed conversion:** 50% of free users continue paying  
+- **Assumed conversion:** 50% of free users continue paying 
+- **Responsible for payment:** League admin 
 
 ---
 
@@ -15,6 +16,7 @@
 - Beyond the free threshold, teams pay a **flat fee** for extra players.  
 - **Fee:** $5 per 5 extra players  
 - **Assumed adoption:** 10% of private teams need extra players  
+- **Responsible for payment:** Team Admin
 
 ---
 
@@ -23,6 +25,7 @@
 - Teams pay a **monthly fee** to appear in public searches.  
 - **Fee:** $10/month per public team  
 - **Assumed adoption:** 30% of public teams pay  
+- **Responsible for payment:** Team Admin
 
 ---
 
