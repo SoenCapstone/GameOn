@@ -1,14 +1,13 @@
-import {
-  Alert,
-  Linking,
-} from 'react-native';
-import { POLICY_URL } from './constants'
+import * as WebBrowser from "expo-web-browser";
+import { Alert } from "react-native";
+import { POLICY_URL } from "./constants";
 
 export const openPolicy = async () => {
-  const ok = await Linking.canOpenURL(POLICY_URL);
-  if (ok) {
-    await Linking.openURL(POLICY_URL);
-  } else {
-    Alert.alert('Unable to open link', POLICY_URL);
+  try {
+    await WebBrowser.openBrowserAsync(POLICY_URL, {
+      presentationStyle: WebBrowser.WebBrowserPresentationStyle.PAGE_SHEET,
+    });
+  } catch (error) {
+    Alert.alert("Error opening link", (error as Error).message);
   }
 };
