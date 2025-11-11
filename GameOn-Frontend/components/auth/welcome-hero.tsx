@@ -1,21 +1,25 @@
 import React, { useEffect, useRef } from "react";
-import { View, Image, Animated, Easing } from "react-native";
-import { authStyles } from "@/constants/auth-styles";
+import { View, Image, Animated, Easing, StyleSheet, Text } from "react-native";
 import { images } from "@/constants/images";
 
-export const DisplayLogo: React.FC<{
+export const WelcomeHero: React.FC<{
   top: number;
   styleRenderWidth: number;
   styleRenderHeight: number;
 }> = ({ top, styleRenderWidth, styleRenderHeight }) => {
   const gap = 20;
-  const logos = [images.logo1, images.logo2, images.logo3];
+  const logos = [
+    images.white,
+    images.grass,
+    images.basketball,
+    images.volleyball,
+    images.black,
+  ];
 
-  const rowWidth =
-    logos.length * styleRenderWidth + gap * logos.length; 
+  const rowWidth = logos.length * styleRenderWidth + gap * logos.length;
 
   const x = useRef(new Animated.Value(0)).current;
-  const pxPerSec = 80;
+  const pxPerSec = 30;
   const duration = Math.max(2000, (rowWidth / pxPerSec) * 1000);
 
   const animate = () => {
@@ -30,10 +34,9 @@ export const DisplayLogo: React.FC<{
 
   useEffect(() => {
     animate();
-  }, [rowWidth, duration]);
+  });
 
   const renderRow = (keyPrefix: string) => (
-
     <View key={keyPrefix} style={{ flexDirection: "row", marginRight: gap }}>
       {logos.map((src, i) => (
         <Image
@@ -52,8 +55,8 @@ export const DisplayLogo: React.FC<{
   );
 
   return (
-    <View style={[authStyles.hero, { top }]}>
-      <View style={{ width: "100%", height: styleRenderHeight, overflow: "hidden" }}>
+    <View style={[styles.hero, { top }]}>
+      <View style={{ width: "100%", height: styleRenderHeight }}>
         <Animated.View
           style={{ flexDirection: "row", transform: [{ translateX: x }] }}
         >
@@ -61,7 +64,25 @@ export const DisplayLogo: React.FC<{
           {renderRow("rowB")}
         </Animated.View>
       </View>
+      <View>
+        <Text
+          accessibilityRole="header"
+          style={{
+            color: "white",
+            fontSize: 28,
+            fontWeight: "bold",
+          }}
+        >
+          Welcome to GameOn
+        </Text>
+      </View>
     </View>
   );
 };
 
+const styles = StyleSheet.create({
+  hero: {
+    alignItems: "center",
+    gap: 64,
+  },
+});
