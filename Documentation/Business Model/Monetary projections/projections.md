@@ -2,9 +2,14 @@
 
 ## Revenue Streams
 
-### League Admins
-- Each admin gets **10 free games** to try the app.  
-- After 10 games, they pay a **monthly subscription** for continued scheduling.  
+### Private League Admins
+- Completely free of charge for all features
+- League admins can create their own leagues without visibility into the spaces
+- Can change to public league at any time they would like
+
+### Public League Admins
+- Each admin gets **10 free games** to try public games.  
+- After 10 games, they pay a **monthly subscription** for continued scheduling and visibility the public spaces.  
 - **Fee:** $15/month per league admin  
 - **Assumed conversion:** 50% of free users continue paying 
 - **Responsible for payment:** League admin 
