@@ -1,16 +1,28 @@
 import React from "react";
-import { render, fireEvent, waitFor, act } from "@testing-library/react-native";
-import * as Yup from "yup";
+import { render, fireEvent, waitFor } from "@testing-library/react-native";
 
 jest.mock("expo-linear-gradient", () => ({
   LinearGradient: ({ children }: any) => children ?? null,
 }));
-jest.mock("@expo/vector-icons", () => ({ Ionicons: () => null }));
-jest.mock("expo-router", () => ({
-  Link: ({ children }: any) => children ?? null,
+
+jest.mock("@expo/vector-icons", () => ({
+  Ionicons: () => null,
 }));
 
-jest.mock("@/constants/images", () => ({ images: { logo: 1 } }));
+jest.mock("expo-router", () => ({
+  Link: ({ children }: any) => children ?? null,
+  router: {
+    push: jest.fn(),
+    replace: jest.fn(),
+  },
+}));
+
+const mockAlert = jest.fn();
+
+jest.mock("@/constants/images", () => ({
+  images: { logo: 1 },
+}));
+
 jest.mock("@/constants/auth-styles", () => ({
   authStyles: {
     safe: { flex: 1 },
@@ -24,6 +36,7 @@ jest.mock("@/constants/auth-styles", () => ({
     errorText: {},
   },
 }));
+
 jest.mock("@/constants/auth-layout", () => ({
   getAuthHeroLayout: () => ({
     FORM_PADDING_TOP: 0,
@@ -34,70 +47,19 @@ jest.mock("@/constants/auth-layout", () => ({
 }));
 
 const mockCreate = jest.fn();
+const mockPrepareEmailAddressVerification = jest.fn();
 const mockSetActive = jest.fn();
-jest.mock("@clerk/clerk-expo", () => {
-  return {
-    useSignUp: () => ({
-      isLoaded: true,
-      signUp: { create: mockCreate },
-      setActive: mockSetActive,
-    }),
-  };
-});
 
-const MockSchema = Yup.object({
-  firstname: Yup.string().required("First name is required"),
-  lastname: Yup.string().required("Last name is required"),
-  emailAddress: Yup.string()
-    .email("Enter a valid email")
-    .required("Email is required"),
-  password: Yup.string()
-    .min(8, "Password must be at least 8 characters")
-    .required("Password is required"),
-  birth: Yup.date().required("Date of birth is required"),
-});
-
-const mockStartClerkSignUp = jest.fn(
-  async (
-    values: any,
-    isLoaded: boolean,
-    signUp: any,
-    setPendingVerification: (v: boolean) => void
-  ) => {
-    if (!isLoaded) return;
-    try {
-      const result = await signUp.create({
-        firstName: values.firstname,
-        lastName: values.lastname,
-        emailAddress: values.emailAddress,
-        password: values.password,
-        birthdate: values.birth,
-      });
-      setPendingVerification(true);
-      return result;
-    } catch (err) {
-      console.error(err);
-      throw err;
-    }
-  }
-);
-
-jest.mock("@/components/sign-up/utils", () => {
-  const actual = jest.requireActual("@/components/sign-up/utils");
-  return {
-    ...actual,
-    SignUpSchema: MockSchema,
-    startClerkSignUp: (
-      values: any,
-      isLoaded: boolean,
-      signUp: any,
-      setPendingVerification: (v: boolean) => void
-    ) => mockStartClerkSignUp(values, isLoaded, signUp, setPendingVerification),
-    isIOSPadding: () => undefined,
-    displayFormikError: (touched: any, errors: any, inputLabel: any) =>
-      errors?.[inputLabel.field],
-  };
-});
+jest.mock("@clerk/clerk-expo", () => ({
+  useSignUp: () => ({
+    isLoaded: true,
+    signUp: {
+      create: mockCreate,
+      prepareEmailAddressVerification: mockPrepareEmailAddressVerification,
+    },
+    setActive: mockSetActive,
+  }),
+}));
 
 jest.mock("@/components/auth/InputLabel", () => {
   const React = require("react");
@@ -127,7 +89,7 @@ jest.mock("@/components/auth/InputLabel", () => {
           autoCapitalize={autoCapitalize}
           testID={testID || `input-${placeholder}`}
         />
-        {error ? <Text>{error}</Text> : null}
+        {error ? <Text testID={`error-${label}`}>{error}</Text> : null}
       </View>
     ),
   };
@@ -136,6 +98,7 @@ jest.mock("@/components/auth/InputLabel", () => {
 jest.mock("@/components/auth/SignUpDatePicker", () => ({
   SignUpDatePicker: () => null,
 }));
+
 jest.mock("@/components/privacy-disclaimer/privacy-disclaimer", () => ({
   PrivacyDisclaimer: () => null,
 }));
@@ -151,115 +114,177 @@ jest.mock("@/components/sign-up/VerificationInput", () => ({
   },
 }));
 
-jest.mock("@/components/sign-up/styles", () => ({
-  styles: {
-    cta: {},
-    ctaText: {},
-    metaText: {},
-    metaLink: {},
-  },
+jest.mock("@/components/auth/SubmitAuthButton", () => {
+  const React = require("react");
+  const { TouchableOpacity, Text } = require("react-native");
+  const { useFormikContext } = require("formik");
+
+  return {
+    SubmitAuthButton: ({ actionMessage }: any) => {
+      const { handleSubmit } = useFormikContext();
+      return (
+        <TouchableOpacity onPress={handleSubmit} testID="submit-button">
+          <Text>{actionMessage}</Text>
+        </TouchableOpacity>
+      );
+    },
+  };
+});
+
+jest.mock("@/components/auth/PasswordVisibilityToggle", () => ({
+  PasswordVisbilityToggle: () => null,
 }));
 
-jest.mock("@/components/sign-up/constants", () => ({
-  EMPTY_STRING: "",
-  SIGN_UP_MESSAGE: "Sign Up",
-  SIGN_IN_MESSAGE: "Sign In",
-  SIGN_IN_PATH: "/(auth)/sign-in",
-  initialSignUpValues: {
-    firstname: "",
-    lastname: "",
-    emailAddress: "",
-    password: "",
-    birth: new Date().toISOString(),
-  },
-  signUpInputLabels: (_showPassword: boolean) => [
-    {
-      field: "firstname",
-      label: "First name",
-      placeholder: "john",
-      secureTextEntry: false,
-    },
-    {
-      field: "lastname",
-      label: "Last name",
-      placeholder: "Doe",
-      secureTextEntry: false,
-    },
-    {
-      field: "emailAddress",
-      label: "Email",
-      placeholder: "example@example.com",
-      secureTextEntry: false,
-      keyboardType: "email-address",
-      autoCapitalize: "none",
-    },
-    {
-      field: "password",
-      label: "Password",
-      placeholder: "••••••••••••",
-      secureTextEntry: true,
-    },
-  ],
+jest.mock("@/components/auth/AuthSwitchLink", () => ({
+  AuthSwitchLink: () => null,
 }));
 
-import SignUpScreen from "@/app/(auth)/sign-up";
+jest.mock("@/components/auth/AuthLinearGradient", () => ({
+  AuthLinearGradient: ({ children }: any) => children ?? null,
+}));
 
-describe("SignUpScreen (integration, with local deps mocked)", () => {
+jest.mock("@/components/ui/content-area", () => ({
+  ContentArea: ({ children }: any) => children ?? null,
+}));
+
+jest.mock("@/constants/navigation", () => ({
+  SIGN_IN_PATH: "/(auth)/boarding/sign-in",
+}));
+
+import SignUpScreen from "@/app/(auth)/boarding/sign-up";
+import { Alert } from "react-native";
+
+describe("SignUpScreen", () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    jest.spyOn(Alert, "alert").mockImplementation(mockAlert);
+    mockCreate.mockResolvedValue({ status: "pending" });
+    mockPrepareEmailAddressVerification.mockResolvedValue({ status: "ready" });
   });
 
-  it("submits valid values via startClerkSignUp and shows verification view", async () => {
-    const { getByPlaceholderText, getByText, findByTestId } = render(
-      <SignUpScreen />
+  afterEach(() => {
+    jest.restoreAllMocks();
+  });
+
+  it("renders the sign-up form with all input fields", () => {
+    const { getByPlaceholderText, getByText } = render(<SignUpScreen />);
+
+    expect(getByPlaceholderText("john")).toBeTruthy();
+    expect(getByPlaceholderText("Doe")).toBeTruthy();
+    expect(getByPlaceholderText("example@example.com")).toBeTruthy();
+    expect(getByPlaceholderText("••••••••••••")).toBeTruthy();
+    expect(getByText("Sign Up")).toBeTruthy();
+  });
+
+  it("submits form with valid values and shows verification view", async () => {
+    const { getByPlaceholderText, getByTestId, findByTestId } = render(
+      <SignUpScreen />,
     );
 
-    await act(async () => {
-      fireEvent.changeText(getByPlaceholderText("john"), "Jane");
-      fireEvent.changeText(getByPlaceholderText("Doe"), "Doe");
-      fireEvent.changeText(
-        getByPlaceholderText("example@example.com"),
-        "jane@example.com"
-      );
-      fireEvent.changeText(getByPlaceholderText("••••••••••••"), "testtest");
-      fireEvent.press(getByText("Sign Up"));
-    });
+    fireEvent.changeText(getByPlaceholderText("john"), "Jane");
+    fireEvent.changeText(getByPlaceholderText("Doe"), "Doe");
+    fireEvent.changeText(
+      getByPlaceholderText("example@example.com"),
+      "jane@example.com",
+    );
+    fireEvent.changeText(getByPlaceholderText("••••••••••••"), "testtest");
+
+    fireEvent.press(getByTestId("submit-button"));
 
     await waitFor(() => {
       expect(mockCreate).toHaveBeenCalledWith({
-        firstName: "Jane",
-        lastName: "Doe",
         emailAddress: "jane@example.com",
         password: "testtest",
-        birthdate: expect.any(String),
       });
     });
 
-    await expect(findByTestId("verification-view")).resolves.toBeTruthy();
-  });
-
-  it("can show an error banner if startClerkSignUp throws", async () => {
-    mockStartClerkSignUp.mockImplementationOnce(async () => {
-      throw new Error("boom");
+    await waitFor(() => {
+      expect(mockPrepareEmailAddressVerification).toHaveBeenCalledWith({
+        strategy: "email_code",
+      });
     });
 
-    const { getByPlaceholderText, getByText, queryByTestId } = render(
-      <SignUpScreen />
+    const verificationView = await findByTestId("verification-view");
+    expect(verificationView).toBeTruthy();
+  });
+
+  it("validates required fields and shows error messages", async () => {
+    const { getByTestId } = render(<SignUpScreen />);
+
+    fireEvent.press(getByTestId("submit-button"));
+
+    await waitFor(() => {
+      expect(mockCreate).not.toHaveBeenCalled();
+    });
+  });
+
+  it("validates email format", async () => {
+    const { getByPlaceholderText, getByTestId } = render(<SignUpScreen />);
+
+    fireEvent.changeText(getByPlaceholderText("john"), "Jane");
+    fireEvent.changeText(getByPlaceholderText("Doe"), "Doe");
+    fireEvent.changeText(
+      getByPlaceholderText("example@example.com"),
+      "invalid-email",
+    );
+    fireEvent.changeText(getByPlaceholderText("••••••••••••"), "testtest");
+
+    fireEvent.press(getByTestId("submit-button"));
+
+    await waitFor(() => {
+      expect(mockCreate).not.toHaveBeenCalled();
+    });
+  });
+
+  it("validates password length (minimum 8 characters)", async () => {
+    const { getByPlaceholderText, getByTestId } = render(<SignUpScreen />);
+
+    fireEvent.changeText(getByPlaceholderText("john"), "Jane");
+    fireEvent.changeText(getByPlaceholderText("Doe"), "Doe");
+    fireEvent.changeText(
+      getByPlaceholderText("example@example.com"),
+      "jane@example.com",
+    );
+    fireEvent.changeText(getByPlaceholderText("••••••••••••"), "short");
+
+    fireEvent.press(getByTestId("submit-button"));
+
+    await waitFor(() => {
+      expect(mockCreate).not.toHaveBeenCalled();
+    });
+  });
+
+  it("handles sign-up error gracefully", async () => {
+    const clerkError = {
+      errors: [{ message: "Email already exists" }],
+    };
+    mockCreate.mockRejectedValueOnce(clerkError);
+
+    const { getByPlaceholderText, getByTestId, queryByTestId } = render(
+      <SignUpScreen />,
     );
 
-    await act(async () => {
-      fireEvent.changeText(getByPlaceholderText("john"), "Jane");
-      fireEvent.changeText(getByPlaceholderText("Doe"), "Doe");
-      fireEvent.changeText(
-        getByPlaceholderText("example@example.com"),
-        "jane@example.com"
-      );
-      fireEvent.changeText(getByPlaceholderText("••••••••••••"), "testtest");
-      fireEvent.press(getByText("Sign Up"));
+    fireEvent.changeText(getByPlaceholderText("john"), "Jane");
+    fireEvent.changeText(getByPlaceholderText("Doe"), "Doe");
+    fireEvent.changeText(
+      getByPlaceholderText("example@example.com"),
+      "existing@example.com",
+    );
+    fireEvent.changeText(getByPlaceholderText("••••••••••••"), "testtest");
+
+    fireEvent.press(getByTestId("submit-button"));
+
+    await waitFor(() => {
+      expect(mockCreate).toHaveBeenCalled();
     });
 
     await waitFor(() => {
-      expect(queryByTestId("verification-view")).toBeNull();
+      expect(mockAlert).toHaveBeenCalledWith(
+        "Sign up failed",
+        "Email already exists",
+      );
     });
+
+    expect(queryByTestId("verification-view")).toBeNull();
   });
 });
