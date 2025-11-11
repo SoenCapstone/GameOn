@@ -19,7 +19,7 @@ export function getAuthHeroLayout(
   const RENDER_H = LOGO_H * SCALE;
   
   const HERO_TOP = 1;
-  const FORM_PADDING_TOP = HERO_TOP + RENDER_H * 0.55;
+  const FORM_PADDING_TOP = HERO_TOP + RENDER_H * 0.1;
   const TOP_GRADIENT_H = HERO_TOP + RENDER_H + 40;
 
 

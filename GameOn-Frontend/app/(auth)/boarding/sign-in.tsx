@@ -1,70 +1,41 @@
-import { authStyles } from "@/constants/auth-styles";
 import { Link } from "expo-router";
 import { Formik } from "formik";
 import React, { useState } from "react";
 import { KeyboardAvoidingView, Pressable, Text, View } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
-import { getAuthHeroLayout } from "@/constants/auth-layout";
 import { SignInSchema, login } from "@/components/sign-in/utils";
 import { styles } from "@/components/sign-in/styles";
 import {
   initialSignInValue,
   signInInputLabels,
   FORGOT_PASSWORD_TEXT,
-  SIGN_UP_TEXT,
 } from "@/components/sign-in/constants";
 import { isIOSPadding, displayFormikError } from "@/components/sign-up/utils";
 import { PasswordVisbilityToggle } from "@/components/auth/PasswordVisibilityToggle";
 import { SignUpInputLabel } from "@/components/sign-up/models";
 import { LabeledInput } from "@/components/auth/InputLabel";
-import { DisplayLogo } from "@/components/auth/DisplayLogo";
 import { SubmitAuthButton } from "@/components/auth/SubmitAuthButton";
-import {
-  SIGN_IN_MESSAGE,
-  SIGN_UP_MESSAGE,
-} from "@/components/sign-up/constants";
-import { AuthSwitchLink } from "@/components/auth/AuthSwitchLink";
-import { SIGN_UP_PATH } from "@/constants/navigation";
-import { AuthLinearGradient } from "@/components/auth/AuthLinearGradient";
+import { SIGN_IN_MESSAGE } from "@/components/sign-up/constants";
 import { useSignIn } from "@clerk/clerk-expo";
-
-const { HERO_TOP, TOP_GRADIENT_H, FORM_PADDING_TOP, RENDER_W, RENDER_H } =
-  getAuthHeroLayout();
-
+import { ContentArea } from "@/components/ui/content-area";
 
 export default function SignInScreen() {
   const [showpassword, setShowpassword] = useState(false);
   const { signIn, setActive, isLoaded } = useSignIn();
 
   return (
-    <SafeAreaView style={authStyles.safe}>
-      <AuthLinearGradient top={TOP_GRADIENT_H} />
-
-      <DisplayLogo
-        top={HERO_TOP}
-        styleRenderWidth={RENDER_W}
-        styleRenderHeight={RENDER_H}
-      />
-
-      <KeyboardAvoidingView style={{ flex: 1 }} behavior={isIOSPadding()}>
-        <View style={[authStyles.container, { paddingTop: FORM_PADDING_TOP }]}>
-          <Formik
-            initialValues={initialSignInValue}
-            validationSchema={SignInSchema}
-            onSubmit={async (values) =>
-              await login(values, signIn, setActive, isLoaded)
-            }
-          >
-            {({
-              values,
-              errors,
-              touched,
-              handleBlur,
-              handleChange,
-              status,
-            }) => (
-              <>
-                <View style={{ gap: 16 }}>
+    <ContentArea auth backgroundProps={{ preset: "red", mode: "form" }}>
+      <Formik
+        initialValues={initialSignInValue}
+        validationSchema={SignInSchema}
+        onSubmit={async (values) =>
+          await login(values, signIn, setActive, isLoaded)
+        }
+      >
+        {({ values, errors, touched, handleBlur, handleChange, status }) => (
+          <View style={{ flex: 1, justifyContent: "space-between" }}>
+            <View style={{ gap: 16 }}>
+              <KeyboardAvoidingView behavior={isIOSPadding()}>
+                <View style={{ gap: 20 }}>
                   {signInInputLabels(showpassword).map(
                     (inputLabel: SignUpInputLabel) => (
                       <LabeledInput
@@ -87,32 +58,26 @@ export default function SignInScreen() {
                         }
                         error={displayFormikError(touched, errors, inputLabel)}
                       />
-                    )
+                    ),
                   )}
-
-                  <ForgotPassword />
                 </View>
+              </KeyboardAvoidingView>
 
-                {displayStatus(status)}
+              <ForgotPassword />
+            </View>
 
-                <SubmitAuthButton actionMessage={SIGN_IN_MESSAGE} />
+            {displayStatus(status)}
+            <View style={{ gap: 14 }}>
+              {__DEV__ && <DevTools />}
 
-                <AuthSwitchLink
-                  text={SIGN_UP_TEXT}
-                  path={SIGN_UP_PATH}
-                  authMessage={SIGN_UP_MESSAGE}
-                />
+              <SubmitAuthButton actionMessage={SIGN_IN_MESSAGE} />
+            </View>
 
-                {__DEV__ && (
-                  <DevTools />
-                )}
-
-              </>
-            )}
-          </Formik>
-        </View>
-      </KeyboardAvoidingView>
-    </SafeAreaView>
+            {/*{__DEV__ && <DevTools />}*/}
+          </View>
+        )}
+      </Formik>
+    </ContentArea>
   );
 }
 
@@ -132,18 +97,15 @@ const displayStatus = (status: string) => {
   ) : null;
 };
 
-
 const DevTools = () => {
   return (
-    <View style={{ marginTop: "auto" }}>
+    <View>
       <Text style={styles.metaText}>
-        enter app{' '}
+        enter app{" "}
         <Link href="/(tabs)/profile" style={styles.metaLink}>
           here
-        </Link>
-      </Text>
-      <Text style={styles.metaText}>
-        open site maps{' '}
+        </Link>{" "}
+        open site maps{" "}
         <Link href="/_sitemap" style={styles.metaLink}>
           here
         </Link>

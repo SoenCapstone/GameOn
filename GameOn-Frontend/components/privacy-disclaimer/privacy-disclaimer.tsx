@@ -1,5 +1,4 @@
-import { Text, View } from "react-native";
-import { styles } from "../sign-up/styles";
+import { Text, View, StyleSheet } from "react-native";
 import { openPolicy } from "./utils";
 import { POLICY_DISCLAIMER_MESSAGE } from "./constants";
 
@@ -7,8 +6,7 @@ export const PrivacyDisclaimer = () => {
   return (
     <View style={styles.disclaimerWrap}>
       <Text style={styles.disclaimer}>
-        {POLICY_DISCLAIMER_MESSAGE[0]}
-        {"\n"}
+        {POLICY_DISCLAIMER_MESSAGE[0]}{" "}
         <Text
           style={styles.disclaimerEmph}
           onPress={openPolicy}
@@ -29,3 +27,17 @@ export const PrivacyDisclaimer = () => {
     </View>
   );
 };
+
+const styles = StyleSheet.create({
+  disclaimerWrap: {
+    alignItems: "center",
+  },
+  disclaimer: {
+    color: "#8C8C8C",
+    fontSize: 13,
+    lineHeight: 18,
+  },
+  disclaimerEmph: {
+    color: "#D9D9D9",
+  },
+});
