@@ -1,5 +1,5 @@
 import { Pressable } from "react-native";
-import { Ionicons } from "@expo/vector-icons";
+import { IconSymbol } from "@/components/ui/icon-symbol";
 
 export const PasswordVisbilityToggle: React.FC<{
   showpassword: boolean;
@@ -7,11 +7,11 @@ export const PasswordVisbilityToggle: React.FC<{
 }> = ({ showpassword, setShowpassword }) => {
   return (
     <Pressable onPress={() => setShowpassword(!showpassword)} hitSlop={8}>
-      <Ionicons
-        name={showpassword ? "eye-off-outline" : "eye-outline"}
-        size={20}
-        color="#000000"
-      />
+      {showpassword ? (
+        <IconSymbol name={"eye.slash.fill"} color={"#bab8b8ff"} />
+      ) : (
+        <IconSymbol name={"eye.fill"} color={"#bab8b8ff"} />
+      )}
     </Pressable>
   );
 };

@@ -1,32 +1,35 @@
-import { StyleSheet } from 'react-native';
+import { StyleSheet } from "react-native";
 
 export const authStyles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: '#000' },
-  topGradient: { position: 'absolute', top: 0, left: 0, right: 0 },
+  safe: { flex: 1, backgroundColor: "#000" },
+  topGradient: { position: "absolute", top: 0, left: 0, right: 0 },
 
   hero: {
-    position: 'absolute',
+    position: "absolute",
     left: 0,
     right: 0,
-    alignItems: 'center',
+    alignItems: "center",
     zIndex: 1,
-    pointerEvents: 'none',
+    pointerEvents: "none",
   },
 
-  container: { flex: 1, paddingHorizontal: 24, gap: 20 },
+  container: { gap: 20 },
 
-  label: { color: '#fff', fontSize: 14, fontWeight: '600' },
+  label: {
+    marginLeft: 16,
+    color: "rgba(235,235,245,0.6)",
+    fontSize: 17,
+    lineHeight: 22,
+    fontWeight: "600",
+  },
 
   inputWrap: {
-    backgroundColor: '#787878',
-    borderRadius: 24,
-    paddingVertical: 12,
-    paddingHorizontal: 16,
-    flexDirection: 'row',
-    alignItems: 'center',
+    paddingHorizontal: 14,
+    flexDirection: "row",
+    alignItems: "center",
   },
-  input: { flex: 1, fontSize: 16, color: '#111' },
+  input: { flex: 1, fontSize: 17, color: "#bab8b8ff" },
   rightIcon: { marginLeft: 8 },
 
-  errorText: { color: '#EF4444', fontSize: 12 },
+  errorText: { color: "#EF4444", fontSize: 12, marginLeft: 16 },
 });
