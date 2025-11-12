@@ -72,8 +72,6 @@ export default function SignInScreen() {
 
               <SubmitAuthButton actionMessage={SIGN_IN_MESSAGE} />
             </View>
-
-            {/*{__DEV__ && <DevTools />}*/}
           </View>
         )}
       </Formik>
