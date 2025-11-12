@@ -32,36 +32,38 @@ export default function SignUpScreen() {
 
   return (
     <ContentArea auth backgroundProps={{ preset: "red", mode: "form" }}>
-      <KeyboardAvoidingView style={{ flex: 1 }} behavior={isIOSPadding()}>
-        <Formik<User>
-          initialValues={initialSignUpValues}
-          validationSchema={SignUpSchema}
-          onSubmit={async (values, { setSubmitting }) => {
-            await startClerkSignUp(
-              values,
-              isLoaded,
-              signUp,
-              setPendingVerification,
-            );
-            setSubmitting(false);
-          }}
-        >
-          {({ values, errors, touched, handleChange, handleBlur }) => (
-            <>
-              {pendingVerification ? (
-                <VerificationInput
-                  otpCode={otpCode}
-                  setOtpCode={setOtpCode}
-                  setActive={setActive}
-                  values={values}
-                  isLoaded={isLoaded}
-                  signUp={signUp}
-                  setPendingVerification={setPendingVerification}
-                />
-              ) : (
-                <>
-                  <View style={{ flex: 1, justifyContent: "space-between" }}>
-                    <View style={{ gap: 16 }}>
+      <Formik<User>
+        initialValues={initialSignUpValues}
+        validationSchema={SignUpSchema}
+        onSubmit={async (values, { setSubmitting }) => {
+          await startClerkSignUp(
+            values,
+            isLoaded,
+            signUp,
+            setPendingVerification,
+          );
+          setSubmitting(false);
+        }}
+      >
+        {({ values, errors, touched, handleChange, handleBlur }) => (
+          <>
+            {pendingVerification ? (
+              <VerificationInput
+                otpCode={otpCode}
+                setOtpCode={setOtpCode}
+                setActive={setActive}
+                values={values}
+                isLoaded={isLoaded}
+                signUp={signUp}
+                setPendingVerification={setPendingVerification}
+              />
+            ) : (
+              <>
+                <View
+                  style={{ flex: 1, justifyContent: "space-between", gap: 20 }}
+                >
+                  <KeyboardAvoidingView behavior={isIOSPadding()}>
+                    <View style={{ gap: 20 }}>
                       {signUpInputLabels(showpassword).map(
                         (inputLabel: SignUpInputLabel) => (
                           <LabeledInput
@@ -95,15 +97,15 @@ export default function SignUpScreen() {
                         showDob={showDob}
                       />
                     </View>
-                  </View>
+                  </KeyboardAvoidingView>
+                </View>
 
-                  <SubmitAuthButton actionMessage={SIGN_UP_MESSAGE} />
-                </>
-              )}
-            </>
-          )}
-        </Formik>
-      </KeyboardAvoidingView>
+                <SubmitAuthButton actionMessage={SIGN_UP_MESSAGE} />
+              </>
+            )}
+          </>
+        )}
+      </Formik>
     </ContentArea>
   );
 }
