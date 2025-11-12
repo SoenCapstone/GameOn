@@ -27,6 +27,8 @@ export const WelcomeAuthButton: React.FC<Props> = ({
     >
       <Button
         isInteractive={true}
+        glassEffectStyle={"clear"}
+        tintColor={"rgba(0,0,0,0.5)"}
         style={[styles.button, isLiquidGlassAvailable() ? null : styles.blur]}
       >
         <Text style={styles.text}>{label}</Text>

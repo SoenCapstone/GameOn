@@ -19,6 +19,8 @@ export const LabeledInput = ({
       <TextField
         intensity={90}
         tint="dark"
+        glassEffectStyle={"clear"}
+        tintColor={"rgba(0,0,0,0.5)"}
         style={[
           style,
           styles.TextField,

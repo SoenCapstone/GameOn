@@ -18,6 +18,8 @@ export const SubmitAuthButton: React.FC<{ actionMessage: string }> = ({
     >
       <Button
         isInteractive={true}
+        glassEffectStyle={"clear"}
+        tintColor={"rgba(0,0,0,0.5)"}
         tint="dark"
         style={[styles.button, isLiquidGlassAvailable() ? null : styles.blur]}
       >
