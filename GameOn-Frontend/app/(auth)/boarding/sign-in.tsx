@@ -2,7 +2,6 @@ import { Link } from "expo-router";
 import { Formik } from "formik";
 import React, { useState } from "react";
 import {
-  KeyboardAvoidingView,
   Pressable,
   Text,
   View,
@@ -16,7 +15,7 @@ import {
   signInInputLabels,
   FORGOT_PASSWORD_TEXT,
 } from "@/components/sign-in/constants";
-import { isIOSPadding, displayFormikError } from "@/components/sign-up/utils";
+import { displayFormikError } from "@/components/sign-up/utils";
 import { PasswordVisbilityToggle } from "@/components/auth/password-visibility-toggle";
 import { SignUpInputLabel } from "@/components/sign-up/models";
 import { LabeledInput } from "@/components/auth/labeled-input";
@@ -24,6 +23,7 @@ import { SubmitAuthButton } from "@/components/auth/submit-auth-button";
 import { SIGN_IN_MESSAGE } from "@/components/sign-up/constants";
 import { useSignIn } from "@clerk/clerk-expo";
 import { ContentArea } from "@/components/ui/content-area";
+import { KeyboardAwareScrollView } from "react-native-keyboard-controller";
 
 export default function SignInScreen() {
   const [showPassword, setShowPassword] = useState(false);
@@ -42,44 +42,43 @@ export default function SignInScreen() {
         {({ values, errors, touched, handleBlur, handleChange, status }) => (
           <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
             <View style={{ flex: 1, justifyContent: "space-between" }}>
-              <View style={{ gap: 16 }}>
-                <KeyboardAvoidingView behavior={isIOSPadding()}>
-                  <View style={{ gap: 20 }}>
-                    {signInInputLabels(showPassword).map(
-                      (inputLabel: SignUpInputLabel) => (
-                        <LabeledInput
-                          key={inputLabel.field}
-                          label={inputLabel.label}
-                          placeholder={inputLabel.placeholder}
-                          value={
-                            values?.[inputLabel.field as keyof typeof values]
-                          }
-                          onChangeText={handleChange(inputLabel.field)}
-                          onBlur={() => handleBlur(inputLabel.field)}
-                          keyboardType={inputLabel.keyboardType}
-                          autoCapitalize={inputLabel?.autoCapitalize}
-                          secureTextEntry={inputLabel.secureTextEntry}
-                          rightIcon={
-                            inputLabel.rightIcon && (
-                              <PasswordVisbilityToggle
-                                showPassword={showPassword}
-                                setShowPassword={setShowPassword}
-                              />
-                            )
-                          }
-                          error={displayFormikError(
-                            touched,
-                            errors,
-                            inputLabel,
-                          )}
-                        />
-                      ),
-                    )}
-                  </View>
-                </KeyboardAvoidingView>
+              <KeyboardAwareScrollView
+                style={{ flex: 1, overflow: "visible" }}
+                contentContainerStyle={{ gap: 16, overflow: "visible" }}
+                bottomOffset={30}
+                showsVerticalScrollIndicator={false}
+              >
+                <View style={{ gap: 20 }}>
+                  {signInInputLabels(showPassword).map(
+                    (inputLabel: SignUpInputLabel) => (
+                      <LabeledInput
+                        key={inputLabel.field}
+                        label={inputLabel.label}
+                        placeholder={inputLabel.placeholder}
+                        value={
+                          values?.[inputLabel.field as keyof typeof values]
+                        }
+                        onChangeText={handleChange(inputLabel.field)}
+                        onBlur={() => handleBlur(inputLabel.field)}
+                        keyboardType={inputLabel.keyboardType}
+                        autoCapitalize={inputLabel?.autoCapitalize}
+                        secureTextEntry={inputLabel.secureTextEntry}
+                        rightIcon={
+                          inputLabel.rightIcon && (
+                            <PasswordVisbilityToggle
+                              showPassword={showPassword}
+                              setShowPassword={setShowPassword}
+                            />
+                          )
+                        }
+                        error={displayFormikError(touched, errors, inputLabel)}
+                      />
+                    ),
+                  )}
+                </View>
 
                 <ForgotPassword />
-              </View>
+              </KeyboardAwareScrollView>
 
               {displayStatus(status)}
               <View style={{ gap: 14 }}>

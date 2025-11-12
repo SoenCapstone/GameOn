@@ -2,6 +2,15 @@ import React from "react";
 import { render, fireEvent, waitFor } from "@testing-library/react-native";
 import { mockAlert, setupAuthTestHooks } from "@/__tests__/test-utils/auth-test-setup";
 
+jest.mock("react-native-keyboard-controller", () => {
+  const { ScrollView } = require("react-native");
+  return {
+    KeyboardAwareScrollView: ({ children, ...props }: any) => (
+      <ScrollView {...props}>{children}</ScrollView>
+    ),
+  };
+});
+
 jest.mock("@react-navigation/elements", () => ({
   useHeaderHeight: () => 0,
 }));
