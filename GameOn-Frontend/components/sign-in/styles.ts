@@ -1,8 +1,8 @@
 import { StyleSheet } from "react-native";
 
 export const styles = StyleSheet.create({
-  forgotWrap: { alignSelf: "flex-end", marginTop: 8 },
-  forgotText: { color: "#D1D5DB", fontSize: 12 },
+  forgotWrap: { alignSelf: "flex-end", marginRight: 20 },
+  forgotText: { color: "rgba(235,235,245,0.6)", fontSize: 12 },
 
   statusBox: {
     marginTop: 8,
@@ -27,8 +27,8 @@ export const styles = StyleSheet.create({
     paddingVertical: 14,
     alignItems: "center",
     marginTop: 8,
-    backgroundColor: "transparent",       
-    overflow: "hidden",                   
+    backgroundColor: "transparent",
+    overflow: "hidden",
     borderWidth: 1,
     borderColor: "rgba(255,255,255,0.25)",
     shadowColor: "#000",
