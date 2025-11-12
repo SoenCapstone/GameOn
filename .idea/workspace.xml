@@ -1,15 +1,28 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
+  <component name="AutoImportSettings">
+    <option name="autoReloadType" value="SELECTIVE" />
+  </component>
   <component name="ChangeListManager">
-    <list default="true" id="b8ea537a-8142-40d6-880b-57266c4754f1" name="Changes" comment="" />
+    <list default="true" id="b8ea537a-8142-40d6-880b-57266c4754f1" name="Changes" comment="Fixed SonnarQube duplication error">
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/GameOn-Frontend/__tests__/test-utils/auth-test-setup.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/GameOn-Frontend/__tests__/test-utils/auth-test-setup.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/GameOn-Frontend/app/browse/_layout.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/GameOn-Frontend/app/(contexts)/browse/_layout.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/GameOn-Frontend/app/browse/index.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/GameOn-Frontend/app/(contexts)/browse/index.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/GameOn-Frontend/components/header/add-button.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/GameOn-Frontend/components/header/add-button.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/GameOn-Frontend/components/sign-up/models.ts" beforeDir="false" afterPath="$PROJECT_DIR$/GameOn-Frontend/components/sign-up/models.ts" afterDir="false" />
+    </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
     <option name="LAST_RESOLUTION" value="IGNORE" />
   </component>
-  <component name="ProjectColorInfo"><![CDATA[{
-  "associatedIndex": 2
-}]]></component>
+  <component name="Git.Settings">
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
+  </component>
+  <component name="ProjectColorInfo">{
+  &quot;associatedIndex&quot;: 2
+}</component>
   <component name="ProjectId" id="33z1UZAF1Br3q7FjE3CMqLLWbkE" />
   <component name="ProjectViewState">
     <option name="hideEmptyMiddlePackages" value="true" />
@@ -18,9 +31,17 @@
   <component name="PropertiesComponent"><![CDATA[{
   "keyToString": {
     "RunOnceActivity.ShowReadmeOnStart": "true",
-    "last_opened_file_path": "/Users/johnny/Desktop/GameOn"
+    "git-widget-placeholder": "bugfix/no-ref/auth-design-fix",
+    "last_opened_file_path": "/Users/johnny/Desktop/GameOn",
+    "node.js.selected.package.tslint": "(autodetect)",
+    "ts.external.directory.path": "/Users/mahmoud/Developer/GameOn/GameOn-Frontend/node_modules/typescript/lib"
   }
 }]]></component>
+  <component name="RecentsManager">
+    <key name="MoveFile.RECENT_KEYS">
+      <recent name="$PROJECT_DIR$/GameOn-Frontend/app/(contexts)" />
+    </key>
+  </component>
   <component name="SharedIndexes">
     <attachedChunks>
       <set>
@@ -36,6 +57,37 @@
       <option name="presentableId" value="Default" />
       <updated>1760305103695</updated>
     </task>
+    <task id="LOCAL-00001" summary="Fixed capitalization">
+      <option name="closed" value="true" />
+      <created>1762935128309</created>
+      <option name="number" value="00001" />
+      <option name="presentableId" value="LOCAL-00001" />
+      <option name="project" value="LOCAL" />
+      <updated>1762935128309</updated>
+    </task>
+    <task id="LOCAL-00002" summary="Auth rework">
+      <option name="closed" value="true" />
+      <created>1762943620667</created>
+      <option name="number" value="00002" />
+      <option name="presentableId" value="LOCAL-00002" />
+      <option name="project" value="LOCAL" />
+      <updated>1762943620667</updated>
+    </task>
+    <task id="LOCAL-00003" summary="Fixed SonnarQube duplication error">
+      <option name="closed" value="true" />
+      <created>1762945193220</created>
+      <option name="number" value="00003" />
+      <option name="presentableId" value="LOCAL-00003" />
+      <option name="project" value="LOCAL" />
+      <updated>1762945193220</updated>
+    </task>
+    <option name="localTasksCounter" value="4" />
     <servers />
+  </component>
+  <component name="VcsManagerConfiguration">
+    <MESSAGE value="Fixed capitalization" />
+    <MESSAGE value="Auth rework" />
+    <MESSAGE value="Fixed SonnarQube duplication error" />
+    <option name="LAST_COMMIT_MESSAGE" value="Fixed SonnarQube duplication error" />
   </component>
 </project>

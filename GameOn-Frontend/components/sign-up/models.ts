@@ -18,7 +18,7 @@ export type LabeledInputProps = {
   onChangeText: (t: string) => void;
   onBlur?: () => void;
   keyboardType?: any;
-  autoCapitalize?: "none" | "sentences" | "words" | "characters" | undefined;
+  autoCapitalize?: "none" | "sentences" | "words" | "characters";
   secureTextEntry?: boolean;
   rightIcon?: React.ReactNode;
   error?: any;

@@ -4,7 +4,7 @@ import { useFormikContext } from "formik";
 import { User } from "@/components/sign-up/models";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import { AccentColors } from "@/constants/colors";
-import { LabeledInput } from "@/components/auth/input-label";
+import { LabeledInput } from "@/components/auth/labeled-input";
 import { useState } from "react";
 import {
   formatDate,

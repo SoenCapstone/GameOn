@@ -45,8 +45,7 @@ jest.mock("@/constants/auth-layout", () => ({
   }),
 }));
 
-jest.mock("@/components/auth/input-label", () => {
-  const React = require("react");
+jest.mock("@/components/auth/labeled-input", () => {
   const { Text, TextInput, View } = require("react-native");
   return {
     LabeledInput: ({
@@ -80,7 +79,6 @@ jest.mock("@/components/auth/input-label", () => {
 });
 
 jest.mock("@/components/auth/submit-auth-button", () => {
-  const React = require("react");
   const { TouchableOpacity, Text } = require("react-native");
   const { useFormikContext } = require("formik");
 

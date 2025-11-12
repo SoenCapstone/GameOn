@@ -9,7 +9,7 @@ import { styles } from "@/components/sign-up/styles";
 import { completeVerificationAndUpsert } from "@/components/sign-up/utils";
 import { useUpsertUser } from "@/components/sign-up/hooks/useInsertClerkToBe";
 import { User, SetActiveFn } from "@/components/sign-up/models";
-import { LabeledInput } from "@/components/auth/input-label";
+import { LabeledInput } from "@/components/auth/labeled-input";
 import { WelcomeAuthButton } from "@/components/auth/welcome-auth-button";
 
 export const VerificationInput: React.FC<{

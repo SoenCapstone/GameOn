@@ -19,7 +19,7 @@ import {
 import { isIOSPadding, displayFormikError } from "@/components/sign-up/utils";
 import { PasswordVisbilityToggle } from "@/components/auth/password-visibility-toggle";
 import { SignUpInputLabel } from "@/components/sign-up/models";
-import { LabeledInput } from "@/components/auth/input-label";
+import { LabeledInput } from "@/components/auth/labeled-input";
 import { SubmitAuthButton } from "@/components/auth/submit-auth-button";
 import { SIGN_IN_MESSAGE } from "@/components/sign-up/constants";
 import { useSignIn } from "@clerk/clerk-expo";

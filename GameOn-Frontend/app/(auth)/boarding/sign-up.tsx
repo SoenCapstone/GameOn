@@ -7,7 +7,7 @@ import {
   startClerkSignUp,
   displayFormikError,
 } from "@/components/sign-up/utils";
-import { LabeledInput } from "@/components/auth/input-label";
+import { LabeledInput } from "@/components/auth/labeled-input";
 import { User, SignUpInputLabel } from "@/components/sign-up/models";
 import { VerificationInput } from "@/components/sign-up/verification-input";
 import { useSignUp } from "@clerk/clerk-expo";
