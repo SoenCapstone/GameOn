@@ -29,7 +29,7 @@ export type SignUpInputLabel = {
   label: string;
   placeholder: string;
   field: string;
-  autoCapitalize?: "none" | "sentences" | "words" | "characters" | undefined;
+  autoCapitalize?: "none" | "sentences" | "words" | "characters";
   keyboardType?: any;
   secureTextEntry?: boolean;
   rightIcon?: any;

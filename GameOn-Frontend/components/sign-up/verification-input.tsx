@@ -22,37 +22,35 @@ export const VerificationInput: React.FC<{
 }> = ({ otpCode, setOtpCode, setActive, values, isLoaded, signUp }) => {
   const upsertUser = useUpsertUser();
   return (
-    <>
-      <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-        <View style={{ flex: 1, justifyContent: "space-between" }}>
-          <LabeledInput
-            label="Verification Code"
-            placeholder="123456"
-            value={otpCode}
-            onChangeText={setOtpCode}
-            keyboardType="numeric"
-          />
-          <WelcomeAuthButton
-            label={
-              upsertUser.isPending ? (
-                <ActivityIndicator />
-              ) : (
-                <Text style={styles.ctaText}>Verify Email</Text>
-              )
-            }
-            onPress={async () =>
-              completeVerificationAndUpsert(
-                values,
-                isLoaded,
-                otpCode,
-                signUp,
-                setActive,
-                upsertUser,
-              )
-            }
-          />
-        </View>
-      </TouchableWithoutFeedback>
-    </>
+    <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+      <View style={{ flex: 1, justifyContent: "space-between" }}>
+        <LabeledInput
+          label="Verification Code"
+          placeholder="123456"
+          value={otpCode}
+          onChangeText={setOtpCode}
+          keyboardType="numeric"
+        />
+        <WelcomeAuthButton
+          label={
+            upsertUser.isPending ? (
+              <ActivityIndicator />
+            ) : (
+              <Text style={styles.ctaText}>Verify Email</Text>
+            )
+          }
+          onPress={async () =>
+            completeVerificationAndUpsert(
+              values,
+              isLoaded,
+              otpCode,
+              signUp,
+              setActive,
+              upsertUser,
+            )
+          }
+        />
+      </View>
+    </TouchableWithoutFeedback>
   );
 };

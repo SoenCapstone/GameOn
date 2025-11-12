@@ -27,15 +27,22 @@ export const SubmitAuthButton: React.FC<{ actionMessage: string }> = ({
   );
 };
 
+const displayLoader = () => {
+  return <ActivityIndicator />;
+};
+
+const displayButton = (actionMessage: string) => {
+  return <Text style={styles.text}>{actionMessage}</Text>;
+};
+
 const displayButtonOrLoader = (
   actionMessage: string,
   isSubmitting: boolean,
 ) => {
-  return isSubmitting ? (
-    <ActivityIndicator />
-  ) : (
-    <Text style={styles.text}>{actionMessage}</Text>
-  );
+  if (isSubmitting) {
+    return displayLoader();
+  }
+  return displayButton(actionMessage);
 };
 
 const styles = StyleSheet.create({

@@ -115,11 +115,11 @@ export const parseDate = (dateString: string): Date | null => {
   const parts = dateString.split("/");
   if (parts.length !== 3) return null;
   
-  const day = parseInt(parts[0], 10);
-  const month = parseInt(parts[1], 10) - 1;
-  const year = parseInt(parts[2], 10);
+  const day = Number.parseInt(parts[0], 10);
+  const month = Number.parseInt(parts[1], 10) - 1;
+  const year = Number.parseInt(parts[2], 10);
   
-  if (isNaN(day) || isNaN(month) || isNaN(year)) return null;
+  if (Number.isNaN(day) || Number.isNaN(month) || Number.isNaN(year)) return null;
   
   const date = new Date(year, month, day);
   if (
@@ -134,7 +134,7 @@ export const parseDate = (dateString: string): Date | null => {
 };
 
 export const autoFormatDateInput = (input: string): string => {
-  const numbers = input.replace(/\D/g, '');
+  const numbers = input.replaceAll(/\D/g, '');
   
   if (numbers.length === 8) {
     return `${numbers.slice(0, 2)}/${numbers.slice(2, 4)}/${numbers.slice(4, 8)}`;
