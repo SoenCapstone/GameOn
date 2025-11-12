@@ -23,7 +23,7 @@ import { PasswordVisbilityToggle } from "@/components/auth/PasswordVisibilityTog
 import { ContentArea } from "@/components/ui/content-area";
 
 export default function SignUpScreen() {
-  const [showpassword, setShowpassword] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
   const [showDob, setShowDob] = useState(false);
 
   const { isLoaded, signUp, setActive } = useSignUp();
@@ -55,7 +55,6 @@ export default function SignUpScreen() {
                 values={values}
                 isLoaded={isLoaded}
                 signUp={signUp}
-                setPendingVerification={setPendingVerification}
               />
             ) : (
               <>
@@ -64,7 +63,7 @@ export default function SignUpScreen() {
                 >
                   <KeyboardAvoidingView behavior={isIOSPadding()}>
                     <View style={{ gap: 20 }}>
-                      {signUpInputLabels(showpassword).map(
+                      {signUpInputLabels(showPassword).map(
                         (inputLabel: SignUpInputLabel) => (
                           <LabeledInput
                             key={inputLabel.field}
@@ -79,8 +78,8 @@ export default function SignUpScreen() {
                             rightIcon={
                               inputLabel.rightIcon && (
                                 <PasswordVisbilityToggle
-                                  showpassword={showpassword}
-                                  setShowpassword={setShowpassword}
+                                  showPassword={showPassword}
+                                  setShowPassword={setShowPassword}
                                 />
                               )
                             }

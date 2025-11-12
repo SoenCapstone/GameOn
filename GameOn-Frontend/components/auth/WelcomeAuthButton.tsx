@@ -1,30 +1,28 @@
-import React from "react";
-import {
-  Pressable,
-  Text,
-  StyleSheet,
-  StyleProp,
-  ViewStyle,
-} from "react-native";
+import React, { ReactNode } from "react";
+import { Pressable, Text, StyleSheet } from "react-native";
 import { BlurView } from "expo-blur";
 import { useRouter } from "expo-router";
 import type { Href } from "expo-router";
 import { GlassView, isLiquidGlassAvailable } from "expo-glass-effect";
 
 type Props = {
-  route: Href;
-  label: string;
-  style?: StyleProp<ViewStyle>;
+  route?: Href;
+  onPress?: () => void;
+  label: string | ReactNode;
 };
 
-export const WelcomeAuthButton: React.FC<Props> = ({ route, label }) => {
+export const WelcomeAuthButton: React.FC<Props> = ({
+  route,
+  label,
+  onPress,
+}) => {
   const router = useRouter();
   const Button = isLiquidGlassAvailable() ? GlassView : BlurView;
 
   return (
     <Pressable
       accessibilityRole="button"
-      onPress={() => router.push(route)}
+      onPress={route ? () => router.push(route) : onPress}
       style={styles.pressable}
     >
       <Button
