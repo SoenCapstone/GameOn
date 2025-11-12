@@ -19,7 +19,7 @@ import { useSignIn } from "@clerk/clerk-expo";
 import { ContentArea } from "@/components/ui/content-area";
 
 export default function SignInScreen() {
-  const [showpassword, setShowpassword] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
   const { signIn, setActive, isLoaded } = useSignIn();
 
   return (
@@ -36,7 +36,7 @@ export default function SignInScreen() {
             <View style={{ gap: 16 }}>
               <KeyboardAvoidingView behavior={isIOSPadding()}>
                 <View style={{ gap: 20 }}>
-                  {signInInputLabels(showpassword).map(
+                  {signInInputLabels(showPassword).map(
                     (inputLabel: SignUpInputLabel) => (
                       <LabeledInput
                         key={inputLabel.field}
@@ -51,8 +51,8 @@ export default function SignInScreen() {
                         rightIcon={
                           inputLabel.rightIcon && (
                             <PasswordVisbilityToggle
-                              showpassword={showpassword}
-                              setShowpassword={setShowpassword}
+                              showPassword={showPassword}
+                              setShowPassword={setShowPassword}
                             />
                           )
                         }
