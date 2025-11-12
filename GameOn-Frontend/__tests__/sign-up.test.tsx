@@ -1,13 +1,6 @@
 import React from "react";
 import { render, fireEvent, waitFor } from "@testing-library/react-native";
-
-jest.mock("expo-linear-gradient", () => ({
-  LinearGradient: ({ children }: any) => children ?? null,
-}));
-
-jest.mock("@expo/vector-icons", () => ({
-  Ionicons: () => null,
-}));
+import { mockAlert, setupAuthTestHooks } from "@/__tests__/test-utils/auth-test-setup";
 
 jest.mock("react-native-keyboard-controller", () => {
   const { ScrollView } = require("react-native");
@@ -17,43 +10,6 @@ jest.mock("react-native-keyboard-controller", () => {
     ),
   };
 });
-
-jest.mock("expo-router", () => ({
-  Link: ({ children }: any) => children ?? null,
-  router: {
-    push: jest.fn(),
-    replace: jest.fn(),
-  },
-}));
-
-const mockAlert = jest.fn();
-
-jest.mock("@/constants/images", () => ({
-  images: { logo: 1 },
-}));
-
-jest.mock("@/constants/auth-styles", () => ({
-  authStyles: {
-    safe: { flex: 1 },
-    topGradient: {},
-    hero: {},
-    container: {},
-    label: {},
-    inputWrap: {},
-    input: {},
-    rightIcon: {},
-    errorText: {},
-  },
-}));
-
-jest.mock("@/constants/auth-layout", () => ({
-  getAuthHeroLayout: () => ({
-    FORM_PADDING_TOP: 0,
-    TOP_GRADIENT_H: 0,
-    RENDER_W: 0,
-    RENDER_H: 0,
-  }),
-}));
 
 const mockCreate = jest.fn();
 const mockPrepareEmailAddressVerification = jest.fn();
@@ -70,40 +26,6 @@ jest.mock("@clerk/clerk-expo", () => ({
   }),
 }));
 
-jest.mock("@/components/auth/input-label", () => {
-  const React = require("react");
-  const { Text, TextInput, View } = require("react-native");
-  return {
-    LabeledInput: ({
-      label,
-      placeholder,
-      value,
-      onChangeText,
-      onBlur,
-      secureTextEntry,
-      keyboardType,
-      autoCapitalize,
-      error,
-      testID,
-    }: any) => (
-      <View>
-        <Text>{label}</Text>
-        <TextInput
-          placeholder={placeholder}
-          value={value}
-          onChangeText={onChangeText}
-          onBlur={onBlur}
-          secureTextEntry={secureTextEntry}
-          keyboardType={keyboardType}
-          autoCapitalize={autoCapitalize}
-          testID={testID || `input-${placeholder}`}
-        />
-        {error ? <Text testID={`error-${label}`}>{error}</Text> : null}
-      </View>
-    ),
-  };
-});
-
 jest.mock("@/components/auth/sign-up-date-picker", () => ({
   SignUpDatePicker: () => null,
 }));
@@ -112,59 +34,29 @@ jest.mock("@/components/privacy-disclaimer/privacy-disclaimer", () => ({
   PrivacyDisclaimer: () => null,
 }));
 
-jest.mock("@/components/sign-up/verification-input", () => ({
-  VerificationInput: () => {
-    const { Text, View } = require("react-native");
-    return (
+jest.mock("@/components/sign-up/verification-input", () => {
+  const { Text, View } = require("react-native");
+  return {
+    VerificationInput: () => (
       <View testID="verification-view">
         <Text>Verification</Text>
       </View>
-    );
-  },
-}));
-
-jest.mock("@/components/auth/submit-auth-button", () => {
-  const React = require("react");
-  const { TouchableOpacity, Text } = require("react-native");
-  const { useFormikContext } = require("formik");
-
-  return {
-    SubmitAuthButton: ({ actionMessage }: any) => {
-      const { handleSubmit } = useFormikContext();
-      return (
-        <TouchableOpacity onPress={handleSubmit} testID="submit-button">
-          <Text>{actionMessage}</Text>
-        </TouchableOpacity>
-      );
-    },
+    ),
   };
 });
-
-jest.mock("@/components/auth/password-visibility-toggle", () => ({
-  PasswordVisbilityToggle: () => null,
-}));
-
-jest.mock("@/components/ui/content-area", () => ({
-  ContentArea: ({ children }: any) => children ?? null,
-}));
 
 jest.mock("@/constants/navigation", () => ({
   SIGN_IN_PATH: "/(auth)/boarding/sign-in",
 }));
 
 import SignUpScreen from "@/app/(auth)/boarding/sign-up";
-import { Alert } from "react-native";
 
 describe("SignUpScreen", () => {
+  setupAuthTestHooks();
+
   beforeEach(() => {
-    jest.clearAllMocks();
-    jest.spyOn(Alert, "alert").mockImplementation(mockAlert);
     mockCreate.mockResolvedValue({ status: "pending" });
     mockPrepareEmailAddressVerification.mockResolvedValue({ status: "ready" });
-  });
-
-  afterEach(() => {
-    jest.restoreAllMocks();
   });
 
   it("renders the sign-up form with all input fields", () => {
