@@ -173,7 +173,7 @@ describe("SignInScreen", () => {
   it("renders the sign-in form with all input fields", () => {
     const { getByPlaceholderText, getByText } = render(<SignInScreen />);
 
-    expect(getByPlaceholderText("example@example.com")).toBeTruthy();
+    expect(getByPlaceholderText("name@example.com")).toBeTruthy();
     expect(getByPlaceholderText("••••••••••••")).toBeTruthy();
     expect(getByText("Sign In")).toBeTruthy();
   });
@@ -182,7 +182,7 @@ describe("SignInScreen", () => {
     const { getByPlaceholderText, getByTestId } = render(<SignInScreen />);
 
     fireEvent.changeText(
-      getByPlaceholderText("example@example.com"),
+      getByPlaceholderText("name@example.com"),
       "test@example.com",
     );
     fireEvent.changeText(getByPlaceholderText("••••••••••••"), "password123");
@@ -222,7 +222,7 @@ describe("SignInScreen", () => {
     const { getByPlaceholderText, getByTestId } = render(<SignInScreen />);
 
     fireEvent.changeText(
-      getByPlaceholderText("example@example.com"),
+      getByPlaceholderText("name@example.com"),
       "invalid-email",
     );
     fireEvent.changeText(getByPlaceholderText("••••••••••••"), "password123");
@@ -238,7 +238,7 @@ describe("SignInScreen", () => {
     const { getByPlaceholderText, getByTestId } = render(<SignInScreen />);
 
     fireEvent.changeText(
-      getByPlaceholderText("example@example.com"),
+      getByPlaceholderText("name@example.com"),
       "test@example.com",
     );
     fireEvent.changeText(getByPlaceholderText("••••••••••••"), "short");
@@ -259,7 +259,7 @@ describe("SignInScreen", () => {
     const { getByPlaceholderText, getByTestId } = render(<SignInScreen />);
 
     fireEvent.changeText(
-      getByPlaceholderText("example@example.com"),
+      getByPlaceholderText("name@example.com"),
       "test@example.com",
     );
     fireEvent.changeText(getByPlaceholderText("••••••••••••"), "wrongpass");
@@ -286,7 +286,7 @@ describe("SignInScreen", () => {
     const { getByPlaceholderText, getByTestId } = render(<SignInScreen />);
 
     fireEvent.changeText(
-      getByPlaceholderText("example@example.com"),
+      getByPlaceholderText("name@example.com"),
       "test@example.com",
     );
     fireEvent.changeText(getByPlaceholderText("••••••••••••"), "password123");

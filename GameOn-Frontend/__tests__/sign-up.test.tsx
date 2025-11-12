@@ -169,9 +169,9 @@ describe("SignUpScreen", () => {
   it("renders the sign-up form with all input fields", () => {
     const { getByPlaceholderText, getByText } = render(<SignUpScreen />);
 
-    expect(getByPlaceholderText("john")).toBeTruthy();
+    expect(getByPlaceholderText("John")).toBeTruthy();
     expect(getByPlaceholderText("Doe")).toBeTruthy();
-    expect(getByPlaceholderText("example@example.com")).toBeTruthy();
+    expect(getByPlaceholderText("name@example.com")).toBeTruthy();
     expect(getByPlaceholderText("••••••••••••")).toBeTruthy();
     expect(getByText("Sign Up")).toBeTruthy();
   });
@@ -181,10 +181,10 @@ describe("SignUpScreen", () => {
       <SignUpScreen />,
     );
 
-    fireEvent.changeText(getByPlaceholderText("john"), "Jane");
+    fireEvent.changeText(getByPlaceholderText("John"), "Jane");
     fireEvent.changeText(getByPlaceholderText("Doe"), "Doe");
     fireEvent.changeText(
-      getByPlaceholderText("example@example.com"),
+      getByPlaceholderText("name@example.com"),
       "jane@example.com",
     );
     fireEvent.changeText(getByPlaceholderText("••••••••••••"), "testtest");
@@ -221,10 +221,10 @@ describe("SignUpScreen", () => {
   it("validates email format", async () => {
     const { getByPlaceholderText, getByTestId } = render(<SignUpScreen />);
 
-    fireEvent.changeText(getByPlaceholderText("john"), "Jane");
+    fireEvent.changeText(getByPlaceholderText("John"), "Jane");
     fireEvent.changeText(getByPlaceholderText("Doe"), "Doe");
     fireEvent.changeText(
-      getByPlaceholderText("example@example.com"),
+      getByPlaceholderText("name@example.com"),
       "invalid-email",
     );
     fireEvent.changeText(getByPlaceholderText("••••••••••••"), "testtest");
@@ -239,10 +239,10 @@ describe("SignUpScreen", () => {
   it("validates password length (minimum 8 characters)", async () => {
     const { getByPlaceholderText, getByTestId } = render(<SignUpScreen />);
 
-    fireEvent.changeText(getByPlaceholderText("john"), "Jane");
+    fireEvent.changeText(getByPlaceholderText("John"), "Jane");
     fireEvent.changeText(getByPlaceholderText("Doe"), "Doe");
     fireEvent.changeText(
-      getByPlaceholderText("example@example.com"),
+      getByPlaceholderText("name@example.com"),
       "jane@example.com",
     );
     fireEvent.changeText(getByPlaceholderText("••••••••••••"), "short");
@@ -264,10 +264,10 @@ describe("SignUpScreen", () => {
       <SignUpScreen />,
     );
 
-    fireEvent.changeText(getByPlaceholderText("john"), "Jane");
+    fireEvent.changeText(getByPlaceholderText("John"), "Jane");
     fireEvent.changeText(getByPlaceholderText("Doe"), "Doe");
     fireEvent.changeText(
-      getByPlaceholderText("example@example.com"),
+      getByPlaceholderText("name@example.com"),
       "existing@example.com",
     );
     fireEvent.changeText(getByPlaceholderText("••••••••••••"), "testtest");
