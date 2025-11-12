@@ -8,6 +8,7 @@ export const LabeledInput = ({
   label,
   rightIcon,
   error,
+  style,
   ...inputProps
 }: Readonly<LabeledInputProps>) => {
   const TextField = isLiquidGlassAvailable() ? GlassView : BlurView;
@@ -19,6 +20,7 @@ export const LabeledInput = ({
         intensity={90}
         tint="dark"
         style={[
+          style,
           styles.TextField,
           isLiquidGlassAvailable() ? null : styles.blur,
           error ? { borderColor: "#EF4444" } : null,

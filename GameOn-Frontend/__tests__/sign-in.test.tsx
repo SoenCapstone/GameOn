@@ -71,7 +71,7 @@ jest.mock("@/constants/navigation", () => ({
   SIGN_UP_PATH: "/(auth)/boarding/sign-up",
 }));
 
-jest.mock("@/components/auth/InputLabel", () => {
+jest.mock("@/components/auth/input-label", () => {
   const React = require("react");
   const { Text, TextInput, View } = require("react-native");
   return {
@@ -105,7 +105,7 @@ jest.mock("@/components/auth/InputLabel", () => {
   };
 });
 
-jest.mock("@/components/auth/SubmitAuthButton", () => {
+jest.mock("@/components/auth/submit-auth-button", () => {
   const React = require("react");
   const { TouchableOpacity, Text } = require("react-native");
   const { useFormikContext } = require("formik");
@@ -122,16 +122,8 @@ jest.mock("@/components/auth/SubmitAuthButton", () => {
   };
 });
 
-jest.mock("@/components/auth/PasswordVisibilityToggle", () => ({
+jest.mock("@/components/auth/password-visibility-toggle", () => ({
   PasswordVisbilityToggle: () => null,
-}));
-
-jest.mock("@/components/auth/AuthSwitchLink", () => ({
-  AuthSwitchLink: () => null,
-}));
-
-jest.mock("@/components/auth/AuthLinearGradient", () => ({
-  AuthLinearGradient: ({ children }: any) => children ?? null,
 }));
 
 jest.mock("@/components/ui/content-area", () => ({

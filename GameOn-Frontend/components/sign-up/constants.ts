@@ -2,12 +2,12 @@ import { passwordInput } from "@/components/sign-in/constants";
 
 const FIRST_NAME_LABEL = "First name";
 const FIRST_NAME_FIELD = "firstname";
-const FIRST_NAME_AUTO_CAPITALIZE = "words";
+const FIRST_NAME_AUTO_CAPITALIZE = "words" as const;
 const FIRST_NAME_PLACEHOLDER = "John";
 
 const LAST_NAME_LABEL = "Last name";
 const LAST_NAME_FIELD = "lastname";
-const LAST_NAME_AUTO_CAPITALIZE = "words";
+const LAST_NAME_AUTO_CAPITALIZE = "words" as const;
 const LAST_NAME_PLACEHOLDER = "Doe";
 
 export const PASSWORD_LABEL = "Password";
@@ -17,7 +17,7 @@ export const PASSWORD_PLACEHOLDER = "••••••••••••";
 export const EMAIL_LABEL = "Email address";
 export const EMAIL_FIELD = "emailAddress";
 export const EMAIL_PLACEHOLDER = "name@example.com";
-export const EMAIL_AUTO_CAPITALIZE = "none";
+export const EMAIL_AUTO_CAPITALIZE = "none" as const;
 export const EMAIL_KEYBOARD_TYPE = "email-address";
 
 export const EMPTY_STRING = "";

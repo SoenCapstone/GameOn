@@ -9,6 +9,15 @@ jest.mock("@expo/vector-icons", () => ({
   Ionicons: () => null,
 }));
 
+jest.mock("react-native-keyboard-controller", () => {
+  const { ScrollView } = require("react-native");
+  return {
+    KeyboardAwareScrollView: ({ children, ...props }: any) => (
+      <ScrollView {...props}>{children}</ScrollView>
+    ),
+  };
+});
+
 jest.mock("expo-router", () => ({
   Link: ({ children }: any) => children ?? null,
   router: {
@@ -61,7 +70,7 @@ jest.mock("@clerk/clerk-expo", () => ({
   }),
 }));
 
-jest.mock("@/components/auth/InputLabel", () => {
+jest.mock("@/components/auth/input-label", () => {
   const React = require("react");
   const { Text, TextInput, View } = require("react-native");
   return {
@@ -95,7 +104,7 @@ jest.mock("@/components/auth/InputLabel", () => {
   };
 });
 
-jest.mock("@/components/auth/SignUpDatePicker", () => ({
+jest.mock("@/components/auth/sign-up-date-picker", () => ({
   SignUpDatePicker: () => null,
 }));
 
@@ -103,7 +112,7 @@ jest.mock("@/components/privacy-disclaimer/privacy-disclaimer", () => ({
   PrivacyDisclaimer: () => null,
 }));
 
-jest.mock("@/components/sign-up/VerificationInput", () => ({
+jest.mock("@/components/sign-up/verification-input", () => ({
   VerificationInput: () => {
     const { Text, View } = require("react-native");
     return (
@@ -114,7 +123,7 @@ jest.mock("@/components/sign-up/VerificationInput", () => ({
   },
 }));
 
-jest.mock("@/components/auth/SubmitAuthButton", () => {
+jest.mock("@/components/auth/submit-auth-button", () => {
   const React = require("react");
   const { TouchableOpacity, Text } = require("react-native");
   const { useFormikContext } = require("formik");
@@ -131,16 +140,8 @@ jest.mock("@/components/auth/SubmitAuthButton", () => {
   };
 });
 
-jest.mock("@/components/auth/PasswordVisibilityToggle", () => ({
+jest.mock("@/components/auth/password-visibility-toggle", () => ({
   PasswordVisbilityToggle: () => null,
-}));
-
-jest.mock("@/components/auth/AuthSwitchLink", () => ({
-  AuthSwitchLink: () => null,
-}));
-
-jest.mock("@/components/auth/AuthLinearGradient", () => ({
-  AuthLinearGradient: ({ children }: any) => children ?? null,
 }));
 
 jest.mock("@/components/ui/content-area", () => ({

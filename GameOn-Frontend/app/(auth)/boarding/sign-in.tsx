@@ -1,7 +1,14 @@
 import { Link } from "expo-router";
 import { Formik } from "formik";
 import React, { useState } from "react";
-import { KeyboardAvoidingView, Pressable, Text, View } from "react-native";
+import {
+  KeyboardAvoidingView,
+  Pressable,
+  Text,
+  View,
+  Keyboard,
+  TouchableWithoutFeedback,
+} from "react-native";
 import { SignInSchema, login } from "@/components/sign-in/utils";
 import { styles } from "@/components/sign-in/styles";
 import {
@@ -10,10 +17,10 @@ import {
   FORGOT_PASSWORD_TEXT,
 } from "@/components/sign-in/constants";
 import { isIOSPadding, displayFormikError } from "@/components/sign-up/utils";
-import { PasswordVisbilityToggle } from "@/components/auth/PasswordVisibilityToggle";
+import { PasswordVisbilityToggle } from "@/components/auth/password-visibility-toggle";
 import { SignUpInputLabel } from "@/components/sign-up/models";
-import { LabeledInput } from "@/components/auth/InputLabel";
-import { SubmitAuthButton } from "@/components/auth/SubmitAuthButton";
+import { LabeledInput } from "@/components/auth/input-label";
+import { SubmitAuthButton } from "@/components/auth/submit-auth-button";
 import { SIGN_IN_MESSAGE } from "@/components/sign-up/constants";
 import { useSignIn } from "@clerk/clerk-expo";
 import { ContentArea } from "@/components/ui/content-area";
@@ -27,52 +34,61 @@ export default function SignInScreen() {
       <Formik
         initialValues={initialSignInValue}
         validationSchema={SignInSchema}
-        onSubmit={async (values) =>
-          await login(values, signIn, setActive, isLoaded)
-        }
+        onSubmit={async (values) => {
+          if (!setActive) return;
+          await login(values, signIn, setActive, isLoaded);
+        }}
       >
         {({ values, errors, touched, handleBlur, handleChange, status }) => (
-          <View style={{ flex: 1, justifyContent: "space-between" }}>
-            <View style={{ gap: 16 }}>
-              <KeyboardAvoidingView behavior={isIOSPadding()}>
-                <View style={{ gap: 20 }}>
-                  {signInInputLabels(showPassword).map(
-                    (inputLabel: SignUpInputLabel) => (
-                      <LabeledInput
-                        key={inputLabel.field}
-                        label={inputLabel.label}
-                        placeholder={inputLabel.placeholder}
-                        value={values?.[inputLabel.field]}
-                        onChangeText={handleChange(inputLabel.field)}
-                        onBlur={() => handleBlur(inputLabel.field)}
-                        keyboardType={inputLabel.keyboardType}
-                        autoCapitalize={inputLabel?.autoCapitalize}
-                        secureTextEntry={inputLabel.secureTextEntry}
-                        rightIcon={
-                          inputLabel.rightIcon && (
-                            <PasswordVisbilityToggle
-                              showPassword={showPassword}
-                              setShowPassword={setShowPassword}
-                            />
-                          )
-                        }
-                        error={displayFormikError(touched, errors, inputLabel)}
-                      />
-                    ),
-                  )}
-                </View>
-              </KeyboardAvoidingView>
+          <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+            <View style={{ flex: 1, justifyContent: "space-between" }}>
+              <View style={{ gap: 16 }}>
+                <KeyboardAvoidingView behavior={isIOSPadding()}>
+                  <View style={{ gap: 20 }}>
+                    {signInInputLabels(showPassword).map(
+                      (inputLabel: SignUpInputLabel) => (
+                        <LabeledInput
+                          key={inputLabel.field}
+                          label={inputLabel.label}
+                          placeholder={inputLabel.placeholder}
+                          value={
+                            values?.[inputLabel.field as keyof typeof values]
+                          }
+                          onChangeText={handleChange(inputLabel.field)}
+                          onBlur={() => handleBlur(inputLabel.field)}
+                          keyboardType={inputLabel.keyboardType}
+                          autoCapitalize={inputLabel?.autoCapitalize}
+                          secureTextEntry={inputLabel.secureTextEntry}
+                          rightIcon={
+                            inputLabel.rightIcon && (
+                              <PasswordVisbilityToggle
+                                showPassword={showPassword}
+                                setShowPassword={setShowPassword}
+                              />
+                            )
+                          }
+                          error={displayFormikError(
+                            touched,
+                            errors,
+                            inputLabel,
+                          )}
+                        />
+                      ),
+                    )}
+                  </View>
+                </KeyboardAvoidingView>
 
-              <ForgotPassword />
+                <ForgotPassword />
+              </View>
+
+              {displayStatus(status)}
+              <View style={{ gap: 14 }}>
+                {__DEV__ && <DevTools />}
+
+                <SubmitAuthButton actionMessage={SIGN_IN_MESSAGE} />
+              </View>
             </View>
-
-            {displayStatus(status)}
-            <View style={{ gap: 14 }}>
-              {__DEV__ && <DevTools />}
-
-              <SubmitAuthButton actionMessage={SIGN_IN_MESSAGE} />
-            </View>
-          </View>
+          </TouchableWithoutFeedback>
         )}
       </Formik>
     </ContentArea>

@@ -8,7 +8,8 @@ import {
   PASSWORD_LABEL,
   PASSWORD_PLACEHOLDER,
   PASSWORD_FIELD,
-} from "../sign-up/constants";
+} from "@/components/sign-up/constants";
+import { SignUpInputLabel } from "@/components/sign-up/models";
 
 export const initialSignInValue = {
   emailAddress: EMPTY_STRING,
@@ -26,7 +27,7 @@ export const passwordInput = (showPassword: boolean) => ({
   rightIcon: true,
 });
 
-export const signInInputLabels = (showPassword: boolean) => [
+export const signInInputLabels = (showPassword: boolean): SignUpInputLabel[] => [
   {
     label: EMAIL_LABEL,
     placeholder: EMAIL_PLACEHOLDER,
