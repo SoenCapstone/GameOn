@@ -29,7 +29,7 @@ GameOn targets last-minute player absences, complex scheduling, messy payments, 
 
 | Release \# | Link to Demo |
 |------------|--------------|
-| Release 1  |              |
+| Release 1  | [Demo 1](https://drive.google.com/file/d/1EH74M7fyrOtF4cqQyQ78-SJTe6lQ6VJN/view?usp=sharing)  |
 | Release 2  |              |
 | Release 3  |              |
 
