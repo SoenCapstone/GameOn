@@ -11,7 +11,7 @@ import { LegendList } from "@legendapp/list";
 import { SearchResult } from "@/components/browse/constants";
 import SvgImage from "@/components/svg-image";
 import { createScopedLog } from "@/utils/logger";
-import { useSearch } from "@/contexts/SearchContext";
+import { useSearch } from "@/contexts/search-context";
 import { ContentArea } from "@/components/ui/content-area";
 import { InfoCard } from "@/components/info-card";
 

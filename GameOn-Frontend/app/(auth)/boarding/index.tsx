@@ -4,7 +4,7 @@ import { View } from "react-native";
 import { WelcomeHero } from "@/components/auth/welcome-hero";
 import { PrivacyDisclaimer } from "@/components/privacy-disclaimer/privacy-disclaimer";
 import { ContentArea } from "@/components/ui/content-area";
-import { WelcomeAuthButton } from "@/components/auth/WelcomeAuthButton";
+import { WelcomeAuthButton } from "@/components/auth/welcome-auth-button";
 
 export default function WelcomeScreen() {
   return (

@@ -11,6 +11,7 @@ export const AccentColors = {
   purple: "#EA8DFF",
   green: "#4AE968",
   orange: "#FFA056",
+  red: "#FF6165",
 } as const;
 
 export type Color = keyof typeof Colors;

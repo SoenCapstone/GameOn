@@ -3,14 +3,14 @@ import { StyleSheet } from "react-native";
 export const profileStyles = StyleSheet.create({
   header: {
     alignItems: "center",
-    marginTop: 20,
+    // marginTop: 20,
   },
   profileImage: {
     width: 100,
     height: 100,
     borderRadius: 60,
     marginBottom: 1,
-    marginTop: 40,
+    // marginTop: 40,
     marginHorizontal: 1,
   },
   name: {
@@ -68,8 +68,8 @@ export const profileStyles = StyleSheet.create({
   },
   buttonLogOut: {
     borderRadius: 25,
-    marginBottom: 70,
-    marginTop: 10,
+    // marginBottom: 70,
+    marginTop: 5,
     paddingHorizontal: 20,
     paddingVertical: 8,
     borderWidth: 1,

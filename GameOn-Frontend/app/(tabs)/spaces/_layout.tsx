@@ -3,10 +3,16 @@ import React from "react";
 import { Header } from "@/components/header/header";
 import { Logo } from "@/components/header/logo";
 import { PageTitle } from "@/components/header/page-title";
-import { AddButton } from "@/components/header/add-button";
+import { HeaderButton } from "@/components/header/header-button";
 
 const spacesHeader = () => (
-  <Header left={<Logo />} center={<PageTitle title="Spaces" />} right={<AddButton/>}/>
+  <Header
+    left={<Logo />}
+    center={<PageTitle title="Spaces" />}
+    right={
+      <HeaderButton type="custom" route="/teams/create-team" icon="plus" />
+    }
+  />
 );
 
 export default function SpacesLayout() {

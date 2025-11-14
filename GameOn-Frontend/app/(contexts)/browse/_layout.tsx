@@ -4,7 +4,7 @@ import React from "react";
 import { Header } from "@/components/header/header";
 import { PageTitle } from "@/components/header/page-title";
 import { HeaderButton } from "@/components/header/header-button";
-import { useSearch } from "@/contexts/SearchContext";
+import { useSearch } from "@/contexts/search-context";
 
 const browseHeader = () => (
   <Header

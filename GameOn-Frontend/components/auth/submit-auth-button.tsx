@@ -18,6 +18,8 @@ export const SubmitAuthButton: React.FC<{ actionMessage: string }> = ({
     >
       <Button
         isInteractive={true}
+        glassEffectStyle={"clear"}
+        tintColor={"rgba(0,0,0,0.5)"}
         tint="dark"
         style={[styles.button, isLiquidGlassAvailable() ? null : styles.blur]}
       >
@@ -27,15 +29,22 @@ export const SubmitAuthButton: React.FC<{ actionMessage: string }> = ({
   );
 };
 
+const displayLoader = () => {
+  return <ActivityIndicator />;
+};
+
+const displayButton = (actionMessage: string) => {
+  return <Text style={styles.text}>{actionMessage}</Text>;
+};
+
 const displayButtonOrLoader = (
   actionMessage: string,
   isSubmitting: boolean,
 ) => {
-  return isSubmitting ? (
-    <ActivityIndicator />
-  ) : (
-    <Text style={styles.text}>{actionMessage}</Text>
-  );
+  if (isSubmitting) {
+    return displayLoader();
+  }
+  return displayButton(actionMessage);
 };
 
 const styles = StyleSheet.create({

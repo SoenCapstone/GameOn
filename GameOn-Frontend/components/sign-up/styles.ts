@@ -10,7 +10,12 @@ export const styles = StyleSheet.create({
     alignItems: "center",
     marginTop: 12,
   },
-  ctaText: { color: "#b6b6b6ff", fontSize: 18, fontWeight: "700" },
+  ctaText: {
+    color: "#BFBFBF",
+    fontSize: 17,
+    alignSelf: "center",
+    fontWeight: "500",
+  },
 
   modalBackdrop: {
     flex: 1,

@@ -3,13 +3,17 @@ import React from "react";
 import { Header } from "@/components/header/header";
 import { Logo } from "@/components/header/logo";
 import { PageTitle } from "@/components/header/page-title";
+import { HeaderButton } from "@/components/header/header-button";
 
 const header = () => (
   <Header left={<Logo />} center={<PageTitle title="Teams" />} />
 );
 
 const createTeamHeader = () => (
-  <Header center={<PageTitle title="Create Team" />} />
+  <Header
+    left={<HeaderButton type="back" />}
+    center={<PageTitle title="Create Team" />}
+  />
 );
 
 export default function TeamsLayout() {
@@ -32,7 +36,5 @@ export default function TeamsLayout() {
         }}
       />
     </Stack>
-    
   );
-  
 }

@@ -6,7 +6,7 @@ import React, {
   useState,
 } from "react";
 import { SearchContextValue } from "@/components/browse/constants";
-import { useTeamLeagueResults } from "@/components/browse/hooks/useTeamLeagueResults";
+import { useTeamLeagueResults } from "@/components/browse/hooks/use-team-league-results";
 import { createScopedLog } from "@/utils/logger";
 import { errorToString } from "@/utils/error";
 
