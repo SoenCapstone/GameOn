@@ -1,7 +1,7 @@
 import React from "react";
 import { render } from "@testing-library/react-native";
 import { Text } from "react-native";
-import { useTeamLeagueResults } from "@/components/browse/hooks/useTeamLeagueResults";
+import { useTeamLeagueResults } from "@/components/browse/hooks/use-team-league-results";
 import * as utils from "@/components/browse/utils";
 
 jest.mock("@/components/browse/utils", () => ({
@@ -56,7 +56,7 @@ describe("useTeamLeagueResults", () => {
     const { getByTestId } = render(<TestComp query="x" />);
     const text = getByTestId("out").props.children as string;
     const ids = JSON.parse(text) as string[];
-  expect(ids).toEqual(["l1", "t1", "t2"]);
+    expect(ids).toEqual(["l1", "t1", "t2"]);
   });
 
   it("handles empty team data", () => {
