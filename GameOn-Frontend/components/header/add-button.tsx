@@ -6,9 +6,9 @@ export function AddButton() {
   const router = useRouter();
 
   const handlePress = () => {
-    router.push("/(contexts)/teams/create-team");
+    router.push("/teams/create-team");
   };
-  
+
   return (
     <Pressable
       onPress={handlePress}
@@ -17,7 +17,15 @@ export function AddButton() {
         opacity: pressed ? 0.7 : 1,
       })}
     >
-      <GlassView style={{ width: 44, height: 44, borderRadius: 33, alignItems: "center", justifyContent: "center",}}>
+      <GlassView
+        style={{
+          width: 44,
+          height: 44,
+          borderRadius: 33,
+          alignItems: "center",
+          justifyContent: "center",
+        }}
+      >
         <Text
           style={{
             color: "#fff",
