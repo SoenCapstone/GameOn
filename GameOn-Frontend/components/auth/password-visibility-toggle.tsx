@@ -1,7 +1,7 @@
 import { Pressable } from "react-native";
 import { IconSymbol } from "@/components/ui/icon-symbol";
 
-export const PasswordVisbilityToggle: React.FC<{
+export const PasswordVisibilityToggle: React.FC<{
   showPassword: boolean;
   setShowPassword: React.Dispatch<React.SetStateAction<boolean>>;
 }> = ({ showPassword, setShowPassword }) => {
