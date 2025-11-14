@@ -12,6 +12,7 @@
     "prebuild": "expo prebuild",
     "build:web": "expo export --platform web --output-dir dist",
     "test": "jest",
+    "coverage": "npx jest --coverage --coverageReporters=text --coverageReporters=text-summary",
     "format": "prettier --write ."
   },
   "dependencies": {
