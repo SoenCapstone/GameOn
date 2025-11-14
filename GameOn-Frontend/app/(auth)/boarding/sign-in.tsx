@@ -114,10 +114,6 @@ const DevTools = () => {
   return (
     <View>
       <Text style={styles.metaText}>
-        {/*enter app{" "}*/}
-        {/*<Link href="/(tabs)/profile" style={styles.metaLink}>*/}
-        {/*  here*/}
-        {/*</Link>{" "}*/}
         open site maps{" "}
         <Link href="/_sitemap" style={styles.metaLink}>
           here
