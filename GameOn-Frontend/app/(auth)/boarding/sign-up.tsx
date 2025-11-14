@@ -19,7 +19,7 @@ import {
 } from "@/components/sign-up/constants";
 import { SignUpDatePicker } from "@/components/auth/sign-up-date-picker";
 import { SubmitAuthButton } from "@/components/auth/submit-auth-button";
-import { PasswordVisbilityToggle } from "@/components/auth/password-visibility-toggle";
+import { PasswordVisibilityToggle } from "@/components/auth/password-visibility-toggle";
 import { ContentArea } from "@/components/ui/content-area";
 
 export default function SignUpScreen() {
@@ -80,7 +80,7 @@ export default function SignUpScreen() {
                           secureTextEntry={inputLabel.secureTextEntry}
                           rightIcon={
                             inputLabel.rightIcon && (
-                              <PasswordVisbilityToggle
+                              <PasswordVisibilityToggle
                                 showPassword={showPassword}
                                 setShowPassword={setShowPassword}
                               />

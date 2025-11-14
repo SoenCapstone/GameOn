@@ -16,7 +16,7 @@ import {
   FORGOT_PASSWORD_TEXT,
 } from "@/components/sign-in/constants";
 import { displayFormikError } from "@/components/sign-up/utils";
-import { PasswordVisbilityToggle } from "@/components/auth/password-visibility-toggle";
+import { PasswordVisibilityToggle } from "@/components/auth/password-visibility-toggle";
 import { SignUpInputLabel } from "@/components/sign-up/models";
 import { LabeledInput } from "@/components/auth/labeled-input";
 import { SubmitAuthButton } from "@/components/auth/submit-auth-button";
@@ -65,7 +65,7 @@ export default function SignInScreen() {
                         secureTextEntry={inputLabel.secureTextEntry}
                         rightIcon={
                           inputLabel.rightIcon && (
-                            <PasswordVisbilityToggle
+                            <PasswordVisibilityToggle
                               showPassword={showPassword}
                               setShowPassword={setShowPassword}
                             />
@@ -114,10 +114,10 @@ const DevTools = () => {
   return (
     <View>
       <Text style={styles.metaText}>
-        enter app{" "}
-        <Link href="/(tabs)/profile" style={styles.metaLink}>
-          here
-        </Link>{" "}
+        {/*enter app{" "}*/}
+        {/*<Link href="/(tabs)/profile" style={styles.metaLink}>*/}
+        {/*  here*/}
+        {/*</Link>{" "}*/}
         open site maps{" "}
         <Link href="/_sitemap" style={styles.metaLink}>
           here
