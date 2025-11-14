@@ -150,5 +150,4 @@ export const createTeamStyles = StyleSheet.create({
     height: "100%",
     borderRadius: 999,
   },
-  
 });

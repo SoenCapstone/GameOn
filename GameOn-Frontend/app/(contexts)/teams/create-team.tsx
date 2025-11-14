@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Pressable, ScrollView, Text } from "react-native";
+import { Pressable, Text } from "react-native";
 import { useRouter } from "expo-router";
 import PickerModal, { Option } from "@/components/ui/pickerModal";
 import { createTeamStyles as styles } from "../../../components/teams/teams-styles";
@@ -80,51 +80,35 @@ export default function CreateTeamScreen() {
   };
 
   return (
-    <ContentArea
-      backgroundProps={{ preset: "purple" }}
-    >
-      <ScrollView
-        contentContainerStyle={styles.content}
-        showsVerticalScrollIndicator={false}
-      >
-        <TeamLogoSection
-          value={logoUri}
-          onChange={setLogoUri}
-        />
+    <ContentArea scrollable backgroundProps={{ preset: "purple" }}>
+      <TeamLogoSection value={logoUri} onChange={setLogoUri} />
 
-        <TeamNameField
-          teamName={teamName}
-          onChangeTeamName={setTeamName}
-        />
+      <TeamNameField teamName={teamName} onChangeTeamName={setTeamName} />
 
-        <TeamDetailsCard
-          sportLabel={sportLabel}
-          scopeLabel={scopeLabel}
-          cityLabel={cityLabel}
-          onOpenPicker={setOpenPicker}
-        />
+      <TeamDetailsCard
+        sportLabel={sportLabel}
+        scopeLabel={scopeLabel}
+        cityLabel={cityLabel}
+        onOpenPicker={setOpenPicker}
+      />
 
-        <TeamVisibilitySection
-          isPublic={isPublic}
-          onChangePublic={setIsPublic}
-        />
+      <TeamVisibilitySection isPublic={isPublic} onChangePublic={setIsPublic} />
 
-        <Pressable style={styles.createButton} onPress={handleCreateTeam}>
-          <Text style={styles.createButtonText}>Create Team</Text>
-        </Pressable>
+      <Pressable style={styles.createButton} onPress={handleCreateTeam}>
+        <Text style={styles.createButtonText}>Create Team</Text>
+      </Pressable>
 
-        <PickerModal
-          visible={openPicker !== null}
-          title={currentConfig?.title ?? ""}
-          options={currentConfig?.options ?? []}
-          onClose={() => setOpenPicker(null)}
-          onSelect={(option) => {
-            if (!openPicker) return;
-            pickerConfig[openPicker].setter(option);
-            setOpenPicker(null);
-          }}
-        />
-      </ScrollView>
+      <PickerModal
+        visible={openPicker !== null}
+        title={currentConfig?.title ?? ""}
+        options={currentConfig?.options ?? []}
+        onClose={() => setOpenPicker(null)}
+        onSelect={(option) => {
+          if (!openPicker) return;
+          pickerConfig[openPicker].setter(option);
+          setOpenPicker(null);
+        }}
+      />
     </ContentArea>
   );
 }
