@@ -25,6 +25,22 @@ export type SearchContextValue = {
 
 export const mockSearchResults: SearchResult[] = [
   {
+    id: "b3e1c2d4-5f6a-4b7c-8d9e-0123456789ab",
+    type: "team",
+    name: "Montreal FC",
+    subtitle: "Montreal, QC",
+    logo: "https://upload.wikimedia.org/wikipedia/en/d/d9/CF_Montreal_logo_2023.svg",
+    sport: "Soccer",
+  },
+  {
+    id: "d2b8f3c4-6e7a-48b1-9f2d-1234567890ab",
+    type: "team",
+    name: "Toronto Blue Jays",
+    subtitle: "Toronto, ON",
+    logo: "https://upload.wikimedia.org/wikipedia/en/c/cc/Toronto_Blue_Jay_Primary_Logo.svg",
+    sport: "Baseball",
+  },
+  {
     id: "1",
     type: "league",
     name: "LaLiga",

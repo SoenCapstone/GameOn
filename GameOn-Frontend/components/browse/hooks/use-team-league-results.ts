@@ -1,5 +1,5 @@
 import { useMemo } from "react";
-import { SearchResult } from "@/components/browse/constants";
+import { SearchResult, mockSearchResults } from "@/components/browse/constants";
 import { useTeamResults, filterLocalLeagues } from "@/components/browse/utils";
 
 export function useTeamLeagueResults(query: string) {
@@ -7,9 +7,11 @@ export function useTeamLeagueResults(query: string) {
 
   const combined = useMemo(() => {
     const teamItems = (teamQuery.data ?? []).slice();
+    const mockTeamItems = mockSearchResults.filter((r) => r.type === "team");
     const leagueItems = filterLocalLeagues(query).slice();
 
-    const merged = [...teamItems, ...leagueItems];
+    // Include mocked teams for testing
+    const merged = [...teamItems, ...mockTeamItems, ...leagueItems];
     merged.sort((a, b) =>
       a.name.localeCompare(b.name, undefined, { sensitivity: "base" }),
     );
