@@ -1,0 +1,233 @@
+package com.game.on.go_league_service.league.service;
+
+import com.game.on.go_league_service.exception.BadRequestException;
+import com.game.on.go_league_service.exception.ForbiddenException;
+import com.game.on.go_league_service.exception.NotFoundException;
+import com.game.on.go_league_service.league.dto.LeagueCreateRequest;
+import com.game.on.go_league_service.league.dto.LeagueDetailResponse;
+import com.game.on.go_league_service.league.dto.LeagueListResponse;
+import com.game.on.go_league_service.league.dto.LeagueSearchCriteria;
+import com.game.on.go_league_service.league.dto.LeagueSeasonResponse;
+import com.game.on.go_league_service.league.dto.LeagueSummaryResponse;
+import com.game.on.go_league_service.league.dto.LeagueUpdateRequest;
+import com.game.on.go_league_service.league.mapper.LeagueMapper;
+import com.game.on.go_league_service.league.metrics.LeagueMetricsPublisher;
+import com.game.on.go_league_service.league.model.League;
+import com.game.on.go_league_service.league.model.LeaguePrivacy;
+import com.game.on.go_league_service.league.repository.LeagueRepository;
+import com.game.on.go_league_service.league.repository.LeagueSeasonRepository;
+import com.game.on.go_league_service.league.repository.LeagueSeasonRepository.LeagueSeasonCountProjection;
+import com.game.on.go_league_service.league.util.SlugGenerator;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.domain.Specification;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.StringUtils;
+
+import java.time.OffsetDateTime;
+import java.util.Collection;
+import java.util.List;
+import java.util.Map;
+import java.util.UUID;
+import java.util.stream.Collectors;
+
+import static com.game.on.go_league_service.league.service.LeagueSpecifications.*;
+
+@Slf4j
+@Service
+@RequiredArgsConstructor
+public class LeagueService {
+
+    private final LeagueRepository leagueRepository;
+    private final LeagueSeasonRepository leagueSeasonRepository;
+    private final LeagueMapper leagueMapper;
+    private final LeagueMetricsPublisher metricsPublisher;
+
+    @Transactional
+    public LeagueDetailResponse createLeague(LeagueCreateRequest request, Long ownerUserId) {
+        var league = League.builder()
+                .name(request.name().trim())
+                .sport(request.sport().trim())
+                .slug(generateUniqueSlug(request.name()))
+                .location(trimToNull(request.location()))
+                .region(trimToNull(request.region()))
+                .ownerUserId(ownerUserId)
+                .level(request.level())
+                .privacy(request.privacy() == null ? LeaguePrivacy.PUBLIC : request.privacy())
+                .seasonCount(0)
+                .build();
+
+        var saved = leagueRepository.save(league);
+        metricsPublisher.leagueCreated();
+        log.info("league_created leagueId={} ownerId={}", saved.getId(), ownerUserId);
+        return leagueMapper.toDetail(saved, 0);
+    }
+
+    @Transactional
+    public LeagueDetailResponse updateLeague(UUID leagueId, LeagueUpdateRequest request, Long callerId) {
+        var league = requireActiveLeague(leagueId);
+        ensureOwner(league, callerId);
+
+        if (isNoop(request)) {
+            throw new BadRequestException("At least one field must be provided for update");
+        }
+
+        if (StringUtils.hasText(request.name())) {
+            league.setName(request.name().trim());
+        }
+        if (StringUtils.hasText(request.sport())) {
+            league.setSport(request.sport().trim());
+        }
+        if (request.region() != null) {
+            league.setRegion(trimToNull(request.region()));
+        }
+        if (request.location() != null) {
+            league.setLocation(trimToNull(request.location()));
+        }
+        if (request.level() != null) {
+            league.setLevel(request.level());
+        }
+        if (request.privacy() != null) {
+            league.setPrivacy(request.privacy());
+        }
+
+        var saved = leagueRepository.save(league);
+        metricsPublisher.leagueUpdated();
+        log.info("league_updated leagueId={} byUser={}", leagueId, callerId);
+        var seasonCount = leagueSeasonRepository.countByLeague_IdAndArchivedAtIsNull(leagueId);
+        return leagueMapper.toDetail(saved, seasonCount);
+    }
+
+    @Transactional
+    public void archiveLeague(UUID leagueId, Long callerId) {
+        var league = requireActiveLeague(leagueId);
+        ensureOwner(league, callerId);
+        league.setArchivedAt(OffsetDateTime.now());
+        leagueRepository.save(league);
+        metricsPublisher.leagueArchived();
+        log.info("league_archived leagueId={} byUser={}", leagueId, callerId);
+    }
+
+    @Transactional(readOnly = true)
+    public LeagueDetailResponse getLeague(UUID leagueId, Long callerId) {
+        var league = requireActiveLeague(leagueId);
+        ensureCanView(league, callerId);
+        var seasonCount = leagueSeasonRepository.countByLeague_IdAndArchivedAtIsNull(leagueId);
+        return leagueMapper.toDetail(league, seasonCount);
+    }
+
+    @Transactional(readOnly = true)
+    public LeagueDetailResponse getLeagueBySlug(String slug, Long callerId) {
+        var league = leagueRepository.findBySlugIgnoreCaseAndArchivedAtIsNull(slug)
+                .orElseThrow(() -> new NotFoundException("League not found"));
+        ensureCanView(league, callerId);
+        var seasonCount = leagueSeasonRepository.countByLeague_IdAndArchivedAtIsNull(league.getId());
+        return leagueMapper.toDetail(league, seasonCount);
+    }
+
+    @Transactional(readOnly = true)
+    public LeagueListResponse listLeagues(LeagueSearchCriteria criteria, int page, int size, Long callerId) {
+        int safePage = Math.max(page, 0);
+        int effectiveSize = size <= 0 ? 20 : Math.min(size, 50);
+        Pageable pageable = PageRequest.of(safePage, effectiveSize, Sort.by(Sort.Direction.DESC, "createdAt"));
+
+        Specification<League> spec = Specification.where(notArchived())
+                .and(withSport(trimToNull(criteria.sport())))
+                .and(withRegion(trimToNull(criteria.region())))
+                .and(search(trimToNull(criteria.query())));
+
+        if (criteria.onlyMine()) {
+            spec = spec.and(ownerIs(callerId));
+        } else {
+            spec = spec.and(visibleTo(callerId));
+        }
+
+        var pageResult = leagueRepository.findAll(spec, pageable);
+        var leagueIds = pageResult.stream().map(League::getId).toList();
+        var seasonCounts = fetchSeasonCounts(leagueIds);
+
+        var summaries = pageResult.stream()
+                .map(league -> leagueMapper.toSummary(league,
+                        seasonCounts.getOrDefault(league.getId(), defaultSeasonCount(league))))
+                .toList();
+
+        metricsPublisher.leagueListQuery();
+        log.info("league_list_query userId={} total={} page={} size={} filters={{my={},sport={},region={},q={}}}",
+                callerId, pageResult.getTotalElements(), pageResult.getNumber(), pageResult.getSize(),
+                criteria.onlyMine(), criteria.sport(), criteria.region(), criteria.query());
+
+        return new LeagueListResponse(
+                summaries,
+                pageResult.getTotalElements(),
+                pageResult.getNumber(),
+                pageResult.getSize(),
+                pageResult.hasNext()
+        );
+    }
+
+    @Transactional(readOnly = true)
+    public List<LeagueSeasonResponse> listSeasons(UUID leagueId, Long callerId) {
+        var league = requireActiveLeague(leagueId);
+        ensureCanView(league, callerId);
+        return leagueSeasonRepository.findByLeague_IdAndArchivedAtIsNullOrderByStartDateAscNameAsc(leagueId)
+                .stream()
+                .map(leagueMapper::toSeason)
+                .toList();
+    }
+
+    private League requireActiveLeague(UUID leagueId) {
+        return leagueRepository.findByIdAndArchivedAtIsNull(leagueId)
+                .orElseThrow(() -> new NotFoundException("League not found"));
+    }
+
+    private void ensureOwner(League league, Long callerId) {
+        if (!league.getOwnerUserId().equals(callerId)) {
+            throw new ForbiddenException("Only the owner can perform this action");
+        }
+    }
+
+    private void ensureCanView(League league, Long callerId) {
+        if (league.getPrivacy() == LeaguePrivacy.PRIVATE
+                && !league.getOwnerUserId().equals(callerId)) {
+            throw new NotFoundException("League not found");
+        }
+    }
+
+    private Map<UUID, Long> fetchSeasonCounts(Collection<UUID> leagueIds) {
+        if (leagueIds.isEmpty()) {
+            return Map.of();
+        }
+        return leagueSeasonRepository.countActiveSeasonsByLeagueIds(leagueIds).stream()
+                .collect(Collectors.toMap(LeagueSeasonCountProjection::getLeagueId, LeagueSeasonCountProjection::getCount));
+    }
+
+    private String generateUniqueSlug(String name) {
+        var baseSlug = SlugGenerator.from(name);
+        if (!StringUtils.hasText(baseSlug)) {
+            throw new BadRequestException("Unable to generate league slug");
+        }
+        var slug = baseSlug;
+        int suffix = 1;
+        while (leagueRepository.existsBySlug(slug)) {
+            slug = baseSlug + "-" + suffix++;
+        }
+        return slug;
+    }
+
+    private String trimToNull(String value) {
+        return StringUtils.hasText(value) ? value.trim() : null;
+    }
+
+    private boolean isNoop(LeagueUpdateRequest request) {
+        return request.name() == null && request.sport() == null && request.region() == null
+                && request.location() == null && request.level() == null && request.privacy() == null;
+    }
+
+    private long defaultSeasonCount(League league) {
+        return league.getSeasonCount() == null ? 0 : league.getSeasonCount();
+    }
+}
