@@ -22,7 +22,11 @@ spring:
             - id: go-team-service
               uri: lb://GO-TEAM-SERVICE
               predicates:
-                  - Path=/api/v1/teams/**
+                - Path=/api/v1/teams/**
+            - id: go-league-service
+              uri: lb://GO-LEAGUE-SERVICE
+              predicates:
+                - Path=/api/v1/leagues/**
   security:
     oauth2:
       resourceserver:
