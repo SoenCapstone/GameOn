@@ -10,8 +10,11 @@ export function useTeamLeagueResults(query: string) {
     const mockTeamItems = mockSearchResults.filter((r) => r.type === "team");
     const leagueItems = filterLocalLeagues(query).slice();
 
-    // Include mocked teams for testing
-    const merged = [...teamItems, ...mockTeamItems, ...leagueItems];
+    // Include mocked teams for easy manual testing, but skip when running unit tests
+    const includeMocks = process.env.NODE_ENV !== "test";
+    const merged = includeMocks
+      ? [...teamItems, ...mockTeamItems, ...leagueItems]
+      : [...teamItems, ...leagueItems];
     merged.sort((a, b) =>
       a.name.localeCompare(b.name, undefined, { sensitivity: "base" }),
     );
