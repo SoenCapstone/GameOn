@@ -1,4 +1,4 @@
-import { Stack, useLocalSearchParams } from "expo-router";
+import { Stack } from "expo-router";
 import React from "react";
 import { Header } from "@/components/header/header";
 import { Logo } from "@/components/header/logo";
@@ -15,24 +15,6 @@ const createTeamHeader = () => (
     center={<PageTitle title="Create Team" />}
   />
 );
-
-function DynamicTeamHeader() {
-  const params = useLocalSearchParams<{ id?: string; name?: string }>();
-  const title = params.name ?? (params.id ? `Team ${params.id}` : "Team");
-  return (
-    <Header
-      left={<HeaderButton type="back" />}
-      center={<PageTitle title={title} />}
-      right={
-        <HeaderButton
-          type="custom"
-          route="/browse"
-          icon="gear"
-        />
-      }
-    />
-  );
-}
 
 export default function TeamsLayout() {
   return (
@@ -54,11 +36,19 @@ export default function TeamsLayout() {
         }}
       />
       <Stack.Screen
-        name="dynamic-page"
+        name="[id]/index"
         options={{
           headerTransparent: true,
           headerShadowVisible: false,
-          headerTitle: DynamicTeamHeader,
+          headerBackVisible: false,
+        }}
+      />
+      <Stack.Screen
+        name="[id]/settings/index"
+        options={{
+          headerTransparent: true,
+          headerShadowVisible: false,
+          headerBackVisible: false,
         }}
       />
     </Stack>

@@ -71,16 +71,8 @@ export function BrowsePage() {
       });
 
       try {
-        const params = {
-          id: result.id,
-          name: result.name,
-          subtitle: result.subtitle,
-          sport: result.sport,
-          logo: result.logo,
-        } as Record<string, string | undefined>;
-
         if (result.type === "team") {
-          router.push({ pathname: `/teams/dynamic-page`, params });
+          router.push(`/teams/${result.id}`);
         }
       } catch (e) {
         log.error("failed to navigate to team/league", { err: e });
