@@ -8,7 +8,7 @@ import { Header } from "@/components/header/header";
 import { HeaderButton } from "@/components/header/header-button";
 import { PageTitle } from "@/components/header/page-title";
 
-function TeamHeader({ title, id }: { title: string; id: string }) {
+function TeamHeader({ title, id }: { readonly title: string; readonly id: string }) {
   return (
     <Header
       left={<HeaderButton type="back" />}
