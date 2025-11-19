@@ -3,7 +3,19 @@ import { View, ActivityIndicator, StyleSheet } from "react-native";
 import { useLocalSearchParams } from "expo-router";
 import { useNavigation } from "@react-navigation/native";
 import { ContentArea } from "@/components/ui/content-area";
-import { useMockTeam, SettingsHeader } from "@/components/teams/team-helpers";
+import { useMockTeam } from "@/components/teams/team-helpers";
+import { Header } from "@/components/header/header";
+import { HeaderButton } from "@/components/header/header-button";
+import { PageTitle } from "@/components/header/page-title";
+
+function SettingsHeader() {
+  return (
+    <Header
+      left={<HeaderButton type="back" />}
+      center={<PageTitle title="Team Settings" />}
+    />
+  );
+}
 
 export default function TeamDetailById() {
   const params = useLocalSearchParams<{ id?: string }>();
@@ -13,7 +25,11 @@ export default function TeamDetailById() {
   const navigation = useNavigation();
 
   useLayoutEffect(() => {
-    navigation.setOptions({ headerTitle: () => <SettingsHeader /> });
+    function renderSettingsHeader() {
+      return <SettingsHeader />;
+    }
+
+    navigation.setOptions({ headerTitle: renderSettingsHeader });
   }, [navigation, team, id]);
 
   return (

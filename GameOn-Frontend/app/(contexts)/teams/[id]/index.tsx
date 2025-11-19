@@ -3,7 +3,26 @@ import { View, ActivityIndicator, StyleSheet } from "react-native";
 import { useLocalSearchParams } from "expo-router";
 import { useNavigation } from "@react-navigation/native";
 import { ContentArea } from "@/components/ui/content-area";
-import { useMockTeam, TeamHeader } from "@/components/teams/team-helpers";
+import { useMockTeam } from "@/components/teams/team-helpers";
+import { Header } from "@/components/header/header";
+import { HeaderButton } from "@/components/header/header-button";
+import { PageTitle } from "@/components/header/page-title";
+
+function TeamHeader({ title, id }: { title: string; id: string }) {
+  return (
+    <Header
+      left={<HeaderButton type="back" />}
+      center={<PageTitle title={title} />}
+      right={
+        <HeaderButton
+          type="custom"
+          route={`/teams/${id}/settings`}
+          icon="gear"
+        />
+      }
+    />
+  );
+}
 
 export default function TeamDetailById() {
   const params = useLocalSearchParams<{ id?: string }>();
@@ -14,9 +33,12 @@ export default function TeamDetailById() {
 
   useLayoutEffect(() => {
     const title = team?.name ?? (id ? `Team ${id}` : "Team");
-    navigation.setOptions({
-      headerTitle: () => <TeamHeader title={title} id={id} />,
-    });
+
+    function renderTeamHeader() {
+      return <TeamHeader title={title} id={id} />;
+    }
+
+    navigation.setOptions({ headerTitle: renderTeamHeader });
   }, [navigation, team, id]);
 
   return (
