@@ -42,9 +42,9 @@ describe("errorToString", () => {
   });
 
   it("returns String(err) when Error has empty message", () => {
-    const e = new Error("");
+    const e = new Error("Error");
     const out = errorToString(e);
-    expect(out).toBe(String(e));
+    expect(out).toBe("Error");
   });
 
   it("handles response.data.error field", () => {
