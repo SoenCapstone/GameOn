@@ -42,7 +42,7 @@ describe("errorToString", () => {
   });
 
   it("returns String(err) when Error has empty message", () => {
-    const e = new Error();
+    const e = new Error("");
     const out = errorToString(e);
     expect(out).toBe(String(e));
   });
