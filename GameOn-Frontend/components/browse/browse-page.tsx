@@ -7,6 +7,7 @@ import {
   StyleSheet,
 } from "react-native";
 import SegmentedControl from "@react-native-segmented-control/segmented-control";
+import { useRouter } from "expo-router";
 import { LegendList } from "@legendapp/list";
 import { SearchResult } from "@/components/browse/constants";
 import SvgImage from "@/components/svg-image";
@@ -21,6 +22,7 @@ function Separator() {
 
 export function BrowsePage() {
   const log = createScopedLog("Search");
+  const router = useRouter();
   const {
     query,
     results,
@@ -68,9 +70,15 @@ export function BrowsePage() {
         resultType: result.type,
       });
 
-      // Navigate to team or league page
+      try {
+        if (result.type === "team") {
+          router.push(`/teams/${result.id}`);
+        }
+      } catch (e) {
+        log.error("failed to navigate to team/league", { err: e });
+      }
     },
-    [log],
+    [log, router],
   );
 
   const renderItem = React.useCallback(

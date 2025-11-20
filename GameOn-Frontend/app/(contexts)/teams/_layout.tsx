@@ -35,6 +35,22 @@ export default function TeamsLayout() {
           headerTitle: createTeamHeader,
         }}
       />
+      <Stack.Screen
+        name="[id]/index"
+        options={{
+          headerTransparent: true,
+          headerShadowVisible: false,
+          headerBackVisible: false,
+        }}
+      />
+      <Stack.Screen
+        name="[id]/settings/index"
+        options={{
+          headerTransparent: true,
+          headerShadowVisible: false,
+          headerBackVisible: false,
+        }}
+      />
     </Stack>
   );
 }

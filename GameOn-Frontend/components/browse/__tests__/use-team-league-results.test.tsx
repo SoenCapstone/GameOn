@@ -18,7 +18,7 @@ function TestComp({ query }: Readonly<{ query: string }>) {
 }
 
 describe("useTeamLeagueResults", () => {
-  it("returns teams reversed then leagues", () => {
+  it("returns teams and leagues in alphabetical order", () => {
     useTeamResults.mockReturnValue({
       data: [
         {

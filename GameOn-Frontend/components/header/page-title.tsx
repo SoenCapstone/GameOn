@@ -7,7 +7,15 @@ interface TitleProps {
 export function PageTitle({ title }: Readonly<TitleProps>) {
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>{title}</Text>
+      <Text
+        style={styles.title}
+        numberOfLines={1}
+        adjustsFontSizeToFit
+        minimumFontScale={0.7}
+        allowFontScaling
+      >
+        {title}
+      </Text>
     </View>
   );
 }

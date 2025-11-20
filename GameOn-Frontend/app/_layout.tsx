@@ -45,10 +45,6 @@ export default function RootLayout() {
                       options={{ headerShown: false }}
                     />
                     <Stack.Screen
-                      name="browse"
-                      options={{ headerShown: false }}
-                    />
-                    <Stack.Screen
                       name="(contexts)"
                       options={{ headerShown: false }}
                     />
