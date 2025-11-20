@@ -161,7 +161,7 @@ describe("useTeamResults mapping", () => {
           sport: "basketball",
           leagueId: null,
           slug: "numeric-team",
-          logoUrl: "http://logo.png",
+          logoUrl: "https://logo.png",
           privacy: "PUBLIC",
           maxRoster: 12,
           archived: false,
@@ -185,7 +185,7 @@ describe("useTeamResults mapping", () => {
     const res = useTeamResults("any");
     expect(res.data).toHaveLength(1);
     expect(res.data[0].id).toBe("123");
-    expect(res.data[0].logo).toBe("http://logo.png");
+    expect(res.data[0].logo).toBe("https://logo.png");
     expect(res.data[0].subtitle).toBe("basketball");
   });
 
