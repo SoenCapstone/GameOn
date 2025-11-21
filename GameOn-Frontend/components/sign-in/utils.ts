@@ -9,6 +9,9 @@ import {
 } from "@/components/sign-up/constants";
 import { SetActiveFn, UserSignIn } from "@/components/sign-up/models";
 import { humanizeClerkError, toast } from "@/components/sign-up/utils";
+import { createScopedLog } from "@/utils/logger";
+
+const log = createScopedLog("Sign In Utils");
 
 export const SignInSchema = Yup.object({
   emailAddress: Yup.string()
@@ -36,7 +39,7 @@ export const login = async (
     if (result.status === EMAIL_VERIFICATION_STATUS) {
       await setActive({ session: result.createdSessionId });
     } else {
-      console.log("Additional verification required:", result);
+      log.info("Additional verification required:", result);
     }
   } catch (err) {
     toast(humanizeClerkError(err));

@@ -6,6 +6,10 @@ import {
   useAxiosWithClerk,
 } from "@/hooks/use-axios-clerk";
 import { useMutation } from "@tanstack/react-query";
+import { createScopedLog } from "@/utils/logger";
+import { errorToString } from "@/utils/error";
+
+const log = createScopedLog("Backend Connection Test");
 
 export const BACKEND_TEST = () => {
   const backendTestMutate = useBackendTestMutate();
@@ -19,7 +23,7 @@ const useBackendTestMutate = () => {
 
   return useMutation({
     mutationFn: async () => (await api.post(GO_USER_SERVICE_ROUTES.TEST)).data,
-    onSuccess: (data) => console.log(data),
-    onError: (error) => console.log(error),
+    onSuccess: (data) => log.info(data),
+    onError: (error) => log.info(errorToString(error)),
   });
 };
