@@ -10,9 +10,9 @@ import {
   formatDate,
   parseDate,
   autoFormatDateInput,
-} from "../utils";
-import { EMAIL_VERIFICATION_STATUS } from "../constants";
-import type { SignUpInputLabel } from "../models";
+} from "@/components/sign-up/utils";
+import { EMAIL_VERIFICATION_STATUS } from "@/components/sign-up/constants";
+import type { SignUpInputLabel } from "@/components/sign-up/models";
 
 jest.mock("react-native", () => {
   const RN = jest.requireActual("react-native");
