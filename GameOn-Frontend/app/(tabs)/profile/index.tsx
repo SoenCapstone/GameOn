@@ -27,23 +27,25 @@ export default function Profile() {
   const router = useRouter();
   const { signOut } = useAuth();
 
-  const { isLoaded, isSignedIn, user } = useUser();
+  const { isLoaded, isSignedIn, user } = useUser(); 
+  
+  if ((!isLoaded || !isSignedIn) && !__DEV__) return null;
 
-  if (!__DEV__ && (!isLoaded || !isSignedIn || !user)) return null;
+const useMockUser = __DEV__ && !isSignedIn;
 
-  const activeUser = __DEV__
-    ? {
-        fullName: userDetails.name,
-        primaryEmailAddress: { emailAddress: userDetails.email },
-        imageUrl: userDetails.image,
-      }
-    : {
-        fullName: user?.fullName ?? "",
-        primaryEmailAddress: {
-          emailAddress: user?.primaryEmailAddress?.emailAddress ?? "",
-        },
-        imageUrl: user?.imageUrl ?? images.defaultProfile,
-      };
+const activeUser = useMockUser
+  ? {
+      fullName: userDetails.name,
+      primaryEmailAddress: { emailAddress: userDetails.email },
+      imageUrl: userDetails.image,
+    }
+  : {
+      fullName: user?.fullName ?? "",
+      primaryEmailAddress: {
+        emailAddress: user?.primaryEmailAddress?.emailAddress ?? "",
+      },
+      imageUrl: user?.imageUrl ?? images.defaultProfile,
+    };
 
   const handleLogout = () => {
     Alert.alert(
@@ -57,6 +59,7 @@ export default function Profile() {
           onPress: () => {
             log.info("User confirmed logout");
             signOut();
+            router.push("../(auth)")
           },
         },
       ],
