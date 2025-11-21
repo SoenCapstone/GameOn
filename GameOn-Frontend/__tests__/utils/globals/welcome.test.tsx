@@ -1,6 +1,8 @@
 import React from "react";
 import { render, screen, fireEvent } from "@testing-library/react-native";
 
+(global as any).__DEV__ = false;
+
 const mockPush = jest.fn();
 jest.mock("expo-router", () => ({
   useRouter: () => ({ push: mockPush }),
@@ -93,7 +95,7 @@ describe("WelcomeScreen", () => {
     const signInButton = screen.getByText(/sign in/i);
     fireEvent.press(signInButton);
 
-    expect(mockPush).toHaveBeenCalledWith("/(auth)/boarding/sign-in");
+    expect(mockPush).toHaveBeenCalledWith("/(auth)/sign-in");
   });
 
   it("routes to sign-up when Create Account button is pressed", () => {
@@ -101,7 +103,7 @@ describe("WelcomeScreen", () => {
     const signUpButton = screen.getByText(/create account/i);
     fireEvent.press(signUpButton);
 
-    expect(mockPush).toHaveBeenCalledWith("/(auth)/boarding/sign-up");
+    expect(mockPush).toHaveBeenCalledWith("/(auth)/sign-up");
   });
 
   it("displays the welcome hero", () => {

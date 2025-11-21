@@ -32,15 +32,16 @@ export default function WelcomeScreen() {
 const DevTools = () => {
   return (
     <View>
+      {/*
       <Text style={styles.metaText}>
         open site maps{" "}
         <Link href="/_sitemap" style={styles.metaLink}>
           here
         </Link>
-      </Text>
+      </Text>*/}
       <Text style={styles.metaText}>
-        open home page{" "}
-        <Link href="/(tabs)/home" style={styles.metaLink}>
+        open app {" "}
+        <Link href="/(tabs)/profile" style={styles.metaLink}>
           here
         </Link>
       </Text>
