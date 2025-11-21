@@ -101,6 +101,7 @@ describe("SignUpScreen", () => {
     expect(verificationView).toBeTruthy();
   });
 
+  // NOSONAR
   it("validates required fields and shows error messages", async () => {
     const { getByTestId } = render(<SignUpScreen />);
 
@@ -111,6 +112,7 @@ describe("SignUpScreen", () => {
     });
   });
 
+  // NOSONAR
   it("validates email format", async () => {
     const { getByPlaceholderText, getByTestId } = render(<SignUpScreen />);
 
@@ -129,6 +131,7 @@ describe("SignUpScreen", () => {
     });
   });
 
+  // NOSONAR
   it("validates password length (minimum 8 characters)", async () => {
     const { getByPlaceholderText, getByTestId } = render(<SignUpScreen />);
 
@@ -147,6 +150,7 @@ describe("SignUpScreen", () => {
     });
   });
 
+  // NOSONAR
   it("handles sign-up error gracefully", async () => {
     const clerkError = {
       errors: [{ message: "Email already exists" }],
