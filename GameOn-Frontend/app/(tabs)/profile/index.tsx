@@ -15,18 +15,14 @@ const leagues = [
   { id: "3", name: "La Liga", role: "Admin" },
 ];
 
-const userDetails = {
-  name: "John Doe",
-  email: "johndoe@email.com",
-  image: images.defaultProfile,
-};
-
 const log = createScopedLog("Profile");
 
 export default function Profile() {
   const router = useRouter();
   const { signOut } = useAuth();
   const { isLoaded, isSignedIn, user } = useUser();
+
+  const isDev = (user?.publicMetadata as { isDev?: boolean })?.isDev === true;
 
   if (!isLoaded || !isSignedIn) return null;
 
@@ -58,7 +54,7 @@ export default function Profile() {
       {/* User Section */}
       <View style={styles.header}>
         <Image
-          source={userDetails.image ? userDetails.image : images.defaultProfile}
+          source={user?.hasImage ? user?.imageUrl : images.defaultProfile}
           style={styles.profileImage}
         />
         <ThemedText style={styles.name}>{user.fullName}</ThemedText>
@@ -115,7 +111,7 @@ export default function Profile() {
         </Pressable>
 
         {/* Dev / Feature flags button */}
-        {__DEV__ && (
+        {isDev && (
           <Pressable
             style={({ pressed }) => [
               styles.flagsButton,
@@ -129,7 +125,7 @@ export default function Profile() {
           </Pressable>
         )}
 
-        {__DEV__ && (
+        {isDev && (
           <Pressable
             style={({ pressed }) => [
               styles.flagsButton,
