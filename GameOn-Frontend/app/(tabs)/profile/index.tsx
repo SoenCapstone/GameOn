@@ -42,7 +42,6 @@ export default function Profile() {
           onPress: () => {
             log.info("User confirmed logout");
             signOut();
-            router.push("../(auth)")
           },
         },
       ],
