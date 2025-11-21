@@ -33,16 +33,16 @@ const DevTools = () => {
   return (
     <View>
       
-      <Text style={styles.metaText}>
+      {/*<Text style={styles.metaText}>
         open site maps{" "}
         <Link href="/_sitemap" style={styles.metaLink}>
           here
         </Link>
-      </Text>
+      </Text>*/}
       <Text style={styles.metaText}>
-        open app {" "}
+        {" "}
         <Link href="/(tabs)/profile" style={styles.metaLink}>
-          here
+          dev bypass
         </Link>
       </Text>
     </View>

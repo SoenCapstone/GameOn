@@ -29,7 +29,21 @@ export default function Profile() {
 
   const { isLoaded, isSignedIn, user } = useUser();
 
-  if (!isLoaded || !isSignedIn) return null;
+  if (!__DEV__ && (!isLoaded || !isSignedIn || !user)) return null;
+
+  const activeUser = __DEV__
+    ? {
+        fullName: userDetails.name,
+        primaryEmailAddress: { emailAddress: userDetails.email },
+        imageUrl: userDetails.image,
+      }
+    : {
+        fullName: user?.fullName ?? "",
+        primaryEmailAddress: {
+          emailAddress: user?.primaryEmailAddress?.emailAddress ?? "",
+        },
+        imageUrl: user?.imageUrl ?? images.defaultProfile,
+      };
 
   const handleLogout = () => {
     Alert.alert(
@@ -59,12 +73,12 @@ export default function Profile() {
       {/* User Section */}
       <View style={styles.header}>
         <Image
-          source={userDetails.image ? userDetails.image : images.defaultProfile}
+          source={activeUser.imageUrl || images.defaultProfile}
           style={styles.profileImage}
         />
-        <ThemedText style={styles.name}>{user.fullName}</ThemedText>
+        <ThemedText style={styles.name}>{activeUser.fullName}</ThemedText>
         <ThemedText style={styles.email}>
-          {user.primaryEmailAddress?.emailAddress}
+          {activeUser.primaryEmailAddress.emailAddress}
         </ThemedText>
 
         {/* Edit Profile */}
