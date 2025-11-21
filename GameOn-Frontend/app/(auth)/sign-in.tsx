@@ -107,16 +107,3 @@ const displayStatus = (status: string) => {
     </View>
   ) : null;
 };
-
-const DevTools = () => {
-  return (
-    <View>
-      <Text style={styles.metaText}>
-        open site maps{" "}
-        <Link href="/_sitemap" style={styles.metaLink}>
-          here
-        </Link>
-      </Text>
-    </View>
-  );
-};

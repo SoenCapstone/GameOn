@@ -20,7 +20,7 @@ function Separator() {
   return <View style={searchStyles.separator} />;
 }
 
-export function BrowsePage() {
+export default function Browse() {
   const log = createScopedLog("Search");
   const router = useRouter();
   const {
