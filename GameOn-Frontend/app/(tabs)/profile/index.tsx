@@ -26,26 +26,9 @@ const log = createScopedLog("Profile");
 export default function Profile() {
   const router = useRouter();
   const { signOut } = useAuth();
+  const { isLoaded, isSignedIn, user } = useUser();
 
-  const { isLoaded, isSignedIn, user } = useUser(); 
-  
-  if ((!isLoaded || !isSignedIn) && !__DEV__) return null;
-
-const useMockUser = __DEV__ && !isSignedIn;
-
-const activeUser = useMockUser
-  ? {
-      fullName: userDetails.name,
-      primaryEmailAddress: { emailAddress: userDetails.email },
-      imageUrl: userDetails.image,
-    }
-  : {
-      fullName: user?.fullName ?? "",
-      primaryEmailAddress: {
-        emailAddress: user?.primaryEmailAddress?.emailAddress ?? "",
-      },
-      imageUrl: user?.imageUrl ?? images.defaultProfile,
-    };
+  if (!isLoaded || !isSignedIn) return null;
 
   const handleLogout = () => {
     Alert.alert(
@@ -76,12 +59,12 @@ const activeUser = useMockUser
       {/* User Section */}
       <View style={styles.header}>
         <Image
-          source={activeUser.imageUrl || images.defaultProfile}
+          source={userDetails.image ? userDetails.image : images.defaultProfile}
           style={styles.profileImage}
         />
-        <ThemedText style={styles.name}>{activeUser.fullName}</ThemedText>
+        <ThemedText style={styles.name}>{user.fullName}</ThemedText>
         <ThemedText style={styles.email}>
-          {activeUser.primaryEmailAddress.emailAddress}
+          {user.primaryEmailAddress?.emailAddress}
         </ThemedText>
 
         {/* Edit Profile */}
