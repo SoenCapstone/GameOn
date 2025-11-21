@@ -50,7 +50,6 @@ jest.mock("@/constants/navigation", () => ({
 }));
 
 import SignUpScreen from "@/app/(auth)/sign-up";
-
 describe("SignUpScreen", () => {
   setupAuthTestHooks();
 
