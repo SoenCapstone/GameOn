@@ -26,7 +26,7 @@ export default function AuthLayout() {
   return (
     <ClerkLoaded>
       <SignedIn>
-        <Redirect href={HOME_PATH} />
+        {!__DEV__ && <Redirect href={HOME_PATH} />}
       </SignedIn>
 
       <SignedOut>

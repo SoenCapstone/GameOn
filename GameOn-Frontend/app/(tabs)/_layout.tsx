@@ -10,8 +10,9 @@ export default function TabLayout() {
     <ClerkLoaded>
       {(
         <SignedOut>
-          <Redirect href={WELCOME_PATH} />
+          {!__DEV__ && <Redirect href={WELCOME_PATH} />}
         </SignedOut>
+
       )}
 
       <NativeTabs>
