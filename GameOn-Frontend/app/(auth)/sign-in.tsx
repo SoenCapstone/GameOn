@@ -82,8 +82,6 @@ export default function SignInScreen() {
 
               {displayStatus(status)}
               <View style={{ gap: 14 }}>
-                {__DEV__ && <DevTools />}
-
                 <SubmitAuthButton actionMessage={SIGN_IN_MESSAGE} />
               </View>
             </View>

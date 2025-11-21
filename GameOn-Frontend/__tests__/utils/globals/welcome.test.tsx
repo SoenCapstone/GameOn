@@ -72,7 +72,7 @@ jest.mock("@/components/ui/background", () => ({
   },
 }));
 
-import WelcomeScreen from "@/app/(auth)/boarding";
+import WelcomeScreen from "@/app/(auth)";
 
 describe("WelcomeScreen", () => {
   beforeEach(() => {

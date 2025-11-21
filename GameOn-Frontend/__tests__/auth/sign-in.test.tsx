@@ -43,7 +43,7 @@ jest.mock("@/components/sign-in/styles", () => ({
   },
 }));
 
-import SignInScreen from "@/app/(auth)/boarding/sign-in";
+import SignInScreen from "@/app/(auth)/sign-in";
 
 describe("SignInScreen", () => {
   setupAuthTestHooks();

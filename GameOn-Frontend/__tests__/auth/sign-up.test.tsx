@@ -49,7 +49,7 @@ jest.mock("@/constants/navigation", () => ({
   SIGN_IN_PATH: "/(auth)/boarding/sign-in",
 }));
 
-import SignUpScreen from "@/app/(auth)/boarding/sign-up";
+import SignUpScreen from "@/app/(auth)/sign-up";
 
 describe("SignUpScreen", () => {
   setupAuthTestHooks();
