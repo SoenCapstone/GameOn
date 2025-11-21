@@ -7,6 +7,10 @@
 import React, { createContext, useContext, useEffect, useMemo, useState } from "react";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Platform } from "react-native";
+import { createScopedLog } from "@/utils/logger";
+
+const log = createScopedLog("Feature Flags Context");
+
 
 type Flags = {
   newUI: boolean;
@@ -27,9 +31,9 @@ const syncWithServer = async (updatedFlags: Record<string, boolean>) => {
     //   headers: { "Content-Type": "application/json" },
     //   body: JSON.stringify(updatedFlags),
     // });
-    console.log("Feature flags would sync globally here:", updatedFlags);
+    log.info("Feature flags would sync globally here:", updatedFlags);
   } catch (error) {
-    console.error("Failed to sync flags globally:", error);
+    log.error("Failed to sync flags globally:", error);
   }
 };
 
@@ -52,7 +56,7 @@ export const FeatureFlagsProvider: React.FC<{ children: React.ReactNode }> = ({ 
 
         if (json) setFlags(JSON.parse(json));
       } catch (error) {
-        console.warn("Error loading feature flags:", error);
+        log.warn("Error loading feature flags:", error);
       }
     })();
   }, []);
@@ -66,7 +70,7 @@ export const FeatureFlagsProvider: React.FC<{ children: React.ReactNode }> = ({ 
         else await AsyncStorage.setItem("featureFlags", json);
         await syncWithServer(flags); // Placeholder global sync
       } catch (error) {
-        console.warn("Error saving feature flags:", error);
+        log.warn("Error saving feature flags:", error);
       }
     })();
   }, [flags]);

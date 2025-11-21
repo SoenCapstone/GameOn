@@ -2,12 +2,29 @@ import {
   mapSportToEmoji,
   filterLocalLeagues,
   fetchTeamResults,
+  useTeamResults,
 } from "@/components/browse/utils";
 
 import axios from "axios";
+import { useQuery } from "@tanstack/react-query";
+import { useAxiosWithClerk } from "@/hooks/use-axios-clerk";
 
 jest.mock("axios");
 const mockedAxios = axios as jest.Mocked<typeof axios>;
+
+jest.mock("@tanstack/react-query", () => ({
+  useQuery: jest.fn(),
+}));
+
+jest.mock("@/hooks/use-axios-clerk", () => {
+  const original = jest.requireActual("@/hooks/use-axios-clerk");
+  return {
+    ...original,
+    useAxiosWithClerk: jest.fn(() => ({})),
+  };
+});
+
+
 
 describe("mapSportToEmoji", () => {
   it("returns correct emoji for known sports", () => {
@@ -27,7 +44,7 @@ describe("mapSportToEmoji", () => {
     expect(mapSportToEmoji("")).toBe("🏅");
     expect(mapSportToEmoji()).toBe("🏅");
   });
-});
+ });
 
 describe("filterLocalLeagues", () => {
   it("returns all leagues if query is empty", () => {
@@ -125,5 +142,103 @@ describe("fetchTeamResults", () => {
     const callArgs = mockedAxios.get.mock.calls[0];
     expect(callArgs[1]!.params).toMatchObject({ size: "200" });
     expect(callArgs[1]!.params.q).toBeUndefined();
+  });
+});
+
+describe("useTeamResults mapping", () => {
+  beforeEach(() => {
+    (useQuery as jest.Mock).mockReset();
+    (useAxiosWithClerk as jest.Mock).mockReset();
+    (useAxiosWithClerk as jest.Mock).mockReturnValue({});
+  });
+
+  it("uses provided logoUrl and stringifies numeric ids", () => {
+    const data = {
+      items: [
+        {
+          id: 123,
+          name: "Numeric Team",
+          sport: "basketball",
+          leagueId: null,
+          slug: "numeric-team",
+          logoUrl: "https://logo.png",
+          privacy: "PUBLIC",
+          maxRoster: 12,
+          archived: false,
+          createdAt: "2025-01-01T00:00:00Z",
+          updatedAt: "2025-01-01T00:00:00Z",
+        },
+      ],
+      totalElements: 1,
+      page: 0,
+      size: 1,
+      hasNext: false,
+    };
+
+    (useQuery as jest.Mock).mockReturnValue({
+      data,
+      isLoading: false,
+      isFetching: false,
+      error: null,
+    });
+
+    const res = useTeamResults("any");
+    expect(res.data).toHaveLength(1);
+    expect(res.data[0].id).toBe("123");
+    expect(res.data[0].logo).toBe("https://logo.png");
+    expect(res.data[0].subtitle).toBe("basketball");
+  });
+
+  it("falls back to emoji and 'Team' subtitle when sport or logo missing", () => {
+    const data = {
+      items: [
+        {
+          id: "abc",
+          name: "No Sport Team",
+          sport: "",
+          leagueId: null,
+          slug: "no-sport-team",
+          logoUrl: null,
+          privacy: "PUBLIC",
+          maxRoster: null,
+          archived: false,
+          createdAt: "2025-01-01T00:00:00Z",
+          updatedAt: "2025-01-01T00:00:00Z",
+        },
+        {
+          id: "def",
+          name: "Tennis Team",
+          sport: "tennis",
+          leagueId: null,
+          slug: "tennis-team",
+          logoUrl: undefined,
+          privacy: "PUBLIC",
+          maxRoster: null,
+          archived: false,
+          createdAt: "2025-01-01T00:00:00Z",
+          updatedAt: "2025-01-01T00:00:00Z",
+        },
+      ],
+      totalElements: 2,
+      page: 0,
+      size: 2,
+      hasNext: false,
+    };
+
+    (useQuery as jest.Mock).mockReturnValue({
+      data,
+      isLoading: false,
+      isFetching: false,
+      error: null,
+    });
+
+    const res = useTeamResults("any");
+    expect(res.data).toHaveLength(2);
+
+    expect(res.data[0].subtitle).toBe("Team");
+    expect(res.data[0].logo).toBe(mapSportToEmoji("") );
+
+    expect(res.data[1].subtitle).toBe("tennis");
+    expect(res.data[1].logo).toBe(mapSportToEmoji("tennis"));
   });
 });

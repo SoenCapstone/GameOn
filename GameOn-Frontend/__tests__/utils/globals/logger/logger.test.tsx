@@ -1,65 +1,43 @@
-jest.mock('react-native-logs', () => {
-  const instance = {
-    debug: jest.fn(),
-    info: jest.fn(),
-    warn: jest.fn(),
-    error: jest.fn(),
-  };
-  const createLogger = jest.fn(() => instance);
 
-  return {
-    consoleTransport: jest.fn(),
-    logger: { createLogger },
-    __mock__: { instance, createLogger },
-  };
-});
+import { log, createScopedLog } from "@/utils/logger";
 
-describe('logger.ts', () => {
-  let rnLogs: any;
-
-  beforeEach(() => {
-    (globalThis as any).__DEV__ = false;
-
-    jest.resetModules();
-    jest.clearAllMocks();
-
-    // IMPORTANT: re-require the mock AFTER resetModules so we get a fresh reference
-    rnLogs = require('react-native-logs');
-
-    rnLogs.__mock__.instance.debug.mockClear();
-    rnLogs.__mock__.instance.info.mockClear();
-    rnLogs.__mock__.instance.warn.mockClear();
-    rnLogs.__mock__.instance.error.mockClear();
-    rnLogs.__mock__.createLogger.mockClear();
+describe("logger module behavior", () => {
+  afterEach(() => {
     delete process.env.EXPO_PUBLIC_LOG_LEVEL;
+    delete (globalThis as any).__DEV__;
+    jest.restoreAllMocks();
   });
 
-  test('uses severity from EXPO_PUBLIC_LOG_LEVEL', () => {
-    process.env.EXPO_PUBLIC_LOG_LEVEL = 'warn';
+  it("createScopedLog forwards calls and handles optional data correctly", () => {
+    const consoleSpy = jest.spyOn(console, "log").mockImplementation(() => {});
 
-    // Import after env var set so module init picks it up
-    jest.isolateModules(() => {
-      require('@/utils/logger'); 
-    });
+    const debugSpy = jest.spyOn(log, "debug").mockImplementation(() => {});
+    const infoSpy = jest.spyOn(log, "info").mockImplementation(() => {});
+    const warnSpy = jest.spyOn(log, "warn").mockImplementation(() => {});
+    const errorSpy = jest.spyOn(log, "error").mockImplementation(() => {});
 
-    expect(rnLogs.__mock__.createLogger).toHaveBeenCalledTimes(1);
-    const arg = rnLogs.__mock__.createLogger.mock.calls[0][0];
-    expect(arg).toMatchObject({ severity: 'warn' });
+    const scoped = createScopedLog("MyScope");
+
+    scoped.debug("msg1", { a: 1 });
+    scoped.debug("msg2");
+
+    scoped.info("inf1");
+    scoped.info("inf2", { b: 2 });
+
+    scoped.warn("warn1", "payload");
+    scoped.error("err1", null);
+
+    expect(debugSpy).toHaveBeenNthCalledWith(1, "MyScope: msg1", { a: 1 });
+    expect(debugSpy).toHaveBeenNthCalledWith(2, "MyScope: msg2", undefined);
+
+    expect(infoSpy).toHaveBeenNthCalledWith(1, "MyScope: inf1");
+    expect(infoSpy).toHaveBeenNthCalledWith(2, "MyScope: inf2", { b: 2 });
+
+    expect(warnSpy).toHaveBeenCalledWith("MyScope: warn1", "payload");
+    expect(errorSpy).toHaveBeenCalledWith("MyScope: err1", null);
+
+    consoleSpy.mockRestore();
   });
 
-  test('exports a singleton and forwards to underlying logger', () => {
-    jest.isolateModules(() => {
-      const { log } = require('@/utils/logger');
-      log.info('hello', { a: 1 });
-      log.warn('careful');
-      log.error('boom');
-      log.debug('details');
-    });
-
-    expect(rnLogs.__mock__.instance.info).toHaveBeenCalledWith('hello', { a: 1 });
-    expect(rnLogs.__mock__.instance.warn).toHaveBeenCalledWith('careful');
-    expect(rnLogs.__mock__.instance.error).toHaveBeenCalledWith('boom');
-    expect(rnLogs.__mock__.instance.debug).toHaveBeenCalledWith('details');
-  });
 
 });

@@ -5,9 +5,7 @@ import {
   EMAIL_FIELD,
   EMAIL_AUTO_CAPITALIZE,
   EMAIL_KEYBOARD_TYPE,
-  PASSWORD_LABEL,
-  PASSWORD_PLACEHOLDER,
-  PASSWORD_FIELD,
+  passwordInput,
 } from "@/components/sign-up/constants";
 import { SignUpInputLabel } from "@/components/sign-up/models";
 
@@ -18,14 +16,6 @@ export const initialSignInValue = {
 
 export const FORGOT_PASSWORD_TEXT = "Forgot Password?";
 export const SIGN_UP_TEXT = "Don't have an account?";
-
-export const passwordInput = (showPassword: boolean) => ({
-  label: PASSWORD_LABEL,
-  placeholder: PASSWORD_PLACEHOLDER,
-  field: PASSWORD_FIELD,
-  secureTextEntry: !showPassword,
-  rightIcon: true,
-});
 
 export const signInInputLabels = (showPassword: boolean): SignUpInputLabel[] => [
   {
