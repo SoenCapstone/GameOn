@@ -2,7 +2,6 @@ import React from "react";
 import { render, fireEvent, waitFor } from "@testing-library/react-native";
 import { mockAlert, setupAuthTestHooks } from "@/__tests__/auth/auth-test-setup";
 
-// NOSONAR - repeated mock boilerplate for RN keyboard controller
 jest.mock("react-native-keyboard-controller", () => {
   const { ScrollView } = require("react-native");
   return {
@@ -12,12 +11,10 @@ jest.mock("react-native-keyboard-controller", () => {
   };
 });
 
-// NOSONAR - intentional test mock duplication
 const mockCreate = jest.fn();
 const mockPrepareEmailAddressVerification = jest.fn();
 const mockSetActive = jest.fn();
 
-// NOSONAR - repeated Clerk mock (test isolation)
 jest.mock("@clerk/clerk-expo", () => ({
   useSignUp: () => ({
     isLoaded: true,
@@ -29,17 +26,14 @@ jest.mock("@clerk/clerk-expo", () => ({
   }),
 }));
 
-// NOSONAR - consistent mock override for stability
 jest.mock("@/components/auth/sign-up-date-picker", () => ({
   SignUpDatePicker: () => null,
 }));
 
-// NOSONAR - expected duplication in tests
 jest.mock("@/components/privacy-disclaimer/privacy-disclaimer", () => ({
   PrivacyDisclaimer: () => null,
 }));
 
-// NOSONAR - expected duplication in verification views
 jest.mock("@/components/sign-up/verification-input", () => {
   const { Text, View } = require("react-native");
   return {
@@ -51,7 +45,6 @@ jest.mock("@/components/sign-up/verification-input", () => {
   };
 });
 
-// NOSONAR - navigation constant override for tests
 jest.mock("@/constants/navigation", () => ({
   SIGN_IN_PATH: "/(auth)/boarding/sign-in",
 }));
