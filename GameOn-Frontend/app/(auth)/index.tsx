@@ -1,12 +1,11 @@
 import { authStyles } from "@/constants/auth-styles";
 import React from "react";
-import { View, Text} from "react-native";
-import { Link } from "expo-router";
+import { View} from "react-native";
 import { WelcomeHero } from "@/components/auth/welcome-hero";
 import { PrivacyDisclaimer } from "@/components/privacy-disclaimer/privacy-disclaimer";
 import { ContentArea } from "@/components/ui/content-area";
 import { WelcomeAuthButton } from "@/components/auth/welcome-auth-button";
-import { styles } from "@/components/sign-in/styles";
+import { DevTools } from "@/components/auth/dev-login";
 
 
 export default function WelcomeScreen() {
@@ -28,16 +27,3 @@ export default function WelcomeScreen() {
     </ContentArea>
   );
 }
-
-const DevTools = () => {
-  return (
-    <View>
-      <Text style={styles.metaText}>
-        {" "}
-        <Link href="/(tabs)/profile" style={styles.metaLink}>
-          dev login
-        </Link>
-      </Text>
-    </View>
-  );
-};
