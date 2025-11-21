@@ -29,32 +29,30 @@ export default function AuthLayout() {
         {!__DEV__ && <Redirect href={HOME_PATH} />}
       </SignedIn>
 
-      <SignedOut>
-        <Stack>
-          <Stack.Screen
-            name="index"
-            options={{
-              headerShown: false,
-            }}
-          />
-          <Stack.Screen
-            name="sign-in"
-            options={{
-              headerTitle: signInHeader,
-              headerBackVisible: false,
-              headerTransparent: true,
-            }}
-          />
-          <Stack.Screen
-            name="sign-up"
-            options={{
-              headerTitle: signUpHeader,
-              headerBackVisible: false,
-              headerTransparent: true,
-            }}
-          />
-        </Stack>
-      </SignedOut>
+      <Stack>
+        <Stack.Screen
+          name="index"
+          options={{
+            headerShown: false,
+          }}
+        />
+        <Stack.Screen
+          name="sign-in"
+          options={{
+            headerTitle: signInHeader,
+            headerBackVisible: false,
+            headerTransparent: true,
+          }}
+        />
+        <Stack.Screen
+          name="sign-up"
+          options={{
+            headerTitle: signUpHeader,
+            headerBackVisible: false,
+            headerTransparent: true,
+          }}
+        />
+      </Stack>
     </ClerkLoaded>
   );
 }
