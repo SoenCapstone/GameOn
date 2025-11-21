@@ -1,5 +1,5 @@
 import React from "react";
-import { View, Text, Pressable } from "react-native";
+import { View, Text, Pressable, Alert } from "react-native";
 import { useSignIn } from "@clerk/clerk-expo";
 import { login } from "@/components/sign-in/utils";
 import {
@@ -8,23 +8,34 @@ import {
 import { styles } from "@/components/sign-in/styles";
 
 export const DevTools = () => {
-    const { signIn, setActive, isLoaded } = useSignIn();
+  const { signIn, setActive, isLoaded } = useSignIn();
 
-    if (!__DEV__) return null;
+  if (!__DEV__) return null;
 
-    const devLogin = async () => {
+  const devLogin = async () => {
     if (!signIn || !setActive || !isLoaded) return;
 
+    const email = process.env.EXPO_PUBLIC_DEV_LOGIN_EMAIL;
+    const password = process.env.EXPO_PUBLIC_DEV_LOGIN_PASSWORD;
+
+    if (!email || !password) {
+      const msg =
+        "Dev login blocked: Missing EXPO_PUBLIC_DEV_LOGIN_EMAIL or EXPO_PUBLIC_DEV_LOGIN_PASSWORD in your .env file.";
+      console.warn(msg);
+      Alert.alert("Dev Login Error", msg);
+      return;
+    }
+    
     const values = {
-        ...initialSignInValue,
-        emailAddress: process.env.EXPO_PUBLIC_DEV_LOGIN_EMAIL || "",
-        password: process.env.EXPO_PUBLIC_DEV_LOGIN_PASSWORD || "",
+      ...initialSignInValue,
+      emailAddress: email,
+      password: password,
     };
 
     try {
-        await login(values, signIn, setActive, isLoaded);
+      await login(values, signIn, setActive, isLoaded);
     } catch (e) {
-        console.error("Dev login failed:", e);
+      console.error("Dev login failed:", e);
     }
   };
 
