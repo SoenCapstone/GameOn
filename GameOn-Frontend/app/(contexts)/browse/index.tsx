@@ -21,7 +21,7 @@ function Separator() {
 }
 
 export default function Browse() {
-  const log = createScopedLog("Search");
+  const log = createScopedLog("Browse Page");
   const router = useRouter();
   const {
     query,
@@ -36,7 +36,6 @@ export default function Browse() {
   const renderT0 = useRef<number | null>(null);
   const renderLogged = useRef(false);
 
-  const uiLog = createScopedLog("Browse.ui");
   const [mode, setMode] = React.useState<"teams" | "leagues">("teams");
 
   // log when mode changes
@@ -47,9 +46,9 @@ export default function Browse() {
     try {
       notifyModeChange(mode, cnt);
     } catch {
-      uiLog.info("mode changed (fallback)", { mode, resultCount: cnt });
+      log.info("mode changed (fallback)", { mode, resultCount: cnt });
     }
-  }, [mode, notifyModeChange, results, uiLog]);
+  }, [mode, notifyModeChange, results, log]);
 
   const now = () =>
     typeof performance !== "undefined" && performance.now
@@ -176,7 +175,7 @@ export default function Browse() {
               const displayedCount = displayedResults.length;
               markRendered(took, { mode, resultCount: displayedCount, query });
             } catch {
-              uiLog.info("render completed (fallback)", {
+              log.info("render completed (fallback)", {
                 query,
                 resultCount: results.length,
                 tookMs: took,

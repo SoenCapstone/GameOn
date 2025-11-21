@@ -48,18 +48,15 @@ describe("CreateTeamScreen", () => {
     fireEvent.changeText(getByPlaceholderText("Team Name"), "My New Team");
     fireEvent.press(getByText("Create Team"));
 
-    expect(logSpy).toHaveBeenCalledWith(
-      "Create team payload:",
-      expect.objectContaining({
-        teamName: "My New Team",
-        scopeId: "casual",
-        isPublic: true,
-        logoUri: null,
-        sportId: undefined,
-        cityId: undefined,
-      })
-    );
+    expect(logSpy).toHaveBeenCalledTimes(1);
 
+    const [[loggedMessage]] = logSpy.mock.calls as [[string]];
+
+    expect(loggedMessage).toContain("Create Team Page: Create team payload:");
+    expect(loggedMessage).toContain('"teamName": "My New Team"');
+    expect(loggedMessage).toContain('"scopeId": "casual"');
+    expect(loggedMessage).toContain('"isPublic": true');
+    expect(loggedMessage).toContain('"logoUri": null');
 
     expect(mockBack).toHaveBeenCalled();
   });

@@ -8,6 +8,9 @@ import { TeamLogoSection } from "@/components/teams/logo-picker";
 import { TeamNameField } from "@/components/teams/name-field";
 import { TeamDetailsCard } from "@/components/teams/details-card";
 import { TeamVisibilitySection } from "@/components/teams/visibility";
+import { createScopedLog } from "@/utils/logger";
+
+const log = createScopedLog("Create Team Page");
 
 type PickerType = "sport" | "scope" | "city";
 
@@ -68,7 +71,7 @@ export default function CreateTeamScreen() {
   const currentConfig = openPicker ? pickerConfig[openPicker] : undefined;
 
   const handleCreateTeam = () => {
-    console.log("Create team payload:", {
+    log.info("Create team payload:", {
       teamName,
       sportId: selectedSport?.id,
       scopeId: selectedScope.id,

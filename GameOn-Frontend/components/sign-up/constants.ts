@@ -1,5 +1,3 @@
-import { passwordInput } from "@/components/sign-in/constants";
-
 const FIRST_NAME_LABEL = "First name";
 const FIRST_NAME_FIELD = "firstname";
 const FIRST_NAME_AUTO_CAPITALIZE = "words" as const;
@@ -47,6 +45,14 @@ export const initialSignUpValues = {
   emailAddress: EMPTY_STRING,
   password: EMPTY_STRING,
 };
+
+export const passwordInput = (showPassword: boolean) => ({
+  label: PASSWORD_LABEL,
+  placeholder: PASSWORD_PLACEHOLDER,
+  field: PASSWORD_FIELD,
+  secureTextEntry: !showPassword,
+  rightIcon: true,
+});
 
 export const signUpInputLabels = (showPassword: boolean) => [
   {
