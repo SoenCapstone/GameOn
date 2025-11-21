@@ -1,10 +1,13 @@
 import { SearchResult, mockSearchResults } from "@/components/browse/constants";
 import { AxiosInstance } from "axios";
 import { useQuery } from "@tanstack/react-query";
+import { createScopedLog } from "@/utils/logger";
 import {
   useAxiosWithClerk,
   GO_TEAM_SERVICE_ROUTES,
 } from "@/hooks/use-axios-clerk";
+
+const log = createScopedLog("Browse");
 
 // Map common sports to emoji as fallback for missing logos
 export function mapSportToEmoji(sport?: string | null): string {
@@ -89,7 +92,7 @@ async function fetchTeamResults(
     });
     return resp.data;
   } catch (err) {
-    console.warn("fetchTeamResults failed", err);
+    log.warn("fetchTeamResults failed", err);
     throw err;
   }
 }
