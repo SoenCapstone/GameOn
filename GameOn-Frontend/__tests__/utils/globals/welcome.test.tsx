@@ -1,7 +1,7 @@
 import React from "react";
 import { render, screen, fireEvent } from "@testing-library/react-native";
 
-(global as any).__DEV__ = false;
+(globalThis as any).__DEV__ = false;
 
 const mockPush = jest.fn();
 jest.mock("expo-router", () => ({
