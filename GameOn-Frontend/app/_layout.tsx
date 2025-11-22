@@ -16,7 +16,6 @@ import { FeatureFlagsProvider } from "@/components/feature-flags/feature-flags-c
 import { KeyboardProvider } from "react-native-keyboard-controller";
 
 const queryClient = new QueryClient();
-export const unstable_settings = { anchor: "(tabs)" };
 
 export default function RootLayout() {
   const colorScheme = useColorScheme();
