@@ -1,4 +1,3 @@
-import { Link } from "expo-router";
 import { Formik } from "formik";
 import React, { useState } from "react";
 import {
@@ -82,8 +81,6 @@ export default function SignInScreen() {
 
               {displayStatus(status)}
               <View style={{ gap: 14 }}>
-                {__DEV__ && <DevTools />}
-
                 <SubmitAuthButton actionMessage={SIGN_IN_MESSAGE} />
               </View>
             </View>
@@ -108,17 +105,4 @@ const displayStatus = (status: string) => {
       <Text style={styles.statusText}>{status}</Text>
     </View>
   ) : null;
-};
-
-const DevTools = () => {
-  return (
-    <View>
-      <Text style={styles.metaText}>
-        open site maps{" "}
-        <Link href="/_sitemap" style={styles.metaLink}>
-          here
-        </Link>
-      </Text>
-    </View>
-  );
 };
