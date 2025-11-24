@@ -35,21 +35,13 @@ jobs:
       - name: Build common
         run: |
           cd common &&
-          if [ -f mvnw ]; then
-            chmod +x mvnw
-            ./mvnw -B -ntp -DskipTests package
-          else
-            mvn -B -ntp -DskipTests package
-          fi
+          mvn -B -ntp -DskipTests package
 
       - name: Unit tests (common)
         run: |
           cd common &&
-          if [ -f mvnw ]; then
-            ./mvnw -B -ntp -DskipITs test
-          else
-            mvn -B -ntp -DskipITs test
-          fi
+          mvn -B -ntp -DskipITs test
+          
           
       - name: Install common jar
         run: mvn install:install-file -Dfile=./common/target/common-1.0-SNAPSHOT.jar -DgroupId=com.game.on -DartifactId=common -Dversion=1.0-SNAPSHOT -Dpackaging=jar
@@ -58,6 +50,11 @@ jobs:
         run: | 
           cd go-user-service &&
           mvn -B -ntp -DskipTests package
+
+      - name: Run user service Tests
+        run: |
+          cd go-user-service &&
+          mvn -B -ntp -DskipITs test
 
       - name: Upload test reports
         if: always()
