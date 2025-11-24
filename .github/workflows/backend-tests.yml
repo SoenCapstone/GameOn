@@ -55,7 +55,9 @@ jobs:
         run: mvn install:install-file -Dfile=./common/target/common-1.0-SNAPSHOT.jar -DgroupId=com.game.on -DartifactId=common -Dversion=1.0-SNAPSHOT -Dpackaging=jar
         
       - name: Build user service
-        run: mvn -B -ntp -DskipTests package
+        run: | 
+          cd go-user-service &&
+          mvn -B -ntp -DskipTests package
 
       - name: Upload test reports
         if: always()
