@@ -52,7 +52,9 @@ jobs:
           fi
           
       - name: Copy common jar
-        run: cp ./common/target/*.jar ./go-user-service/target/
+        run: | 
+          mkdir ./go-user-service/target/ &&
+          cp ./common/target/*.jar ./go-user-service/target/
         
       - name: Build user service
         run: |
