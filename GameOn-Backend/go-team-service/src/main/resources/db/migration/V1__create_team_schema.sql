@@ -4,7 +4,7 @@ CREATE TABLE teams (
     name VARCHAR(150) NOT NULL,
     sport VARCHAR(75),
 --    league_id UUID,
-    scope VARCHAR(50),
+    scope VARCHAR2(50),
     owner_user_id BIGINT NOT NULL,
     slug VARCHAR(160) NOT NULL UNIQUE,
     logo_url TEXT,
