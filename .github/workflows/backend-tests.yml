@@ -51,19 +51,11 @@ jobs:
             mvn -B -ntp -DskipITs test
           fi
           
-      - name: Copy common jar
-        run: | 
-          cp ./common/target/*.jar ./go-user-service/
+      - name: Install common jar
+        run: mvn install:install-file -Dfile=./common/target/*.jar -DgroupId=com.game.on -DartifactId=common -Dversion=1.0-SNAPSHOT -Dpackaging=jar
         
       - name: Build user service
-        run: |
-          cd go-user-service &&
-          if [ -f mvnw ]; then
-            chmod +x mvnw
-            ./mvnw -B -ntp -DskipTests package
-          else
-            mvn -B -ntp -DskipTests package
-          fi
+        run: mvn -B -ntp -DskipTests package
 
       - name: Upload test reports
         if: always()
