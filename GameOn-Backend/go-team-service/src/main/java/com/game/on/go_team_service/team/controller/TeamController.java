@@ -82,13 +82,13 @@ public class TeamController {
         return ResponseEntity.noContent().build();
     }
 
-    @PostMapping("/{teamId}/invites")
-    public ResponseEntity<TeamInviteResponse> createInvite(@PathVariable UUID teamId,
-                                                           @Valid @RequestBody TeamInviteCreateRequest request) {
-        var userId = currentUserProvider.requireUserId();
-        var response = teamService.createInvite(teamId, request, userId);
-        return ResponseEntity.status(HttpStatus.CREATED).body(response);
-    }
+//    @PostMapping("/{teamId}/invites")
+//    public ResponseEntity<TeamInviteResponse> createInvite(@PathVariable UUID teamId,
+//                                                           @Valid @RequestBody TeamInviteCreateRequest request) {
+//        var userId = currentUserProvider.requireUserId();
+//        var response = teamService.createInvite(teamId, request, userId);
+//        return ResponseEntity.status(HttpStatus.CREATED).body(response);
+//    }
 
     @GetMapping("/{teamId}/invites")
     public ResponseEntity<List<TeamInviteResponse>> listInvites(@PathVariable UUID teamId) {
