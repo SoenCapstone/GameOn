@@ -19,7 +19,7 @@ jobs:
     runs-on: ubuntu-latest
     defaults:
       run:
-        working-directory: GameOn-Backend/common
+        working-directory: GameOn-Backend
 
     steps:
       - name: Set up job
@@ -34,6 +34,7 @@ jobs:
           
       - name: Build common
         run: |
+          cd common &&
           if [ -f mvnw ]; then
             chmod +x mvnw
             ./mvnw -B -ntp -DskipTests package
@@ -41,12 +42,26 @@ jobs:
             mvn -B -ntp -DskipTests package
           fi
 
-      - name: Unit tests
+      - name: Unit tests (common)
         run: |
+          cd common &&
           if [ -f mvnw ]; then
             ./mvnw -B -ntp -DskipITs test
           else
             mvn -B -ntp -DskipITs test
+          fi
+          
+      - name: Copy common jar
+        run: cp ./common/target/*.jar ./go-user-service/target/
+        
+      - name: Build user service
+        run: |
+          cd go-user-service &&
+          if [ -f mvnw ]; then
+            chmod +x mvnw
+            ./mvnw -B -ntp -DskipTests package
+          else
+            mvn -B -ntp -DskipTests package
           fi
 
       - name: Upload test reports
