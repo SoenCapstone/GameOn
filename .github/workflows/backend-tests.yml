@@ -64,7 +64,7 @@ jobs:
 
       - name: Run team service Tests
         run: |
-          cd go-user-service &&
+          cd go-team-service &&
           mvn -B -ntp -DskipITs test
 
       - name: Upload test reports (common)
