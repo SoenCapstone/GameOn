@@ -52,7 +52,7 @@ jobs:
           fi
           
       - name: Install common jar
-        run: mvn install:install-file -Dfile=./common/target/*.jar -DgroupId=com.game.on -DartifactId=common -Dversion=1.0-SNAPSHOT -Dpackaging=jar
+        run: mvn install:install-file -Dfile=./common/target/common-1.0-SNAPSHOT.jar -DgroupId=com.game.on -DartifactId=common -Dversion=1.0-SNAPSHOT -Dpackaging=jar
         
       - name: Build user service
         run: mvn -B -ntp -DskipTests package
