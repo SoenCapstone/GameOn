@@ -11,13 +11,15 @@ public record TeamUpdateRequest(
         String name,
         @Size(max = 75, message = "sport cannot exceed 75 characters")
         String sport,
-        UUID leagueId,
+//        UUID leagueId,
+        @Size(max = 50, message = "scope cannot exceed 50 characters")
+        String scope,
         @Size(max = 255, message = "logoUrl cannot exceed 255 characters")
         String logoUrl,
         @Size(max = 255, message = "location cannot exceed 255 characters")
         String location,
         @Positive(message = "maxRoster must be greater than 0")
-        Integer maxRoster,
+//        Integer maxRoster,
         TeamPrivacy privacy
 ) {
 }

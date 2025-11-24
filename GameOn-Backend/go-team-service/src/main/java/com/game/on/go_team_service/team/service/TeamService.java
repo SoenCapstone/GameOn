@@ -52,33 +52,34 @@ public class TeamService {
         var team = Team.builder()
                 .name(request.name().trim())
                 .sport(trimToNull(request.sport()))
-                .leagueId(request.leagueId())
+//                .leagueId(request.leagueId())
+                .scope(trimToNull(request.scope()))
                 .ownerUserId(callerId)
                 .slug(generateUniqueSlug(request.name()))
                 .logoUrl(trimToNull(request.logoUrl()))
                 .location(trimToNull(request.location()))
-                .maxRoster(request.maxRoster())
+//                .maxRoster(request.maxRoster())
                 .privacy(request.privacy() == null ? TeamPrivacy.PUBLIC : request.privacy())
                 .build();
 
-        validateMaxRoster(team.getMaxRoster());
-
-        var ownerMember = TeamMember.builder()
-                .team(team)
-                .userId(callerId)
-                .role(TeamRole.OWNER)
-                .status(TeamMemberStatus.ACTIVE)
-                .joinedAt(OffsetDateTime.now())
-                .build();
-
-        team.getMembers().add(ownerMember);
+//        validateMaxRoster(team.getMaxRoster());
+//
+//        var ownerMember = TeamMember.builder()
+//                .team(team)
+//                .userId(callerId)
+//                .role(TeamRole.OWNER)
+//                .status(TeamMemberStatus.ACTIVE)
+//                .joinedAt(OffsetDateTime.now())
+//                .build();
+//
+//        team.getMembers().add(ownerMember);
 
         var saved = teamRepository.save(team);
         metricsPublisher.teamCreated();
         log.info("team_created teamId={} ownerId={}", saved.getId(), callerId);
 
-        var members = sortMembers(teamMemberRepository.findByTeamId(saved.getId()));
-        return teamMapper.toDetail(saved, members);
+//        var members = sortMembers(teamMemberRepository.findByTeamId(saved.getId()));
+        return teamMapper.toDetail(saved, List.of());
     }
 
     @Transactional
@@ -98,8 +99,11 @@ public class TeamService {
         if (StringUtils.hasText(request.sport())) {
             team.setSport(request.sport().trim());
         }
-        if (request.leagueId() != null) {
-            team.setLeagueId(request.leagueId());
+//        if (request.leagueId() != null) {
+//            team.setLeagueId(request.leagueId());
+//        }
+        if (StringUtils.hasText(request.scope())) {
+            team.setScope(request.scope().trim());
         }
         if (request.logoUrl() != null) {
             team.setLogoUrl(trimToNull(request.logoUrl()));
@@ -107,14 +111,14 @@ public class TeamService {
         if (request.location() != null) {
             team.setLocation(trimToNull(request.location()));
         }
-        if (request.maxRoster() != null) {
-            validateMaxRoster(request.maxRoster());
-            var activeCount = teamMemberRepository.countByTeamIdAndStatus(teamId, TeamMemberStatus.ACTIVE);
-            if (request.maxRoster() < activeCount) {
-                throw new BadRequestException("maxRoster cannot be less than current active members");
-            }
-            team.setMaxRoster(request.maxRoster());
-        }
+//        if (request.maxRoster() != null) {
+//            validateMaxRoster(request.maxRoster());
+//            var activeCount = teamMemberRepository.countByTeamIdAndStatus(teamId, TeamMemberStatus.ACTIVE);
+//           if (request.maxRoster() < activeCount) {
+//                throw new BadRequestException("maxRoster cannot be less than current active members");
+//            }
+//            team.setMaxRoster(request.maxRoster());
+//        }
         if (request.privacy() != null) {
             team.setPrivacy(request.privacy());
         }
@@ -216,63 +220,63 @@ public class TeamService {
                 .toList();
     }
 
-    @Transactional
-    public TeamInviteResponse createInvite(UUID teamId, TeamInviteCreateRequest request, Long callerId) {
-        var team = requireActiveTeam(teamId);
-        var callerMembership = requireActiveMembership(teamId, callerId);
-        ensureRole(callerMembership, Set.of(TeamRole.OWNER, TeamRole.MANAGER),
-                "Only owners or managers can create invites");
-
-        var inviteeUserId = request.inviteeUserId();
-        var inviteeEmail = trimToNull(request.inviteeEmail());
-
-        if (inviteeUserId == null && inviteeEmail == null) {
-            throw new BadRequestException("Either inviteeUserId or inviteeEmail must be provided");
-        }
-
-        if (inviteeUserId != null && !userDirectoryClient.userExists(inviteeUserId)) {
-            throw new NotFoundException("Invitee user not found");
-        }
-
-        if (inviteeUserId != null && teamMemberRepository.existsByTeamIdAndUserId(teamId, inviteeUserId)) {
-            throw new ConflictException("User is already a member");
-        }
-
-        enforceRosterLimit(team);
-
-        if (inviteeUserId != null) {
-            teamInviteRepository.findByTeamIdAndInviteeUserIdAndStatus(teamId, inviteeUserId, TeamInviteStatus.PENDING)
-                    .ifPresent(invite -> {
-                        throw new ConflictException("An active invite already exists for this user");
-                    });
-        }
-
-        if (inviteeEmail != null) {
-            teamInviteRepository.findByTeamIdAndInviteeEmailIgnoreCaseAndStatus(teamId, inviteeEmail, TeamInviteStatus.PENDING)
-                    .ifPresent(invite -> {
-                        throw new ConflictException("An active invite already exists for this email");
-                    });
-        }
-
-        var expiresAt = request.expiresAt();
-        if (expiresAt == null) {
-            expiresAt = OffsetDateTime.now().plusDays(DEFAULT_INVITE_EXPIRY_DAYS);
-        }
-
-        var invite = TeamInvite.builder()
-                .team(team)
-                .invitedByUserId(callerId)
-                .inviteeUserId(inviteeUserId)
-                .inviteeEmail(inviteeEmail)
-                .expiresAt(expiresAt.truncatedTo(ChronoUnit.SECONDS))
-                .status(TeamInviteStatus.PENDING)
-                .build();
-
-        var saved = teamInviteRepository.save(invite);
-        metricsPublisher.inviteSent();
-        log.info("team_invite_sent teamId={} inviteId={} byUser={}", teamId, saved.getId(), callerId);
-        return teamMapper.toInviteResponse(saved);
-    }
+//    @Transactional
+//    public TeamInviteResponse createInvite(UUID teamId, TeamInviteCreateRequest request, Long callerId) {
+//        var team = requireActiveTeam(teamId);
+//        var callerMembership = requireActiveMembership(teamId, callerId);
+//        ensureRole(callerMembership, Set.of(TeamRole.OWNER, TeamRole.MANAGER),
+//                "Only owners or managers can create invites");
+//
+//        var inviteeUserId = request.inviteeUserId();
+//        var inviteeEmail = trimToNull(request.inviteeEmail());
+//
+//        if (inviteeUserId == null && inviteeEmail == null) {
+//            throw new BadRequestException("Either inviteeUserId or inviteeEmail must be provided");
+//        }
+//
+//        if (inviteeUserId != null && !userDirectoryClient.userExists(inviteeUserId)) {
+//            throw new NotFoundException("Invitee user not found");
+//        }
+//
+//        if (inviteeUserId != null && teamMemberRepository.existsByTeamIdAndUserId(teamId, inviteeUserId)) {
+//            throw new ConflictException("User is already a member");
+//        }
+//
+//        enforceRosterLimit(team);
+//
+//        if (inviteeUserId != null) {
+//            teamInviteRepository.findByTeamIdAndInviteeUserIdAndStatus(teamId, inviteeUserId, TeamInviteStatus.PENDING)
+//                    .ifPresent(invite -> {
+//                        throw new ConflictException("An active invite already exists for this user");
+//                    });
+//        }
+//
+//        if (inviteeEmail != null) {
+//            teamInviteRepository.findByTeamIdAndInviteeEmailIgnoreCaseAndStatus(teamId, inviteeEmail, TeamInviteStatus.PENDING)
+//                    .ifPresent(invite -> {
+//                        throw new ConflictException("An active invite already exists for this email");
+//                    });
+//        }
+//
+//        var expiresAt = request.expiresAt();
+//        if (expiresAt == null) {
+//            expiresAt = OffsetDateTime.now().plusDays(DEFAULT_INVITE_EXPIRY_DAYS);
+//        }
+//
+//        var invite = TeamInvite.builder()
+//                .team(team)
+//                .invitedByUserId(callerId)
+//                .inviteeUserId(inviteeUserId)
+//                .inviteeEmail(inviteeEmail)
+//                .expiresAt(expiresAt.truncatedTo(ChronoUnit.SECONDS))
+//                .status(TeamInviteStatus.PENDING)
+//                .build();
+//
+//        var saved = teamInviteRepository.save(invite);
+//        metricsPublisher.inviteSent();
+//        log.info("team_invite_sent teamId={} inviteId={} byUser={}", teamId, saved.getId(), callerId);
+//        return teamMapper.toInviteResponse(saved);
+//    }
 
     @Transactional(readOnly = true)
     public List<TeamInviteResponse> listInvites(UUID teamId, Long callerId) {
@@ -300,7 +304,7 @@ public class TeamService {
             throw new ConflictException("User is already a member of this team");
         }
 
-        enforceRosterLimit(team);
+//        enforceRosterLimit(team);
 
         var newMember = TeamMember.builder()
                 .team(team)
@@ -403,15 +407,15 @@ public class TeamService {
         }
     }
 
-    private void enforceRosterLimit(Team team) {
-        if (team.getMaxRoster() == null) {
-            return;
-        }
-        var activeCount = teamMemberRepository.countByTeamIdAndStatus(team.getId(), TeamMemberStatus.ACTIVE);
-        if (activeCount >= team.getMaxRoster()) {
-            throw new BadRequestException("Team roster is full");
-        }
-    }
+//    private void enforceRosterLimit(Team team) {
+//        if (team.getMaxRoster() == null) {
+//            return;
+//        }
+//        var activeCount = teamMemberRepository.countByTeamIdAndStatus(team.getId(), TeamMemberStatus.ACTIVE);
+//        if (activeCount >= team.getMaxRoster()) {
+//            throw new BadRequestException("Team roster is full");
+//        }
+//    }
 
     private void enforceInviteOwnership(TeamInvite invite, Long callerId, Optional<String> callerEmail) {
         if (invite.getInviteeUserId() != null && !invite.getInviteeUserId().equals(callerId)) {
@@ -474,8 +478,8 @@ public class TeamService {
     }
 
     private boolean requestEqualsNoChange(TeamUpdateRequest request) {
-        return request.name() == null && request.sport() == null && request.leagueId() == null
-                && request.logoUrl() == null && request.location() == null && request.maxRoster() == null
+        return request.name() == null && request.sport() == null
+                && request.logoUrl() == null && request.location() == null
                 && request.privacy() == null;
     }
 }
