@@ -52,7 +52,7 @@ describe("Background component", () => {
 
     expect(MockedLinearGradient).toHaveBeenCalledWith(
       expect.objectContaining({
-        locations: [0, 0.3],
+        locations: [0, 0.25],
       }),
       {},
     );
