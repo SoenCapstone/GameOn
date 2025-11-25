@@ -31,7 +31,8 @@ export function Background({
   const baseColor: ColorValue =
     (preset && Colors[preset]) || color || Colors.blue;
 
-  const locations = mode === "form" ? ([0, 0.3] as const) : ([0, 0.8] as const);
+  const locations =
+    mode === "form" ? ([0, 0.25] as const) : ([0, 0.8] as const);
 
   const colors = [baseColor, "#00000080"] as const;
 
