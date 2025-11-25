@@ -9,6 +9,7 @@ import { router } from 'expo-router'
 import { Colors } from '@/constants/colors'
 import { useAuth, useUser } from "@clerk/clerk-expo";
 import { profileStyles } from '@/components/UserProfile/profile-styles';
+import { confirmLogout } from "@/components/UserProfile/profileUtils";
 
 // Sample league data (replace with fetched data later)
 const leagues = [
@@ -24,24 +25,8 @@ const UserProfile = () => {
   
   const { signOut } = useAuth();
   
-  const confirmLogout = () => {
-    Alert.alert(
-      "Logout",
-        "Are you sure you want to log out?",
-        [
-          { text: "Cancel", style: "cancel" },
-          {
-            text: "Logout",
-            style: "destructive",
-            onPress: () => {
-              log.info("User confirmed logout");
-              signOut();
-            },
-          },
-        ],
-        { cancelable: true },
-    );
-  };
+  const logout = confirmLogout(signOut, log);
+
   const { isLoaded, isSignedIn, user } = useUser();
 
   const isDev = (user?.publicMetadata as { isDev?: boolean })?.isDev === true;
@@ -104,7 +89,7 @@ const UserProfile = () => {
           profileStyles.buttonLogOut,
           pressed && { backgroundColor: Colors.red}
         ]}
-        onPress={() => confirmLogout()}>
+        onPress={() => logout()}>
           <ThemedText style={profileStyles.buttonLogoutText}>Logout</ThemedText>
         </Pressable>
 

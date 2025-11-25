@@ -1,7 +1,6 @@
 import React, { useState } from "react";
-import { View, Text, TextInput, Pressable, Image, Alert  } from "react-native";
+import { View, Text, TextInput, Pressable, Image } from "react-native";
 import { useRouter } from "expo-router";
-import * as ImagePicker from 'expo-image-picker';
 import { ThemedText } from '@/components/themed-text';
 import { images } from '@/constants/images';
 import { createScopedLog } from '@/utils/logger'; 
@@ -9,11 +8,12 @@ import { Colors } from '@/constants/colors'
 import { profileStyles } from '@/components/UserProfile/profile-styles';
 import { ContentArea } from "@/components/ui/content-area";
 import { useUser } from "@clerk/clerk-expo";
+import { handleSaveProfile, pickImage } from "@/components/UserProfile/profileUtils";
+
 
 
 const EditProfile = () => {
     const { isLoaded, isSignedIn, user } = useUser();
-    const userId = user?.id;
     const router = useRouter();
     const log = createScopedLog('Profile')
 
@@ -22,57 +22,10 @@ const EditProfile = () => {
     const [email] = useState<string>(user?.primaryEmailAddress?.emailAddress ?? "");
     const [profilePic, setProfilePic] = useState(user?.hasImage ? { uri: user.imageUrl } : images.defaultProfile );
 
-    
-    //handle saving of updated credentials
-    const handleSave = async () => {
-
-        if (!firstName?.trim()){
-            Alert.alert('First Name must not be empty', 'Please enter a valid First Name');
-            return;
-        }
-
-        if (!lastName?.trim()){
-            Alert.alert('Last Name must not be empty', 'Please enter a valid Last Name');
-            return;
-        }
-
-        try {
-            if (user) {
-                await user.update({
-                    firstName: firstName,
-                    lastName: lastName,
-                });
-            }
-
-            Alert.alert("Success", "Profile updated");
-
-        }
-        catch (err: any) {
-            console.error("Fetch error:", err.message);
-            Alert.alert("Error", "Failed to update profile: " + err.message);
-            }
-
-        log.info("Updated Profile:", { userId, firstName, lastName, email, profilePic });
-
-        // Redirect back to profile page
-        router.back();
+    const handleSave = () => {
+        handleSaveProfile({ user, firstName, lastName, email, profilePic, router });
     };
-
     
-
-    const pickImage = async () => {
-        const { granted } = await ImagePicker.requestMediaLibraryPermissionsAsync();
-        if ( granted ){
-            const result = await ImagePicker.launchImageLibraryAsync({
-            mediaTypes: ['images'],
-            quality: 1,
-            });
-        
-            if (!result.canceled && result.assets.length > 0) {
-            setProfilePic({ uri: result.assets[0].uri });
-            }
-        }
-    };
     
     if (!isLoaded || !isSignedIn) return null;
 
@@ -89,7 +42,7 @@ const EditProfile = () => {
                     profileStyles.pictureBorder,
                     pressed && { backgroundColor: 'rgba(255, 255, 255, 0.25)' },
                     ]}
-                    onPress={pickImage}>
+                    onPress={() => pickImage(setProfilePic)}>
                         <Image source={profilePic} style={profileStyles.profileImage} />
                         <ThemedText style={profileStyles.changePicText}>Change Profile Picture</ThemedText>
                     </Pressable>
