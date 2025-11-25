@@ -34,6 +34,8 @@ public abstract class AbstractFeatureFlags<T extends Enum<T> & FeatureFlagList<T
      * Initialize the feature flags using the annotations for the class
      */
     public void initialize() {
+        values.clear();
+
         FeatureFlagFile fileAnnotation = enumClass.getAnnotation(FeatureFlagFile.class);
 
         // Without this annotation, we don't know what file to check
@@ -59,7 +61,7 @@ public abstract class AbstractFeatureFlags<T extends Enum<T> & FeatureFlagList<T
             fileName += ".json";
         }
 
-        filePath = Paths.get("feature-flags\\" + fileName);
+        filePath = dirPath.resolve(fileName);
         if(Files.exists(filePath)) {
             readExistingFile();
         }
