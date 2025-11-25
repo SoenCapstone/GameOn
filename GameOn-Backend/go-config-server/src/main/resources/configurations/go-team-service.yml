@@ -19,8 +19,19 @@ spring:
     baseline-version: 0
     locations: classpath:db/migration
 
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: https://one-magpie-92.clerk.accounts.dev
+
 server:
   port: 8092
+
+eureka:
+  client:
+    service-url:
+      defaultZone: http://localhost:8761/eureka/
 
 management:
   endpoints:
@@ -28,6 +39,3 @@ management:
       exposure:
         include: health,info,metrics
 
-user:
-  service:
-    base-url: http://localhost:8090
