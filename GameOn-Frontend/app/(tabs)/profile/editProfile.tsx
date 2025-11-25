@@ -1,15 +1,14 @@
 import React, { useState } from "react";
-import { View, Text, TextInput, Pressable, Image } from "react-native";
+import { View, Text, TextInput, Pressable } from "react-native";
 import { useRouter } from "expo-router";
-import { ThemedText } from '@/components/themed-text';
 import { images } from '@/constants/images';
 import { createScopedLog } from '@/utils/logger'; 
 import { Colors } from '@/constants/colors'
 import { profileStyles } from '@/components/UserProfile/profile-styles';
 import { ContentArea } from "@/components/ui/content-area";
 import { useUser } from "@clerk/clerk-expo";
-import { handleSaveProfile, pickImage } from "@/components/UserProfile/profileUtils";
-
+import { handleSaveProfile } from "@/components/UserProfile/profileUtils";
+import { ProfileImageSelector } from "@/components/UserProfile/ProfileImageSelector";
 
 
 const EditProfile = () => {
@@ -37,15 +36,8 @@ const EditProfile = () => {
                 
                 <Text style={profileStyles.header}>Edit Profile</Text>
 
-                    {/* Profile Image */}
-                    <Pressable style={({ pressed }) => [ 
-                    profileStyles.pictureBorder,
-                    pressed && { backgroundColor: 'rgba(255, 255, 255, 0.25)' },
-                    ]}
-                    onPress={() => pickImage(setProfilePic)}>
-                        <Image source={profilePic} style={profileStyles.profileImage} />
-                        <ThemedText style={profileStyles.changePicText}>Change Profile Picture</ThemedText>
-                    </Pressable>
+                    <ProfileImageSelector profilePic={profilePic} setProfilePic={setProfilePic} />
+
                 <View style={profileStyles.formGroup}>
                     <Text style={profileStyles.label}>First Name</Text>
                     <TextInput
