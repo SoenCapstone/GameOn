@@ -1,46 +1,61 @@
 import React, { useState } from "react";
-import { View, Text, TextInput, Pressable, ScrollView, Image, Alert  } from "react-native";
+import { View, Text, TextInput, Pressable, Image, Alert  } from "react-native";
 import { useRouter } from "expo-router";
-import { LinearGradient } from 'expo-linear-gradient';
-import { SafeAreaView } from 'react-native-safe-area-context';
 import * as ImagePicker from 'expo-image-picker';
 import { ThemedText } from '@/components/themed-text';
 import { images } from '@/constants/images';
 import { createScopedLog } from '@/utils/logger'; 
 import { Colors } from '@/constants/colors'
 import { profileStyles } from '@/components/UserProfile/profile-styles';
+import { ContentArea } from "@/components/ui/content-area";
+import { useUser } from "@clerk/clerk-expo";
 
 
 const EditProfile = () => {
+    const { isLoaded, isSignedIn, user } = useUser();
+    const userId = user?.id;
     const router = useRouter();
     const log = createScopedLog('Profile')
-    // Local state for form fields
-    const [name, setName] = useState("John Doe");
-    const [email, setEmail] = useState("john.doe@example.com");
-    const [profilePic, setProfilePic] = useState(images.defaultProfile);
 
-    const validateEmail = (email: string) => {
-        const emailRegex = /^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$/;
-        return emailRegex.test(email);
-    };
+    const [firstName, setFirstName] = useState(user?.firstName ?? "");
+    const [lastName, setLastName] = useState(user?.lastName ?? "");
+    const [email] = useState<string>(user?.primaryEmailAddress?.emailAddress ?? "");
+    const [profilePic, setProfilePic] = useState(user?.hasImage ? user.imageUrl : images.defaultProfile );
 
-    const handleSave = () => {
+    
+    //handle saving of updated credentials
+    const handleSave = async () => {
 
-        if (!name.trim()){
-            Alert.alert('Name must not be empty', 'Please enter a Name');
+        if (!firstName?.trim()){
+            Alert.alert('First Name must not be empty', 'Please enter a valid First Name');
             return;
         }
 
-        if (!validateEmail(email)){
-            Alert.alert('Invalid Email', 'Please enter a valid email address.');
+        if (!lastName?.trim()){
+            Alert.alert('Last Name must not be empty', 'Please enter a valid Last Name');
             return;
         }
 
-        // For now, just log the updated data
-        log.info("Updated Profile:", { name, email });
+        try {
+            if (user) {
+                await user.update({
+                    firstName: firstName,
+                    lastName: lastName,
+                });
+            }
+
+            Alert.alert("Success", "Profile updated");
+
+        }
+        catch (err: any) {
+            console.error("Fetch error:", err.message);
+            Alert.alert("Error", "Failed to update profile: " + err.message);
+            }
+
+        log.info("Updated Profile:", { userId, firstName, lastName, email });
+
         // Redirect back to profile page
-        
-        router.push("/(auth)/userProfile");
+        router.push("/(tabs)/profile");
     };
 
 
@@ -54,16 +69,15 @@ const EditProfile = () => {
         setProfilePic({ uri: result.assets[0].uri });
         }
     };
-    return (
-    <SafeAreaView style={{ flex: 1 }}>
-        <LinearGradient 
-            colors ={[Colors.orange, '#000000']}
-            locations={[0, 0.7]}
-            style={profileStyles.gradient}>
+    
+    if (!isLoaded || !isSignedIn) return null;
 
-            <ScrollView 
-            showsVerticalScrollIndicator={false}
-            contentContainerStyle={profileStyles.container}>
+    return (
+    <ContentArea
+              scrollable
+              paddingBottom={60}
+              backgroundProps={{ preset: "orange" }}>
+                
                 <Text style={profileStyles.header}>Edit Profile</Text>
 
                     {/* Profile Image */}
@@ -76,25 +90,24 @@ const EditProfile = () => {
                         <ThemedText style={profileStyles.changePicText}>Change Profile Picture</ThemedText>
                     </Pressable>
                 <View style={profileStyles.formGroup}>
-                    <Text style={profileStyles.label}>Name</Text>
+                    <Text style={profileStyles.label}>First Name</Text>
                     <TextInput
                     style={profileStyles.input}
-                    value={name}
-                    onChangeText={setName}
+                    value={firstName}
+                    onChangeText={setFirstName}
                     placeholder="Enter your name"
                     placeholderTextColor="#888"
                     />
                 </View>
 
                 <View style={profileStyles.formGroup}>
-                    <Text style={profileStyles.label}>Email</Text>
+                    <Text style={profileStyles.label}>Last Name</Text>
                     <TextInput
                     style={profileStyles.input}
-                    value={email}
-                    onChangeText={setEmail}
-                    placeholder="Enter your email"
+                    value={lastName}
+                    onChangeText={setLastName}
+                    placeholder="Enter your name"
                     placeholderTextColor="#888"
-                    keyboardType="email-address"
                     />
                 </View>
 
@@ -111,9 +124,7 @@ const EditProfile = () => {
                 onPress={() => {router.back(); log.info('Cancelled Profile edit, returning to User Profile page.')}}>
                     <Text style={profileStyles.cancelButtonText}>Cancel</Text>
                 </Pressable>
-            </ScrollView>
-        </LinearGradient>
-    </SafeAreaView>
+            </ContentArea>
   );
 };
 

@@ -4,7 +4,6 @@ import { Colors, AccentColors } from "@/constants/colors";
 export const profileStyles = StyleSheet.create({
   main: {
     alignItems: 'center',
-    marginTop: 70,
   },
   profileImage: {
     width: 180,
@@ -73,101 +72,114 @@ buttonLogOut: {
   alignItems: 'center',
   borderColor: Colors.salmon, 
 },
-  buttonLogoutText: {  
-    fontSize: 20,
-    fontWeight: '400',
-    color: Colors.salmon,
+buttonLogoutText: {  
+  fontSize: 20,
+  fontWeight: '400',
+  color: Colors.salmon,
+},
+leagueItem: {
+  backgroundColor: 'transparent',
+  borderColor: '#444444ff',
+  borderWidth: 1,
+  padding: 14,
+  paddingHorizontal: 60,
+  borderRadius: 10,
+  marginBottom: 10,
+},
+leagueName: {
+  fontSize: 20,
+  fontWeight: '500',
+  color: '#ffffffff',
+},
+leagueRole: {
+  color: '#6b7280',
+  fontSize: 16,
+},
+container: {
+        flexGrow: 1,
+        padding: 20,
+    },
+  header: {
+      fontSize: 36,
+      fontWeight: "bold",
+      color: "#fff",
+      marginBottom: 20,
+      textAlign: "center",
   },
-  leagueItem: {
-    backgroundColor: 'transparent',
-    borderColor: '#444444ff',
-    borderWidth: 1,
-    padding: 14,
-    paddingHorizontal: 60,
-    borderRadius: 10,
-    marginBottom: 10,
+  formGroup: {
+      marginBottom: 10,
+      marginTop: 10
   },
-  leagueName: {
-    fontSize: 20,
-    fontWeight: '500',
-    color: '#ffffffff',
+  label: {
+      color: "#bbb",
+      fontSize: 20,
+      marginBottom: 6,
   },
-  leagueRole: {
-    color: '#6b7280',
-    fontSize: 16,
+  input: {
+      backgroundColor: "#1e1e1e",
+      color: "#fff",
+      borderRadius: 10,
+      paddingHorizontal: 12,
+      paddingVertical: 10,
+      fontSize: 16,
+      borderColor: 'rgba(255, 255, 255, 0.3)',
+      borderWidth: 1,
   },
-  container: {
-          flexGrow: 1,
-          padding: 20,
-      },
-    header: {
-        fontSize: 36,
-        fontWeight: "bold",
-        color: "#fff",
-        marginTop: 40,
-        marginBottom: 20,
-        textAlign: "center",
-    },
-    formGroup: {
-        marginBottom: 10,
-        marginTop: 10
-    },
-    label: {
-        color: "#bbb",
-        fontSize: 20,
-        marginBottom: 6,
-    },
-    input: {
-        backgroundColor: "#1e1e1e",
-        color: "#fff",
-        borderRadius: 10,
-        paddingHorizontal: 12,
-        paddingVertical: 10,
-        fontSize: 16,
-        borderColor: 'rgba(255, 255, 255, 0.3)',
-        borderWidth: 1,
-    },
-    changePicText: {
-        color: AccentColors.blue,
-        marginTop: 8,
-        textDecorationLine: 'underline',
-        fontSize: 20,
-        textAlign: 'center',
-    },
-    saveButton: {
-        paddingVertical: 14,
-        borderRadius: 20,
-        alignItems: "center",
-        marginTop: 20,
-        borderColor: AccentColors.green,
-        borderWidth: 2,
-        width: 150,
-        alignSelf: "center"
-    },
-    saveButtonText: {
-        color: "#ffffffff",
-        fontSize: 18,
-        fontWeight: "bold",
-    },
-    cancelButton: {
-        marginTop: 20,
-        alignItems: "center",
-        borderColor: Colors.salmon,
-        borderWidth: 1,
-        borderRadius: 20,
-        paddingTop: 10,
-        paddingBottom: 10,
-        width: 150,
-        alignSelf: "center"
-    },
-    cancelButtonText: {
-        color: "#ffffffff",
-        fontSize: 16,
-    },
+  changePicText: {
+      color: AccentColors.blue,
+      marginTop: 8,
+      textDecorationLine: 'underline',
+      fontSize: 20,
+      textAlign: 'center',
+  },
+  saveButton: {
+      paddingVertical: 14,
+      borderRadius: 20,
+      alignItems: "center",
+      marginTop: 20,
+      borderColor: AccentColors.green,
+      borderWidth: 2,
+      width: 150,
+      alignSelf: "center"
+  },
+  saveButtonText: {
+      color: "#ffffffff",
+      fontSize: 18,
+      fontWeight: "bold",
+  },
+  cancelButton: {
+      marginTop: 20,
+      alignItems: "center",
+      borderColor: Colors.salmon,
+      borderWidth: 1,
+      borderRadius: 20,
+      paddingTop: 10,
+      paddingBottom: 10,
+      width: 150,
+      alignSelf: "center"
+  },
+  cancelButtonText: {
+      color: "#ffffffff",
+      fontSize: 16,
+  },
 
-    pictureBorder: {
-        borderRadius: 12,
-        width: 220,
-        alignSelf:"center"
-    },
+  pictureBorder: {
+      borderRadius: 12,
+      width: 220,
+      alignSelf:"center"
+  },
+  flagsButton: {
+    marginTop: 10,
+    backgroundColor: "rgba(255, 255, 255, 0.12)",
+    paddingHorizontal: 20,
+    paddingVertical: 8,
+    borderRadius: 25,
+    borderWidth: 1,
+    borderColor: "rgba(255, 255, 255, 0.35)",
+  },
+  flagsButtonText: {
+    color: "#ffffff",
+    fontSize: 14,
+    fontWeight: "500",
+  },
 });
