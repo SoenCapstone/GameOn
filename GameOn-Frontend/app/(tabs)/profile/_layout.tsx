@@ -19,6 +19,14 @@ export default function ProfileLayout() {
           headerTitle: profileHeader,
         }}
       />
+      <Stack.Screen
+        name="editProfile"
+        options={{
+          headerTransparent: true,
+          headerShadowVisible: false,
+          headerTitle: profileHeader,
+        }}
+      />
     </Stack>
   );
 }
