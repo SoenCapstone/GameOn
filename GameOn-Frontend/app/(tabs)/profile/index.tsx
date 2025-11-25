@@ -1,6 +1,6 @@
 import React from 'react';
 import { Image } from 'expo-image';
-import { FlatList, View, Pressable, Text, Alert } from 'react-native';
+import { FlatList, View, Pressable, Text } from 'react-native';
 import { ThemedText } from '@/components/themed-text';
 import { images } from '@/constants/images';
 import { ContentArea } from "@/components/ui/content-area";
