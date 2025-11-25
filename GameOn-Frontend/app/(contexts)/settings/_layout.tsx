@@ -1,29 +1,24 @@
 import { Stack } from "expo-router";
-import React from "react";
 import { Header } from "@/components/header/header";
-import { Logo } from "@/components/header/logo";
 import { PageTitle } from "@/components/header/page-title";
 import { HeaderButton } from "@/components/header/header-button";
 
-const profileHeader = () => (
+const settingsHeader = () => (
   <Header
-    left={<Logo />}
-    center={<PageTitle title="Profile" />}
-    right={
-      <HeaderButton type="custom" icon="gear" route="/(contexts)/settings" />
-    }
+    left={<HeaderButton type="back" />}
+    center={<PageTitle title="Settings" />}
   />
 );
 
-export default function ProfileLayout() {
+export default function SettingsLayout() {
   return (
     <Stack>
       <Stack.Screen
         name="index"
         options={{
+          headerBackVisible: false,
+          headerTitle: settingsHeader,
           headerTransparent: true,
-          headerShadowVisible: false,
-          headerTitle: profileHeader,
         }}
       />
     </Stack>
