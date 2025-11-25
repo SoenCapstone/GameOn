@@ -6,12 +6,14 @@ on:
     paths:
       - "GameOn-Backend/common/**"
       - "GameOn-Backend/go-user-service/**"
+      - "GameOn-Backen/go-team-service/**"
       - ".github/workflows/backend-tests.yml"
   push:
     branches: [main]
     paths:
       - "GameOn-Backend/common/**"
       - "GameOn-Backend/go-user-service/**"
+      - "GameOn-Backend/go-team-service/**"
       - ".github/workflows/backend-tests.yml"
 
 jobs:
@@ -19,7 +21,7 @@ jobs:
     runs-on: ubuntu-latest
     defaults:
       run:
-        working-directory: GameOn-Backend/common
+        working-directory: GameOn-Backend
 
     steps:
       - name: Set up job
@@ -34,25 +36,59 @@ jobs:
           
       - name: Build common
         run: |
-          if [ -f mvnw ]; then
-            chmod +x mvnw
-            ./mvnw -B -ntp -DskipTests package
-          else
-            mvn -B -ntp -DskipTests package
-          fi
+          cd common &&
+          mvn -B -ntp -DskipTests package
 
-      - name: Unit tests
+      - name: Unit tests (common)
         run: |
-          if [ -f mvnw ]; then
-            ./mvnw -B -ntp -DskipITs test
-          else
-            mvn -B -ntp -DskipITs test
-          fi
+          cd common &&
+          mvn -B -ntp -DskipITs test
+          
+      - name: Install common jar
+        run: mvn install:install-file -Dfile=./common/target/common-1.0-SNAPSHOT.jar -DgroupId=com.game.on -DartifactId=common -Dversion=1.0-SNAPSHOT -Dpackaging=jar
+        
+      - name: Build user service
+        run: | 
+          cd go-user-service &&
+          mvn -B -ntp -DskipTests package
 
-      - name: Upload test reports
+      - name: Run user service Tests
+        run: |
+          cd go-user-service &&
+          mvn -B -ntp -DskipITs test
+          
+      - name: Build team service
+        run: | 
+          cd go-team-service &&
+          mvn -B -ntp -DskipTests package
+
+# Team service tests need a fix, then this can be uncommented
+#      - name: Run team service Tests
+#        run: |
+#          cd go-team-service &&
+#          mvn -B -ntp -DskipITs test
+
+      - name: Upload test reports (common)
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: backend-surefire-reports
+          name: backend-common-surefire-reports
+          path: GameOn-Backend/common/target/surefire-reports/**
+          if-no-files-found: ignore
+
+      - name: Upload test reports (User service)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: backend-user-service-surefire-reports
           path: GameOn-Backend/go-user-service/target/surefire-reports/**
           if-no-files-found: ignore
+ 
+# See comment above 
+#      - name: Upload test reports (Team service)
+#        if: always()
+#        uses: actions/upload-artifact@v4
+#        with:
+#          name: backend-team-service-surefire-reports
+#          path: GameOn-Backend/go-team-service/target/surefire-reports/**
+#          if-no-files-found: ignore
