@@ -9,11 +9,11 @@ public record TeamSummaryResponse(
         UUID id,
         String name,
         String sport,
-        UUID leagueId,
+//        UUID leagueId,
         String slug,
         String logoUrl,
         TeamPrivacy privacy,
-        Integer maxRoster,
+//        Integer maxRoster,
         boolean archived,
         OffsetDateTime createdAt,
         OffsetDateTime updatedAt
