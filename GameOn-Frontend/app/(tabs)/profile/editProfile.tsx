@@ -20,7 +20,7 @@ const EditProfile = () => {
     const [firstName, setFirstName] = useState(user?.firstName ?? "");
     const [lastName, setLastName] = useState(user?.lastName ?? "");
     const [email] = useState<string>(user?.primaryEmailAddress?.emailAddress ?? "");
-    const [profilePic, setProfilePic] = useState(user?.hasImage ? user.imageUrl : images.defaultProfile );
+    const [profilePic, setProfilePic] = useState(user?.hasImage ? { uri: user.imageUrl } : images.defaultProfile );
 
     
     //handle saving of updated credentials
@@ -52,21 +52,25 @@ const EditProfile = () => {
             Alert.alert("Error", "Failed to update profile: " + err.message);
             }
 
-        log.info("Updated Profile:", { userId, firstName, lastName, email });
+        log.info("Updated Profile:", { userId, firstName, lastName, email, profilePic });
 
         // Redirect back to profile page
-        router.push("/(tabs)/profile");
+        router.back();
     };
 
+    
 
     const pickImage = async () => {
-        const result = await ImagePicker.launchImageLibraryAsync({
-        mediaTypes: ['images'],
-        quality: 1,
-        });
-
-        if (!result.canceled && result.assets.length > 0) {
-        setProfilePic({ uri: result.assets[0].uri });
+        const { granted } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+        if ( granted ){
+            const result = await ImagePicker.launchImageLibraryAsync({
+            mediaTypes: ['images'],
+            quality: 1,
+            });
+        
+            if (!result.canceled && result.assets.length > 0) {
+            setProfilePic({ uri: result.assets[0].uri });
+            }
         }
     };
     

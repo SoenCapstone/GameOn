@@ -57,7 +57,7 @@ const UserProfile = () => {
         >
       {/* User Section */}
       <View style={profileStyles.main}>
-        <Image source={ user.hasImage ? user.imageUrl : images.defaultProfile } style={profileStyles.profileImage} />
+        <Image source={ user.hasImage ? { uri: user.imageUrl } : images.defaultProfile } style={profileStyles.profileImage} />
         <Text style={profileStyles.name}>{user.fullName}</Text>
         <ThemedText style={profileStyles.email}>{user.primaryEmailAddress?.emailAddress}</ThemedText>
 
