@@ -68,7 +68,7 @@ const UserProfile = () => {
         pressed && { backgroundColor: 'rgba(255, 255, 255, 0.25)' },
         ]}
         onPress={() => {log.info('Clicked on Edit Profile');
-        router.navigate("/profile/editProfile"); 
+        router.push("/profile/editProfile"); 
         }}
         >
           <ThemedText style={profileStyles.editButtonText}>Edit Profile</ThemedText>
