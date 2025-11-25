@@ -38,8 +38,11 @@ public class Team {
     @Column(length = 75)
     private String sport;
 
-    @Column(name = "league_id")
-    private UUID leagueId;
+//    @Column(name = "league_id")
+//    private UUID leagueId;
+
+    @Column(length = 50)
+    private String scope;
 
     @Column(name = "owner_user_id", nullable = false)
     private Long ownerUserId;
@@ -52,8 +55,8 @@ public class Team {
 
     private String location;
 
-    @Column(name = "max_roster")
-    private Integer maxRoster;
+//    @Column(name = "max_roster")
+//    private Integer maxRoster;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 20)
