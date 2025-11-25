@@ -1,0 +1,27 @@
+@startuml
+title Create team
+
+actor User
+participant FE as "Frontend (React Native)"
+participant Clerk as "Clerk (Auth)"
+participant A as "API Gateway"
+participant T as "Go-team-service"
+participant D as "Database"
+
+== Front end ==
+User -> FE: Fill out create team form + click submit
+FE -> FE: Validate form inputs
+FE -> Clerk: getToken
+Clerk --> FE: JWT token
+
+== Back end ==
+FE -> A: HTTP request create team\nBody: { name, slug, ownerId (Clerk ID), ... }\nAuthorization: Bearer <JWT>
+A -> A: Verify JWT 
+A -> T: create Team\nAuthorization: Bearer <JWT>\nForward ownerId
+T -> T: Verify JWT
+T -> T: createTeam 
+T -> D: saveTeam
+D --> T: Team 
+T --> A: ResponseEntity Team, 201 Created\nLocation: /teams/{id}
+A --> FE: ResponseEntity Team, 201 Created\nLocation: /teams/{id}
+@enduml
