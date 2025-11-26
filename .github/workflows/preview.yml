@@ -1,12 +1,6 @@
 name: Expo Go Preview
 
 on:
-  push:
-    paths:
-      - "Frontend/**"
-      - ".github/workflows/preview.yml"
-    branches-ignore:
-      - main
   pull_request:
     paths:
       - "Frontend/**"
