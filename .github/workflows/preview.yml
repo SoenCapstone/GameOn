@@ -1,0 +1,75 @@
+name: Expo Go Preview
+
+on:
+  push:
+    paths:
+      - "Frontend/**"
+      - ".github/workflows/preview.yml"
+    branches-ignore:
+      - main
+  pull_request:
+    paths:
+      - "Frontend/**"
+      - ".github/workflows/preview.yml"
+    types: [opened, synchronize, reopened]
+
+concurrency:
+  group: preview-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  preview:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
+
+    defaults:
+      run:
+        working-directory: Frontend
+    env:
+      CI: true
+      EXPO_NO_TELEMETRY: 1
+      EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
+
+    steps:
+      - name: 🏗 Checkout repository
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.ref || github.ref }}
+          repository: ${{ github.event.pull_request.head.repo.full_name || github.repository }}
+          fetch-depth: 0
+
+      - name: 🏗 Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24.x
+          cache: npm
+          cache-dependency-path: Frontend/package-lock.json
+
+      - name: 🚀 Cache Expo/Metro
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.expo
+            ~/.cache/expo
+            ~/.cache/metro
+          key: expo-${{ runner.os }}-${{ hashFiles('Frontend/package-lock.json') }}
+          restore-keys: |
+            expo-${{ runner.os }}-
+
+      - name: 🏗 Setup EAS CLI
+        uses: expo/expo-github-action@v8
+        with:
+          eas-version: latest
+
+      - name: 📦 Install dependencies
+        run: npm ci
+
+      - name: 🚀 Create preview update
+        run: |
+          # The EXPO_TOKEN is available in the environment because it's defined at the job level.
+          eas update --auto --branch ${{ github.event.pull_request.head.ref || github.ref_name }} --message "CI Preview for ${{ github.event_name == 'pull_request' && format('PR #{0}', github.event.pull_request.number) || format('Push to {0} ({1})', github.ref_name, github.sha) }}"
