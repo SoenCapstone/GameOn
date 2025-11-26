@@ -1,10 +1,10 @@
 on:
   push:
     branches: ["main"]
-    paths: [ "../../Frontend/**", ".github/workflows/frontend-docker.yml"]
+    paths: [ "Frontend/**", ".github/workflows/frontend-docker.yml"]
   pull_request:
     branches: [main]
-    paths: [ "../../Frontend/**", ".github/workflows/frontend-docker.yml"]
+    paths: [ "Frontend/**", ".github/workflows/frontend-docker.yml"]
   workflow_dispatch:
 
 jobs:

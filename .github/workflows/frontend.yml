@@ -2,9 +2,9 @@ name: Frontend CI (Expo)
 
 on:
   push:
-    paths: [ "../../Frontend/**", ".github/workflows/frontend.yml"]
+    paths: [ "Frontend/**", ".github/workflows/frontend.yml"]
   pull_request:
-    paths: [ "../../Frontend/**", ".github/workflows/frontend.yml"]
+    paths: [ "Frontend/**", ".github/workflows/frontend.yml"]
 
 concurrency:
   group: frontend-${{ github.ref }}
