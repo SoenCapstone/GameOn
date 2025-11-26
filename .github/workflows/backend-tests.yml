@@ -4,16 +4,16 @@ on:
   pull_request:
     branches: [main]
     paths:
-      - "../../Backend/common/**"
-      - "../../Backend/go-user-service/**"
-      - "GameOn-Backen/go-team-service/**"
+      - "Backend/common/**"
+      - "Backend/go-user-service/**"
+      - "Backend/go-team-service/**"
       - ".github/workflows/backend-tests.yml"
   push:
     branches: [main]
     paths:
-      - "../../Backend/common/**"
-      - "../../Backend/go-user-service/**"
-      - "../../Backend/go-team-service/**"
+      - "Backend/common/**"
+      - "Backend/go-user-service/**"
+      - "Backend/go-team-service/**"
       - ".github/workflows/backend-tests.yml"
 
 jobs:
