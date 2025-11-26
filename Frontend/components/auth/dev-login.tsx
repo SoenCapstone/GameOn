@@ -2,15 +2,11 @@ import React from "react";
 import { View, Text, Pressable, Alert } from "react-native";
 import { useSignIn } from "@clerk/clerk-expo";
 import { login } from "@/components/sign-in/utils";
-import {
-  initialSignInValue,
-} from "@/components/sign-in/constants";
+import { initialSignInValue } from "@/components/sign-in/constants";
 import { styles } from "@/components/sign-in/styles";
 
 export const DevTools = () => {
   const { signIn, setActive, isLoaded } = useSignIn();
-
-  if (!__DEV__) return null;
 
   const devLogin = async () => {
     if (!signIn || !setActive || !isLoaded) return;
@@ -25,7 +21,7 @@ export const DevTools = () => {
       Alert.alert("Dev Login Error", msg);
       return;
     }
-    
+
     const values = {
       ...initialSignInValue,
       emailAddress: email,
@@ -50,4 +46,3 @@ export const DevTools = () => {
     </View>
   );
 };
-
