@@ -59,6 +59,28 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      - name: Delete old preview comment
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const { data: comments } = await github.rest.issues.listComments({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+            });
+            const expoComment = comments.find(c => 
+              c.user.login === 'github-actions[bot]' && 
+              c.body.includes('<!-- fingerprint:expo-preview-')
+            );
+            if (expoComment) {
+              await github.rest.issues.deleteComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                comment_id: expoComment.id,
+              });
+              console.log('Deleted old preview comment');
+            }
+
       - name: Create preview
         uses: expo/expo-github-action/preview@v8
         with:
