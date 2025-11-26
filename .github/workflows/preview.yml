@@ -68,17 +68,17 @@ jobs:
               repo: context.repo.repo,
               issue_number: context.issue.number,
             });
-            const expoComment = comments.find(c => 
+            const expoComments = comments.filter(c => 
               c.user.login === 'github-actions[bot]' && 
-              c.body.includes('<!-- fingerprint:expo-preview-')
+              (c.body.includes('expo.dev') || c.body.includes('Expo Update') || c.body.includes('qr.expo.dev'))
             );
-            if (expoComment) {
+            for (const comment of expoComments) {
               await github.rest.issues.deleteComment({
                 owner: context.repo.owner,
                 repo: context.repo.repo,
-                comment_id: expoComment.id,
+                comment_id: comment.id,
               });
-              console.log('Deleted old preview comment');
+              console.log(`Deleted old preview comment: ${comment.id}`);
             }
 
       - name: Create preview
