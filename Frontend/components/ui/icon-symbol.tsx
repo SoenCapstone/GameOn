@@ -40,7 +40,6 @@ export function IconSymbol({
   readonly size?: number;
   readonly color: string | OpaqueColorValue;
   readonly style?: StyleProp<TextStyle>;
-  readonly weight?: SymbolWeight;
 }) {
   return (
     <MaterialIcons
