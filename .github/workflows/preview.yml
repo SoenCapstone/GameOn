@@ -17,40 +17,34 @@ concurrency:
   group: preview-${{ github.ref }}
   cancel-in-progress: true
 
-permissions:
-  contents: read
-
 jobs:
   preview:
     runs-on: ubuntu-latest
-    permissions:
-      contents: read
-      pull-requests: write
-
     defaults:
       run:
         working-directory: Frontend
+    permissions:
+      contents: read
+      pull-requests: write
     env:
-      CI: true
-      EXPO_NO_TELEMETRY: 1
-      EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
+      EXPO_PUBLIC_API_BASE_URL: ${{ secrets.EXPO_PUBLIC_API_BASE_URL }}
+      EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY: ${{ secrets.EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY }}
+      EXPO_PUBLIC_LOG_LEVEL: info
+      EXPO_PUBLIC_DEV_LOGIN_EMAIL: ${{ secrets.EXPO_PUBLIC_DEV_LOGIN_EMAIL }}
+      EXPO_PUBLIC_DEV_LOGIN_PASSWORD: ${{ secrets.EXPO_PUBLIC_DEV_LOGIN_PASSWORD }}
 
     steps:
-      - name: 🏗 Checkout repository
+      - name: 🏗 Setup repo
         uses: actions/checkout@v4
-        with:
-          ref: ${{ github.event.pull_request.head.ref || github.ref }}
-          repository: ${{ github.event.pull_request.head.repo.full_name || github.repository }}
-          fetch-depth: 0
 
       - name: 🏗 Setup Node
         uses: actions/setup-node@v4
         with:
-          node-version: 24.x
+          node-version: "20.19.4"
           cache: npm
           cache-dependency-path: Frontend/package-lock.json
 
-      - name: 🚀 Cache Expo/Metro
+      - name: 🚀 Cache Expo
         uses: actions/cache@v4
         with:
           path: |
@@ -61,15 +55,18 @@ jobs:
           restore-keys: |
             expo-${{ runner.os }}-
 
-      - name: 🏗 Setup EAS CLI
+      - name: 🏗 Setup EAS
         uses: expo/expo-github-action@v8
         with:
           eas-version: latest
+          packager: npm
+          token: ${{ secrets.EXPO_TOKEN }}
 
       - name: 📦 Install dependencies
         run: npm ci
 
-      - name: 🚀 Create preview update
-        run: |
-          # The EXPO_TOKEN is available in the environment because it's defined at the job level.
-          eas update --auto --branch ${{ github.event.pull_request.head.ref || github.ref_name }} --message "CI Preview for ${{ github.event_name == 'pull_request' && format('PR #{0}', github.event.pull_request.number) || format('Push to {0} ({1})', github.ref_name, github.sha) }}"
+      - name: 🚀 Create preview
+        uses: expo/expo-github-action/preview@v8
+        with:
+          working-directory: Frontend
+          command: eas update --auto --branch=pr-${{ github.event.pull_request.number }}
