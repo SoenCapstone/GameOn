@@ -148,7 +148,9 @@ Choose an iOS/Android simulator or run the web target. Ensure the Expo env varia
 
 - **Frontend** – From `Frontend`:
   ```bash
-  npm test -- --coverage --coverageReporters=text-summary
+  npm run test          # run all tests
+  npm run coverage      # run tests with coverage report
+  npm run format        # format code with Prettier
   ```
 
 - **Backend** – From each service:
