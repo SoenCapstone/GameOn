@@ -1,7 +1,7 @@
 import React from "react";
 import { Pressable, Image } from "react-native";
 import { ThemedText } from "@/components/themed-text";
-import { pickImage } from "@/components/UserProfile/profileUtils"
+import { pickImage } from "@/components/UserProfile/profile-utils";
 import { profileStyles } from "@/components/UserProfile/profile-styles";
 
 interface Props {

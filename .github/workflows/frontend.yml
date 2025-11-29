@@ -2,9 +2,9 @@ name: Frontend CI (Expo)
 
 on:
   push:
-    paths: ["GameOn-Frontend/**", ".github/workflows/frontend.yml"]
+    paths: [ "Frontend/**", ".github/workflows/frontend.yml"]
   pull_request:
-    paths: ["GameOn-Frontend/**", ".github/workflows/frontend.yml"]
+    paths: [ "Frontend/**", ".github/workflows/frontend.yml"]
 
 concurrency:
   group: frontend-${{ github.ref }}
@@ -15,7 +15,7 @@ jobs:
     runs-on: ubuntu-latest
     defaults:
       run:
-        working-directory: GameOn-Frontend
+        working-directory: Frontend
     env:
       CI: true
       EXPO_NO_TELEMETRY: 1
@@ -27,7 +27,7 @@ jobs:
         with:
           node-version: "20.19.4"
           cache: npm
-          cache-dependency-path: GameOn-Frontend/package-lock.json
+          cache-dependency-path: Frontend/package-lock.json
 
       - name: Cache Expo/Metro
         uses: actions/cache@v4
@@ -36,7 +36,7 @@ jobs:
             ~/.expo
             ~/.cache/expo
             ~/.cache/metro
-          key: expo-${{ runner.os }}-${{ hashFiles('GameOn-Frontend/package-lock.json') }}
+          key: expo-${{ runner.os }}-${{ hashFiles('Frontend/package-lock.json') }}
 
       - name: Install deps
         run: npm ci
