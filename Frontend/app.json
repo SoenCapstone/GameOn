@@ -46,6 +46,13 @@
     "experiments": {
       "typedRoutes": true,
       "reactCompiler": true
-    }
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "bc7d1a0a-aeeb-448f-ad90-be62fe6633bf"
+      }
+    },
+    "owner": "soencapstone"
   }
 }
