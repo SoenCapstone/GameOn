@@ -54,8 +54,8 @@ GameOn targets last-minute player absences, complex scheduling, messy payments, 
 <a id="architecture-overview"></a>
 ## 🏗️ Architecture Overview
 
-- **Frontend** – `GameOn-Frontend`: Expo Router, React Native, Clerk auth, Jest for tests.
-- **Backend** – `GameOn-Backend`: Spring Boot microservices
+- **Frontend** – `Frontend`: Expo Router, React Native, Clerk auth, Jest for tests.
+- **Backend** – `Backend`: Spring Boot microservices
   - `go-config-server` centralizes YAML configs.
   - `go-discovery-service` (Eureka).
   - `go-api-gateway` (Spring Cloud Gateway).
@@ -78,7 +78,7 @@ GameOn targets last-minute player absences, complex scheduling, messy payments, 
    ```bash
    cp .env.example .env
    ```
-2. Export/copy the Expo variables into `GameOn-Frontend/.env` as well (Expo only loads variables from within the app directory).
+2. Export/copy the Expo variables into `Frontend/.env` as well (Expo only loads variables from within the app directory).
 3. Keep the database credentials consistent with `docker-compose.yml`.
 
 `EXPO_PUBLIC_API_BASE_URL` must point to the API Gateway (`http://localhost:8222` when running locally). Clerk publishable keys can be obtained from the team’s Clerk dashboard.
@@ -88,14 +88,14 @@ GameOn targets last-minute player absences, complex scheduling, messy payments, 
 
 1. **Install backend dependencies**
    ```bash
-   cd GameOn-Backend/common && mvn install
+   cd Backend/common && mvn install
    # repeat per microservice when needed
    cd ../go-user-service && mvn clean package
    cd ../go-team-service && mvn clean package
    ```
 2. **Install frontend dependencies**
    ```bash
-   cd GameOn-Frontend
+   cd Frontend
    npm install
    ```
 
@@ -117,18 +117,18 @@ Verify the container is healthy (`docker ps`) before starting the services.
 Run each service in its own terminal from the repo root:
 
 ```bash
-# Config Server (reads ./GameOn-Backend/go-config-server/src/main/resources/configurations)
-cd GameOn-Backend/go-config-server && mvn spring-boot:run
+# Config Server (reads ./Backend/go-config-server/src/main/resources/configurations)
+cd Backend/go-config-server && mvn spring-boot:run
 
 # Discovery/Eureka
-cd GameOn-Backend/go-discovery-service && mvn spring-boot:run
+cd Backend/go-discovery-service && mvn spring-boot:run
 
 # Domain services
-cd GameOn-Backend/go-user-service && mvn spring-boot:run
-cd GameOn-Backend/go-team-service && mvn spring-boot:run
+cd Backend/go-user-service && mvn spring-boot:run
+cd Backend/go-team-service && mvn spring-boot:run
 
 # API Gateway
-cd GameOn-Backend/go-api-gateway && mvn spring-boot:run
+cd Backend/go-api-gateway && mvn spring-boot:run
 ```
 
 Service order matters: config server ➜ discovery ➜ domain services ➜ gateway. When everything is up you can query `http://localhost:8222/api/v1/...` from the frontend or via curl.
@@ -137,7 +137,7 @@ Service order matters: config server ➜ discovery ➜ domain services ➜ gatew
 ### 3. 📱 Frontend (Expo)
 
 ```bash
-cd GameOn-Frontend
+cd Frontend
 npm run start
 ```
 
@@ -146,9 +146,11 @@ Choose an iOS/Android simulator or run the web target. Ensure the Expo env varia
 <a id="testing-and-quality"></a>
 ## 🧪 Testing and Quality
 
-- **Frontend** – From `GameOn-Frontend`:
+- **Frontend** – From `Frontend`:
   ```bash
-  npm test -- --coverage --coverageReporters=text-summary
+  npm run test          # run all tests
+  npm run coverage      # run tests with coverage report
+  npm run format        # format code with Prettier
   ```
 
 - **Backend** – From each service:

@@ -4,16 +4,16 @@ on:
   pull_request:
     branches: [main]
     paths:
-      - "GameOn-Backend/common/**"
-      - "GameOn-Backend/go-user-service/**"
-      - "GameOn-Backen/go-team-service/**"
+      - "Backend/common/**"
+      - "Backend/go-user-service/**"
+      - "Backend/go-team-service/**"
       - ".github/workflows/backend-tests.yml"
   push:
     branches: [main]
     paths:
-      - "GameOn-Backend/common/**"
-      - "GameOn-Backend/go-user-service/**"
-      - "GameOn-Backend/go-team-service/**"
+      - "Backend/common/**"
+      - "Backend/go-user-service/**"
+      - "Backend/go-team-service/**"
       - ".github/workflows/backend-tests.yml"
 
 jobs:
@@ -21,7 +21,7 @@ jobs:
     runs-on: ubuntu-latest
     defaults:
       run:
-        working-directory: GameOn-Backend
+        working-directory: Backend
 
     steps:
       - name: Set up job
@@ -73,7 +73,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: backend-common-surefire-reports
-          path: GameOn-Backend/common/target/surefire-reports/**
+          path: Backend/common/target/surefire-reports/**
           if-no-files-found: ignore
 
       - name: Upload test reports (User service)
@@ -81,7 +81,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: backend-user-service-surefire-reports
-          path: GameOn-Backend/go-user-service/target/surefire-reports/**
+          path: Backend/go-user-service/target/surefire-reports/**
           if-no-files-found: ignore
  
 # See comment above 
@@ -90,5 +90,5 @@ jobs:
 #        uses: actions/upload-artifact@v4
 #        with:
 #          name: backend-team-service-surefire-reports
-#          path: GameOn-Backend/go-team-service/target/surefire-reports/**
+#          path: Backend/go-team-service/target/surefire-reports/**
 #          if-no-files-found: ignore
