@@ -74,6 +74,10 @@ jest.mock("@/components/ui/background", () => ({
   },
 }));
 
+jest.mock("@/components/auth/dev-login", () => ({
+  DevTools: () => null,
+}));
+
 import WelcomeScreen from "@/app/(auth)";
 
 describe("WelcomeScreen", () => {
