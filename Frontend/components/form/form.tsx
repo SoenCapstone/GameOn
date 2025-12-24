@@ -1,6 +1,7 @@
 import { ReactNode } from "react";
 import { StyleSheet, View } from "react-native";
 import { AccentColorProvider } from "@/contexts/accent-color-context";
+import { FormSection } from "@/components/form/form-section";
 
 interface FormProps {
   readonly children: ReactNode;
@@ -14,6 +15,8 @@ export function Form({ children, accentColor }: Readonly<FormProps>) {
     </AccentColorProvider>
   );
 }
+
+Form.Section = FormSection;
 
 const styles = StyleSheet.create({
   form: { gap: 22 },
