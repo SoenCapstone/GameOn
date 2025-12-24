@@ -5,6 +5,7 @@ import { FormSection } from "@/components/form/form-section";
 import { InputItem } from "@/components/form/input-item";
 import { SwitchItem } from "@/components/form/switch-item";
 import { LinkItem } from "@/components/form/link-item";
+import { DateTimeItem } from "@/components/form/date-time-item";
 
 interface FormProps {
   readonly children: ReactNode;
@@ -23,6 +24,7 @@ Form.Section = FormSection;
 Form.Input = InputItem;
 Form.Switch = SwitchItem;
 Form.Link = LinkItem;
+Form.DateTime = DateTimeItem;
 
 const styles = StyleSheet.create({
   form: { gap: 22 },
