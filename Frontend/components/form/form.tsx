@@ -3,6 +3,7 @@ import { StyleSheet, View } from "react-native";
 import { AccentColorProvider } from "@/contexts/accent-color-context";
 import { FormSection } from "@/components/form/form-section";
 import { InputItem } from "@/components/form/input-item";
+import { SwitchItem } from "@/components/form/switch-item";
 
 interface FormProps {
   readonly children: ReactNode;
@@ -19,6 +20,7 @@ export function Form({ children, accentColor }: Readonly<FormProps>) {
 
 Form.Section = FormSection;
 Form.Input = InputItem;
+Form.Switch = SwitchItem;
 
 const styles = StyleSheet.create({
   form: { gap: 22 },
