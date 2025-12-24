@@ -6,7 +6,7 @@
     "orientation": "portrait",
     "icon": "./assets/images/icon-black.png",
     "scheme": "gameon",
-    "userInterfaceStyle": "automatic",
+    "userInterfaceStyle": "dark",
     "newArchEnabled": true,
     "ios": {
       "icon": "./assets/icons/icon-black.icon",
