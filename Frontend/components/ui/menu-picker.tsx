@@ -42,12 +42,12 @@ export function MenuPicker({
 
   if (isRunningInExpoGo) {
     return (
-      <Pressable ref={anchorRef} style={styles.menuButton} onPress={onPress}>
+      <Pressable ref={anchorRef} style={styles.button} onPress={onPress}>
         {({ pressed }) => (
           <>
             <Text
               style={[
-                styles.selectedText,
+                styles.value,
                 pressed && { color: "rgba(235,235,245,0.7)" },
               ]}
             >
@@ -85,16 +85,15 @@ export function MenuPicker({
 }
 
 const styles = StyleSheet.create({
-  menuButton: {
+  button: {
     flexDirection: "row",
     alignItems: "center",
     gap: 4,
     paddingHorizontal: 12,
   },
-  selectedText: {
+  value: {
     color: "rgba(235,235,245,0.6)",
     fontSize: 17,
     lineHeight: 22,
   },
 });
-
