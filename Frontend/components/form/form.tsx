@@ -7,6 +7,7 @@ import { SwitchItem } from "@/components/form/switch-item";
 import { LinkItem } from "@/components/form/link-item";
 import { DateTimeItem } from "@/components/form/date-time-item";
 import { ButtonItem } from "@/components/form/button-item";
+import { MenuItem } from "@/components/form/menu-item";
 
 interface FormProps {
   readonly children: ReactNode;
@@ -27,6 +28,7 @@ Form.Switch = SwitchItem;
 Form.Link = LinkItem;
 Form.DateTime = DateTimeItem;
 Form.Button = ButtonItem;
+Form.Menu = MenuItem;
 
 const styles = StyleSheet.create({
   form: { gap: 22 },
