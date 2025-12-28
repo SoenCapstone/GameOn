@@ -1,6 +1,5 @@
 package com.game.on.go_team_service.team.controller;
 
-import com.game.on.go_team_service.auth.CurrentUserProvider;
 import com.game.on.go_team_service.team.dto.*;
 import com.game.on.go_team_service.team.service.TeamService;
 import jakarta.validation.Valid;
@@ -18,13 +17,10 @@ import java.util.UUID;
 public class TeamController {
 
     private final TeamService teamService;
-    private final CurrentUserProvider currentUserProvider;
 
-    @PostMapping
+    @PostMapping("/create")
     public ResponseEntity<TeamDetailResponse> createTeam(@Valid @RequestBody TeamCreateRequest request) {
-        var userId = currentUserProvider.requireUserId();
-        var response = teamService.createTeam(request, userId);
-        return ResponseEntity.status(HttpStatus.CREATED).body(response);
+        return ResponseEntity.status(HttpStatus.CREATED).body(teamService.createTeam(request));
     }
 
     @GetMapping("/{identifier}")
@@ -46,69 +42,55 @@ public class TeamController {
                                                       @RequestParam(value = "q", required = false) String query,
                                                       @RequestParam(value = "page", defaultValue = "0") int page,
                                                       @RequestParam(value = "size", defaultValue = "20") int size) {
-        var userId = currentUserProvider.requireUserId();
         var criteria = new TeamSearchCriteria(onlyMine, leagueId, sport, query);
-        var response = teamService.listTeams(criteria, page, size, userId);
+        var response = teamService.listTeams(criteria, page, size);
         return ResponseEntity.ok(response);
     }
 
     @PatchMapping("/{teamId}")
-    public ResponseEntity<TeamDetailResponse> updateTeam(@PathVariable UUID teamId,
-                                                         @Valid @RequestBody TeamUpdateRequest request) {
-        var userId = currentUserProvider.requireUserId();
-        var response = teamService.updateTeam(teamId, request, userId);
-        return ResponseEntity.ok(response);
+    public ResponseEntity<TeamDetailResponse> updateTeam(@PathVariable UUID teamId, @Valid @RequestBody TeamUpdateRequest request) {
+        return ResponseEntity.ok(teamService.updateTeam(teamId, request));
     }
 
     @DeleteMapping("/{teamId}")
     public ResponseEntity<Void> archiveTeam(@PathVariable UUID teamId) {
-        var userId = currentUserProvider.requireUserId();
-        teamService.archiveTeam(teamId, userId);
+        teamService.archiveTeam(teamId);
         return ResponseEntity.noContent().build();
     }
 
     @GetMapping("/{teamId}/members")
     public ResponseEntity<List<TeamMemberResponse>> listMembers(@PathVariable UUID teamId) {
-        var userId = currentUserProvider.requireUserId();
-        var response = teamService.listMembers(teamId, userId);
-        return ResponseEntity.ok(response);
+        return ResponseEntity.ok(teamService.listMembers(teamId));
     }
 
-    @DeleteMapping("/{teamId}/members/{memberUserId}")
-    public ResponseEntity<Void> removeMember(@PathVariable UUID teamId,
-                                             @PathVariable Long memberUserId) {
-        var userId = currentUserProvider.requireUserId();
-        teamService.removeMember(teamId, memberUserId, userId);
+    @DeleteMapping("/{teamId}/delete/{userId}")
+    public ResponseEntity<Void> removeMember(@PathVariable UUID teamId, @PathVariable String userId) {
+        teamService.removeMember(teamId, userId);
         return ResponseEntity.noContent().build();
     }
 
-//    @PostMapping("/{teamId}/invites")
-//    public ResponseEntity<TeamInviteResponse> createInvite(@PathVariable UUID teamId,
-//                                                           @Valid @RequestBody TeamInviteCreateRequest request) {
-//        var userId = currentUserProvider.requireUserId();
-//        var response = teamService.createInvite(teamId, request, userId);
-//        return ResponseEntity.status(HttpStatus.CREATED).body(response);
-//    }
-
-    @GetMapping("/{teamId}/invites")
-    public ResponseEntity<List<TeamInviteResponse>> listInvites(@PathVariable UUID teamId) {
-        var userId = currentUserProvider.requireUserId();
-        var response = teamService.listInvites(teamId, userId);
-        return ResponseEntity.ok(response);
+    @PostMapping("/create-invite")
+    public ResponseEntity<TeamInviteResponse> createInvite(@Valid @RequestBody TeamInviteCreateRequest request) {
+        return ResponseEntity.status(HttpStatus.CREATED).body(teamService.createInvite(request));
     }
 
-    @PostMapping("/{teamId}/transfer-owner")
-    public ResponseEntity<TeamDetailResponse> transferOwnership(@PathVariable UUID teamId,
-                                                                @Valid @RequestBody OwnershipTransferRequest request) {
-        var userId = currentUserProvider.requireUserId();
-        var response = teamService.transferOwnership(teamId, request.newOwnerUserId(), userId);
-        return ResponseEntity.ok(response);
+    @GetMapping("/invites/{teamId}")
+    public ResponseEntity<List<TeamInviteResponse>> listTeamInvites(@PathVariable UUID teamId) {
+        return ResponseEntity.ok(teamService.listTeamInvites(teamId));
     }
 
-    @PostMapping("/{teamId}/members/self-demote")
-    public ResponseEntity<TeamMemberResponse> demoteSelf(@PathVariable UUID teamId) {
-        var userId = currentUserProvider.requireUserId();
-        var response = teamService.demoteSelfToPlayer(teamId, userId);
-        return ResponseEntity.ok(response);
+    @GetMapping("/invites")
+    public ResponseEntity<List<TeamInviteResponse>> listUserInvites() {
+        return ResponseEntity.ok(teamService.listUserTeamInvites());
+    }
+
+    @PostMapping("/transfer-owner")
+    public ResponseEntity<TeamDetailResponse> transferOwnership(@Valid @RequestBody OwnershipTransferRequest request) {
+        return ResponseEntity.ok(teamService.transferOwnership(request));
+    }
+
+    @PostMapping("/{teamId}/members/self-demote/{userId}")
+    public ResponseEntity<TeamMemberResponse> demoteSelf(@PathVariable String userId, @PathVariable UUID teamId) {
+        return ResponseEntity.ok(teamService.demoteSelfToPlayer(teamId, userId));
     }
 }
