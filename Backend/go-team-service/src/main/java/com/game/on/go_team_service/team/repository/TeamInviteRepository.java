@@ -15,7 +15,9 @@ public interface TeamInviteRepository extends JpaRepository<TeamInvite, UUID> {
 
     Optional<TeamInvite> findByIdAndTeamId(UUID inviteId, UUID teamId);
 
-    Optional<TeamInvite> findByTeamIdAndInviteeUserIdAndStatus(UUID teamId, Long inviteeUserId, TeamInviteStatus status);
+    List<TeamInvite> findByInviteeUserId(String inviteeUserId);
+
+    Optional<TeamInvite> findByTeamIdAndInviteeUserIdAndStatus(UUID teamId, String inviteeUserId, TeamInviteStatus status);
 
     Optional<TeamInvite> findByTeamIdAndInviteeEmailIgnoreCaseAndStatus(UUID teamId, String inviteeEmail, TeamInviteStatus status);
 

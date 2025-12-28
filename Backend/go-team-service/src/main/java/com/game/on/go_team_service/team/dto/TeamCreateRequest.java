@@ -20,6 +20,7 @@ public record TeamCreateRequest(
         String logoUrl,
         @Size(max = 255, message = "location cannot exceed 255 characters")
         String location,
+
 //        @Positive(message = "maxRoster must be greater than 0")
 //        Integer maxRoster,
         TeamPrivacy privacy
