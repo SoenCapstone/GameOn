@@ -45,7 +45,7 @@ public class Team {
     private String scope;
 
     @Column(name = "owner_user_id", nullable = false)
-    private Long ownerUserId;
+    private String ownerUserId;
 
     @Column(nullable = false, unique = true, updatable = false, length = 160)
     private String slug;
