@@ -34,7 +34,7 @@ function TeamHeader({
 export default function TeamDetailById() {
   const params = useLocalSearchParams<{ id?: string | string[] }>();
 
-  // ✅ FIX 1: normalize id (string[] happens sometimes)
+
   const rawId = params.id;
   const id = Array.isArray(rawId) ? rawId[0] : rawId ?? "";
 
@@ -86,7 +86,7 @@ export default function TeamDetailById() {
                 ) : (
                   items.map((item) => (
                     <Card key={item.id}>
-                      {/* ✅ ADDED: show richer data */}
+
                       <View
                         style={{
                           flexDirection: "row",
