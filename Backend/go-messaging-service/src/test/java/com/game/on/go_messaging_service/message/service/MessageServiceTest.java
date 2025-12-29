@@ -65,7 +65,7 @@ class MessageServiceTest {
     @Test
     void fetchHistory_requiresParticipant() {
         UUID conversationId = UUID.randomUUID();
-        when(messageRepository.findMessages(eq(conversationId), any(), any())).thenReturn(List.of());
+        when(messageRepository.findMessages(eq(conversationId), any())).thenReturn(List.of());
 
         messageService.fetchHistory(conversationId, 98L, 25, null);
 

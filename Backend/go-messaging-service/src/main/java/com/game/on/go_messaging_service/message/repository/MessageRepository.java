@@ -17,12 +17,21 @@ public interface MessageRepository extends JpaRepository<Message, UUID> {
             select m from Message m
             where m.conversation.id = :conversationId
               and m.deletedAt is null
-              and (:before is null or m.createdAt < :before)
             order by m.createdAt desc
             """)
     List<Message> findMessages(@Param("conversationId") UUID conversationId,
-                               @Param("before") OffsetDateTime before,
                                Pageable pageable);
+
+    @Query("""
+            select m from Message m
+            where m.conversation.id = :conversationId
+              and m.deletedAt is null
+              and m.createdAt < :before
+            order by m.createdAt desc
+            """)
+    List<Message> findMessagesBefore(@Param("conversationId") UUID conversationId,
+                                     @Param("before") OffsetDateTime before,
+                                     Pageable pageable);
 
     Optional<Message> findTopByConversationIdOrderByCreatedAtDesc(UUID conversationId);
 }

@@ -60,7 +60,10 @@ public class MessageService {
                                                OffsetDateTime before) {
         conversationService.requireParticipant(conversationId, requesterId);
         int pageSize = sanitizeLimit(limit);
-        var results = messageRepository.findMessages(conversationId, before, PageRequest.of(0, pageSize));
+        var pageable = PageRequest.of(0, pageSize);
+        var results = before == null
+                ? messageRepository.findMessages(conversationId, pageable)
+                : messageRepository.findMessagesBefore(conversationId, before, pageable);
         var messages = results.isEmpty() ? List.<Message>of() : new java.util.ArrayList<>(results);
         Collections.reverse(messages);
         List<MessageResponse> payload = messages.stream()
