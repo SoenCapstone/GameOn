@@ -81,7 +81,7 @@ export default function TeamDetailById() {
                   <ActivityIndicator size="large" color="#fff" />
                 ) : items.length === 0 ? (
                   <Text style={{ color: "rgba(255,255,255,0.8)" }}>
-                    No board cards (query: "{query}")
+                    No board cards (query: &quot;{query}&quot;)
                   </Text>
                 ) : (
                   items.map((item) => (
