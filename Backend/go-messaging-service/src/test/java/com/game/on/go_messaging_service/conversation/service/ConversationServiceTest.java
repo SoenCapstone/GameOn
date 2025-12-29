@@ -40,7 +40,7 @@ class ConversationServiceTest {
 
     @Test
     void createDirectConversation_createsParticipants() {
-        var response = conversationService.createDirectConversation(new DirectConversationRequest(200L), 100L);
+        var response = conversationService.createDirectConversation(new DirectConversationRequest("user-200"), "user-100");
 
         assertThat(response.type()).isEqualTo(ConversationType.DIRECT);
         assertThat(response.participants()).hasSize(2);
@@ -49,15 +49,15 @@ class ConversationServiceTest {
 
     @Test
     void createDirectConversation_preventsSelfMessaging() {
-        assertThatThrownBy(() -> conversationService.createDirectConversation(new DirectConversationRequest(42L), 42L))
+        assertThatThrownBy(() -> conversationService.createDirectConversation(new DirectConversationRequest("user-42"), "user-42"))
                 .isInstanceOf(BadRequestException.class)
                 .hasMessageContaining("Cannot start a direct conversation with yourself");
     }
 
     @Test
     void createDirectConversation_reusesExistingRoom() {
-        var first = conversationService.createDirectConversation(new DirectConversationRequest(301L), 111L);
-        var second = conversationService.createDirectConversation(new DirectConversationRequest(111L), 301L);
+        var first = conversationService.createDirectConversation(new DirectConversationRequest("user-301"), "user-111");
+        var second = conversationService.createDirectConversation(new DirectConversationRequest("user-111"), "user-301");
 
         assertThat(second.id()).isEqualTo(first.id());
         assertThat(participantRepository.findByConversationId(first.id())).hasSize(2);
@@ -66,8 +66,8 @@ class ConversationServiceTest {
     @Test
     void createTeamConversation_requiresOwner() {
         UUID teamId = UUID.randomUUID();
-        long ownerId = 501L;
-        long memberId = 777L;
+        String ownerId = "owner-501";
+        String memberId = "member-777";
         var snapshot = teamSnapshot(teamId, ownerId, ownerId, memberId);
         when(teamDirectoryService.fetchSnapshot(teamId)).thenReturn(snapshot);
 
@@ -85,9 +85,9 @@ class ConversationServiceTest {
     @Test
     void eventConversation_preventsNewMembers() {
         UUID teamId = UUID.randomUUID();
-        long ownerId = 950L;
-        long memberId = 951L;
-        long newMemberId = 952L;
+        String ownerId = "owner-950";
+        String memberId = "member-951";
+        String newMemberId = "member-952";
         var initialSnapshot = teamSnapshot(teamId, ownerId, ownerId, memberId);
         var expandedSnapshot = teamSnapshot(teamId, ownerId, ownerId, memberId, newMemberId);
         when(teamDirectoryService.fetchSnapshot(teamId)).thenReturn(initialSnapshot, expandedSnapshot);
@@ -99,7 +99,7 @@ class ConversationServiceTest {
                 .hasMessageContaining("Event chat membership is locked");
     }
 
-    private TeamSnapshot teamSnapshot(UUID teamId, Long ownerId, Long... userIds) {
+    private TeamSnapshot teamSnapshot(UUID teamId, String ownerId, String... userIds) {
         List<RemoteTeamMember> members = java.util.Arrays.stream(userIds)
                 .distinct()
                 .map(userId -> new RemoteTeamMember(
