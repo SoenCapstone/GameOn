@@ -72,6 +72,12 @@ describe("CreateTeamScreen", () => {
     return render(<QueryClientProvider client={queryClient}>{ui}</QueryClientProvider>);
   }
 
+  function createDelayedResponse() {
+    return new Promise((resolve) => {
+      setTimeout(() => resolve({ data: { id: "abc", slug: "my-new-team" } }), 50);
+    });
+  }
+
   it("renders core UI elements", () => {
     const { getByPlaceholderText, getByText } = renderWithClient(<CreateTeamScreen />);
 
@@ -162,12 +168,7 @@ describe("CreateTeamScreen", () => {
   });
 
   it("shows 'Creating...' while request is in-flight", async () => {
-    mockPost.mockImplementationOnce(
-      () =>
-        new Promise((resolve) =>
-          setTimeout(() => resolve({ data: { id: "abc", slug: "my-new-team" } }), 50),
-        ),
-    );
+    mockPost.mockImplementationOnce(() => createDelayedResponse());
 
     const { getByText, getByPlaceholderText } = renderWithClient(<CreateTeamScreen />);
     fireEvent.changeText(getByPlaceholderText("Team Name"), "Async Team");

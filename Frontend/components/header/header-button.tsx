@@ -25,12 +25,10 @@ export function HeaderButton(props: HeaderButtonProps) {
       onPress={() => {
         if (props.type === "back") {
           router.back();
-        } else {
-          if (props.onPress) {
-            props.onPress();
-          } else if (props.route) {
-            router.push(props.route);
-          }
+        } else if (props.onPress) {
+          props.onPress();
+        } else if (props.route) {
+          router.push(props.route);
         }
       }}
     >
