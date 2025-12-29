@@ -27,10 +27,10 @@ public class MessageController {
     @PostMapping("/conversations/{conversationId}/messages")
     public ResponseEntity<MessageResponse> sendMessage(@PathVariable UUID conversationId,
                                                        @Valid @RequestBody MessageCreateRequest request) {
-        var response = messageService.sendMessage(conversationId,
-                currentUserProvider.requireUserId(),
-                request.content());
-        return ResponseEntity.status(HttpStatus.CREATED).body(response);
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(messageService.sendMessage(conversationId,
+                        currentUserProvider.requireUserId(),
+                        request.content()));
     }
 
     @GetMapping("/conversations/{conversationId}/messages")
@@ -45,10 +45,9 @@ public class MessageController {
                 throw new BadRequestException("Invalid before timestamp");
             }
         }
-        var response = messageService.fetchHistory(conversationId,
+        return ResponseEntity.ok(messageService.fetchHistory(conversationId,
                 currentUserProvider.requireUserId(),
                 limit,
-                beforeTimestamp);
-        return ResponseEntity.ok(response);
+                beforeTimestamp));
     }
 }
