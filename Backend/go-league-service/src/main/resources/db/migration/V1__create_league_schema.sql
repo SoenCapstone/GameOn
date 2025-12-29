@@ -33,3 +33,16 @@ CREATE TABLE league_seasons (
 
 CREATE INDEX idx_league_seasons_league ON league_seasons(league_id);
 CREATE INDEX idx_league_seasons_archived ON league_seasons(archived_at);
+
+CREATE TABLE league_invites (
+    id UUID PRIMARY KEY,
+    league_id UUID NOT NULL REFERENCES leagues(id) ON DELETE CASCADE,
+    invitee_user_id VARCHAR(255) NOT NULL,
+    role VARCHAR(20) NOT NULL,
+    expires_at TIMESTAMPTZ,
+    accepted_at TIMESTAMPTZ,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE INDEX idx_league_invites_invitee ON league_invites(invitee_user_id);
+CREATE INDEX idx_league_invites_league ON league_invites(league_id);
