@@ -7,6 +7,12 @@
         <option value="$PROJECT_DIR$/GameOn-Backend/go-user-service/pom.xml" />
         <option value="$PROJECT_DIR$/GameOn-Backend/go-config-server/pom.xml" />
         <option value="$PROJECT_DIR$/GameOn-Backend/go-discovery-service/pom.xml" />
+        <option value="$PROJECT_DIR$/Backend/common/pom.xml" />
+        <option value="$PROJECT_DIR$/Backend/go-config-server/pom.xml" />
+        <option value="$PROJECT_DIR$/Backend/go-discovery-service/pom.xml" />
+        <option value="$PROJECT_DIR$/Backend/go-api-gateway/pom.xml" />
+        <option value="$PROJECT_DIR$/Backend/go-user-service/pom.xml" />
+        <option value="$PROJECT_DIR$/Backend/go-team-service/pom.xml" />
       </list>
     </option>
   </component>

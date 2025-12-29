@@ -5,331 +5,16 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="b8ea537a-8142-40d6-880b-57266c4754f1" name="Changes" comment="[refactor] Changed directory names from `GameOn-Frontend` to `Frontend` and from `GameOn-Backend` to `Backend`">
-      <change beforePath="$PROJECT_DIR$/.github/workflows/backend-tests.yml" beforeDir="false" afterPath="$PROJECT_DIR$/.github/workflows/backend-tests.yml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.github/workflows/frontend-docker.yml" beforeDir="false" afterPath="$PROJECT_DIR$/.github/workflows/frontend-docker.yml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.github/workflows/frontend.yml" beforeDir="false" afterPath="$PROJECT_DIR$/.github/workflows/frontend.yml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/compiler.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/compiler.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/encodings.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/encodings.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/misc.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/GameOn-Backend/.gitignore" beforeDir="false" afterPath="$PROJECT_DIR$/Backend/.gitignore" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/GameOn-Backend/common/pom.xml" beforeDir="false" afterPath="$PROJECT_DIR$/Backend/common/pom.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/GameOn-Backend/common/src/main/java/com/game/on/common/feature_flags/AbstractFeatureFlags.java" beforeDir="false" afterPath="$PROJECT_DIR$/Backend/common/src/main/java/com/game/on/common/feature_flags/AbstractFeatureFlags.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/GameOn-Backend/common/src/main/java/com/game/on/common/feature_flags/FeatureFlagDescriptor.java" beforeDir="false" afterPath="$PROJECT_DIR$/Backend/common/src/main/java/com/game/on/common/feature_flags/FeatureFlagDescriptor.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/GameOn-Backend/common/src/main/java/com/game/on/common/feature_flags/FeatureFlagEntry.java" beforeDir="false" afterPath="$PROJECT_DIR$/Backend/common/src/main/java/com/game/on/common/feature_flags/FeatureFlagEntry.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/GameOn-Backend/common/src/main/java/com/game/on/common/feature_flags/FeatureFlagFile.java" beforeDir="false" afterPath="$PROJECT_DIR$/Backend/common/src/main/java/com/game/on/common/feature_flags/FeatureFlagFile.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/GameOn-Backend/common/src/main/java/com/game/on/common/feature_flags/FeatureFlagList.java" beforeDir="false" afterPath="$PROJECT_DIR$/Backend/common/src/main/java/com/game/on/common/feature_flags/FeatureFlagList.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/GameOn-Backend/common/src/main/java/com/game/on/common/feature_flags/FeatureFlags.java" beforeDir="false" afterPath="$PROJECT_DIR$/Backend/common/src/main/java/com/game/on/common/feature_flags/FeatureFlags.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/GameOn-Backend/common/src/test/java/com/game/on/common/feature_flags/AbstractFeatureFlagsTests.java" beforeDir="false" afterPath="$PROJECT_DIR$/Backend/common/src/test/java/com/game/on/common/feature_flags/AbstractFeatureFlagsTests.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/GameOn-Backend/db/migration/V1_create_users_schema.sql" beforeDir="false" afterPath="$PROJECT_DIR$/Backend/db/migration/V1_create_users_schema.sql" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/GameOn-Backend/db/migration/V2_create_sports_table.sql" beforeDir="false" afterPath="$PROJECT_DIR$/Backend/db/migration/V2_create_sports_table.sql" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/GameOn-Backend/db/migration/V3_insert_sports.sql" beforeDir="false" afterPath="$PROJECT_DIR$/Backend/db/migration/V3_insert_sports.sql" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/GameOn-Backend/go-api-gateway/.gitattributes" beforeDir="false" afterPath="$PROJECT_DIR$/Backend/go-api-gateway/.gitattributes" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/GameOn-Backend/go-api-gateway/.gitignore" beforeDir="false" afterPath="$PROJECT_DIR$/Backend/go-api-gateway/.gitignore" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/GameOn-Backend/go-api-gateway/.mvn/wrapper/maven-wrapper.properties" beforeDir="false" afterPath="$PROJECT_DIR$/Backend/go-api-gateway/.mvn/wrapper/maven-wrapper.properties" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/GameOn-Backend/go-api-gateway/Dockerfile" beforeDir="false" afterPath="$PROJECT_DIR$/Backend/go-api-gateway/Dockerfile" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/GameOn-Backend/go-api-gateway/mvnw" beforeDir="false" afterPath="$PROJECT_DIR$/Backend/go-api-gateway/mvnw" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/GameOn-Backend/go-api-gateway/mvnw.cmd" beforeDir="false" afterPath="$PROJECT_DIR$/Backend/go-api-gateway/mvnw.cmd" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/GameOn-Backend/go-api-gateway/pom.xml" beforeDir="false" afterPath="$PROJECT_DIR$/Backend/go-api-gateway/pom.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/GameOn-Backend/go-api-gateway/src/main/java/com/game/on/go_api_gateway/GoApiGatewayApplication.java" beforeDir="false" afterPath="$PROJECT_DIR$/Backend/go-api-gateway/src/main/java/com/game/on/go_api_gateway/GoApiGatewayApplication.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/GameOn-Backend/go-api-gateway/src/main/java/com/game/on/go_api_gateway/PublicEndpoints.java" beforeDir="false" afterPath="$PROJECT_DIR$/Backend/go-api-gateway/src/main/java/com/game/on/go_api_gateway/PublicEndpoints.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/GameOn-Backend/go-api-gateway/src/main/java/com/game/on/go_api_gateway/SecurityConfig.java" beforeDir="false" afterPath="$PROJECT_DIR$/Backend/go-api-gateway/src/main/java/com/game/on/go_api_gateway/SecurityConfig.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/GameOn-Backend/go-api-gateway/src/main/resources/application.yml" beforeDir="false" afterPath="$PROJECT_DIR$/Backend/go-api-gateway/src/main/resources/application.yml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/GameOn-Backend/go-api-gateway/src/test/java/com/game/on/go_api_gateway/GoApiGatewayApplicationTests.java" beforeDir="false" afterPath="$PROJECT_DIR$/Backend/go-api-gateway/src/test/java/com/game/on/go_api_gateway/GoApiGatewayApplicationTests.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/GameOn-Backend/go-config-server/.gitattributes" beforeDir="false" afterPath="$PROJECT_DIR$/Backend/go-config-server/.gitattributes" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/GameOn-Backend/go-config-server/.gitignore" beforeDir="false" afterPath="$PROJECT_DIR$/Backend/go-config-server/.gitignore" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/GameOn-Backend/go-config-server/.mvn/wrapper/maven-wrapper.properties" beforeDir="false" afterPath="$PROJECT_DIR$/Backend/go-config-server/.mvn/wrapper/maven-wrapper.properties" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/GameOn-Backend/go-config-server/Dockerfile" beforeDir="false" afterPath="$PROJECT_DIR$/Backend/go-config-server/Dockerfile" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/GameOn-Backend/go-config-server/mvnw" beforeDir="false" afterPath="$PROJECT_DIR$/Backend/go-config-server/mvnw" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/GameOn-Backend/go-config-server/mvnw.cmd" beforeDir="false" afterPath="$PROJECT_DIR$/Backend/go-config-server/mvnw.cmd" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/GameOn-Backend/go-config-server/pom.xml" beforeDir="false" afterPath="$PROJECT_DIR$/Backend/go-config-server/pom.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/GameOn-Backend/go-config-server/src/main/java/com/game/on/go_config_server/GoConfigServerApplication.java" beforeDir="false" afterPath="$PROJECT_DIR$/Backend/go-config-server/src/main/java/com/game/on/go_config_server/GoConfigServerApplication.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/GameOn-Backend/go-config-server/src/main/resources/application.yml" beforeDir="false" afterPath="$PROJECT_DIR$/Backend/go-config-server/src/main/resources/application.yml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/GameOn-Backend/go-config-server/src/main/resources/banner.txt" beforeDir="false" afterPath="$PROJECT_DIR$/Backend/go-config-server/src/main/resources/banner.txt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/GameOn-Backend/go-config-server/src/main/resources/configurations/application.yml" beforeDir="false" afterPath="$PROJECT_DIR$/Backend/go-config-server/src/main/resources/configurations/application.yml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/GameOn-Backend/go-config-server/src/main/resources/configurations/go-api-gateway.yml" beforeDir="false" afterPath="$PROJECT_DIR$/Backend/go-config-server/src/main/resources/configurations/go-api-gateway.yml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/GameOn-Backend/go-config-server/src/main/resources/configurations/go-discovery-service.yml" beforeDir="false" afterPath="$PROJECT_DIR$/Backend/go-config-server/src/main/resources/configurations/go-discovery-service.yml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/GameOn-Backend/go-config-server/src/main/resources/configurations/go-league-service.yml" beforeDir="false" afterPath="$PROJECT_DIR$/Backend/go-config-server/src/main/resources/configurations/go-league-service.yml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/GameOn-Backend/go-config-server/src/main/resources/configurations/go-team-service.yml" beforeDir="false" afterPath="$PROJECT_DIR$/Backend/go-config-server/src/main/resources/configurations/go-team-service.yml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/GameOn-Backend/go-config-server/src/main/resources/configurations/go-user-service.yml" beforeDir="false" afterPath="$PROJECT_DIR$/Backend/go-config-server/src/main/resources/configurations/go-user-service.yml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/GameOn-Backend/go-config-server/src/test/java/com/game/on/go_config_server/GoConfigServerApplicationTests.java" beforeDir="false" afterPath="$PROJECT_DIR$/Backend/go-config-server/src/test/java/com/game/on/go_config_server/GoConfigServerApplicationTests.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/GameOn-Backend/go-discovery-service/.gitattributes" beforeDir="false" afterPath="$PROJECT_DIR$/Backend/go-discovery-service/.gitattributes" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/GameOn-Backend/go-discovery-service/.gitignore" beforeDir="false" afterPath="$PROJECT_DIR$/Backend/go-discovery-service/.gitignore" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/GameOn-Backend/go-discovery-service/.mvn/wrapper/maven-wrapper.properties" beforeDir="false" afterPath="$PROJECT_DIR$/Backend/go-discovery-service/.mvn/wrapper/maven-wrapper.properties" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/GameOn-Backend/go-discovery-service/Dockerfile" beforeDir="false" afterPath="$PROJECT_DIR$/Backend/go-discovery-service/Dockerfile" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/GameOn-Backend/go-discovery-service/mvnw" beforeDir="false" afterPath="$PROJECT_DIR$/Backend/go-discovery-service/mvnw" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/GameOn-Backend/go-discovery-service/mvnw.cmd" beforeDir="false" afterPath="$PROJECT_DIR$/Backend/go-discovery-service/mvnw.cmd" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/GameOn-Backend/go-discovery-service/pom.xml" beforeDir="false" afterPath="$PROJECT_DIR$/Backend/go-discovery-service/pom.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/GameOn-Backend/go-discovery-service/src/main/java/com/game/on/go_discovery_service/GoDiscoveryServiceApplication.java" beforeDir="false" afterPath="$PROJECT_DIR$/Backend/go-discovery-service/src/main/java/com/game/on/go_discovery_service/GoDiscoveryServiceApplication.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/GameOn-Backend/go-discovery-service/src/main/resources/application.yml" beforeDir="false" afterPath="$PROJECT_DIR$/Backend/go-discovery-service/src/main/resources/application.yml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/GameOn-Backend/go-discovery-service/src/test/java/com/game/on/go_discovery_service/GoDiscoveryServiceApplicationTests.java" beforeDir="false" afterPath="$PROJECT_DIR$/Backend/go-discovery-service/src/test/java/com/game/on/go_discovery_service/GoDiscoveryServiceApplicationTests.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/GameOn-Backend/go-league-service/.gitignore" beforeDir="false" afterPath="$PROJECT_DIR$/Backend/go-league-service/.gitignore" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/GameOn-Backend/go-league-service/.mvn/wrapper/maven-wrapper.properties" beforeDir="false" afterPath="$PROJECT_DIR$/Backend/go-league-service/.mvn/wrapper/maven-wrapper.properties" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/GameOn-Backend/go-league-service/Dockerfile" beforeDir="false" afterPath="$PROJECT_DIR$/Backend/go-league-service/Dockerfile" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/GameOn-Backend/go-league-service/mvnw" beforeDir="false" afterPath="$PROJECT_DIR$/Backend/go-league-service/mvnw" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/GameOn-Backend/go-league-service/mvnw.cmd" beforeDir="false" afterPath="$PROJECT_DIR$/Backend/go-league-service/mvnw.cmd" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/GameOn-Backend/go-league-service/pom.xml" beforeDir="false" afterPath="$PROJECT_DIR$/Backend/go-league-service/pom.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/GameOn-Backend/go-league-service/src/main/java/com/game/on/go_league_service/GoLeagueServiceApplication.java" beforeDir="false" afterPath="$PROJECT_DIR$/Backend/go-league-service/src/main/java/com/game/on/go_league_service/GoLeagueServiceApplication.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/GameOn-Backend/go-league-service/src/main/java/com/game/on/go_league_service/auth/AuthInterceptor.java" beforeDir="false" afterPath="$PROJECT_DIR$/Backend/go-league-service/src/main/java/com/game/on/go_league_service/auth/AuthInterceptor.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/GameOn-Backend/go-league-service/src/main/java/com/game/on/go_league_service/auth/CurrentUserProvider.java" beforeDir="false" afterPath="$PROJECT_DIR$/Backend/go-league-service/src/main/java/com/game/on/go_league_service/auth/CurrentUserProvider.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/GameOn-Backend/go-league-service/src/main/java/com/game/on/go_league_service/auth/RequestContext.java" beforeDir="false" afterPath="$PROJECT_DIR$/Backend/go-league-service/src/main/java/com/game/on/go_league_service/auth/RequestContext.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/GameOn-Backend/go-league-service/src/main/java/com/game/on/go_league_service/auth/RequestContextHolder.java" beforeDir="false" afterPath="$PROJECT_DIR$/Backend/go-league-service/src/main/java/com/game/on/go_league_service/auth/RequestContextHolder.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/GameOn-Backend/go-league-service/src/main/java/com/game/on/go_league_service/auth/WebConfig.java" beforeDir="false" afterPath="$PROJECT_DIR$/Backend/go-league-service/src/main/java/com/game/on/go_league_service/auth/WebConfig.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/GameOn-Backend/go-league-service/src/main/java/com/game/on/go_league_service/config/JpaConfig.java" beforeDir="false" afterPath="$PROJECT_DIR$/Backend/go-league-service/src/main/java/com/game/on/go_league_service/config/JpaConfig.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/GameOn-Backend/go-league-service/src/main/java/com/game/on/go_league_service/exception/BadRequestException.java" beforeDir="false" afterPath="$PROJECT_DIR$/Backend/go-league-service/src/main/java/com/game/on/go_league_service/exception/BadRequestException.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/GameOn-Backend/go-league-service/src/main/java/com/game/on/go_league_service/exception/ConflictException.java" beforeDir="false" afterPath="$PROJECT_DIR$/Backend/go-league-service/src/main/java/com/game/on/go_league_service/exception/ConflictException.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/GameOn-Backend/go-league-service/src/main/java/com/game/on/go_league_service/exception/ErrorResponse.java" beforeDir="false" afterPath="$PROJECT_DIR$/Backend/go-league-service/src/main/java/com/game/on/go_league_service/exception/ErrorResponse.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/GameOn-Backend/go-league-service/src/main/java/com/game/on/go_league_service/exception/ForbiddenException.java" beforeDir="false" afterPath="$PROJECT_DIR$/Backend/go-league-service/src/main/java/com/game/on/go_league_service/exception/ForbiddenException.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/GameOn-Backend/go-league-service/src/main/java/com/game/on/go_league_service/exception/GlobalExceptionHandler.java" beforeDir="false" afterPath="$PROJECT_DIR$/Backend/go-league-service/src/main/java/com/game/on/go_league_service/exception/GlobalExceptionHandler.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/GameOn-Backend/go-league-service/src/main/java/com/game/on/go_league_service/exception/NotFoundException.java" beforeDir="false" afterPath="$PROJECT_DIR$/Backend/go-league-service/src/main/java/com/game/on/go_league_service/exception/NotFoundException.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/GameOn-Backend/go-league-service/src/main/java/com/game/on/go_league_service/exception/UnauthorizedException.java" beforeDir="false" afterPath="$PROJECT_DIR$/Backend/go-league-service/src/main/java/com/game/on/go_league_service/exception/UnauthorizedException.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/GameOn-Backend/go-league-service/src/main/java/com/game/on/go_league_service/league/controller/LeagueController.java" beforeDir="false" afterPath="$PROJECT_DIR$/Backend/go-league-service/src/main/java/com/game/on/go_league_service/league/controller/LeagueController.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/GameOn-Backend/go-league-service/src/main/java/com/game/on/go_league_service/league/dto/LeagueCreateRequest.java" beforeDir="false" afterPath="$PROJECT_DIR$/Backend/go-league-service/src/main/java/com/game/on/go_league_service/league/dto/LeagueCreateRequest.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/GameOn-Backend/go-league-service/src/main/java/com/game/on/go_league_service/league/dto/LeagueDetailResponse.java" beforeDir="false" afterPath="$PROJECT_DIR$/Backend/go-league-service/src/main/java/com/game/on/go_league_service/league/dto/LeagueDetailResponse.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/GameOn-Backend/go-league-service/src/main/java/com/game/on/go_league_service/league/dto/LeagueListResponse.java" beforeDir="false" afterPath="$PROJECT_DIR$/Backend/go-league-service/src/main/java/com/game/on/go_league_service/league/dto/LeagueListResponse.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/GameOn-Backend/go-league-service/src/main/java/com/game/on/go_league_service/league/dto/LeagueSearchCriteria.java" beforeDir="false" afterPath="$PROJECT_DIR$/Backend/go-league-service/src/main/java/com/game/on/go_league_service/league/dto/LeagueSearchCriteria.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/GameOn-Backend/go-league-service/src/main/java/com/game/on/go_league_service/league/dto/LeagueSeasonResponse.java" beforeDir="false" afterPath="$PROJECT_DIR$/Backend/go-league-service/src/main/java/com/game/on/go_league_service/league/dto/LeagueSeasonResponse.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/GameOn-Backend/go-league-service/src/main/java/com/game/on/go_league_service/league/dto/LeagueSummaryResponse.java" beforeDir="false" afterPath="$PROJECT_DIR$/Backend/go-league-service/src/main/java/com/game/on/go_league_service/league/dto/LeagueSummaryResponse.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/GameOn-Backend/go-league-service/src/main/java/com/game/on/go_league_service/league/dto/LeagueUpdateRequest.java" beforeDir="false" afterPath="$PROJECT_DIR$/Backend/go-league-service/src/main/java/com/game/on/go_league_service/league/dto/LeagueUpdateRequest.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/GameOn-Backend/go-league-service/src/main/java/com/game/on/go_league_service/league/mapper/LeagueMapper.java" beforeDir="false" afterPath="$PROJECT_DIR$/Backend/go-league-service/src/main/java/com/game/on/go_league_service/league/mapper/LeagueMapper.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/GameOn-Backend/go-league-service/src/main/java/com/game/on/go_league_service/league/metrics/LeagueMetricsPublisher.java" beforeDir="false" afterPath="$PROJECT_DIR$/Backend/go-league-service/src/main/java/com/game/on/go_league_service/league/metrics/LeagueMetricsPublisher.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/GameOn-Backend/go-league-service/src/main/java/com/game/on/go_league_service/league/model/League.java" beforeDir="false" afterPath="$PROJECT_DIR$/Backend/go-league-service/src/main/java/com/game/on/go_league_service/league/model/League.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/GameOn-Backend/go-league-service/src/main/java/com/game/on/go_league_service/league/model/LeagueLevel.java" beforeDir="false" afterPath="$PROJECT_DIR$/Backend/go-league-service/src/main/java/com/game/on/go_league_service/league/model/LeagueLevel.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/GameOn-Backend/go-league-service/src/main/java/com/game/on/go_league_service/league/model/LeaguePrivacy.java" beforeDir="false" afterPath="$PROJECT_DIR$/Backend/go-league-service/src/main/java/com/game/on/go_league_service/league/model/LeaguePrivacy.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/GameOn-Backend/go-league-service/src/main/java/com/game/on/go_league_service/league/model/LeagueSeason.java" beforeDir="false" afterPath="$PROJECT_DIR$/Backend/go-league-service/src/main/java/com/game/on/go_league_service/league/model/LeagueSeason.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/GameOn-Backend/go-league-service/src/main/java/com/game/on/go_league_service/league/repository/LeagueRepository.java" beforeDir="false" afterPath="$PROJECT_DIR$/Backend/go-league-service/src/main/java/com/game/on/go_league_service/league/repository/LeagueRepository.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/GameOn-Backend/go-league-service/src/main/java/com/game/on/go_league_service/league/repository/LeagueSeasonRepository.java" beforeDir="false" afterPath="$PROJECT_DIR$/Backend/go-league-service/src/main/java/com/game/on/go_league_service/league/repository/LeagueSeasonRepository.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/GameOn-Backend/go-league-service/src/main/java/com/game/on/go_league_service/league/service/LeagueService.java" beforeDir="false" afterPath="$PROJECT_DIR$/Backend/go-league-service/src/main/java/com/game/on/go_league_service/league/service/LeagueService.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/GameOn-Backend/go-league-service/src/main/java/com/game/on/go_league_service/league/service/LeagueSpecifications.java" beforeDir="false" afterPath="$PROJECT_DIR$/Backend/go-league-service/src/main/java/com/game/on/go_league_service/league/service/LeagueSpecifications.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/GameOn-Backend/go-league-service/src/main/java/com/game/on/go_league_service/league/util/SlugGenerator.java" beforeDir="false" afterPath="$PROJECT_DIR$/Backend/go-league-service/src/main/java/com/game/on/go_league_service/league/util/SlugGenerator.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/GameOn-Backend/go-league-service/src/main/resources/application.yml" beforeDir="false" afterPath="$PROJECT_DIR$/Backend/go-league-service/src/main/resources/application.yml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/GameOn-Backend/go-league-service/src/main/resources/db/migration/V1__create_league_schema.sql" beforeDir="false" afterPath="$PROJECT_DIR$/Backend/go-league-service/src/main/resources/db/migration/V1__create_league_schema.sql" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/GameOn-Backend/go-league-service/src/test/java/com/game/on/go_league_service/GoLeagueServiceApplicationTests.java" beforeDir="false" afterPath="$PROJECT_DIR$/Backend/go-league-service/src/test/java/com/game/on/go_league_service/GoLeagueServiceApplicationTests.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/GameOn-Backend/go-league-service/src/test/java/com/game/on/go_league_service/league/LeagueControllerIntegrationTest.java" beforeDir="false" afterPath="$PROJECT_DIR$/Backend/go-league-service/src/test/java/com/game/on/go_league_service/league/LeagueControllerIntegrationTest.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/GameOn-Backend/go-league-service/src/test/java/com/game/on/go_league_service/league/LeagueServiceTest.java" beforeDir="false" afterPath="$PROJECT_DIR$/Backend/go-league-service/src/test/java/com/game/on/go_league_service/league/LeagueServiceTest.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/GameOn-Backend/go-league-service/src/test/resources/application.yml" beforeDir="false" afterPath="$PROJECT_DIR$/Backend/go-league-service/src/test/resources/application.yml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/GameOn-Backend/go-team-service/.gitignore" beforeDir="false" afterPath="$PROJECT_DIR$/Backend/go-team-service/.gitignore" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/GameOn-Backend/go-team-service/.mvn/wrapper/maven-wrapper.properties" beforeDir="false" afterPath="$PROJECT_DIR$/Backend/go-team-service/.mvn/wrapper/maven-wrapper.properties" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/GameOn-Backend/go-team-service/Dockerfile" beforeDir="false" afterPath="$PROJECT_DIR$/Backend/go-team-service/Dockerfile" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/GameOn-Backend/go-team-service/mvnw" beforeDir="false" afterPath="$PROJECT_DIR$/Backend/go-team-service/mvnw" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/GameOn-Backend/go-team-service/mvnw.cmd" beforeDir="false" afterPath="$PROJECT_DIR$/Backend/go-team-service/mvnw.cmd" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/GameOn-Backend/go-team-service/pom.xml" beforeDir="false" afterPath="$PROJECT_DIR$/Backend/go-team-service/pom.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/GameOn-Backend/go-team-service/src/main/java/com/game/on/go_team_service/GoTeamServiceApplication.java" beforeDir="false" afterPath="$PROJECT_DIR$/Backend/go-team-service/src/main/java/com/game/on/go_team_service/GoTeamServiceApplication.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/GameOn-Backend/go-team-service/src/main/java/com/game/on/go_team_service/client/UserClient.java" beforeDir="false" afterPath="$PROJECT_DIR$/Backend/go-team-service/src/main/java/com/game/on/go_team_service/client/UserClient.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/GameOn-Backend/go-team-service/src/main/java/com/game/on/go_team_service/config/JpaConfig.java" beforeDir="false" afterPath="$PROJECT_DIR$/Backend/go-team-service/src/main/java/com/game/on/go_team_service/config/JpaConfig.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/GameOn-Backend/go-team-service/src/main/java/com/game/on/go_team_service/config/SecurityConfig.java" beforeDir="false" afterPath="$PROJECT_DIR$/Backend/go-team-service/src/main/java/com/game/on/go_team_service/config/SecurityConfig.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/GameOn-Backend/go-team-service/src/main/java/com/game/on/go_team_service/exception/BadRequestException.java" beforeDir="false" afterPath="$PROJECT_DIR$/Backend/go-team-service/src/main/java/com/game/on/go_team_service/exception/BadRequestException.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/GameOn-Backend/go-team-service/src/main/java/com/game/on/go_team_service/exception/ConflictException.java" beforeDir="false" afterPath="$PROJECT_DIR$/Backend/go-team-service/src/main/java/com/game/on/go_team_service/exception/ConflictException.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/GameOn-Backend/go-team-service/src/main/java/com/game/on/go_team_service/exception/ErrorResponse.java" beforeDir="false" afterPath="$PROJECT_DIR$/Backend/go-team-service/src/main/java/com/game/on/go_team_service/exception/ErrorResponse.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/GameOn-Backend/go-team-service/src/main/java/com/game/on/go_team_service/exception/ForbiddenException.java" beforeDir="false" afterPath="$PROJECT_DIR$/Backend/go-team-service/src/main/java/com/game/on/go_team_service/exception/ForbiddenException.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/GameOn-Backend/go-team-service/src/main/java/com/game/on/go_team_service/exception/GlobalExceptionHandler.java" beforeDir="false" afterPath="$PROJECT_DIR$/Backend/go-team-service/src/main/java/com/game/on/go_team_service/exception/GlobalExceptionHandler.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/GameOn-Backend/go-team-service/src/main/java/com/game/on/go_team_service/exception/NotFoundException.java" beforeDir="false" afterPath="$PROJECT_DIR$/Backend/go-team-service/src/main/java/com/game/on/go_team_service/exception/NotFoundException.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/GameOn-Backend/go-team-service/src/main/java/com/game/on/go_team_service/exception/UnauthorizedException.java" beforeDir="false" afterPath="$PROJECT_DIR$/Backend/go-team-service/src/main/java/com/game/on/go_team_service/exception/UnauthorizedException.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/GameOn-Backend/go-team-service/src/main/java/com/game/on/go_team_service/external/RestUserDirectoryClient.java" beforeDir="false" afterPath="$PROJECT_DIR$/Backend/go-team-service/src/main/java/com/game/on/go_team_service/external/RestUserDirectoryClient.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/GameOn-Backend/go-team-service/src/main/java/com/game/on/go_team_service/external/UserDirectoryClient.java" beforeDir="false" afterPath="$PROJECT_DIR$/Backend/go-team-service/src/main/java/com/game/on/go_team_service/external/UserDirectoryClient.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/GameOn-Backend/go-team-service/src/main/java/com/game/on/go_team_service/team/controller/InviteController.java" beforeDir="false" afterPath="$PROJECT_DIR$/Backend/go-team-service/src/main/java/com/game/on/go_team_service/team/controller/InviteController.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/GameOn-Backend/go-team-service/src/main/java/com/game/on/go_team_service/team/controller/TeamController.java" beforeDir="false" afterPath="$PROJECT_DIR$/Backend/go-team-service/src/main/java/com/game/on/go_team_service/team/controller/TeamController.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/GameOn-Backend/go-team-service/src/main/java/com/game/on/go_team_service/team/dto/OwnershipTransferRequest.java" beforeDir="false" afterPath="$PROJECT_DIR$/Backend/go-team-service/src/main/java/com/game/on/go_team_service/team/dto/OwnershipTransferRequest.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/GameOn-Backend/go-team-service/src/main/java/com/game/on/go_team_service/team/dto/TeamCreateRequest.java" beforeDir="false" afterPath="$PROJECT_DIR$/Backend/go-team-service/src/main/java/com/game/on/go_team_service/team/dto/TeamCreateRequest.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/GameOn-Backend/go-team-service/src/main/java/com/game/on/go_team_service/team/dto/TeamDetailResponse.java" beforeDir="false" afterPath="$PROJECT_DIR$/Backend/go-team-service/src/main/java/com/game/on/go_team_service/team/dto/TeamDetailResponse.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/GameOn-Backend/go-team-service/src/main/java/com/game/on/go_team_service/team/dto/TeamInviteCreateRequest.java" beforeDir="false" afterPath="$PROJECT_DIR$/Backend/go-team-service/src/main/java/com/game/on/go_team_service/team/dto/TeamInviteCreateRequest.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/GameOn-Backend/go-team-service/src/main/java/com/game/on/go_team_service/team/dto/TeamInviteResponse.java" beforeDir="false" afterPath="$PROJECT_DIR$/Backend/go-team-service/src/main/java/com/game/on/go_team_service/team/dto/TeamInviteResponse.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/GameOn-Backend/go-team-service/src/main/java/com/game/on/go_team_service/team/dto/TeamListResponse.java" beforeDir="false" afterPath="$PROJECT_DIR$/Backend/go-team-service/src/main/java/com/game/on/go_team_service/team/dto/TeamListResponse.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/GameOn-Backend/go-team-service/src/main/java/com/game/on/go_team_service/team/dto/TeamMemberResponse.java" beforeDir="false" afterPath="$PROJECT_DIR$/Backend/go-team-service/src/main/java/com/game/on/go_team_service/team/dto/TeamMemberResponse.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/GameOn-Backend/go-team-service/src/main/java/com/game/on/go_team_service/team/dto/TeamSearchCriteria.java" beforeDir="false" afterPath="$PROJECT_DIR$/Backend/go-team-service/src/main/java/com/game/on/go_team_service/team/dto/TeamSearchCriteria.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/GameOn-Backend/go-team-service/src/main/java/com/game/on/go_team_service/team/dto/TeamSummaryResponse.java" beforeDir="false" afterPath="$PROJECT_DIR$/Backend/go-team-service/src/main/java/com/game/on/go_team_service/team/dto/TeamSummaryResponse.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/GameOn-Backend/go-team-service/src/main/java/com/game/on/go_team_service/team/dto/TeamUpdateRequest.java" beforeDir="false" afterPath="$PROJECT_DIR$/Backend/go-team-service/src/main/java/com/game/on/go_team_service/team/dto/TeamUpdateRequest.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/GameOn-Backend/go-team-service/src/main/java/com/game/on/go_team_service/team/mapper/TeamMapper.java" beforeDir="false" afterPath="$PROJECT_DIR$/Backend/go-team-service/src/main/java/com/game/on/go_team_service/team/mapper/TeamMapper.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/GameOn-Backend/go-team-service/src/main/java/com/game/on/go_team_service/team/metrics/TeamMetricsPublisher.java" beforeDir="false" afterPath="$PROJECT_DIR$/Backend/go-team-service/src/main/java/com/game/on/go_team_service/team/metrics/TeamMetricsPublisher.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/GameOn-Backend/go-team-service/src/main/java/com/game/on/go_team_service/team/model/Team.java" beforeDir="false" afterPath="$PROJECT_DIR$/Backend/go-team-service/src/main/java/com/game/on/go_team_service/team/model/Team.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/GameOn-Backend/go-team-service/src/main/java/com/game/on/go_team_service/team/model/TeamInvite.java" beforeDir="false" afterPath="$PROJECT_DIR$/Backend/go-team-service/src/main/java/com/game/on/go_team_service/team/model/TeamInvite.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/GameOn-Backend/go-team-service/src/main/java/com/game/on/go_team_service/team/model/TeamInviteStatus.java" beforeDir="false" afterPath="$PROJECT_DIR$/Backend/go-team-service/src/main/java/com/game/on/go_team_service/team/model/TeamInviteStatus.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/GameOn-Backend/go-team-service/src/main/java/com/game/on/go_team_service/team/model/TeamMember.java" beforeDir="false" afterPath="$PROJECT_DIR$/Backend/go-team-service/src/main/java/com/game/on/go_team_service/team/model/TeamMember.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/GameOn-Backend/go-team-service/src/main/java/com/game/on/go_team_service/team/model/TeamMemberStatus.java" beforeDir="false" afterPath="$PROJECT_DIR$/Backend/go-team-service/src/main/java/com/game/on/go_team_service/team/model/TeamMemberStatus.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/GameOn-Backend/go-team-service/src/main/java/com/game/on/go_team_service/team/model/TeamPrivacy.java" beforeDir="false" afterPath="$PROJECT_DIR$/Backend/go-team-service/src/main/java/com/game/on/go_team_service/team/model/TeamPrivacy.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/GameOn-Backend/go-team-service/src/main/java/com/game/on/go_team_service/team/model/TeamRole.java" beforeDir="false" afterPath="$PROJECT_DIR$/Backend/go-team-service/src/main/java/com/game/on/go_team_service/team/model/TeamRole.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/GameOn-Backend/go-team-service/src/main/java/com/game/on/go_team_service/team/repository/TeamInviteRepository.java" beforeDir="false" afterPath="$PROJECT_DIR$/Backend/go-team-service/src/main/java/com/game/on/go_team_service/team/repository/TeamInviteRepository.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/GameOn-Backend/go-team-service/src/main/java/com/game/on/go_team_service/team/repository/TeamMemberRepository.java" beforeDir="false" afterPath="$PROJECT_DIR$/Backend/go-team-service/src/main/java/com/game/on/go_team_service/team/repository/TeamMemberRepository.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/GameOn-Backend/go-team-service/src/main/java/com/game/on/go_team_service/team/repository/TeamRepository.java" beforeDir="false" afterPath="$PROJECT_DIR$/Backend/go-team-service/src/main/java/com/game/on/go_team_service/team/repository/TeamRepository.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/GameOn-Backend/go-team-service/src/main/java/com/game/on/go_team_service/team/service/TeamService.java" beforeDir="false" afterPath="$PROJECT_DIR$/Backend/go-team-service/src/main/java/com/game/on/go_team_service/team/service/TeamService.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/GameOn-Backend/go-team-service/src/main/java/com/game/on/go_team_service/team/service/TeamSpecifications.java" beforeDir="false" afterPath="$PROJECT_DIR$/Backend/go-team-service/src/main/java/com/game/on/go_team_service/team/service/TeamSpecifications.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/GameOn-Backend/go-team-service/src/main/java/com/game/on/go_team_service/team/util/SlugGenerator.java" beforeDir="false" afterPath="$PROJECT_DIR$/Backend/go-team-service/src/main/java/com/game/on/go_team_service/team/util/SlugGenerator.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/GameOn-Backend/go-team-service/src/main/resources/application.yml" beforeDir="false" afterPath="$PROJECT_DIR$/Backend/go-team-service/src/main/resources/application.yml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/GameOn-Backend/go-team-service/src/main/resources/db/migration/V1__create_team_schema.sql" beforeDir="false" afterPath="$PROJECT_DIR$/Backend/go-team-service/src/main/resources/db/migration/V1__create_team_schema.sql" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/GameOn-Backend/go-team-service/src/test/java/com/game/on/go_team_service/GoTeamServiceApplicationTests.java" beforeDir="false" afterPath="$PROJECT_DIR$/Backend/go-team-service/src/test/java/com/game/on/go_team_service/GoTeamServiceApplicationTests.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/GameOn-Backend/go-team-service/src/test/java/com/game/on/go_team_service/TeamFlowIntegrationTest.java" beforeDir="false" afterPath="$PROJECT_DIR$/Backend/go-team-service/src/test/java/com/game/on/go_team_service/TeamFlowIntegrationTest.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/GameOn-Backend/go-team-service/src/test/resources/application.yml" beforeDir="false" afterPath="$PROJECT_DIR$/Backend/go-team-service/src/test/resources/application.yml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/GameOn-Backend/go-user-service/.gitattributes" beforeDir="false" afterPath="$PROJECT_DIR$/Backend/go-user-service/.gitattributes" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/GameOn-Backend/go-user-service/.gitignore" beforeDir="false" afterPath="$PROJECT_DIR$/Backend/go-user-service/.gitignore" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/GameOn-Backend/go-user-service/.mvn/wrapper/maven-wrapper.properties" beforeDir="false" afterPath="$PROJECT_DIR$/Backend/go-user-service/.mvn/wrapper/maven-wrapper.properties" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/GameOn-Backend/go-user-service/Dockerfile" beforeDir="false" afterPath="$PROJECT_DIR$/Backend/go-user-service/Dockerfile" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/GameOn-Backend/go-user-service/mvnw" beforeDir="false" afterPath="$PROJECT_DIR$/Backend/go-user-service/mvnw" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/GameOn-Backend/go-user-service/mvnw.cmd" beforeDir="false" afterPath="$PROJECT_DIR$/Backend/go-user-service/mvnw.cmd" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/GameOn-Backend/go-user-service/pom.xml" beforeDir="false" afterPath="$PROJECT_DIR$/Backend/go-user-service/pom.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/GameOn-Backend/go-user-service/src/main/java/com/game/on/go_user_service/GoUserServiceApplication.java" beforeDir="false" afterPath="$PROJECT_DIR$/Backend/go-user-service/src/main/java/com/game/on/go_user_service/GoUserServiceApplication.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/GameOn-Backend/go-user-service/src/main/java/com/game/on/go_user_service/config/SecurityConfig.java" beforeDir="false" afterPath="$PROJECT_DIR$/Backend/go-user-service/src/main/java/com/game/on/go_user_service/config/SecurityConfig.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/GameOn-Backend/go-user-service/src/main/java/com/game/on/go_user_service/controller/UserController.java" beforeDir="false" afterPath="$PROJECT_DIR$/Backend/go-user-service/src/main/java/com/game/on/go_user_service/controller/UserController.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/GameOn-Backend/go-user-service/src/main/java/com/game/on/go_user_service/dto/UserRequest.java" beforeDir="false" afterPath="$PROJECT_DIR$/Backend/go-user-service/src/main/java/com/game/on/go_user_service/dto/UserRequest.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/GameOn-Backend/go-user-service/src/main/java/com/game/on/go_user_service/dto/UserRequestCreate.java" beforeDir="false" afterPath="$PROJECT_DIR$/Backend/go-user-service/src/main/java/com/game/on/go_user_service/dto/UserRequestCreate.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/GameOn-Backend/go-user-service/src/main/java/com/game/on/go_user_service/dto/UserRequestUpdate.java" beforeDir="false" afterPath="$PROJECT_DIR$/Backend/go-user-service/src/main/java/com/game/on/go_user_service/dto/UserRequestUpdate.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/GameOn-Backend/go-user-service/src/main/java/com/game/on/go_user_service/dto/UserResponse.java" beforeDir="false" afterPath="$PROJECT_DIR$/Backend/go-user-service/src/main/java/com/game/on/go_user_service/dto/UserResponse.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/GameOn-Backend/go-user-service/src/main/java/com/game/on/go_user_service/exception/UserAlreadyExistsException.java" beforeDir="false" afterPath="$PROJECT_DIR$/Backend/go-user-service/src/main/java/com/game/on/go_user_service/exception/UserAlreadyExistsException.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/GameOn-Backend/go-user-service/src/main/java/com/game/on/go_user_service/exception/UserNotFoundException.java" beforeDir="false" afterPath="$PROJECT_DIR$/Backend/go-user-service/src/main/java/com/game/on/go_user_service/exception/UserNotFoundException.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/GameOn-Backend/go-user-service/src/main/java/com/game/on/go_user_service/feature_flags/FFUserService.java" beforeDir="false" afterPath="$PROJECT_DIR$/Backend/go-user-service/src/main/java/com/game/on/go_user_service/feature_flags/FFUserService.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/GameOn-Backend/go-user-service/src/main/java/com/game/on/go_user_service/feature_flags/UserServiceFeatureFlags.java" beforeDir="false" afterPath="$PROJECT_DIR$/Backend/go-user-service/src/main/java/com/game/on/go_user_service/feature_flags/UserServiceFeatureFlags.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/GameOn-Backend/go-user-service/src/main/java/com/game/on/go_user_service/mapper/UserMapper.java" beforeDir="false" afterPath="$PROJECT_DIR$/Backend/go-user-service/src/main/java/com/game/on/go_user_service/mapper/UserMapper.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/GameOn-Backend/go-user-service/src/main/java/com/game/on/go_user_service/model/ErrorResponse.java" beforeDir="false" afterPath="$PROJECT_DIR$/Backend/go-user-service/src/main/java/com/game/on/go_user_service/model/ErrorResponse.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/GameOn-Backend/go-user-service/src/main/java/com/game/on/go_user_service/model/User.java" beforeDir="false" afterPath="$PROJECT_DIR$/Backend/go-user-service/src/main/java/com/game/on/go_user_service/model/User.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/GameOn-Backend/go-user-service/src/main/java/com/game/on/go_user_service/repository/UserRepository.java" beforeDir="false" afterPath="$PROJECT_DIR$/Backend/go-user-service/src/main/java/com/game/on/go_user_service/repository/UserRepository.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/GameOn-Backend/go-user-service/src/main/java/com/game/on/go_user_service/service/UserService.java" beforeDir="false" afterPath="$PROJECT_DIR$/Backend/go-user-service/src/main/java/com/game/on/go_user_service/service/UserService.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/GameOn-Backend/go-user-service/src/main/java/com/game/on/go_user_service/utils/GlobalExceptionHandler.java" beforeDir="false" afterPath="$PROJECT_DIR$/Backend/go-user-service/src/main/java/com/game/on/go_user_service/utils/GlobalExceptionHandler.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/GameOn-Backend/go-user-service/src/main/java/com/game/on/go_user_service/utils/constants/DtoConstants.java" beforeDir="false" afterPath="$PROJECT_DIR$/Backend/go-user-service/src/main/java/com/game/on/go_user_service/utils/constants/DtoConstants.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/GameOn-Backend/go-user-service/src/main/resources/application.yml" beforeDir="false" afterPath="$PROJECT_DIR$/Backend/go-user-service/src/main/resources/application.yml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/GameOn-Backend/go-user-service/src/test/java/com/game/on/go_user_service/UserServiceTest.java" beforeDir="false" afterPath="$PROJECT_DIR$/Backend/go-user-service/src/test/java/com/game/on/go_user_service/UserServiceTest.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/GameOn-Frontend/.dockerignore" beforeDir="false" afterPath="$PROJECT_DIR$/Frontend/.dockerignore" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/GameOn-Frontend/.gitignore" beforeDir="false" afterPath="$PROJECT_DIR$/Frontend/.gitignore" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/GameOn-Frontend/Dockerfile" beforeDir="false" afterPath="$PROJECT_DIR$/Frontend/Dockerfile" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/GameOn-Frontend/README.md" beforeDir="false" afterPath="$PROJECT_DIR$/Frontend/README.md" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/GameOn-Frontend/__tests__/auth/auth-test-setup.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/Frontend/__tests__/auth/auth-test-setup.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/GameOn-Frontend/__tests__/auth/sign-in.test.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/Frontend/__tests__/auth/sign-in.test.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/GameOn-Frontend/__tests__/auth/sign-up.test.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/Frontend/__tests__/auth/sign-up.test.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/GameOn-Frontend/__tests__/auth/utils.test.ts" beforeDir="false" afterPath="$PROJECT_DIR$/Frontend/__tests__/auth/utils.test.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/GameOn-Frontend/__tests__/browse/search-utils.test.ts" beforeDir="false" afterPath="$PROJECT_DIR$/Frontend/__tests__/browse/search-utils.test.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/GameOn-Frontend/__tests__/browse/use-team-league-results.test.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/Frontend/__tests__/browse/use-team-league-results.test.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/GameOn-Frontend/__tests__/teams/create-team.test.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/Frontend/__tests__/teams/create-team.test.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/GameOn-Frontend/__tests__/utils/globals/dummy.test.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/Frontend/__tests__/utils/globals/dummy.test.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/GameOn-Frontend/__tests__/utils/globals/error/error.test.ts" beforeDir="false" afterPath="$PROJECT_DIR$/Frontend/__tests__/utils/globals/error/error.test.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/GameOn-Frontend/__tests__/utils/globals/hooks/use-axios-clerk.test.ts" beforeDir="false" afterPath="$PROJECT_DIR$/Frontend/__tests__/utils/globals/hooks/use-axios-clerk.test.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/GameOn-Frontend/__tests__/utils/globals/logger/logger.test.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/Frontend/__tests__/utils/globals/logger/logger.test.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/GameOn-Frontend/__tests__/utils/globals/welcome.test.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/Frontend/__tests__/utils/globals/welcome.test.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/GameOn-Frontend/__tests__/utils/header/__snapshots__/logo.test.tsx.snap" beforeDir="false" afterPath="$PROJECT_DIR$/Frontend/__tests__/utils/header/__snapshots__/logo.test.tsx.snap" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/GameOn-Frontend/__tests__/utils/header/header-button.test.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/Frontend/__tests__/utils/header/header-button.test.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/GameOn-Frontend/__tests__/utils/header/header.test.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/Frontend/__tests__/utils/header/header.test.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/GameOn-Frontend/__tests__/utils/header/logo.test.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/Frontend/__tests__/utils/header/logo.test.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/GameOn-Frontend/__tests__/utils/header/page-title.test.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/Frontend/__tests__/utils/header/page-title.test.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/GameOn-Frontend/__tests__/utils/ui/background.test.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/Frontend/__tests__/utils/ui/background.test.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/GameOn-Frontend/__tests__/utils/ui/content-area.test.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/Frontend/__tests__/utils/ui/content-area.test.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/GameOn-Frontend/app.json" beforeDir="false" afterPath="$PROJECT_DIR$/Frontend/app.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/GameOn-Frontend/app/(auth)/_layout.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/Frontend/app/(auth)/_layout.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/GameOn-Frontend/app/(auth)/index.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/Frontend/app/(auth)/index.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/GameOn-Frontend/app/(auth)/sign-in.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/Frontend/app/(auth)/sign-in.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/GameOn-Frontend/app/(auth)/sign-up.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/Frontend/app/(auth)/sign-up.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/GameOn-Frontend/app/(contexts)/_layout.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/Frontend/app/(contexts)/_layout.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/GameOn-Frontend/app/(contexts)/browse/_layout.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/Frontend/app/(contexts)/browse/_layout.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/GameOn-Frontend/app/(contexts)/browse/index.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/Frontend/app/(contexts)/browse/index.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/GameOn-Frontend/app/(contexts)/feature-flags/_layout.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/Frontend/app/(contexts)/feature-flags/_layout.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/GameOn-Frontend/app/(contexts)/feature-flags/index.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/Frontend/app/(contexts)/feature-flags/index.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/GameOn-Frontend/app/(contexts)/teams/[id]/index.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/Frontend/app/(contexts)/teams/[id]/index.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/GameOn-Frontend/app/(contexts)/teams/[id]/settings/index.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/Frontend/app/(contexts)/teams/[id]/settings/index.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/GameOn-Frontend/app/(contexts)/teams/_layout.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/Frontend/app/(contexts)/teams/_layout.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/GameOn-Frontend/app/(contexts)/teams/create-team.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/Frontend/app/(contexts)/teams/create-team.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/GameOn-Frontend/app/(contexts)/teams/index.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/Frontend/app/(contexts)/teams/index.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/GameOn-Frontend/app/(tabs)/_layout.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/Frontend/app/(tabs)/_layout.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/GameOn-Frontend/app/(tabs)/home/_layout.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/Frontend/app/(tabs)/home/_layout.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/GameOn-Frontend/app/(tabs)/home/index.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/Frontend/app/(tabs)/home/index.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/GameOn-Frontend/app/(tabs)/index.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/Frontend/app/(tabs)/index.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/GameOn-Frontend/app/(tabs)/messages/_layout.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/Frontend/app/(tabs)/messages/_layout.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/GameOn-Frontend/app/(tabs)/messages/index.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/Frontend/app/(tabs)/messages/index.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/GameOn-Frontend/app/(tabs)/profile/_layout.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/Frontend/app/(tabs)/profile/_layout.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/GameOn-Frontend/app/(tabs)/profile/backendConnectionTest.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/Frontend/app/(tabs)/profile/backendConnectionTest.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/GameOn-Frontend/app/(tabs)/profile/editProfile.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/Frontend/app/(tabs)/profile/editProfile.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/GameOn-Frontend/app/(tabs)/profile/index.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/Frontend/app/(tabs)/profile/index.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/GameOn-Frontend/app/(tabs)/spaces/_layout.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/Frontend/app/(tabs)/spaces/_layout.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/GameOn-Frontend/app/(tabs)/spaces/index.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/Frontend/app/(tabs)/spaces/index.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/GameOn-Frontend/app/_layout.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/Frontend/app/_layout.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/GameOn-Frontend/assets/images/android-icon-background.png" beforeDir="false" afterPath="$PROJECT_DIR$/Frontend/assets/images/android-icon-background.png" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/GameOn-Frontend/assets/images/android-icon-foreground.png" beforeDir="false" afterPath="$PROJECT_DIR$/Frontend/assets/images/android-icon-foreground.png" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/GameOn-Frontend/assets/images/android-icon-monochrome.png" beforeDir="false" afterPath="$PROJECT_DIR$/Frontend/assets/images/android-icon-monochrome.png" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/GameOn-Frontend/assets/images/favicon.png" beforeDir="false" afterPath="$PROJECT_DIR$/Frontend/assets/images/favicon.png" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/GameOn-Frontend/assets/images/icon-basketball.png" beforeDir="false" afterPath="$PROJECT_DIR$/Frontend/assets/images/icon-basketball.png" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/GameOn-Frontend/assets/images/icon-black.png" beforeDir="false" afterPath="$PROJECT_DIR$/Frontend/assets/images/icon-black.png" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/GameOn-Frontend/assets/images/icon-grass.png" beforeDir="false" afterPath="$PROJECT_DIR$/Frontend/assets/images/icon-grass.png" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/GameOn-Frontend/assets/images/icon-volleyball.png" beforeDir="false" afterPath="$PROJECT_DIR$/Frontend/assets/images/icon-volleyball.png" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/GameOn-Frontend/assets/images/icon-white.png" beforeDir="false" afterPath="$PROJECT_DIR$/Frontend/assets/images/icon-white.png" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/GameOn-Frontend/assets/images/icon.icon/Assets/gameon.svg" beforeDir="false" afterPath="$PROJECT_DIR$/Frontend/assets/images/icon.icon/Assets/gameon.svg" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/GameOn-Frontend/assets/images/icon.icon/icon.json" beforeDir="false" afterPath="$PROJECT_DIR$/Frontend/assets/images/icon.icon/icon.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/GameOn-Frontend/assets/images/logo.png" beforeDir="false" afterPath="$PROJECT_DIR$/Frontend/assets/images/logo.png" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/GameOn-Frontend/assets/images/partial-react-logo.png" beforeDir="false" afterPath="$PROJECT_DIR$/Frontend/assets/images/partial-react-logo.png" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/GameOn-Frontend/assets/images/react-logo.png" beforeDir="false" afterPath="$PROJECT_DIR$/Frontend/assets/images/react-logo.png" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/GameOn-Frontend/assets/images/react-logo@2x.png" beforeDir="false" afterPath="$PROJECT_DIR$/Frontend/assets/images/react-logo@2x.png" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/GameOn-Frontend/assets/images/react-logo@3x.png" beforeDir="false" afterPath="$PROJECT_DIR$/Frontend/assets/images/react-logo@3x.png" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/GameOn-Frontend/assets/images/splash-icon.png" beforeDir="false" afterPath="$PROJECT_DIR$/Frontend/assets/images/splash-icon.png" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/GameOn-Frontend/assets/images/user.png" beforeDir="false" afterPath="$PROJECT_DIR$/Frontend/assets/images/user.png" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/GameOn-Frontend/components/UserProfile/ProfileImageSelector.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/Frontend/components/UserProfile/ProfileImageSelector.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/GameOn-Frontend/components/UserProfile/profile-styles.ts" beforeDir="false" afterPath="$PROJECT_DIR$/Frontend/components/UserProfile/profile-styles.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/GameOn-Frontend/components/UserProfile/profileUtils.ts" beforeDir="false" afterPath="$PROJECT_DIR$/Frontend/components/UserProfile/profileUtils.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/GameOn-Frontend/components/auth/dev-login.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/Frontend/components/auth/dev-login.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/GameOn-Frontend/components/auth/labeled-input.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/Frontend/components/auth/labeled-input.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/GameOn-Frontend/components/auth/password-visibility-toggle.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/Frontend/components/auth/password-visibility-toggle.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/GameOn-Frontend/components/auth/sign-up-date-picker.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/Frontend/components/auth/sign-up-date-picker.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/GameOn-Frontend/components/auth/submit-auth-button.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/Frontend/components/auth/submit-auth-button.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/GameOn-Frontend/components/auth/welcome-auth-button.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/Frontend/components/auth/welcome-auth-button.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/GameOn-Frontend/components/auth/welcome-hero.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/Frontend/components/auth/welcome-hero.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/GameOn-Frontend/components/browse/constants.ts" beforeDir="false" afterPath="$PROJECT_DIR$/Frontend/components/browse/constants.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/GameOn-Frontend/components/browse/hooks/use-team-league-results.ts" beforeDir="false" afterPath="$PROJECT_DIR$/Frontend/components/browse/hooks/use-team-league-results.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/GameOn-Frontend/components/browse/utils.ts" beforeDir="false" afterPath="$PROJECT_DIR$/Frontend/components/browse/utils.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/GameOn-Frontend/components/external-link.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/Frontend/components/external-link.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/GameOn-Frontend/components/feature-flags/feature-flags-context.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/Frontend/components/feature-flags/feature-flags-context.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/GameOn-Frontend/components/feature-flags/flags-config.ts" beforeDir="false" afterPath="$PROJECT_DIR$/Frontend/components/feature-flags/flags-config.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/GameOn-Frontend/components/haptic-tab.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/Frontend/components/haptic-tab.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/GameOn-Frontend/components/header/add-button.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/Frontend/components/header/add-button.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/GameOn-Frontend/components/header/header-button.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/Frontend/components/header/header-button.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/GameOn-Frontend/components/header/header.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/Frontend/components/header/header.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/GameOn-Frontend/components/header/logo.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/Frontend/components/header/logo.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/GameOn-Frontend/components/header/page-title.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/Frontend/components/header/page-title.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/GameOn-Frontend/components/hello-wave.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/Frontend/components/hello-wave.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/GameOn-Frontend/components/info-card.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/Frontend/components/info-card.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/GameOn-Frontend/components/parallax-scroll-view.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/Frontend/components/parallax-scroll-view.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/GameOn-Frontend/components/privacy-disclaimer/constants.ts" beforeDir="false" afterPath="$PROJECT_DIR$/Frontend/components/privacy-disclaimer/constants.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/GameOn-Frontend/components/privacy-disclaimer/privacy-disclaimer.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/Frontend/components/privacy-disclaimer/privacy-disclaimer.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/GameOn-Frontend/components/privacy-disclaimer/utils.ts" beforeDir="false" afterPath="$PROJECT_DIR$/Frontend/components/privacy-disclaimer/utils.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/GameOn-Frontend/components/profile/profileStyle.ts" beforeDir="false" afterPath="$PROJECT_DIR$/Frontend/components/profile/profileStyle.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/GameOn-Frontend/components/sign-in/constants.ts" beforeDir="false" afterPath="$PROJECT_DIR$/Frontend/components/sign-in/constants.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/GameOn-Frontend/components/sign-in/styles.ts" beforeDir="false" afterPath="$PROJECT_DIR$/Frontend/components/sign-in/styles.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/GameOn-Frontend/components/sign-in/utils.ts" beforeDir="false" afterPath="$PROJECT_DIR$/Frontend/components/sign-in/utils.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/GameOn-Frontend/components/sign-up/constants.ts" beforeDir="false" afterPath="$PROJECT_DIR$/Frontend/components/sign-up/constants.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/GameOn-Frontend/components/sign-up/hooks/useInsertClerkToBe.ts" beforeDir="false" afterPath="$PROJECT_DIR$/Frontend/components/sign-up/hooks/useInsertClerkToBe.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/GameOn-Frontend/components/sign-up/models.ts" beforeDir="false" afterPath="$PROJECT_DIR$/Frontend/components/sign-up/models.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/GameOn-Frontend/components/sign-up/styles.ts" beforeDir="false" afterPath="$PROJECT_DIR$/Frontend/components/sign-up/styles.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/GameOn-Frontend/components/sign-up/utils.ts" beforeDir="false" afterPath="$PROJECT_DIR$/Frontend/components/sign-up/utils.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/GameOn-Frontend/components/sign-up/verification-input.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/Frontend/components/sign-up/verification-input.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/GameOn-Frontend/components/svg-image.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/Frontend/components/svg-image.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/GameOn-Frontend/components/teams/details-card.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/Frontend/components/teams/details-card.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/GameOn-Frontend/components/teams/logo-picker.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/Frontend/components/teams/logo-picker.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/GameOn-Frontend/components/teams/name-field.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/Frontend/components/teams/name-field.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/GameOn-Frontend/components/teams/team-helpers.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/Frontend/components/teams/team-helpers.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/GameOn-Frontend/components/teams/teams-styles.ts" beforeDir="false" afterPath="$PROJECT_DIR$/Frontend/components/teams/teams-styles.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/GameOn-Frontend/components/teams/visibility.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/Frontend/components/teams/visibility.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/GameOn-Frontend/components/themed-text.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/Frontend/components/themed-text.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/GameOn-Frontend/components/themed-view.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/Frontend/components/themed-view.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/GameOn-Frontend/components/ui/background.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/Frontend/components/ui/background.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/GameOn-Frontend/components/ui/card.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/Frontend/components/ui/card.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/GameOn-Frontend/components/ui/collapsible.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/Frontend/components/ui/collapsible.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/GameOn-Frontend/components/ui/content-area.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/Frontend/components/ui/content-area.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/GameOn-Frontend/components/ui/icon-symbol.ios.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/Frontend/components/ui/icon-symbol.ios.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/GameOn-Frontend/components/ui/icon-symbol.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/Frontend/components/ui/icon-symbol.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/GameOn-Frontend/components/ui/pickerModal.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/Frontend/components/ui/pickerModal.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/GameOn-Frontend/constants/auth-layout.ts" beforeDir="false" afterPath="$PROJECT_DIR$/Frontend/constants/auth-layout.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/GameOn-Frontend/constants/auth-styles.ts" beforeDir="false" afterPath="$PROJECT_DIR$/Frontend/constants/auth-styles.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/GameOn-Frontend/constants/colors.ts" beforeDir="false" afterPath="$PROJECT_DIR$/Frontend/constants/colors.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/GameOn-Frontend/constants/hook-constants.ts" beforeDir="false" afterPath="$PROJECT_DIR$/Frontend/constants/hook-constants.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/GameOn-Frontend/constants/images.ts" beforeDir="false" afterPath="$PROJECT_DIR$/Frontend/constants/images.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/GameOn-Frontend/constants/navigation.ts" beforeDir="false" afterPath="$PROJECT_DIR$/Frontend/constants/navigation.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/GameOn-Frontend/constants/theme.ts" beforeDir="false" afterPath="$PROJECT_DIR$/Frontend/constants/theme.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/GameOn-Frontend/contexts/search-context.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/Frontend/contexts/search-context.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/GameOn-Frontend/eslint.config.js" beforeDir="false" afterPath="$PROJECT_DIR$/Frontend/eslint.config.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/GameOn-Frontend/hooks/use-axios-clerk.ts" beforeDir="false" afterPath="$PROJECT_DIR$/Frontend/hooks/use-axios-clerk.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/GameOn-Frontend/hooks/use-color-scheme.ts" beforeDir="false" afterPath="$PROJECT_DIR$/Frontend/hooks/use-color-scheme.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/GameOn-Frontend/hooks/use-color-scheme.web.ts" beforeDir="false" afterPath="$PROJECT_DIR$/Frontend/hooks/use-color-scheme.web.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/GameOn-Frontend/hooks/use-theme-color.ts" beforeDir="false" afterPath="$PROJECT_DIR$/Frontend/hooks/use-theme-color.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/GameOn-Frontend/jest.setup.js" beforeDir="false" afterPath="$PROJECT_DIR$/Frontend/jest.setup.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/GameOn-Frontend/package-lock.json" beforeDir="false" afterPath="$PROJECT_DIR$/Frontend/package-lock.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/GameOn-Frontend/package.json" beforeDir="false" afterPath="$PROJECT_DIR$/Frontend/package.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/GameOn-Frontend/scripts/reset-project.js" beforeDir="false" afterPath="$PROJECT_DIR$/Frontend/scripts/reset-project.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/GameOn-Frontend/tsconfig.json" beforeDir="false" afterPath="$PROJECT_DIR$/Frontend/tsconfig.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/GameOn-Frontend/utils/error.ts" beforeDir="false" afterPath="$PROJECT_DIR$/Frontend/utils/error.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/GameOn-Frontend/utils/logger.ts" beforeDir="false" afterPath="$PROJECT_DIR$/Frontend/utils/logger.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/GameOn-Frontend/utils/onLogout-utils.ts" beforeDir="false" afterPath="$PROJECT_DIR$/Frontend/utils/onLogout-utils.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/README.md" beforeDir="false" afterPath="$PROJECT_DIR$/README.md" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/env.example" beforeDir="false" afterPath="$PROJECT_DIR$/env.example" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Backend/go-team-service/src/main/java/com/game/on/go_team_service/team/dto/TeamCreateRequest.java" beforeDir="false" afterPath="$PROJECT_DIR$/Backend/go-team-service/src/main/java/com/game/on/go_team_service/team/dto/TeamCreateRequest.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Frontend/app/(contexts)/browse/index.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/Frontend/app/(contexts)/browse/index.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Frontend/app/(contexts)/teams/[id]/index.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/Frontend/app/(contexts)/teams/[id]/index.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Frontend/app/(contexts)/teams/create-team.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/Frontend/app/(contexts)/teams/create-team.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Frontend/components/browse/utils.ts" beforeDir="false" afterPath="$PROJECT_DIR$/Frontend/components/browse/utils.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Frontend/hooks/use-axios-clerk.ts" beforeDir="false" afterPath="$PROJECT_DIR$/Frontend/hooks/use-axios-clerk.ts" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -344,18 +29,18 @@
     </option>
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
   </component>
-  <component name="GitHubPullRequestSearchHistory"><![CDATA[{
-  "lastFilter": {
-    "state": "OPEN",
-    "assignee": "mavmoud"
+  <component name="GitHubPullRequestSearchHistory">{
+  &quot;lastFilter&quot;: {
+    &quot;state&quot;: &quot;OPEN&quot;,
+    &quot;assignee&quot;: &quot;mavmoud&quot;
   }
-}]]></component>
-  <component name="GithubPullRequestsUISettings"><![CDATA[{
-  "selectedUrlAndAccountId": {
-    "url": "https://github.com/SoenCapstone/GameOn.git",
-    "accountId": "054a55c7-4c8b-4d8b-8d76-2e49d425be47"
+}</component>
+  <component name="GithubPullRequestsUISettings">{
+  &quot;selectedUrlAndAccountId&quot;: {
+    &quot;url&quot;: &quot;https://github.com/SoenCapstone/GameOn.git&quot;,
+    &quot;accountId&quot;: &quot;18762ce5-0ebf-4079-aeac-a85c67aa49dd&quot;
   }
-}]]></component>
+}</component>
   <component name="ProjectColorInfo">{
   &quot;associatedIndex&quot;: 2
 }</component>
@@ -366,9 +51,22 @@
   </component>
   <component name="PropertiesComponent"><![CDATA[{
   "keyToString": {
+    "Application.GoApiGatewayApplication.executor": "Run",
+    "Application.GoConfigServerApplication.executor": "Run",
+    "Application.GoDiscoveryServiceApplication.executor": "Run",
+    "Application.GoTeamServiceApplication.executor": "Run",
+    "Application.GoUserServiceApplication.executor": "Run",
+    "Maven.common [clean,install].executor": "Run",
+    "Maven.go-api-gateway [clean,install].executor": "Run",
+    "Maven.go-config-server [clean,install].executor": "Run",
+    "Maven.go-discovery-service [clean,install].executor": "Run",
+    "Maven.go-team-service [clean,install].executor": "Run",
+    "Maven.go-user-service [clean,install].executor": "Run",
     "RunOnceActivity.ShowReadmeOnStart": "true",
+    "RunOnceActivity.TerminalTabsStorage.copyFrom.TerminalArrangementManager.252": "true",
     "RunOnceActivity.git.unshallow": "true",
-    "git-widget-placeholder": "feature/no-ref/expo-github-action",
+    "git-widget-placeholder": "main",
+    "kotlin-language-version-configured": "true",
     "last_opened_file_path": "/Users/johnny/Desktop/GameOn",
     "node.js.detected.package.eslint": "true",
     "node.js.selected.package.eslint": "(autodetect)",
@@ -383,10 +81,86 @@
       <recent name="$PROJECT_DIR$/GameOn-Frontend/app/(contexts)" />
     </key>
   </component>
+  <component name="RunManager" selected="Application.GoTeamServiceApplication">
+    <configuration name="GoApiGatewayApplication" type="Application" factoryName="Application" temporary="true" nameIsGenerated="true">
+      <option name="MAIN_CLASS_NAME" value="com.game.on.go_api_gateway.GoApiGatewayApplication" />
+      <module name="go-api-gateway" />
+      <extension name="coverage">
+        <pattern>
+          <option name="PATTERN" value="com.game.on.go_api_gateway.*" />
+          <option name="ENABLED" value="true" />
+        </pattern>
+      </extension>
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="GoConfigServerApplication" type="Application" factoryName="Application" temporary="true" nameIsGenerated="true">
+      <option name="MAIN_CLASS_NAME" value="com.game.on.go_config_server.GoConfigServerApplication" />
+      <module name="go-config-server" />
+      <extension name="coverage">
+        <pattern>
+          <option name="PATTERN" value="com.game.on.go_config_server.*" />
+          <option name="ENABLED" value="true" />
+        </pattern>
+      </extension>
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="GoDiscoveryServiceApplication" type="Application" factoryName="Application" temporary="true" nameIsGenerated="true">
+      <option name="MAIN_CLASS_NAME" value="com.game.on.go_discovery_service.GoDiscoveryServiceApplication" />
+      <module name="go-discovery-service" />
+      <extension name="coverage">
+        <pattern>
+          <option name="PATTERN" value="com.game.on.go_discovery_service.*" />
+          <option name="ENABLED" value="true" />
+        </pattern>
+      </extension>
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="GoTeamServiceApplication" type="Application" factoryName="Application" temporary="true" nameIsGenerated="true">
+      <option name="MAIN_CLASS_NAME" value="com.game.on.go_team_service.GoTeamServiceApplication" />
+      <module name="go-team-service" />
+      <extension name="coverage">
+        <pattern>
+          <option name="PATTERN" value="com.game.on.go_team_service.*" />
+          <option name="ENABLED" value="true" />
+        </pattern>
+      </extension>
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="GoUserServiceApplication" type="Application" factoryName="Application" temporary="true" nameIsGenerated="true">
+      <option name="MAIN_CLASS_NAME" value="com.game.on.go_user_service.GoUserServiceApplication" />
+      <module name="go-user-service" />
+      <extension name="coverage">
+        <pattern>
+          <option name="PATTERN" value="com.game.on.go_user_service.*" />
+          <option name="ENABLED" value="true" />
+        </pattern>
+      </extension>
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
+    <recent_temporary>
+      <list>
+        <item itemvalue="Application.GoTeamServiceApplication" />
+        <item itemvalue="Application.GoUserServiceApplication" />
+        <item itemvalue="Application.GoApiGatewayApplication" />
+        <item itemvalue="Application.GoDiscoveryServiceApplication" />
+        <item itemvalue="Application.GoConfigServerApplication" />
+      </list>
+    </recent_temporary>
+  </component>
   <component name="SharedIndexes">
     <attachedChunks>
       <set>
-        <option value="bundled-js-predefined-d6986cc7102b-a71380e98a7c-JavaScript-WS-252.28238.10" />
+        <option value="bundled-jdk-9823dce3aa75-bf35d07a577b-intellij.indexing.shared.core-IU-252.27397.103" />
       </set>
     </attachedChunks>
   </component>
@@ -435,5 +209,13 @@
     <MESSAGE value="Fixed SonnarQube duplication error" />
     <MESSAGE value="[refactor] Changed directory names from `GameOn-Frontend` to `Frontend` and from `GameOn-Backend` to `Backend`" />
     <option name="LAST_COMMIT_MESSAGE" value="[refactor] Changed directory names from `GameOn-Frontend` to `Frontend` and from `GameOn-Backend` to `Backend`" />
+  </component>
+  <component name="github-copilot-workspace">
+    <instructionFileLocations>
+      <option value=".github/instructions" />
+    </instructionFileLocations>
+    <promptFileLocations>
+      <option value=".github/prompts" />
+    </promptFileLocations>
   </component>
 </project>

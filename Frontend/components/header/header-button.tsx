@@ -1,4 +1,4 @@
-import { Pressable, StyleSheet } from "react-native";
+import { Pressable, StyleSheet, Text } from "react-native";
 import { Href, router } from "expo-router";
 import React from "react";
 import { SFSymbols6_0 } from "sf-symbols-typescript";
@@ -7,9 +7,16 @@ import { IconSymbol } from "@/components/ui/icon-symbol";
 
 type HeaderButtonProps =
   | { type: "back" }
-  | { type: "custom"; icon: SFSymbols6_0; route: Href };
+  | {
+      type: "custom";
+      icon?: SFSymbols6_0;
+      route?: Href;
+      onPress?: () => void;
+      label?: string;
+    };
 
 export function HeaderButton(props: HeaderButtonProps) {
+  const isLabel = props.type === "custom" && !!props.label;
   const iconName = props.type === "back" ? "chevron.left" : props.icon;
 
   return (
@@ -19,21 +26,29 @@ export function HeaderButton(props: HeaderButtonProps) {
         if (props.type === "back") {
           router.back();
         } else {
-          router.push(props.route);
+          if (props.onPress) {
+            props.onPress();
+          } else if (props.route) {
+            router.push(props.route);
+          }
         }
       }}
     >
       <GlassView
         glassEffectStyle="regular"
         isInteractive={true}
-        style={styles.glass}
+        style={isLabel ? styles.glassLabel : styles.glass}
       >
-        <IconSymbol
-          name={iconName}
-          size={26}
-          color="white"
-          style={styles.symbol}
-        />
+        {isLabel ? (
+          <Text style={styles.labelText}>{props.label}</Text>
+        ) : (
+          <IconSymbol
+            name={iconName as SFSymbols6_0}
+            size={26}
+            color="white"
+            style={styles.symbol}
+          />
+        )}
       </GlassView>
     </Pressable>
   );
@@ -53,7 +68,22 @@ const styles = StyleSheet.create({
     alignSelf: "center",
     justifyContent: "center",
   },
+  glassLabel: {
+    minWidth: 96,
+    height: 40,
+    paddingHorizontal: 16,
+    borderRadius: 20,
+    backgroundColor: "transparent",
+    alignSelf: "center",
+    justifyContent: "center",
+  },
   symbol: {
     alignSelf: "center",
+  },
+  labelText: {
+    color: "white",
+    fontSize: 16,
+    fontWeight: "600",
+    textAlign: "center",
   },
 });

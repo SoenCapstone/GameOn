@@ -83,19 +83,19 @@ export default function Browse() {
   const renderItem = React.useCallback(
     (args: { item: SearchResult }) => {
       const { item } = args;
-      const isUrl =
+      const isRemoteUrl =
         item.logo.startsWith("http://") || item.logo.startsWith("https://");
-      const isSvg = isUrl && item.logo.toLowerCase().endsWith(".svg");
+      const isFileUri = item.logo.startsWith("file://");
+      const isSvg = isRemoteUrl && item.logo.toLowerCase().endsWith(".svg");
 
       const imageSource: ImageSourcePropType | undefined =
-        isUrl && !isSvg ? { uri: item.logo } : undefined;
+        (isRemoteUrl || isFileUri) && !isSvg ? { uri: item.logo } : undefined;
       let logoElement: React.ReactNode;
-      if (isUrl) {
-        if (isSvg) {
-          logoElement = <SvgImage uri={item.logo} width={48} height={48} />;
-        } else {
-          logoElement = null;
-        }
+      if (isRemoteUrl && isSvg) {
+        logoElement = <SvgImage uri={item.logo} width={48} height={48} />;
+      } else if (isFileUri || imageSource) {
+        // Let InfoCard render image source
+        logoElement = null;
       } else {
         logoElement = <Text style={searchStyles.logoText}>{item.logo}</Text>;
       }
