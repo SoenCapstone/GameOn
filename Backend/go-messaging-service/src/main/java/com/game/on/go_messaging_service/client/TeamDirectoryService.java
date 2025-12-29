@@ -22,9 +22,10 @@ public class TeamDirectoryService {
     public TeamSnapshot fetchSnapshot(UUID teamId) {
         try {
             RemoteTeamDetail detail = teamDirectoryClient.fetchTeam(teamId);
-            List<RemoteTeamMember> activeMembers = detail.members() == null
+            List<RemoteTeamMember> members = teamDirectoryClient.fetchMembers(teamId);
+            List<RemoteTeamMember> activeMembers = members == null
                     ? List.of()
-                    : detail.members().stream()
+                    : members.stream()
                     .filter(member -> member != null && member.userId() != null)
                     .filter(member -> member.status() == RemoteTeamMemberStatus.ACTIVE)
                     .toList();
