@@ -119,7 +119,7 @@ export default function TeamDetailById() {
                               style={{
                                 color: "#fff",
                                 fontSize: 12,
-                                fontWeight: "600",
+                                fontWeight: "500",
                               }}
                             >
                               {item.unreadCount}
