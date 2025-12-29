@@ -50,6 +50,12 @@ beforeEach(() => {
   mockPost = jest.fn(async () => ({ data: { id: "abc", slug: "my-new-team" } }));
 });
 
+function createDelayedResponse() {
+  return new Promise((resolve) => {
+    setTimeout(() => resolve({ data: { id: "abc", slug: "my-new-team" } }), 50);
+  });
+}
+
 describe("CreateTeamScreen", () => {
   let queryClient: QueryClient;
 
@@ -70,12 +76,6 @@ describe("CreateTeamScreen", () => {
 
   function renderWithClient(ui: React.ReactElement) {
     return render(<QueryClientProvider client={queryClient}>{ui}</QueryClientProvider>);
-  }
-
-  function createDelayedResponse() {
-    return new Promise((resolve) => {
-      setTimeout(() => resolve({ data: { id: "abc", slug: "my-new-team" } }), 50);
-    });
   }
 
   it("renders core UI elements", () => {
