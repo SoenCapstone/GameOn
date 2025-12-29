@@ -128,7 +128,7 @@ describe("fetchTeamResults", () => {
     const callArgs = mockedAxios.get.mock.calls[0];
     expect(callArgs[0]).toBeDefined(); // url
     expect(callArgs[1]).toBeDefined(); // config
-    expect(callArgs[1]!.params).toMatchObject({ size: "200", q: "SearchTerm" });
+    expect(callArgs[1]!.params).toMatchObject({ size: "20", q: "SearchTerm" });
   });
 
   it("does not send q param when query is empty", async () => {
@@ -140,7 +140,7 @@ describe("fetchTeamResults", () => {
     await fetchTeamResults(fakeApi, "");
     expect(mockedAxios.get).toHaveBeenCalledTimes(1);
     const callArgs = mockedAxios.get.mock.calls[0];
-    expect(callArgs[1]!.params).toMatchObject({ size: "200" });
+    expect(callArgs[1]!.params).toMatchObject({ size: "20" });
     expect(callArgs[1]!.params.q).toBeUndefined();
   });
 });
