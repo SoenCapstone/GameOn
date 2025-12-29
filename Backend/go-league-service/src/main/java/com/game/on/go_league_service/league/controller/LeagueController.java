@@ -2,10 +2,12 @@ package com.game.on.go_league_service.league.controller;
 
 import com.game.on.go_league_service.league.dto.LeagueCreateRequest;
 import com.game.on.go_league_service.league.dto.LeagueDetailResponse;
+import com.game.on.go_league_service.league.dto.LeagueInviteCreateRequest;
 import com.game.on.go_league_service.league.dto.LeagueListResponse;
 import com.game.on.go_league_service.league.dto.LeagueSearchCriteria;
 import com.game.on.go_league_service.league.dto.LeagueSeasonResponse;
 import com.game.on.go_league_service.league.dto.LeagueUpdateRequest;
+import com.game.on.go_league_service.league.dto.LeagueInviteRespondRequest;
 import com.game.on.go_league_service.league.service.LeagueService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -79,4 +81,25 @@ public class LeagueController {
         var response = leagueService.listSeasons(leagueId);
         return ResponseEntity.ok(response);
     }
+
+    @PostMapping("/invites")
+    public ResponseEntity<Void> createInvite(
+            @Valid @RequestBody LeagueInviteCreateRequest request
+    ) {
+        var callerId = currentUserProvider.requireUserId();
+        leagueService.createInvite(request, callerId);
+        return ResponseEntity.status(HttpStatus.CREATED).build();
+    }
+
+    @PostMapping("/invites/respond")
+    public ResponseEntity<Void> respondToInvite(
+            @Valid @RequestBody LeagueInviteRespondRequest request
+    ) {
+        var userId = currentUserProvider.requireUserId();
+        leagueService.respondToInvite(request.id(), userId, request);
+        return ResponseEntity.noContent().build();
+    }
+
+
+
 }

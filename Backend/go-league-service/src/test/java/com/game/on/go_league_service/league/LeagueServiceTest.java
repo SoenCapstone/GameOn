@@ -14,6 +14,7 @@ import com.game.on.go_league_service.league.model.LeagueLevel;
 import com.game.on.go_league_service.league.model.LeaguePrivacy;
 import com.game.on.go_league_service.league.repository.LeagueRepository;
 import com.game.on.go_league_service.league.repository.LeagueSeasonRepository;
+import com.game.on.go_league_service.league.repository.LeagueInviteRepository;
 import com.game.on.go_league_service.league.service.LeagueService;
 import com.game.on.go_league_service.league.util.SlugGenerator;
 import org.junit.jupiter.api.BeforeEach;
@@ -50,6 +51,9 @@ class LeagueServiceTest {
     private LeagueMetricsPublisher metricsPublisher;
 
     @Mock
+    private LeagueInviteRepository leagueInviteRepository;
+
+    @Mock
     private CurrentUserProvider currentUserProvider;
 
     @Mock
@@ -65,8 +69,8 @@ class LeagueServiceTest {
                 leagueSeasonRepository,
                 mapper,
                 currentUserProvider,
-                metricsPublisher
-        );
+                metricsPublisher, 
+                leagueInviteRepository);
     }
 
     @Test

@@ -6,18 +6,23 @@ import com.game.on.go_league_service.exception.ForbiddenException;
 import com.game.on.go_league_service.exception.NotFoundException;
 import com.game.on.go_league_service.league.dto.LeagueCreateRequest;
 import com.game.on.go_league_service.league.dto.LeagueDetailResponse;
+import com.game.on.go_league_service.league.dto.LeagueInviteCreateRequest;
 import com.game.on.go_league_service.league.dto.LeagueListResponse;
 import com.game.on.go_league_service.league.dto.LeagueSearchCriteria;
 import com.game.on.go_league_service.league.dto.LeagueSeasonResponse;
 import com.game.on.go_league_service.league.dto.LeagueSummaryResponse;
 import com.game.on.go_league_service.league.dto.LeagueUpdateRequest;
+import com.game.on.go_league_service.league.dto.LeagueInviteRespondRequest;
 import com.game.on.go_league_service.league.mapper.LeagueMapper;
 import com.game.on.go_league_service.league.metrics.LeagueMetricsPublisher;
 import com.game.on.go_league_service.league.model.League;
 import com.game.on.go_league_service.league.model.LeaguePrivacy;
+import com.game.on.go_league_service.league.model.LeagueInvite;
+import com.game.on.go_league_service.league.model.LeagueInviteStatus;
 import com.game.on.go_league_service.league.repository.LeagueRepository;
 import com.game.on.go_league_service.league.repository.LeagueSeasonRepository;
 import com.game.on.go_league_service.league.repository.LeagueSeasonRepository.LeagueSeasonCountProjection;
+import com.game.on.go_league_service.league.repository.LeagueInviteRepository;
 import com.game.on.go_league_service.league.util.SlugGenerator;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -49,6 +54,9 @@ public class LeagueService {
     private final LeagueMapper leagueMapper;
     private final CurrentUserProvider userProvider;
     private final LeagueMetricsPublisher metricsPublisher;
+    private final LeagueInviteRepository leagueInviteRepository;
+
+
 
     @Transactional
     public LeagueDetailResponse createLeague(LeagueCreateRequest request) {
@@ -109,6 +117,59 @@ public class LeagueService {
         metricsPublisher.leagueArchived();
         log.info("League {} archived by user {}", leagueId, userId);
     }
+
+    @Transactional
+public void createInvite(LeagueInviteCreateRequest request, Long callerId) {
+    var league = requireActiveLeague(request.leagueId());
+    ensureOwner(league, callerId);
+
+    leagueInviteRepository.findByLeagueIdAndInviteeUserId(
+            request.leagueId(),
+            request.inviteeUserId()
+    ).ifPresent(invite -> {
+        throw new BadRequestException("User already invited to this league");
+    });
+
+    Long inviteeUserId = request.inviteeUserId() != null
+        ? Long.valueOf(request.inviteeUserId())
+        : null;
+
+    var invite = LeagueInvite.builder()
+            .leagueId(request.leagueId())
+            .inviteeUserId(inviteeUserId)
+            .role(request.role())
+            .expiresAt(request.expiresAt())
+            .build();
+
+    leagueInviteRepository.save(invite);
+}
+
+
+    @Transactional
+    public void respondToInvite(UUID inviteId, Long callerId, LeagueInviteRespondRequest request) {
+        LeagueInvite invite = leagueInviteRepository.findById(inviteId)
+                .orElseThrow(() -> new NotFoundException("Invite not found"));
+
+        if (!invite.getInviteeUserId().equals(callerId)) {
+            throw new ForbiddenException("Not your invite");
+        }
+
+        if (invite.getStatus() != LeagueInviteStatus.PENDING) {
+            throw new BadRequestException("Invite already responded to");
+        }
+
+        if (invite.getExpiresAt() != null &&
+            invite.getExpiresAt().isBefore(OffsetDateTime.now())) {
+            invite.setStatus(LeagueInviteStatus.EXPIRED);
+            return;
+        }
+
+        invite.setStatus(request.status());
+        invite.setRespondedAt(OffsetDateTime.now());
+    }
+
+
+
 
     @Transactional(readOnly = true)
     public LeagueDetailResponse getLeague(UUID leagueId) {
