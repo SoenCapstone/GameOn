@@ -8,18 +8,18 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 
 public record TeamSnapshot(UUID teamId,
-                           Long ownerUserId,
+                           String ownerUserId,
                            List<RemoteTeamMember> activeMembers) {
 
-    public boolean isOwner(Long userId) {
+    public boolean isOwner(String userId) {
         return ownerUserId != null && ownerUserId.equals(userId);
     }
 
-    public boolean isActiveMember(Long userId) {
+    public boolean isActiveMember(String userId) {
         return activeMembers.stream().anyMatch(member -> member.userId().equals(userId));
     }
 
-    public Set<Long> activeMemberIds() {
+    public Set<String> activeMemberIds() {
         return activeMembers.stream()
                 .map(RemoteTeamMember::userId)
                 .collect(Collectors.toSet());
