@@ -3,10 +3,10 @@ CREATE TABLE conversations (
     type VARCHAR(20) NOT NULL,
     team_id UUID,
     name VARCHAR(120),
-    created_by_user_id BIGINT NOT NULL,
+    created_by_user_id VARCHAR(128) NOT NULL,
     is_event BOOLEAN NOT NULL DEFAULT FALSE,
-    direct_user_one_id BIGINT,
-    direct_user_two_id BIGINT,
+    direct_user_one_id VARCHAR(128),
+    direct_user_two_id VARCHAR(128),
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     last_message_at TIMESTAMP
@@ -21,7 +21,7 @@ CREATE INDEX idx_conversations_last_message ON conversations(last_message_at);
 CREATE TABLE conversation_participants (
     id UUID PRIMARY KEY,
     conversation_id UUID NOT NULL REFERENCES conversations(id) ON DELETE CASCADE,
-    user_id BIGINT NOT NULL,
+    user_id VARCHAR(128) NOT NULL,
     role VARCHAR(20) NOT NULL,
     joined_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     CONSTRAINT uq_conversation_participant UNIQUE (conversation_id, user_id)
@@ -32,7 +32,7 @@ CREATE INDEX idx_conversation_participants_user ON conversation_participants(use
 CREATE TABLE messages (
     id UUID PRIMARY KEY,
     conversation_id UUID NOT NULL REFERENCES conversations(id) ON DELETE CASCADE,
-    sender_id BIGINT NOT NULL,
+    sender_id VARCHAR(128) NOT NULL,
     content TEXT NOT NULL,
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     deleted_at TIMESTAMP
