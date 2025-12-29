@@ -36,12 +36,13 @@ CREATE UNIQUE INDEX uq_team_members_team_user ON team_members(team_id, user_id);
 CREATE INDEX idx_team_members_user ON team_members(user_id);
 
 
-CREATE TABLE team_invites (
+CREATE TABLE league_invites (
     id UUID PRIMARY KEY,
-    team_id UUID NOT NULL REFERENCES teams(id) ON DELETE CASCADE,
+    league_id UUID NOT NULL REFERENCES leagues(id) ON DELETE CASCADE,
     invited_by_user_id BIGINT NOT NULL,
     invitee_user_id BIGINT,
     invitee_email VARCHAR(255),
+    role VARCHAR(20) NOT NULL,
     status VARCHAR(20) NOT NULL,
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -51,11 +52,13 @@ CREATE TABLE team_invites (
 );
 
 
-CREATE UNIQUE INDEX uq_team_invites_user
-    ON team_invites(team_id, invitee_user_id);
+CREATE UNIQUE INDEX uq_league_invites_user
+    ON league_invites(league_id, invitee_user_id)
+    WHERE invitee_user_id IS NOT NULL;
 
-CREATE UNIQUE INDEX uq_team_invites_email
-    ON team_invites(team_id, invitee_email);
+CREATE UNIQUE INDEX uq_league_invites_email
+    ON league_invites(league_id, invitee_email)
+    WHERE invitee_email IS NOT NULL;
 
-CREATE INDEX idx_team_invites_status ON team_invites(status);
-CREATE INDEX idx_team_invites_expires_at ON team_invites(expires_at);
+CREATE INDEX idx_league_invites_status ON league_invites(status);
+CREATE INDEX idx_league_invites_expires_at ON league_invites(expires_at);

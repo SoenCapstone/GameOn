@@ -12,6 +12,7 @@ import com.game.on.go_league_service.league.model.LeagueLevel;
 import com.game.on.go_league_service.league.model.LeaguePrivacy;
 import com.game.on.go_league_service.league.repository.LeagueRepository;
 import com.game.on.go_league_service.league.repository.LeagueSeasonRepository;
+import com.game.on.go_league_service.league.repository.LeagueInviteRepository;
 import com.game.on.go_league_service.league.service.LeagueService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -48,11 +49,14 @@ class LeagueServiceTest {
     @Mock
     private LeagueMetricsPublisher metricsPublisher;
 
+    @Mock
+    private LeagueInviteRepository leagueInviteRepository;
+
     private LeagueService leagueService;
 
     @BeforeEach
     void setUp() {
-        leagueService = new LeagueService(leagueRepository, leagueSeasonRepository, new LeagueMapper(), metricsPublisher);
+        leagueService = new LeagueService(leagueRepository, leagueSeasonRepository, new LeagueMapper(), metricsPublisher, leagueInviteRepository);
     }
 
     @Test

@@ -1,9 +1,11 @@
 package com.game.on.go_league_service.league.mapper;
 
 import com.game.on.go_league_service.league.dto.LeagueDetailResponse;
+import com.game.on.go_league_service.league.dto.LeagueInviteRespondRequest;
 import com.game.on.go_league_service.league.dto.LeagueSeasonResponse;
 import com.game.on.go_league_service.league.dto.LeagueSummaryResponse;
 import com.game.on.go_league_service.league.model.League;
+import com.game.on.go_league_service.league.model.LeagueInvite;
 import com.game.on.go_league_service.league.model.LeagueSeason;
 import org.springframework.stereotype.Component;
 
@@ -54,4 +56,22 @@ public class LeagueMapper {
                 season.getArchivedAt()
         );
     }
+
+    public LeagueInviteRespondRequest toResponse(LeagueInvite invite) {
+    return new LeagueInviteRespondRequest(
+            invite.getId(),
+            invite.getLeagueId(),
+            String.valueOf(invite.getInvitedByUserId()),
+            invite.getInviteeUserId() != null ? invite.getInviteeUserId().toString() : null,
+            invite.getInviteeEmail(),
+            invite.getStatus(),
+            invite.getRole(),
+            invite.getCreatedAt(),
+            invite.getUpdatedAt(),
+            invite.getExpiresAt(),
+            invite.getRespondedAt()
+    );
+}
+
+
 }
