@@ -37,7 +37,7 @@ public class MessageService {
     private final MessageBroadcastGateway broadcastGateway;
 
     @Transactional
-    public MessageResponse sendMessage(UUID conversationId, Long senderId, String content) {
+    public MessageResponse sendMessage(UUID conversationId, String senderId, String content) {
         var sanitized = sanitizeContent(content);
         var conversation = conversationService.requireConversation(conversationId);
         conversationService.requireParticipant(conversationId, senderId);
@@ -55,7 +55,7 @@ public class MessageService {
 
     @Transactional(readOnly = true)
     public MessageHistoryResponse fetchHistory(UUID conversationId,
-                                               Long requesterId,
+                                               String requesterId,
                                                Integer limit,
                                                OffsetDateTime before) {
         conversationService.requireParticipant(conversationId, requesterId);

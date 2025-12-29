@@ -1,7 +1,6 @@
 package com.game.on.go_messaging_service.config;
 
 import com.game.on.go_messaging_service.websocket.GatewayHandshakeHandler;
-import com.game.on.go_messaging_service.websocket.StompContextInterceptor;
 import com.game.on.go_messaging_service.websocket.SubscriptionAuthorizationInterceptor;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Configuration;
@@ -17,7 +16,6 @@ import org.springframework.web.socket.config.annotation.WebSocketMessageBrokerCo
 public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
 
     private final GatewayHandshakeHandler handshakeHandler;
-    private final StompContextInterceptor stompContextInterceptor;
     private final SubscriptionAuthorizationInterceptor subscriptionAuthorizationInterceptor;
 
     @Override
@@ -37,6 +35,6 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
 
     @Override
     public void configureClientInboundChannel(ChannelRegistration registration) {
-        registration.interceptors(stompContextInterceptor, subscriptionAuthorizationInterceptor);
+        registration.interceptors(subscriptionAuthorizationInterceptor);
     }
 }

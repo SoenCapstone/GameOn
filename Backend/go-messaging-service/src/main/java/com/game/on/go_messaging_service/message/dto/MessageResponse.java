@@ -6,7 +6,7 @@ import java.util.UUID;
 public record MessageResponse(
         UUID id,
         UUID conversationId,
-        Long senderId,
+        String senderId,
         String content,
         OffsetDateTime createdAt
 ) {

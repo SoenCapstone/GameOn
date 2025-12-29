@@ -18,9 +18,9 @@ public class MessageBroadcastGateway {
     private final SimpMessagingTemplate messagingTemplate;
     private final ConversationMapper conversationMapper;
 
-    public void publishToUsers(Collection<Long> userIds, Message message) {
+    public void publishToUsers(Collection<String> userIds, Message message) {
         Runnable action = () -> userIds.forEach(userId -> messagingTemplate.convertAndSendToUser(
-                Long.toString(userId),
+                userId,
                 "/queue/messages",
                 conversationMapper.toMessageResponse(message)
         ));
