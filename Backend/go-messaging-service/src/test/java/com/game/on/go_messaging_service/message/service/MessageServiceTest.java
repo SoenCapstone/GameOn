@@ -55,7 +55,7 @@ class MessageServiceTest {
 
     @Test
     void sendMessage_rejectsBlankPayload() {
-        assertThatThrownBy(() -> messageService.sendMessage(UUID.randomUUID(), 10L, "   "))
+        assertThatThrownBy(() -> messageService.sendMessage(UUID.randomUUID(), "user-10", "   "))
                 .isInstanceOf(BadRequestException.class)
                 .hasMessageContaining("Message content cannot be empty");
 
@@ -67,9 +67,9 @@ class MessageServiceTest {
         UUID conversationId = UUID.randomUUID();
         when(messageRepository.findMessages(eq(conversationId), any())).thenReturn(List.of());
 
-        messageService.fetchHistory(conversationId, 98L, 25, null);
+        messageService.fetchHistory(conversationId, "user-98", 25, null);
 
-        verify(conversationService).requireParticipant(conversationId, 98L);
+        verify(conversationService).requireParticipant(conversationId, "user-98");
     }
 
     @Test
@@ -78,10 +78,10 @@ class MessageServiceTest {
         var conversation = Conversation.builder()
                 .id(conversationId)
                 .type(ConversationType.DIRECT)
-                .createdByUserId(10L)
+                .createdByUserId("user-10")
                 .build();
         when(conversationService.requireConversation(conversationId)).thenReturn(conversation);
-        when(participantRepository.findParticipantIds(conversationId)).thenReturn(List.of(10L, 20L));
+        when(participantRepository.findParticipantIds(conversationId)).thenReturn(List.of("user-10", "user-20"));
         when(messageRepository.save(any(Message.class))).thenAnswer(invocation -> {
             Message message = invocation.getArgument(0);
             message.setId(UUID.randomUUID());
@@ -96,11 +96,11 @@ class MessageServiceTest {
                     return new MessageResponse(m.getId(), conversationId, m.getSenderId(), m.getContent(), m.getCreatedAt());
                 });
 
-        var response = messageService.sendMessage(conversationId, 10L, "A quick ping");
+        var response = messageService.sendMessage(conversationId, "user-10", "A quick ping");
 
         assertThat(response.content()).isEqualTo("A quick ping");
         ArgumentCaptor<Message> messageCaptor = ArgumentCaptor.forClass(Message.class);
-        verify(broadcastGateway).publishToUsers(eq(List.of(10L, 20L)), messageCaptor.capture());
+        verify(broadcastGateway).publishToUsers(eq(List.of("user-10", "user-20")), messageCaptor.capture());
         assertThat(messageCaptor.getValue().getContent()).isEqualTo("A quick ping");
     }
 }
