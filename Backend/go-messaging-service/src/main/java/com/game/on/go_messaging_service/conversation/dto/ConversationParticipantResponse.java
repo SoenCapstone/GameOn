@@ -5,7 +5,7 @@ import com.game.on.go_messaging_service.conversation.model.ConversationParticipa
 import java.time.OffsetDateTime;
 
 public record ConversationParticipantResponse(
-        Long userId,
+        String userId,
         ConversationParticipantRole role,
         OffsetDateTime joinedAt
 ) {

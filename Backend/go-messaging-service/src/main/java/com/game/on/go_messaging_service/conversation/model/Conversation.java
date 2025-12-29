@@ -44,17 +44,17 @@ public class Conversation {
     @Column(length = 120)
     private String name;
 
-    @Column(name = "created_by_user_id", nullable = false)
-    private Long createdByUserId;
+    @Column(name = "created_by_user_id", nullable = false, length = 128)
+    private String createdByUserId;
 
     @Column(name = "is_event", nullable = false)
     private boolean event;
 
-    @Column(name = "direct_user_one_id")
-    private Long directUserOneId;
+    @Column(name = "direct_user_one_id", length = 128)
+    private String directUserOneId;
 
-    @Column(name = "direct_user_two_id")
-    private Long directUserTwoId;
+    @Column(name = "direct_user_two_id", length = 128)
+    private String directUserTwoId;
 
     @CreatedDate
     @Column(name = "created_at", nullable = false, updatable = false)

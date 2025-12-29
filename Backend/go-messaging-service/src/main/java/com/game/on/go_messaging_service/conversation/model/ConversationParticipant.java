@@ -36,8 +36,8 @@ public class ConversationParticipant {
     @JoinColumn(name = "conversation_id", nullable = false)
     private Conversation conversation;
 
-    @Column(name = "user_id", nullable = false)
-    private Long userId;
+    @Column(name = "user_id", nullable = false, length = 128)
+    private String userId;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 20)

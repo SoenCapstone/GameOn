@@ -1,6 +1,6 @@
 package com.game.on.go_messaging_service.conversation.dto;
 
-import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.NotBlank;
 
-public record DirectConversationRequest(@NotNull(message = "targetUserId is required") Long targetUserId) {
+public record DirectConversationRequest(@NotBlank(message = "targetUserId is required") String targetUserId) {
 }

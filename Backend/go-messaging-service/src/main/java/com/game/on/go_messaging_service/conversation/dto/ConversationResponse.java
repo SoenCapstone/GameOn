@@ -13,7 +13,7 @@ public record ConversationResponse(
         UUID teamId,
         String name,
         boolean isEvent,
-        Long createdByUserId,
+        String createdByUserId,
         OffsetDateTime createdAt,
         OffsetDateTime lastMessageAt,
         List<ConversationParticipantResponse> participants,
