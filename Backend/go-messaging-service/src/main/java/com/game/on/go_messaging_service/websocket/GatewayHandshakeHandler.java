@@ -1,9 +1,9 @@
 package com.game.on.go_messaging_service.websocket;
 
-import com.game.on.go_messaging_service.auth.CallerContextHolder;
 import com.game.on.go_messaging_service.exception.UnauthorizedException;
 import org.springframework.http.server.ServerHttpRequest;
-import org.springframework.http.server.ServerHttpResponse;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.stereotype.Component;
 import org.springframework.web.socket.WebSocketHandler;
 import org.springframework.web.socket.server.support.DefaultHandshakeHandler;
@@ -18,10 +18,11 @@ public class GatewayHandshakeHandler extends DefaultHandshakeHandler {
     protected Principal determineUser(ServerHttpRequest request,
                                       WebSocketHandler wsHandler,
                                       Map<String, Object> attributes) {
-        var context = CallerContextHolder.get();
-        if (context == null || context.userId() == null) {
-            throw new UnauthorizedException("User context missing for WebSocket handshake");
+        var authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication != null && authentication.getPrincipal() instanceof Jwt jwt) {
+            var email = jwt.getClaimAsString("email");
+            return new MessagingPrincipal(jwt.getSubject(), email);
         }
-        return new MessagingPrincipal(context.userId(), context.email());
+        throw new UnauthorizedException("User context missing for WebSocket handshake");
     }
 }
