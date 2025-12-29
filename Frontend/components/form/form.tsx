@@ -9,6 +9,7 @@ import { DateTimeItem } from "@/components/form/date-time-item";
 import { ButtonItem } from "@/components/form/button-item";
 import { MenuItem } from "@/components/form/menu-item";
 import { ColorItem } from "@/components/form/color-item";
+import { TextAreaItem } from "@/components/form/text-area-item";
 
 interface FormProps {
   readonly children: ReactNode;
@@ -31,6 +32,7 @@ Form.DateTime = DateTimeItem;
 Form.Button = ButtonItem;
 Form.Menu = MenuItem;
 Form.Color = ColorItem;
+Form.TextArea = TextAreaItem;
 
 const styles = StyleSheet.create({
   form: { gap: 22 },
