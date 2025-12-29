@@ -8,8 +8,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.stereotype.Controller;
 
-import java.security.Principal;
-
 @Controller
 @RequiredArgsConstructor
 public class MessagingWebSocketController {
@@ -18,8 +16,8 @@ public class MessagingWebSocketController {
     private final CurrentUserProvider currentUserProvider;
 
     @MessageMapping("/messages/send")
-    public void send(@Valid SendMessageRequest request, Principal principal) {
-        var senderId = currentUserProvider.requireUserId(principal);
+    public void send(@Valid SendMessageRequest request) {
+        var senderId = currentUserProvider.requireUserId();
         messageService.sendMessage(request.conversationId(), senderId, request.content());
     }
 }
