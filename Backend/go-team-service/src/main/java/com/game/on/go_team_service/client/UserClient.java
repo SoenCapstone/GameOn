@@ -1,7 +1,7 @@
 package com.game.on.go_team_service.client;
 
 import com.game.on.go_team_service.config.FeignAuthForwardingConfig;
-import com.game.on.go_user_service.dto.UserResponse;
+import com.game.on.common.dto.UserResponse;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
