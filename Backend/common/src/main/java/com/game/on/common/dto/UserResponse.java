@@ -1,4 +1,4 @@
-package com.game.on.go_user_service.dto;
+package com.game.on.common.dto;
 
 public record UserResponse(
         String id,

@@ -13,7 +13,7 @@ import com.game.on.go_team_service.team.model.*;
 import com.game.on.go_team_service.team.repository.TeamInviteRepository;
 import com.game.on.go_team_service.team.repository.TeamMemberRepository;
 import com.game.on.go_team_service.team.repository.TeamRepository;
-import com.game.on.go_user_service.dto.UserResponse;
+import com.game.on.common.dto.UserResponse;
 import feign.FeignException;
 import org.springframework.transaction.annotation.Transactional;
 import lombok.RequiredArgsConstructor;
