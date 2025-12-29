@@ -2,7 +2,6 @@ package com.game.on.go_messaging_service.conversation.service;
 
 import com.game.on.go_messaging_service.client.TeamDirectoryService;
 import com.game.on.go_messaging_service.client.TeamSnapshot;
-import com.game.on.go_messaging_service.client.dto.RemoteTeamMember;
 import com.game.on.go_messaging_service.conversation.dto.ConversationListResponse;
 import com.game.on.go_messaging_service.conversation.dto.ConversationResponse;
 import com.game.on.go_messaging_service.conversation.dto.DirectConversationRequest;
@@ -44,16 +43,15 @@ public class ConversationService {
     private static final int MAX_GROUP_NAME = 120;
 
     @Transactional
-    public ConversationResponse createDirectConversation(DirectConversationRequest request, Long callerId) {
+    public ConversationResponse createDirectConversation(DirectConversationRequest request, String callerId) {
         var targetUserId = request.targetUserId();
-        if (targetUserId == null) {
-            throw new BadRequestException("targetUserId is required");
-        }
         if (targetUserId.equals(callerId)) {
             throw new BadRequestException("Cannot start a direct conversation with yourself");
         }
-        var first = Math.min(callerId, targetUserId);
-        var second = Math.max(callerId, targetUserId);
+        var ordered = new java.util.ArrayList<>(List.of(callerId, targetUserId));
+        ordered.sort(String::compareTo);
+        var first = ordered.get(0);
+        var second = ordered.get(1);
         var existing = conversationRepository.findByDirectUserOneIdAndDirectUserTwoId(first, second);
         if (existing.isPresent()) {
             return buildResponse(existing.get());
@@ -83,7 +81,7 @@ public class ConversationService {
     @Transactional
     public ConversationResponse createTeamConversation(UUID teamId,
                                                        TeamConversationRequest request,
-                                                       Long callerId) {
+                                                       String callerId) {
         var snapshot = teamDirectoryService.fetchSnapshot(teamId);
         if (!snapshot.isOwner(callerId)) {
             throw new ForbiddenException("Only the team owner can create a team chat");
@@ -117,7 +115,7 @@ public class ConversationService {
     }
 
     @Transactional(readOnly = true)
-    public ConversationListResponse listConversations(Long callerId) {
+    public ConversationListResponse listConversations(String callerId) {
         var conversationIds = conversationRepository.findConversationIdsForUser(callerId);
         if (conversationIds.isEmpty()) {
             return new ConversationListResponse(List.of());
@@ -150,12 +148,12 @@ public class ConversationService {
     }
 
     @Transactional
-    public ConversationParticipant requireParticipant(UUID conversationId, Long userId) {
+    public ConversationParticipant requireParticipant(UUID conversationId, String userId) {
         var conversation = requireConversation(conversationId);
         return ensureParticipant(conversation, userId);
     }
 
-    private ConversationParticipant ensureParticipant(Conversation conversation, Long userId) {
+    private ConversationParticipant ensureParticipant(Conversation conversation, String userId) {
         var participant = participantRepository.findByConversationIdAndUserId(conversation.getId(), userId)
                 .orElse(null);
         if (conversation.isDirect()) {
@@ -206,13 +204,13 @@ public class ConversationService {
     }
 
     private ConversationParticipant buildParticipant(Conversation conversation,
-                                                     Long userId,
+                                                     String userId,
                                                      ConversationParticipantRole role) {
         return buildParticipant(conversation, userId, role, null);
     }
 
     private ConversationParticipant buildParticipant(Conversation conversation,
-                                                     Long userId,
+                                                     String userId,
                                                      ConversationParticipantRole role,
                                                      OffsetDateTime joinedAt) {
         return ConversationParticipant.builder()

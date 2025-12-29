@@ -12,7 +12,7 @@ import java.util.UUID;
 
 public interface ConversationRepository extends JpaRepository<Conversation, UUID> {
 
-    Optional<Conversation> findByDirectUserOneIdAndDirectUserTwoId(Long firstUserId, Long secondUserId);
+    Optional<Conversation> findByDirectUserOneIdAndDirectUserTwoId(String firstUserId, String secondUserId);
 
     @Query("""
             select c from Conversation c
@@ -27,7 +27,7 @@ public interface ConversationRepository extends JpaRepository<Conversation, UUID
             where cp.userId = :userId
             order by coalesce(c.lastMessageAt, c.createdAt) desc
             """)
-    List<UUID> findConversationIdsForUser(@Param("userId") Long userId);
+    List<UUID> findConversationIdsForUser(@Param("userId") String userId);
 
     List<Conversation> findByIdIn(Collection<UUID> ids);
 }

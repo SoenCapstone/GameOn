@@ -34,8 +34,8 @@ public class Message {
     @JoinColumn(name = "conversation_id", nullable = false)
     private Conversation conversation;
 
-    @Column(name = "sender_id", nullable = false)
-    private Long senderId;
+    @Column(name = "sender_id", nullable = false, length = 128)
+    private String senderId;
 
     @Column(nullable = false, columnDefinition = "TEXT")
     private String content;

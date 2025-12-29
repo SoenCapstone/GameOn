@@ -12,14 +12,14 @@ import java.util.UUID;
 
 public interface ConversationParticipantRepository extends JpaRepository<ConversationParticipant, UUID> {
 
-    Optional<ConversationParticipant> findByConversationIdAndUserId(UUID conversationId, Long userId);
+    Optional<ConversationParticipant> findByConversationIdAndUserId(UUID conversationId, String userId);
 
     List<ConversationParticipant> findByConversationId(UUID conversationId);
 
     List<ConversationParticipant> findByConversationIdIn(Collection<UUID> conversationIds);
 
-    boolean existsByConversationIdAndUserId(UUID conversationId, Long userId);
+    boolean existsByConversationIdAndUserId(UUID conversationId, String userId);
 
     @Query("select cp.userId from ConversationParticipant cp where cp.conversation.id = :conversationId")
-    List<Long> findParticipantIds(@Param("conversationId") UUID conversationId);
+    List<String> findParticipantIds(@Param("conversationId") UUID conversationId);
 }
