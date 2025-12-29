@@ -15,5 +15,5 @@ public interface TeamRepository extends JpaRepository<Team, UUID>, JpaSpecificat
 
     boolean existsBySlug(String slug);
 
-    boolean existsByIdAndOwnerUserId(UUID id, Long ownerUserId);
+//    boolean existsByIdAndOwnerUserId(UUID id, Long ownerUserId);
 }

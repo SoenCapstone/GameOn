@@ -14,14 +14,14 @@ public interface TeamMemberRepository extends JpaRepository<TeamMember, UUID> {
 
     List<TeamMember> findByTeamId(UUID teamId);
 
-    Optional<TeamMember> findByTeamIdAndUserId(UUID teamId, Long userId);
+    Optional<TeamMember> findByTeamIdAndUserId(UUID teamId, String userId);
 
-    boolean existsByTeamIdAndUserId(UUID teamId, Long userId);
+    boolean existsByTeamIdAndUserId(UUID teamId, String userId);
 
     long countByTeamIdAndStatus(UUID teamId, TeamMemberStatus status);
 
     boolean existsByTeamIdAndRole(UUID teamId, TeamRole role);
 
     @Query("select tm from TeamMember tm where tm.userId = :userId and tm.team.deletedAt is null")
-    List<TeamMember> findActiveMemberships(Long userId);
+    List<TeamMember> findActiveMemberships(String userId);
 }

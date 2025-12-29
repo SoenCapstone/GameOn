@@ -33,40 +33,41 @@ jobs:
           distribution: temurin
           java-version: "21"
           cache: maven
-          
-      - name: Build common
+          cache-dependency-path: |
+            Backend/common/pom.xml
+            Backend/go-user-service/pom.xml
+            Backend/go-team-service/pom.xml
+
+      - name: Build & install common
         run: |
-          cd common &&
-          mvn -B -ntp -DskipTests package
+          cd common
+          mvn -B -ntp -DskipTests install
 
       - name: Unit tests (common)
         run: |
-          cd common &&
+          cd common
           mvn -B -ntp -DskipITs test
-          
-      - name: Install common jar
-        run: mvn install:install-file -Dfile=./common/target/common-1.0-SNAPSHOT.jar -DgroupId=com.game.on -DartifactId=common -Dversion=1.0-SNAPSHOT -Dpackaging=jar
-        
-      - name: Build user service
-        run: | 
-          cd go-user-service &&
-          mvn -B -ntp -DskipTests package
+
+      - name: Build & install user service
+        run: |
+          cd go-user-service
+          mvn -B -ntp -DskipTests install
 
       - name: Run user service Tests
         run: |
-          cd go-user-service &&
+          cd go-user-service
           mvn -B -ntp -DskipITs test
-          
+
       - name: Build team service
-        run: | 
-          cd go-team-service &&
+        run: |
+          cd go-team-service
           mvn -B -ntp -DskipTests package
 
-# Team service tests need a fix, then this can be uncommented
-#      - name: Run team service Tests
-#        run: |
-#          cd go-team-service &&
-#          mvn -B -ntp -DskipITs test
+      # Team service tests need a fix, then this can be uncommented
+      # - name: Run team service Tests
+      #   run: |
+      #     cd go-team-service
+      #     mvn -B -ntp -DskipITs test
 
       - name: Upload test reports (common)
         if: always()
@@ -83,12 +84,12 @@ jobs:
           name: backend-user-service-surefire-reports
           path: Backend/go-user-service/target/surefire-reports/**
           if-no-files-found: ignore
- 
-# See comment above 
-#      - name: Upload test reports (Team service)
-#        if: always()
-#        uses: actions/upload-artifact@v4
-#        with:
-#          name: backend-team-service-surefire-reports
-#          path: Backend/go-team-service/target/surefire-reports/**
-#          if-no-files-found: ignore
+
+      # See comment above
+      # - name: Upload test reports (Team service)
+      #   if: always()
+      #   uses: actions/upload-artifact@v4
+      #   with:
+      #     name: backend-team-service-surefire-reports
+      #     path: Backend/go-team-service/target/surefire-reports/**
+      #     if-no-files-found: ignore

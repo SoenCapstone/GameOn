@@ -1,16 +1,22 @@
 package com.game.on.go_team_service.team.dto;
 
-import jakarta.validation.constraints.Email;
+import com.game.on.go_team_service.team.model.TeamRole;
 import jakarta.validation.constraints.Future;
-import jakarta.validation.constraints.Positive;
+import jakarta.validation.constraints.NotNull;
 
 import java.time.OffsetDateTime;
+import java.util.UUID;
 
 public record TeamInviteCreateRequest(
-        @Positive(message = "inviteeUserId must be positive")
-        Long inviteeUserId,
-        @Email(message = "inviteeEmail must be a valid email")
-        String inviteeEmail,
+        @NotNull(message = "Team ID is required")
+        UUID teamId,
+
+        @NotNull(message = "Invitee user ID is required")
+        String inviteeUserId,
+
+        @NotNull(message = "Team role is required")
+        TeamRole role,
+
         @Future(message = "expiresAt must be in the future")
         OffsetDateTime expiresAt
 ) {
