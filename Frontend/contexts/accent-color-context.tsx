@@ -3,13 +3,15 @@ import { AccentColors } from "@/constants/colors";
 
 const AccentColorContext = createContext<string>(AccentColors.blue);
 
+interface AccentColorProviderProps {
+  readonly children: ReactNode;
+  readonly color: string;
+}
+
 export function AccentColorProvider({
   children,
   color,
-}: {
-  children: ReactNode;
-  color: string;
-}) {
+}: AccentColorProviderProps) {
   return (
     <AccentColorContext.Provider value={color}>
       {children}
