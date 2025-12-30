@@ -1,5 +1,5 @@
 import { ContentArea } from "@/components/ui/content-area";
-import { View } from "react-native";
+import { FormExample } from "@/components/form/form-example";
 
 export default function Settings() {
   return (
@@ -7,7 +7,7 @@ export default function Settings() {
       scrollable
       backgroundProps={{ preset: "orange", mode: "form" }}
     >
-      <View />
+      <FormExample />
     </ContentArea>
   );
 }
