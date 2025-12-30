@@ -2,7 +2,7 @@ package com.game.on.go_user_service.controller;
 
 import com.game.on.go_user_service.dto.UserRequestCreate;
 import com.game.on.go_user_service.dto.UserRequestUpdate;
-import com.game.on.go_user_service.dto.UserResponse;
+import com.game.on.common.dto.UserResponse;
 import com.game.on.go_user_service.service.UserService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;

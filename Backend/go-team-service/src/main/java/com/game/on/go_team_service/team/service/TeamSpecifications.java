@@ -37,7 +37,7 @@ public final class TeamSpecifications {
                 );
     }
 
-    public static Specification<Team> mine(Long userId) {
+    public static Specification<Team> mine(String userId) {
         return (root, query, builder) -> {
             if (userId == null) {
                 return null;

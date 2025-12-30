@@ -22,11 +22,15 @@ spring:
             - id: go-team-service
               uri: lb://GO-TEAM-SERVICE
               predicates:
-                - Path=/api/v1/teams/**
+                - Path=/api/v1/teams/**,/api/v1/invites/**
             - id: go-league-service
               uri: lb://GO-LEAGUE-SERVICE
               predicates:
                 - Path=/api/v1/leagues/**
+            - id: go-messaging-service
+              uri: lb://GO-MESSAGING-SERVICE
+              predicates:
+                - Path=/api/v1/messaging/**
   security:
     oauth2:
       resourceserver:

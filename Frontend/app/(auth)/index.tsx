@@ -5,10 +5,7 @@ import { PrivacyDisclaimer } from "@/components/privacy-disclaimer/privacy-discl
 import { ContentArea } from "@/components/ui/content-area";
 import { WelcomeAuthButton } from "@/components/auth/welcome-auth-button";
 import { DevTools } from "@/components/auth/dev-login";
-import Constants, { ExecutionEnvironment } from "expo-constants";
-
-const isExpoGo =
-  Constants.executionEnvironment === ExecutionEnvironment.StoreClient;
+import { runtime } from "@/utils/runtime";
 
 export default function WelcomeScreen() {
   return (
@@ -17,7 +14,7 @@ export default function WelcomeScreen() {
       <View style={authStyles.container}>
         <WelcomeAuthButton route={"/(auth)/sign-in"} label={"Sign In"} />
         <WelcomeAuthButton route="/(auth)/sign-up" label={"Create Account"} />
-        {(__DEV__ || isExpoGo) && <DevTools />}
+        {(runtime.isRunningInExpoGo || runtime.isDevelopment) && <DevTools />}
         <PrivacyDisclaimer />
       </View>
     </ContentArea>

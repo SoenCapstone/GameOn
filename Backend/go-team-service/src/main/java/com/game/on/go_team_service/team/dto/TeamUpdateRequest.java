@@ -4,8 +4,6 @@ import com.game.on.go_team_service.team.model.TeamPrivacy;
 import jakarta.validation.constraints.Positive;
 import jakarta.validation.constraints.Size;
 
-import java.util.UUID;
-
 public record TeamUpdateRequest(
         @Size(max = 150, message = "name cannot exceed 150 characters")
         String name,

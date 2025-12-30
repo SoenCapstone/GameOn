@@ -12,7 +12,7 @@ public record TeamDetailResponse(
         String sport,
 //        UUID leagueId,
         String scope,
-        Long ownerUserId,
+        String ownerUserId,
         String slug,
         String logoUrl,
         String location,
@@ -20,7 +20,6 @@ public record TeamDetailResponse(
         TeamPrivacy privacy,
         boolean archived,
         OffsetDateTime createdAt,
-        OffsetDateTime updatedAt,
-        List<TeamMemberResponse> members
+        OffsetDateTime updatedAt
 ) {
 }

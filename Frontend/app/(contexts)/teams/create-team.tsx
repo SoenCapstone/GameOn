@@ -9,6 +9,12 @@ import { TeamNameField } from "@/components/teams/name-field";
 import { TeamDetailsCard } from "@/components/teams/details-card";
 import { TeamVisibilitySection } from "@/components/teams/visibility";
 import { createScopedLog } from "@/utils/logger";
+import { useMutation } from "@tanstack/react-query";
+import {
+  useAxiosWithClerk,
+  GO_TEAM_SERVICE_ROUTES,
+} from "@/hooks/use-axios-clerk";
+import { errorToString } from "@/utils/error";
 
 const log = createScopedLog("Create Team Page");
 
@@ -16,6 +22,7 @@ type PickerType = "sport" | "scope" | "city";
 
 export default function CreateTeamScreen() {
   const router = useRouter();
+  const api = useAxiosWithClerk();
 
   const SCOPE_OPTIONS: Option[] = [
     { id: "casual", label: "Casual" },
@@ -70,16 +77,42 @@ export default function CreateTeamScreen() {
 
   const currentConfig = openPicker ? pickerConfig[openPicker] : undefined;
 
+  const createTeamMutation = useMutation({
+    mutationFn: async () => {
+      const payload = {
+        name: teamName.trim(),
+        sport: selectedSport?.id ?? "",
+        scope: selectedScope?.id ?? "",
+        logoUrl: logoUri ?? "",
+        privacy: isPublic ? "PUBLIC" : "PRIVATE",
+      };
+      log.info("Sending team creation payload:", payload);
+      const resp = await api.post(GO_TEAM_SERVICE_ROUTES.CREATE, payload);
+      return resp.data as { id: string; slug: string };
+    },
+    onSuccess: (data) => {
+      log.info("Team created:", data);
+      router.replace(`/teams/${data.id}`);
+    },
+    onError: (err) => {
+      log.error("Create team failed", errorToString(err));
+    },
+  });
+
   const handleCreateTeam = () => {
-    log.info("Create team payload:", {
-      teamName,
-      sportId: selectedSport?.id,
-      scopeId: selectedScope.id,
-      cityId: selectedCity?.id,
-      isPublic,
-      logoUri,
-    });
-    router.back();
+    if (!teamName.trim()) {
+      log.warn("Team name is required");
+      return;
+    }
+    if (!selectedSport) {
+      log.warn("Sport is required");
+      return;
+    }
+    if (!selectedCity) {
+      log.warn("City is required");
+      return;
+    }
+    createTeamMutation.mutate();
   };
 
   return (
@@ -97,8 +130,14 @@ export default function CreateTeamScreen() {
 
       <TeamVisibilitySection isPublic={isPublic} onChangePublic={setIsPublic} />
 
-      <Pressable style={styles.createButton} onPress={handleCreateTeam}>
-        <Text style={styles.createButtonText}>Create Team</Text>
+      <Pressable
+        style={styles.createButton}
+        onPress={handleCreateTeam}
+        disabled={createTeamMutation.isPending}
+      >
+        <Text style={styles.createButtonText}>
+          {createTeamMutation.isPending ? "Creating..." : "Create Team"}
+        </Text>
       </Pressable>
 
       <PickerModal

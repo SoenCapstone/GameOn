@@ -1,4 +1,3 @@
-
 import { log, createScopedLog } from "@/utils/logger";
 
 describe("logger module behavior", () => {
@@ -38,6 +37,4 @@ describe("logger module behavior", () => {
 
     consoleSpy.mockRestore();
   });
-
-
 });
