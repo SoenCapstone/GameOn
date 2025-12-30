@@ -12,6 +12,7 @@ import { ColorItem } from "@/components/form/color-item";
 import { TextAreaItem } from "@/components/form/text-area-item";
 import { ProfileItem } from "@/components/form/profile-item";
 import { IconItem } from "@/components/form/icon-item";
+import { MenuCardItem } from "@/components/form/menu-card-item";
 
 interface FormProps {
   readonly children: ReactNode;
@@ -37,6 +38,7 @@ Form.Color = ColorItem;
 Form.TextArea = TextAreaItem;
 Form.Profile = ProfileItem;
 Form.Icon = IconItem;
+Form.MenuCard = MenuCardItem;
 
 const styles = StyleSheet.create({
   form: { gap: 22 },
