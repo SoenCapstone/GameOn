@@ -4,6 +4,7 @@ import { Header } from "@/components/header/header";
 import { Logo } from "@/components/header/logo";
 import { PageTitle } from "@/components/header/page-title";
 import { HeaderButton } from "@/components/header/header-button";
+import { useSearch } from "@/contexts/search-context";
 
 const header = () => (
   <Header left={<Logo />} center={<PageTitle title="Teams" />} />
@@ -17,6 +18,7 @@ const createTeamHeader = () => (
 );
 
 export default function TeamsLayout() {
+  const { setQuery, setSearchActive } = useSearch();
   return (
     <Stack>
       <Stack.Screen
@@ -41,6 +43,16 @@ export default function TeamsLayout() {
           headerTransparent: true,
           headerShadowVisible: false,
           headerBackVisible: false,
+          headerSearchBarOptions: {
+            hideNavigationBar: false,
+            placement: "automatic",
+            onChangeText: (event) => {
+              const text = event.nativeEvent.text || "";
+              setQuery(text);
+            },
+            onFocus: () => setSearchActive(true),
+            onBlur: () => setSearchActive(false),
+          },
         }}
       />
       <Stack.Screen
