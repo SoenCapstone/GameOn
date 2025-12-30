@@ -1,6 +1,5 @@
 import { Platform, Alert, ToastAndroid } from "react-native";
 import {
-  isIOSPadding,
   displayFormikError,
   SignUpSchema,
   humanizeClerkError,
@@ -27,18 +26,6 @@ beforeEach(() => {
   jest.clearAllMocks();
   (ToastAndroid.show as jest.Mock) = mockToastAndroidShow;
   (Alert.alert as jest.Mock) = mockAlert;
-});
-
-describe("isIOSPadding", () => {
-  it("returns 'padding' for iOS platform", () => {
-    Platform.OS = "ios";
-    expect(isIOSPadding()).toBe("padding");
-  });
-
-  it("returns undefined for Android platform", () => {
-    Platform.OS = "android";
-    expect(isIOSPadding()).toBeUndefined();
-  });
 });
 
 describe("displayFormikError", () => {
@@ -154,8 +141,9 @@ describe("SignUpSchema", () => {
 
   describe("birth validation", () => {
     it("validates required birth date", async () => {
-      await expect(SignUpSchema.validateAt("birth", { birth: "" })).rejects
-        .toThrow();
+      await expect(
+        SignUpSchema.validateAt("birth", { birth: "" }),
+      ).rejects.toThrow();
     });
 
     it("validates birth date is in the past", async () => {
@@ -504,4 +492,3 @@ describe("autoFormatDateInput", () => {
     expect(autoFormatDateInput("151020231234")).toBe("15/10/2023");
   });
 });
-

@@ -1,5 +1,6 @@
 package com.game.on.go_user_service.service;
 
+import com.game.on.common.dto.UserResponse;
 import com.game.on.go_user_service.dto.*;
 import com.game.on.go_user_service.exception.UserAlreadyExistsException;
 import com.game.on.go_user_service.exception.UserNotFoundException;

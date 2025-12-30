@@ -2,7 +2,7 @@ package com.game.on.go_user_service.mapper;
 
 import com.game.on.go_user_service.dto.UserRequest;
 
-import com.game.on.go_user_service.dto.UserResponse;
+import com.game.on.common.dto.UserResponse;
 import com.game.on.go_user_service.model.User;
 import org.springframework.stereotype.Component;
 

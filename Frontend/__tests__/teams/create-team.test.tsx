@@ -1,40 +1,85 @@
 import React from "react";
-import { render, fireEvent } from "@testing-library/react-native";
+import { render, fireEvent, act, waitFor, cleanup } from "@testing-library/react-native";
 import CreateTeamScreen from "@/app/(contexts)/teams/create-team";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 
 const logSpy = jest.spyOn(console, "log").mockImplementation(() => {});
 jest.spyOn(console, "warn").mockImplementation(() => {});
 jest.spyOn(console, "error").mockImplementation(() => {});
 
 const mockBack = jest.fn();
+const mockReplace = jest.fn();
 jest.mock("expo-router", () => ({
-  useRouter: () => ({ back: mockBack }),
+  useRouter: () => ({ back: mockBack, replace: mockReplace }),
 }));
 
-jest.mock("@/components/ui/content-area", () => {
-  const React = require("react");
+let mockPost: jest.Mock;
+jest.mock("@/hooks/use-axios-clerk", () => {
+  const original = jest.requireActual("@/hooks/use-axios-clerk");
   return {
     __esModule: true,
-    ContentArea: ({ children }: any) =>
-      React.createElement(React.Fragment, null, children),
+    ...original,
+    useAxiosWithClerk: jest.fn(() => ({
+      get post() {
+        if (!mockPost) {
+          mockPost = jest.fn(async () => ({ data: { id: "abc", slug: "my-new-team" } }));
+        }
+        return mockPost;
+      },
+      defaults: { headers: { common: {} } },
+    })),
+  };
+});
+
+jest.mock("@/components/ui/content-area", () => {
+  return {
+    __esModule: true,
+    ContentArea: ({ children }: any) => children,
   };
 });
 
 jest.mock("@/components/teams/logo-picker", () => {
-  const React = require("react");
   return {
     __esModule: true,
-    TeamLogoSection: () => React.createElement(React.Fragment, null),
+    TeamLogoSection: () => null,
   };
 });
 
 beforeEach(() => {
   jest.clearAllMocks();
+  mockPost = jest.fn(async () => ({ data: { id: "abc", slug: "my-new-team" } }));
 });
 
+function createDelayedResponse() {
+  return new Promise((resolve) => {
+    setTimeout(() => resolve({ data: { id: "abc", slug: "my-new-team" } }), 50);
+  });
+}
+
 describe("CreateTeamScreen", () => {
+  let queryClient: QueryClient;
+
+  beforeEach(() => {
+    queryClient = new QueryClient({
+      defaultOptions: { 
+        queries: { retry: false, gcTime: 0 }, 
+        mutations: { retry: false, gcTime: 0 } 
+      },
+    });
+  });
+
+  afterEach(async () => {
+    cleanup();
+    queryClient.clear();
+    await new Promise((resolve) => setTimeout(resolve, 0));
+  });
+
+  function renderWithClient(ui: React.ReactElement) {
+    return render(<QueryClientProvider client={queryClient}>{ui}</QueryClientProvider>);
+  }
+
   it("renders core UI elements", () => {
-    const { getByPlaceholderText, getByText } = render(<CreateTeamScreen />);
+    const { getByPlaceholderText, getByText } = renderWithClient(<CreateTeamScreen />);
 
     expect(getByPlaceholderText("Team Name")).toBeTruthy();
     expect(getByText("Details")).toBeTruthy();
@@ -42,22 +87,108 @@ describe("CreateTeamScreen", () => {
     expect(getByText("Create Team")).toBeTruthy();
   });
 
-  it("submits with minimal data and navigates back", () => {
-    const { getByPlaceholderText, getByText } = render(<CreateTeamScreen />);
+  it("shows validation warnings when required fields are missing", () => {
+    const { getByPlaceholderText, getByText } = renderWithClient(<CreateTeamScreen />);
 
     fireEvent.changeText(getByPlaceholderText("Team Name"), "My New Team");
     fireEvent.press(getByText("Create Team"));
 
-    expect(logSpy).toHaveBeenCalledTimes(1);
+    expect(logSpy).toHaveBeenCalled();
+    const [[warnMessage]] = logSpy.mock.calls as [[string]];
+    expect(warnMessage).toContain("Sport is required");
+    expect(mockReplace).not.toHaveBeenCalled();
+    expect(mockBack).not.toHaveBeenCalled();
+  });
 
-    const [[loggedMessage]] = logSpy.mock.calls as [[string]];
+  it("allows clearing the team name", () => {
+    const { getByPlaceholderText, getByText, queryByDisplayValue } = renderWithClient(
+      <CreateTeamScreen />,
+    );
+    const input = getByPlaceholderText("Team Name");
+    fireEvent.changeText(input, "Temp Name");
+    expect(queryByDisplayValue("Temp Name")).toBeTruthy();
+    fireEvent.press(getByText("✕"));
+    expect(queryByDisplayValue("Temp Name")).toBeFalsy();
+  });
 
-    expect(loggedMessage).toContain("Create Team Page: Create team payload:");
-    expect(loggedMessage).toContain('"teamName": "My New Team"');
-    expect(loggedMessage).toContain('"scopeId": "casual"');
-    expect(loggedMessage).toContain('"isPublic": true');
-    expect(loggedMessage).toContain('"logoUri": null');
+  it("selects sport and city then submits and navigates", async () => {
+    const { getByText, getByPlaceholderText, findByText } = renderWithClient(
+      <CreateTeamScreen />,
+    );
+    fireEvent.changeText(getByPlaceholderText("Team Name"), "My New Team");
 
-    expect(mockBack).toHaveBeenCalled();
+    fireEvent.press(getByText("Sports"));
+    expect(await findByText("Select Sport")).toBeTruthy();
+    fireEvent.press(getByText("Soccer"));
+
+    fireEvent.press(getByText("Location"));
+    expect(await findByText("Select City")).toBeTruthy();
+    fireEvent.press(getByText("Toronto"));
+
+    act(() => {
+      fireEvent.press(getByText("Create Team"));
+    });
+
+    await waitFor(() => {
+      expect(mockPost).toHaveBeenCalled();
+    });
+    expect(mockPost).toHaveBeenCalledTimes(1);
+    const [url, body] = mockPost.mock.calls[0];
+    expect(url).toContain("api/v1/teams/create");
+    expect(body).toMatchObject({
+      name: "My New Team",
+      privacy: "PUBLIC",
+      sport: "soccer",
+    });
+
+    expect(mockReplace).toHaveBeenCalledWith("/teams/abc");
+  });
+
+  it("respects privacy toggle (PRIVATE)", async () => {
+    const { getByText, getByPlaceholderText, getByRole } = renderWithClient(
+      <CreateTeamScreen />,
+    );
+    fireEvent.changeText(getByPlaceholderText("Team Name"), "Hidden Team");
+    fireEvent.press(getByText("Sports"));
+    fireEvent.press(getByText("Soccer"));
+    fireEvent.press(getByText("Location"));
+    fireEvent.press(getByText("Toronto"));
+    const switchToggle = getByRole("switch");
+    fireEvent(switchToggle, "valueChange", false);
+    
+    act(() => {
+      fireEvent.press(getByText("Create Team"));
+    });
+
+    await waitFor(() => {
+      expect(mockPost).toHaveBeenCalled();
+    });
+    const [, body] = mockPost.mock.calls[0];
+    expect(body.privacy).toBe("PRIVATE");
+  });
+
+  it("shows 'Creating...' while request is in-flight", async () => {
+    mockPost.mockImplementationOnce(() => createDelayedResponse());
+
+    const { getByText, getByPlaceholderText } = renderWithClient(<CreateTeamScreen />);
+    fireEvent.changeText(getByPlaceholderText("Team Name"), "Async Team");
+    fireEvent.press(getByText("Sports"));
+    fireEvent.press(getByText("Soccer"));
+    fireEvent.press(getByText("Location"));
+    fireEvent.press(getByText("Toronto"));
+
+    act(() => {
+      fireEvent.press(getByText("Create Team"));
+    });
+    await waitFor(() => {
+      expect(getByText("Creating...")).toBeTruthy();
+    });
+
+    await waitFor(() => {
+      expect(mockPost).toHaveBeenCalled();
+    });
+    await waitFor(() => {
+      expect(mockReplace).toHaveBeenCalled();
+    });
   });
 });

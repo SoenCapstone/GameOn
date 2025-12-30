@@ -35,13 +35,17 @@ public class TeamInvite {
     private Team team;
 
     @Column(name = "invited_by_user_id", nullable = false)
-    private Long invitedByUserId;
+    private String invitedByUserId;
 
     @Column(name = "invitee_user_id")
-    private Long inviteeUserId;
+    private String inviteeUserId;
 
     @Column(name = "invitee_email")
     private String inviteeEmail;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "role")
+    private TeamRole role;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 20)

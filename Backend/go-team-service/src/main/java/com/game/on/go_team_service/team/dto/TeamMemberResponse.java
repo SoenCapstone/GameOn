@@ -6,7 +6,7 @@ import com.game.on.go_team_service.team.model.TeamRole;
 import java.time.OffsetDateTime;
 
 public record TeamMemberResponse(
-        Long userId,
+       String userId,
         TeamRole role,
         TeamMemberStatus status,
         OffsetDateTime joinedAt

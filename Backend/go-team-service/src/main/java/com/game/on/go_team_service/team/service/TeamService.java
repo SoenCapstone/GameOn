@@ -1,10 +1,11 @@
 package com.game.on.go_team_service.team.service;
 
+import com.game.on.go_team_service.client.UserClient;
+import com.game.on.go_team_service.config.CurrentUserProvider;
 import com.game.on.go_team_service.exception.BadRequestException;
 import com.game.on.go_team_service.exception.ConflictException;
 import com.game.on.go_team_service.exception.ForbiddenException;
 import com.game.on.go_team_service.exception.NotFoundException;
-import com.game.on.go_team_service.external.UserDirectoryClient;
 import com.game.on.go_team_service.team.dto.*;
 import com.game.on.go_team_service.team.mapper.TeamMapper;
 import com.game.on.go_team_service.team.metrics.TeamMetricsPublisher;
@@ -12,7 +13,8 @@ import com.game.on.go_team_service.team.model.*;
 import com.game.on.go_team_service.team.repository.TeamInviteRepository;
 import com.game.on.go_team_service.team.repository.TeamMemberRepository;
 import com.game.on.go_team_service.team.repository.TeamRepository;
-import com.game.on.go_team_service.team.util.SlugGenerator;
+import com.game.on.common.dto.UserResponse;
+import feign.FeignException;
 import org.springframework.transaction.annotation.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -24,68 +26,55 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
 import java.time.OffsetDateTime;
-import java.time.temporal.ChronoUnit;
 import java.util.Comparator;
 import java.util.List;
-import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 
 import static com.game.on.go_team_service.team.service.TeamSpecifications.*;
+import static java.lang.String.format;
 
 @Slf4j
 @Service
 @RequiredArgsConstructor
 public class TeamService {
-
-    private static final int DEFAULT_INVITE_EXPIRY_DAYS = 7;
-
     private final TeamRepository teamRepository;
+
     private final TeamMemberRepository teamMemberRepository;
+
     private final TeamInviteRepository teamInviteRepository;
+
+    private final UserClient userClient;
+
+    private final CurrentUserProvider userProvider;
+
     private final TeamMapper teamMapper;
+
     private final TeamMetricsPublisher metricsPublisher;
-    private final UserDirectoryClient userDirectoryClient;
 
     @Transactional
-    public TeamDetailResponse createTeam(TeamCreateRequest request, Long callerId) {
-        var team = Team.builder()
-                .name(request.name().trim())
-                .sport(trimToNull(request.sport()))
-//                .leagueId(request.leagueId())
-                .scope(trimToNull(request.scope()))
-                .ownerUserId(callerId)
-                .slug(generateUniqueSlug(request.name()))
-                .logoUrl(trimToNull(request.logoUrl()))
-                .location(trimToNull(request.location()))
-//                .maxRoster(request.maxRoster())
-                .privacy(request.privacy() == null ? TeamPrivacy.PUBLIC : request.privacy())
-                .build();
+    public TeamDetailResponse createTeam(TeamCreateRequest request) {
+        String ownerUserId = userProvider.clerkUserId();
 
-//        validateMaxRoster(team.getMaxRoster());
-//
-//        var ownerMember = TeamMember.builder()
-//                .team(team)
-//                .userId(callerId)
-//                .role(TeamRole.OWNER)
-//                .status(TeamMemberStatus.ACTIVE)
-//                .joinedAt(OffsetDateTime.now())
-//                .build();
-//
-//        team.getMembers().add(ownerMember);
+        Team team = teamMapper.toTeam(request, ownerUserId);
 
         var saved = teamRepository.save(team);
+        log.info("Team created with teamId {} and ownerId {}", saved.getId(), ownerUserId);
         metricsPublisher.teamCreated();
-        log.info("team_created teamId={} ownerId={}", saved.getId(), callerId);
 
-//        var members = sortMembers(teamMemberRepository.findByTeamId(saved.getId()));
-        return teamMapper.toDetail(saved, List.of());
+        TeamMember newMember = teamMapper.toTeamMember(team, ownerUserId, TeamRole.OWNER);
+        teamMemberRepository.save(newMember);
+
+        log.info("Team owner {} added to team with ID {}", saved.getId(), ownerUserId);
+
+        return teamMapper.toDetail(saved);
     }
 
     @Transactional
-    public TeamDetailResponse updateTeam(UUID teamId, TeamUpdateRequest request, Long callerId) {
+    public TeamDetailResponse updateTeam(UUID teamId, TeamUpdateRequest request) {
+        String userId = userProvider.clerkUserId();
         var team = requireActiveTeam(teamId);
-        var callerMembership = requireActiveMembership(teamId, callerId);
+        var callerMembership = requireActiveMembership(teamId, userId);
         ensureRole(callerMembership, Set.of(TeamRole.OWNER, TeamRole.MANAGER),
                 "Only owners or managers can update team");
 
@@ -124,79 +113,86 @@ public class TeamService {
         }
 
         var saved = teamRepository.save(team);
-        log.info("team_updated teamId={} byUser={} ", teamId, callerId);
+        log.info("Team updated teamId {} byUser {} ", teamId, userId);
 
-        var members = sortMembers(teamMemberRepository.findByTeamId(teamId));
-        return teamMapper.toDetail(saved, members);
+        return teamMapper.toDetail(saved);
     }
 
     @Transactional
-    public void archiveTeam(UUID teamId, Long callerId) {
+    public void archiveTeam(UUID teamId) {
+        String userId = userProvider.clerkUserId();
+
         var team = requireActiveTeam(teamId);
-        var callerMembership = requireActiveMembership(teamId, callerId);
+        var callerMembership = requireActiveMembership(teamId, userId);
 
         if (callerMembership.getRole() != TeamRole.OWNER) {
             throw new ForbiddenException("Only the owner can archive the team");
         }
+
         team.setDeletedAt(OffsetDateTime.now());
         teamRepository.save(team);
         metricsPublisher.teamArchived();
-        log.info("team_archived teamId={} byUser={}", teamId, callerId);
+        log.info("Team {} archived by user {}", teamId, userId);
     }
 
     @Transactional
-    public void removeMember(UUID teamId, Long memberUserId, Long callerId) {
-        var team = requireActiveTeam(teamId);
-        var callerMembership = requireActiveMembership(teamId, callerId);
-        var targetMembership = teamMemberRepository.findByTeamIdAndUserId(teamId, memberUserId)
+    public void removeMember(UUID teamId, String targetMemberId) {
+        String userId = userProvider.clerkUserId();
+
+        requireActiveTeam(teamId);
+        var callerMembership = requireActiveMembership(teamId, userId);
+        var targetMembership = teamMemberRepository.findByTeamIdAndUserId(teamId, targetMemberId)
                 .orElseThrow(() -> new NotFoundException("Member not found"));
 
         if (targetMembership.getRole() == TeamRole.OWNER) {
-            if (memberUserId.equals(callerId)) {
-                throw new BadRequestException("Owner cannot leave their own team");
-            }
             throw new ForbiddenException("Cannot remove the team owner");
         }
 
-        if (!memberUserId.equals(callerId)) {
-            ensureRole(callerMembership, Set.of(TeamRole.OWNER, TeamRole.MANAGER),
-                    "Only owners or managers can remove other members");
-            if (callerMembership.getRole() == TeamRole.MANAGER && targetMembership.getRole() != TeamRole.PLAYER) {
-                throw new ForbiddenException("Managers can only remove players");
-            }
+        ensureRole(callerMembership, Set.of(TeamRole.OWNER, TeamRole.MANAGER),
+                "Only owners or managers can remove other members");
+        if (callerMembership.getRole() == TeamRole.MANAGER && targetMembership.getRole() != TeamRole.PLAYER) {
+            throw new ForbiddenException("Managers can only remove players");
         }
 
         teamMemberRepository.delete(targetMembership);
-        log.info("team_member_removed teamId={} removedUser={} byUser={}", teamId, memberUserId, callerId);
+        log.info("Team member {} of teamId {} removed user {}", teamId, targetMemberId, userId);
     }
 
     @Transactional(readOnly = true)
     public TeamDetailResponse getTeam(UUID teamId) {
         var team = requireActiveTeam(teamId);
-        var members = sortMembers(teamMemberRepository.findByTeamId(teamId));
-        return teamMapper.toDetail(team, members);
+        return teamMapper.toDetail(team);
     }
 
     @Transactional(readOnly = true)
     public TeamDetailResponse getTeamBySlug(String slug) {
         var team = teamRepository.findBySlugIgnoreCaseAndDeletedAtIsNull(slug)
                 .orElseThrow(() -> new NotFoundException("Team not found"));
-        var members = sortMembers(teamMemberRepository.findByTeamId(team.getId()));
-        return teamMapper.toDetail(team, members);
+        return teamMapper.toDetail(team);
     }
 
     @Transactional(readOnly = true)
-    public TeamListResponse listTeams(TeamSearchCriteria criteria, int page, int size, Long callerId) {
+    public TeamListResponse listTeams(TeamSearchCriteria criteria, int page, int size) {
+        String userId = userProvider.clerkUserId();
+
         int safePage = Math.max(page, 0);
-        int effectiveSize = size <= 0 ? 20 : Math.min(size, 50);
-        Pageable pageable = PageRequest.of(safePage, effectiveSize, Sort.by(Sort.Direction.DESC, "createdAt"));
-        Specification<Team> spec = Specification.where(notArchived())
-                .and(withLeague(criteria.leagueId()))
-                .and(withSport(trimToNull(criteria.sport())))
-                .and(search(trimToNull(criteria.query())));
+        int effectiveSize = (size <= 0) ? 20 : Math.min(size, 50);
+
+        Pageable pageable = PageRequest.of(
+                safePage,
+                effectiveSize,
+                Sort.by(Sort.Direction.DESC, "createdAt")
+        );
+
+        Specification<Team> spec = null;
+
+        spec = and(spec, notArchived());
+        spec = and(spec, withLeague(criteria.leagueId()));
+        spec = and(spec, withSport(trimToNull(criteria.sport())));
+        spec = and(spec, search(trimToNull(criteria.query())));
 
         if (criteria.onlyMine()) {
-            spec = spec.and(mine(callerId));
+            spec = and(spec, mine(userId));
         }
 
         var pageResult = teamRepository.findAll(spec, pageable);
@@ -212,76 +208,60 @@ public class TeamService {
     }
 
     @Transactional(readOnly = true)
-    public List<TeamMemberResponse> listMembers(UUID teamId, Long callerId) {
+    public List<TeamMemberResponse> listMembers(UUID teamId) {
         requireActiveTeam(teamId);
-        requireActiveMembership(teamId, callerId);
         return sortMembers(teamMemberRepository.findByTeamId(teamId)).stream()
                 .map(teamMapper::toMember)
                 .toList();
     }
 
-//    @Transactional
-//    public TeamInviteResponse createInvite(UUID teamId, TeamInviteCreateRequest request, Long callerId) {
-//        var team = requireActiveTeam(teamId);
-//        var callerMembership = requireActiveMembership(teamId, callerId);
-//        ensureRole(callerMembership, Set.of(TeamRole.OWNER, TeamRole.MANAGER),
-//                "Only owners or managers can create invites");
-//
-//        var inviteeUserId = request.inviteeUserId();
-//        var inviteeEmail = trimToNull(request.inviteeEmail());
-//
-//        if (inviteeUserId == null && inviteeEmail == null) {
-//            throw new BadRequestException("Either inviteeUserId or inviteeEmail must be provided");
-//        }
-//
-//        if (inviteeUserId != null && !userDirectoryClient.userExists(inviteeUserId)) {
-//            throw new NotFoundException("Invitee user not found");
-//        }
-//
-//        if (inviteeUserId != null && teamMemberRepository.existsByTeamIdAndUserId(teamId, inviteeUserId)) {
-//            throw new ConflictException("User is already a member");
-//        }
-//
+    @Transactional
+    public TeamInviteResponse createInvite(TeamInviteCreateRequest request) {
+        String userId = userProvider.clerkUserId();
+        String inviteeUserId = request.inviteeUserId();
+        UUID teamId = request.teamId();
+
+        var team = requireActiveTeam(teamId);
+        var callerMembership = requireActiveMembership(teamId, userId);
+        ensureRole(callerMembership, Set.of(TeamRole.OWNER, TeamRole.MANAGER),
+                "Only owners or managers can create invites");
+
+        if (inviteeUserId == null) {
+            throw new BadRequestException("Either inviteeUserId or inviteeEmail must be provided");
+        }
+
+        UserResponse user;
+        try {
+            user = userClient.getUserById(inviteeUserId);
+        } catch (FeignException e) {
+            log.error("User service call failed. status={}, body={}", e.status(), e.contentUTF8(), e);
+            throw e;
+        }
+
+
+        if (teamMemberRepository.existsByTeamIdAndUserId(teamId, inviteeUserId)) {
+            throw new ConflictException(format("User is already a member of the team %s", teamId));
+        }
+
 //        enforceRosterLimit(team);
-//
-//        if (inviteeUserId != null) {
-//            teamInviteRepository.findByTeamIdAndInviteeUserIdAndStatus(teamId, inviteeUserId, TeamInviteStatus.PENDING)
-//                    .ifPresent(invite -> {
-//                        throw new ConflictException("An active invite already exists for this user");
-//                    });
-//        }
-//
-//        if (inviteeEmail != null) {
-//            teamInviteRepository.findByTeamIdAndInviteeEmailIgnoreCaseAndStatus(teamId, inviteeEmail, TeamInviteStatus.PENDING)
-//                    .ifPresent(invite -> {
-//                        throw new ConflictException("An active invite already exists for this email");
-//                    });
-//        }
-//
-//        var expiresAt = request.expiresAt();
-//        if (expiresAt == null) {
-//            expiresAt = OffsetDateTime.now().plusDays(DEFAULT_INVITE_EXPIRY_DAYS);
-//        }
-//
-//        var invite = TeamInvite.builder()
-//                .team(team)
-//                .invitedByUserId(callerId)
-//                .inviteeUserId(inviteeUserId)
-//                .inviteeEmail(inviteeEmail)
-//                .expiresAt(expiresAt.truncatedTo(ChronoUnit.SECONDS))
-//                .status(TeamInviteStatus.PENDING)
-//                .build();
-//
-//        var saved = teamInviteRepository.save(invite);
-//        metricsPublisher.inviteSent();
-//        log.info("team_invite_sent teamId={} inviteId={} byUser={}", teamId, saved.getId(), callerId);
-//        return teamMapper.toInviteResponse(saved);
-//    }
+
+        teamInviteRepository.findByTeamIdAndInviteeUserIdAndStatus(teamId, inviteeUserId, TeamInviteStatus.PENDING)
+                .ifPresent(invite -> {
+                    throw new ConflictException("An active invite already exists for this user");
+                });
+
+        TeamInvite invite = teamInviteRepository.save(teamMapper.toTeamInvite(team, userId, inviteeUserId, user.email(), request.role(), request.expiresAt()));
+        metricsPublisher.inviteSent();
+
+        log.info("Team invite sent : teamId {} to user {} by user {}", teamId, invite.getId(), userId);
+        return teamMapper.toInviteResponse(invite);
+    }
 
     @Transactional(readOnly = true)
-    public List<TeamInviteResponse> listInvites(UUID teamId, Long callerId) {
+    public List<TeamInviteResponse> listTeamInvites(UUID teamId) {
+        String userId = userProvider.clerkUserId();
         requireActiveTeam(teamId);
-        var membership = requireActiveMembership(teamId, callerId);
+        var membership = requireActiveMembership(teamId, userId);
         ensureRole(membership, Set.of(TeamRole.OWNER, TeamRole.MANAGER),
                 "Only owners or managers can view invites");
 
@@ -290,69 +270,88 @@ public class TeamService {
                 .toList();
     }
 
+    @Transactional(readOnly = true)
+    public List<TeamInviteResponse> listUserTeamInvites() {
+        return teamInviteRepository.findByInviteeUserId(userProvider.clerkUserId()).stream()
+                .map(teamMapper::toInviteResponse)
+                .toList();
+    }
+
     @Transactional
-    public TeamMemberResponse acceptInvite(UUID inviteId, Long callerId, Optional<String> callerEmail) {
-        var invite = teamInviteRepository.findByIdAndStatus(inviteId, TeamInviteStatus.PENDING)
+    public TeamMemberResponse acceptInvite(TeamInvitationReply reply) {
+        String userId = userProvider.clerkUserId();
+        UUID invitationId = reply.invitationId();
+
+        log.info("Team invite reply received :  invitationId {} userId {} accept {}", invitationId, userId, reply.isAccepted());
+
+        var invite = teamInviteRepository.findByIdAndStatus(reply.invitationId(), TeamInviteStatus.PENDING)
                 .orElseThrow(() -> new NotFoundException("Invite not found or already handled"));
 
-        enforceInviteOwnership(invite, callerId, callerEmail);
+        log.info("Team invite {} is found and not already handled for user {}", invitationId, userId);
+
+
+        enforceInviteOwnership(invite, userId);
         enforceInviteFresh(invite);
 
         var team = requireActiveTeam(invite.getTeam().getId());
 
-        if (teamMemberRepository.existsByTeamIdAndUserId(team.getId(), callerId)) {
+        if (teamMemberRepository.existsByTeamIdAndUserId(team.getId(), userId)) {
             throw new ConflictException("User is already a member of this team");
         }
+        log.info("Team member {} does not already exist in team {}", invitationId, userId);
 
 //        enforceRosterLimit(team);
 
-        var newMember = TeamMember.builder()
-                .team(team)
-                .userId(callerId)
-                .role(TeamRole.PLAYER)
-                .status(TeamMemberStatus.ACTIVE)
-                .joinedAt(OffsetDateTime.now())
-                .build();
+        TeamMember newMember = teamMapper.toTeamMember(team, userId, invite.getRole());
         teamMemberRepository.save(newMember);
+        log.info("Team member {} added as PLAYER to team {}", invitationId, userId);
 
+        log.info("Updating status of invitation {}", invitationId);
         invite.setStatus(TeamInviteStatus.ACCEPTED);
-        invite.setInviteeUserId(invite.getInviteeUserId() == null ? callerId : invite.getInviteeUserId());
+        invite.setInviteeUserId(userId);
         invite.setRespondedAt(OffsetDateTime.now());
         teamInviteRepository.save(invite);
 
         metricsPublisher.inviteAccepted();
-        log.info("team_invite_accepted inviteId={} teamId={} byUser={}", inviteId, team.getId(), callerId);
+        log.info("Team invite {} accepted and updated", invitationId);
 
         return teamMapper.toMember(newMember);
     }
 
     @Transactional
-    public void declineInvite(UUID inviteId, Long callerId, Optional<String> callerEmail) {
-        var invite = teamInviteRepository.findByIdAndStatus(inviteId, TeamInviteStatus.PENDING)
+    public void declineInvite(TeamInvitationReply reply) {
+        String userId = userProvider.clerkUserId();
+        UUID invitationId = reply.invitationId();
+
+        var invite = teamInviteRepository.findByIdAndStatus(invitationId, TeamInviteStatus.PENDING)
                 .orElseThrow(() -> new NotFoundException("Invite not found or already handled"));
 
-        enforceInviteOwnership(invite, callerId, callerEmail);
+        enforceInviteOwnership(invite, userId);
         enforceInviteFresh(invite);
 
         invite.setStatus(TeamInviteStatus.DECLINED);
         invite.setRespondedAt(OffsetDateTime.now());
-        invite.setInviteeUserId(invite.getInviteeUserId() == null ? callerId : invite.getInviteeUserId());
+        invite.setInviteeUserId(invite.getInviteeUserId() == null ? userId : invite.getInviteeUserId());
         teamInviteRepository.save(invite);
 
         metricsPublisher.inviteDeclined();
-        log.info("team_invite_declined inviteId={} teamId={} byUser={}", inviteId, invite.getTeam().getId(), callerId);
+        log.info("Team invite declined invitationId {} teamId {} by user {}", invitationId, invite.getTeam().getId(), userId);
     }
 
     @Transactional
-    public TeamDetailResponse transferOwnership(UUID teamId, Long newOwnerUserId, Long callerId) {
+    public TeamDetailResponse transferOwnership(OwnershipTransferRequest request) {
+        String userId = userProvider.clerkUserId();
+        UUID teamId = request.teamId();
+        String newOwnerUserId = request.newOwnerUserId();
+
         var team = requireActiveTeam(teamId);
-        var currentOwnerMembership = requireActiveMembership(teamId, callerId);
+        var currentOwnerMembership = requireActiveMembership(teamId, userId);
 
         if (currentOwnerMembership.getRole() != TeamRole.OWNER) {
             throw new ForbiddenException("Only the current owner can transfer ownership");
         }
 
-        if (newOwnerUserId.equals(callerId)) {
+        if (newOwnerUserId.equals(userId)) {
             throw new BadRequestException("Cannot transfer ownership to yourself");
         }
 
@@ -365,20 +364,18 @@ public class TeamService {
         team.setOwnerUserId(newOwnerUserId);
 
         teamRepository.save(team);
-        teamMemberRepository.save(currentOwnerMembership);
-        teamMemberRepository.save(newOwnerMembership);
+        teamMemberRepository.saveAll(List.of(currentOwnerMembership, newOwnerMembership));
 
         metricsPublisher.ownershipTransferred();
-        log.info("team_owner_transferred teamId={} fromUser={} toUser={}", teamId, callerId, newOwnerUserId);
+        log.info("Team owner transferred teamId {} from user {} to user={}", teamId, userId, newOwnerUserId);
 
-        var members = sortMembers(teamMemberRepository.findByTeamId(teamId));
-        return teamMapper.toDetail(team, members);
+        return teamMapper.toDetail(team);
     }
 
     @Transactional
-    public TeamMemberResponse demoteSelfToPlayer(UUID teamId, Long callerId) {
+    public TeamMemberResponse demoteSelfToPlayer(UUID teamId, String userId) {
         requireActiveTeam(teamId);
-        var membership = requireActiveMembership(teamId, callerId);
+        var membership = requireActiveMembership(teamId, userId);
 
         if (membership.getRole() != TeamRole.MANAGER) {
             throw new BadRequestException("Only managers can self-demote to player");
@@ -386,7 +383,28 @@ public class TeamService {
 
         membership.setRole(TeamRole.PLAYER);
         var saved = teamMemberRepository.save(membership);
-        log.info("team_member_self_demoted teamId={} userId={}", teamId, callerId);
+        log.info("team_member_self_demoted teamId={} userId={}", teamId, userId);
+        return teamMapper.toMember(saved);
+    }
+
+    @Transactional
+    public TeamMemberResponse demoteManagerToPlayer(UUID teamId, String userId, String targetUserId) {
+        requireActiveTeam(teamId);
+
+        TeamMember targetManager = requireActiveMembership(teamId, targetUserId);
+
+        if(targetManager.getRole() != TeamRole.MANAGER){
+            throw new BadRequestException("Target user is not a manager");
+        }
+
+        var membership = requireActiveMembership(teamId, targetUserId);
+        if (membership.getRole() != TeamRole.OWNER) {
+            throw new BadRequestException("Only owners can demote managers to players");
+        }
+
+        membership.setRole(TeamRole.PLAYER);
+        var saved = teamMemberRepository.save(membership);
+        log.info("Team member with user id {} was demoted by user {} in team {}", userId, targetUserId, teamId);
         return teamMapper.toMember(saved);
     }
 
@@ -395,7 +413,7 @@ public class TeamService {
                 .orElseThrow(() -> new NotFoundException("Team not found"));
     }
 
-    private TeamMember requireActiveMembership(UUID teamId, Long userId) {
+    private TeamMember requireActiveMembership(UUID teamId, String userId) {
         return teamMemberRepository.findByTeamIdAndUserId(teamId, userId)
                 .filter(member -> member.getStatus() == TeamMemberStatus.ACTIVE)
                 .orElseThrow(() -> new ForbiddenException("You are not an active member of this team"));
@@ -417,16 +435,9 @@ public class TeamService {
 //        }
 //    }
 
-    private void enforceInviteOwnership(TeamInvite invite, Long callerId, Optional<String> callerEmail) {
-        if (invite.getInviteeUserId() != null && !invite.getInviteeUserId().equals(callerId)) {
+    private void enforceInviteOwnership(TeamInvite invite, String userId) {
+        if (invite.getInviteeUserId() != null && !invite.getInviteeUserId().equals(userId)) {
             throw new ForbiddenException("Invite is not addressed to this user");
-        }
-        if (invite.getInviteeEmail() != null) {
-            var matches = callerEmail.map(email -> email.equalsIgnoreCase(invite.getInviteeEmail()))
-                    .orElse(false);
-            if (!matches && invite.getInviteeUserId() == null) {
-                throw new ForbiddenException("Invite is not addressed to this user");
-            }
         }
     }
 
@@ -454,19 +465,6 @@ public class TeamService {
         }
     }
 
-    private String generateUniqueSlug(String name) {
-        var baseSlug = SlugGenerator.from(name);
-        if (!StringUtils.hasText(baseSlug)) {
-            throw new BadRequestException("Unable to generate team slug");
-        }
-        var slug = baseSlug;
-        int suffix = 1;
-        while (teamRepository.existsBySlug(slug)) {
-            slug = baseSlug + "-" + suffix++;
-        }
-        return slug;
-    }
-
     private String trimToNull(String value) {
         return StringUtils.hasText(value) ? value.trim() : null;
     }
@@ -482,4 +480,11 @@ public class TeamService {
                 && request.logoUrl() == null && request.location() == null
                 && request.privacy() == null;
     }
+
+    private static <T> Specification<T> and(Specification<T> base, Specification<T> next) {
+        if (next == null) return base;
+        if (base == null) return next;
+        return base.and(next);
+    }
+
 }
