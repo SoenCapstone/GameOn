@@ -61,8 +61,6 @@ export default function TeamDetailById() {
   const rawId = params.id;
   const id = Array.isArray(rawId) ? rawId[0] : rawId ?? "";
 
-  const { team, loading } = useMockTeam(id);
-
   const [tab, setTab] = React.useState<"board" | "overview" | "games">("board");
 
   const { query } = useSearch();
@@ -118,7 +116,7 @@ export default function TeamDetailById() {
   return (
     <ContentArea scrollable paddingBottom={60} backgroundProps={{ preset: "red" }}>
       <View style={createTeamStyles.container}>
-        {loading ? (
+        {isLoading ? (
           <ActivityIndicator size="large" color="#fff" />
         ) : (
           <>
