@@ -24,9 +24,6 @@ const styles = StyleSheet.create({
     width: "100%",
     padding: 24,
     borderRadius: 34,
-    overflow: "hidden",
-    backgroundColor: "rgba(0,0,0,0.18)",
-    borderWidth: 1,
-    borderColor: "rgba(255,255,255,0.12)",
+
   },
 });
