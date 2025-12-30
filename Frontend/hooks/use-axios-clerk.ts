@@ -56,4 +56,5 @@ export const GO_USER_SERVICE_ROUTES = {
 
 export const GO_TEAM_SERVICE_ROUTES = {
   ALL: buildUserRoute(VERSIONING.v1, SERVICE.TEAMS),
+  CREATE: buildUserRoute(VERSIONING.v1, SERVICE.TEAMS, "create"),
 };

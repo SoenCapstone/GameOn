@@ -81,12 +81,11 @@ async function fetchTeamResults(
   api: AxiosInstance,
   query: string,
 ): Promise<TeamListResponse> {
-  const params: Record<string, string> = { size: "200" };
+  const params: Record<string, string> = { size: "50" };
   if (query && query.trim().length > 0) params.q = query.trim();
 
   try {
     const resp = await api.get<TeamListResponse>(GO_TEAM_SERVICE_ROUTES.ALL, {
-      headers: { ["X-User-Id"]: "1001" },
       params,
       timeout: 5000,
     });
