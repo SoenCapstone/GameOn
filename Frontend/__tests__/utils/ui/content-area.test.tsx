@@ -1,7 +1,8 @@
 import React from "react";
-import { View, Text, ScrollView } from "react-native";
+import { View, Text } from "react-native";
 import { render } from "@testing-library/react-native";
 import { ContentArea } from "@/components/ui/content-area";
+import { KeyboardAwareScrollView } from "react-native-keyboard-controller";
 
 const mockUseHeaderHeight = jest.fn();
 const mockUseSafeAreaInsets = jest.fn();
@@ -17,6 +18,13 @@ jest.mock("react-native-safe-area-context", () => ({
 jest.mock("@/components/ui/background", () => ({
   Background: () => null,
 }));
+
+jest.mock("react-native-keyboard-controller", () => {
+  const { ScrollView } = require("react-native");
+  return {
+    KeyboardAwareScrollView: ScrollView,
+  };
+});
 
 describe("ContentArea", () => {
   beforeEach(() => {
@@ -68,20 +76,20 @@ describe("ContentArea", () => {
       </ContentArea>,
     );
 
-    expect(UNSAFE_queryByType(ScrollView)).toBeFalsy();
+    expect(UNSAFE_queryByType(KeyboardAwareScrollView)).toBeFalsy();
   });
 
-  it("renders as ScrollView when scrollable is true", () => {
+  it("renders as KeyboardAwareScrollView when scrollable is true", () => {
     const { UNSAFE_getByType } = render(
       <ContentArea backgroundProps={{ preset: "blue" }} scrollable={true}>
         <Text>Content</Text>
       </ContentArea>,
     );
 
-    expect(UNSAFE_getByType(ScrollView)).toBeTruthy();
+    expect(UNSAFE_getByType(KeyboardAwareScrollView)).toBeTruthy();
   });
 
-  it("applies contentContainerStyle with paddingBottom and gap for ScrollView", () => {
+  it("applies contentContainerStyle with paddingBottom and gap for KeyboardAwareScrollView", () => {
     mockUseSafeAreaInsets.mockReturnValue({
       top: 44,
       bottom: 34,
@@ -95,7 +103,7 @@ describe("ContentArea", () => {
       </ContentArea>,
     );
 
-    const scrollView = UNSAFE_getByType(ScrollView);
+    const scrollView = UNSAFE_getByType(KeyboardAwareScrollView);
     const contentContainerStyle = scrollView.props.contentContainerStyle;
 
     expect(contentContainerStyle.paddingBottom).toBe(34); // insets.bottom (34) + paddingBottom (0, default)
@@ -111,12 +119,16 @@ describe("ContentArea", () => {
     });
 
     const { UNSAFE_getByType } = render(
-      <ContentArea backgroundProps={{ preset: "blue" }} scrollable={true} paddingBottom={50}>
+      <ContentArea
+        backgroundProps={{ preset: "blue" }}
+        scrollable={true}
+        paddingBottom={50}
+      >
         <Text>Content</Text>
       </ContentArea>,
     );
 
-    const scrollView = UNSAFE_getByType(ScrollView);
+    const scrollView = UNSAFE_getByType(KeyboardAwareScrollView);
     const contentContainerStyle = scrollView.props.contentContainerStyle;
 
     expect(contentContainerStyle.paddingBottom).toBe(84); // insets.bottom (34) + paddingBottom (50)
@@ -136,7 +148,10 @@ describe("ContentArea", () => {
 
   it("does not apply stickyHeaderIndices when segmentedControl is false", () => {
     const { UNSAFE_getByType } = render(
-      <ContentArea backgroundProps={{ preset: "blue" }} segmentedControl={false}>
+      <ContentArea
+        backgroundProps={{ preset: "blue" }}
+        segmentedControl={false}
+      >
         <Text>Content</Text>
       </ContentArea>,
     );
