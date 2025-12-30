@@ -54,8 +54,18 @@ function TeamHeader({
 }
 
 export default function TeamDetailById() {
-  const params = useLocalSearchParams<{ id?: string }>();
-  const id = params.id ?? "";
+  const params = useLocalSearchParams<{ id?: string | string[] }>();
+
+
+  const rawId = params.id;
+  const id = Array.isArray(rawId) ? rawId[0] : rawId ?? "";
+
+  const [tab, setTab] = React.useState<"board" | "overview" | "games">("board");
+
+  const { query } = useSearch();
+  const { items, loading: boardLoading } = useMockTeamBoard(id, query);
+
+
   const api = useAxiosWithClerk();
   const { userId } = useAuth();
   const mockTeamImmediate =
@@ -115,13 +125,9 @@ export default function TeamDetailById() {
   }, [navigation, team, mockTeamImmediate, id, userId, handleFollow]);
 
   return (
-    <ContentArea
-      scrollable
-      paddingBottom={60}
-      backgroundProps={{ preset: "red" }}
-    >
-      <View style={styles.container}>
-        {isLoading && !mockTeamImmediate ? (
+    <ContentArea scrollable paddingBottom={60} backgroundProps={{ preset: "red" }}>
+      <View style={createTeamStyles.container}>
+        {isLoading ? (
           <ActivityIndicator size="large" color="#fff" />
         ) : null}
       </View>
