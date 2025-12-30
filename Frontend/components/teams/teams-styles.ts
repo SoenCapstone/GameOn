@@ -150,4 +150,96 @@ export const createTeamStyles = StyleSheet.create({
     height: "100%",
     borderRadius: 999,
   },
+  boardList: {
+    width: "100%",
+    paddingHorizontal: 10,
+    gap: 16,
+    marginTop: 8,
+  },
+  cardSpacer: {
+    height: 10,
+    width: "100%",
+  },
+  container: {
+    width: "100%",
+    alignItems: "center",
+    paddingTop: 20,
+  },
+  boardCard: {
+    width: "100%",
+    gap: 10,
+  },
+  boardCardHeaderRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    gap: 12,
+  },
+  boardCardTitle: {
+    flex: 1,
+    color: "#ffffff",
+    fontSize: 16,
+    fontWeight: "700",
+  },
+  boardCardDescription: {
+    color: "rgba(255,255,255,0.78)",
+    fontSize: 13,
+    lineHeight: 18,
+  },
+  boardMetaRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+  },
+  boardMetaText: {
+    color: "rgba(255,255,255,0.65)",
+    fontSize: 12,
+  },
+
+  pill: {
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 999,
+    backgroundColor: "rgba(255,255,255,0.16)",
+  },
+  pillText: {
+    color: "#ffffff",
+    fontSize: 12,
+    fontWeight: "600",
+  },
+
+  unreadBadge: {
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 999,
+    backgroundColor: "rgba(255,255,255,0.18)",
+  },
+  unreadBadgeText: {
+    color: "#ffffff",
+    fontSize: 12,
+    fontWeight: "700",
+  },
+
+  tagRow: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: 8,
+  },
+  tag: {
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 999,
+    backgroundColor: "rgba(0,0,0,0.28)",
+    borderWidth: 1,
+    borderColor: "rgba(255,255,255,0.10)",
+  },
+  tagText: {
+    color: "rgba(255,255,255,0.82)",
+    fontSize: 12,
+  },
+
+  dueText: {
+    color: "rgba(255,255,255,0.7)",
+    fontSize: 12,
+  },
 });
