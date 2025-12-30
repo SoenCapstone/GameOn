@@ -4,12 +4,12 @@
     "slug": "GameOn",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/images/icon-white.png",
+    "icon": "./assets/images/icon-black.png",
     "scheme": "gameon",
-    "userInterfaceStyle": "automatic",
+    "userInterfaceStyle": "dark",
     "newArchEnabled": true,
     "ios": {
-      "icon": "./assets/images/icon.icon",
+      "icon": "./assets/icons/icon-black.icon",
       "supportsTablet": true,
       "bundleIdentifier": "com.anonymous.GameOn"
     },
@@ -33,7 +33,7 @@
       [
         "expo-splash-screen",
         {
-          "image": "./assets/images/icon-white.png",
+          "image": "./assets/images/icon-black.png",
           "resizeMode": "cover",
           "backgroundColor": "#000000",
           "dark": {

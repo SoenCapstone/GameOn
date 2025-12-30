@@ -1,14 +1,9 @@
 import { ComponentProps, ReactNode } from "react";
-import {
-  View,
-  StyleSheet,
-  ScrollView,
-  StyleProp,
-  ViewStyle,
-} from "react-native";
+import { View, StyleSheet, StyleProp, ViewStyle } from "react-native";
 import { useHeaderHeight } from "@react-navigation/elements";
 import { Background } from "@/components/ui/background";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { KeyboardAwareScrollView } from "react-native-keyboard-controller";
 
 interface ContentAreaProps {
   readonly children: ReactNode;
@@ -32,12 +27,13 @@ export function ContentArea({
   const headerHeight = useHeaderHeight();
   const insets = useSafeAreaInsets();
 
-  const Container = scrollable ? ScrollView : View;
+  const Container = scrollable ? KeyboardAwareScrollView : View;
 
   return (
     <>
       {backgroundProps && <Background {...backgroundProps} />}
       <Container
+        bottomOffset={30}
         contentContainerStyle={{
           paddingBottom: insets.bottom + (paddingBottom ?? 0),
           gap: 14,
@@ -45,7 +41,7 @@ export function ContentArea({
         style={[
           styles.content,
           {
-            paddingTop: headerHeight + (auth ? 28 : 8),
+            paddingTop: headerHeight + (auth ? 18 : 8),
             paddingBottom: insets.bottom,
           },
           style,

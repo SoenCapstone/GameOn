@@ -21,9 +21,6 @@ import {
 import type { FormikErrors, FormikTouched } from "formik";
 import * as Yup from "yup";
 
-export const isIOSPadding = () =>
-  Platform.OS === "ios" ? "padding" : undefined;
-
 export const displayFormikError = (
   touched: FormikTouched<any>,
   errors: FormikErrors<any>,
