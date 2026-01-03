@@ -8,6 +8,7 @@ import {
 } from "@testing-library/react-native";
 import CreateTeamScreen from "@/app/(contexts)/teams/create-team";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { Alert } from "react-native";
 
 jest.spyOn(console, "warn").mockImplementation(() => {});
 jest.spyOn(console, "error").mockImplementation(() => {});
@@ -101,7 +102,7 @@ describe("CreateTeamScreen", () => {
   });
 
   it("shows validation warnings when required fields are missing", () => {
-    const alertSpy = jest.spyOn(require("react-native").Alert, "alert");
+    const alertSpy = jest.spyOn(Alert, "alert");
     const { getByPlaceholderText, getByText } = renderWithClient(
       <CreateTeamScreen />,
     );
