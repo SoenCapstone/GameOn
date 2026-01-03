@@ -31,9 +31,9 @@ import { getPickerConfig } from "@/components/teams/team-form-constants";
 const log = createScopedLog("Team Settings");
 
 interface SettingsHeaderProps {
-  onSave: () => void;
-  isSaveEnabled: boolean;
-  isSaving: boolean;
+  readonly onSave: () => void;
+  readonly isSaveEnabled: boolean;
+  readonly isSaving: boolean;
 }
 
 function SettingsHeader({
@@ -156,22 +156,26 @@ export default function TeamSettingsScreen() {
   const currentConfig = openPicker ? pickerConfig[openPicker] : undefined;
 
   useLayoutEffect(() => {
-    const handleUpdateTeam = () => {
-      if (!teamName.trim()) {
-        Alert.alert("Team update failed", "Team name is required");
-        return;
-      }
-      updateTeamMutation.mutate();
-    };
+    const renderHeader = () => {
+      const handleUpdateTeam = () => {
+        if (!teamName.trim()) {
+          Alert.alert("Team update failed", "Team name is required");
+          return;
+        }
+        updateTeamMutation.mutate();
+      };
 
-    navigation.setOptions({
-      headerTitle: () => (
+      return (
         <SettingsHeader
           onSave={handleUpdateTeam}
           isSaveEnabled={hasChanges}
           isSaving={updateTeamMutation.isPending}
         />
-      ),
+      );
+    };
+
+    navigation.setOptions({
+      headerTitle: renderHeader,
     });
   }, [
     navigation,
@@ -204,37 +208,32 @@ export default function TeamSettingsScreen() {
   }
 
   return (
-    <>
-      <ContentArea scrollable backgroundProps={{ preset: "purple" }}>
-        <TeamLogoSection value={logoUri} onChange={setLogoUri} />
+    <ContentArea scrollable backgroundProps={{ preset: "purple" }}>
+      <TeamLogoSection value={logoUri} onChange={setLogoUri} />
 
-        <TeamNameField teamName={teamName} onChangeTeamName={setTeamName} />
+      <TeamNameField teamName={teamName} onChangeTeamName={setTeamName} />
 
-        <TeamDetailsCard
-          sportLabel={sportLabel}
-          scopeLabel={scopeLabel}
-          cityLabel={cityLabel}
-          onOpenPicker={setOpenPicker}
-        />
+      <TeamDetailsCard
+        sportLabel={sportLabel}
+        scopeLabel={scopeLabel}
+        cityLabel={cityLabel}
+        onOpenPicker={setOpenPicker}
+      />
 
-        <TeamVisibilitySection
-          isPublic={isPublic}
-          onChangePublic={setIsPublic}
-        />
+      <TeamVisibilitySection isPublic={isPublic} onChangePublic={setIsPublic} />
 
-        <PickerModal
-          visible={openPicker !== null}
-          title={currentConfig?.title ?? ""}
-          options={currentConfig?.options ?? []}
-          onClose={() => setOpenPicker(null)}
-          onSelect={(option) => {
-            if (!openPicker) return;
-            pickerConfig[openPicker].setter(option);
-            setOpenPicker(null);
-          }}
-        />
-      </ContentArea>
-    </>
+      <PickerModal
+        visible={openPicker !== null}
+        title={currentConfig?.title ?? ""}
+        options={currentConfig?.options ?? []}
+        onClose={() => setOpenPicker(null)}
+        onSelect={(option) => {
+          if (!openPicker) return;
+          pickerConfig[openPicker].setter(option);
+          setOpenPicker(null);
+        }}
+      />
+    </ContentArea>
   );
 }
 
