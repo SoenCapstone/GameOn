@@ -9,7 +9,6 @@ import {
 import CreateTeamScreen from "@/app/(contexts)/teams/create-team";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 
-const logSpy = jest.spyOn(console, "log").mockImplementation(() => {});
 jest.spyOn(console, "warn").mockImplementation(() => {});
 jest.spyOn(console, "error").mockImplementation(() => {});
 
@@ -174,7 +173,6 @@ describe("CreateTeamScreen", () => {
     fireEvent.press(getByText("Toronto"));
     const switchToggle = getByRole("switch");
     fireEvent(switchToggle, "valueChange", false);
-
     act(() => {
       fireEvent.press(getByText("Create Team"));
     });
