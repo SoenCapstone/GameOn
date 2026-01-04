@@ -1,11 +1,12 @@
 import React, { useLayoutEffect } from "react";
-import { View, ActivityIndicator, Text } from "react-native";
+import { View, ActivityIndicator } from "react-native";
 import { useLocalSearchParams } from "expo-router";
 import { useNavigation } from "@react-navigation/native";
 import { useQuery } from "@tanstack/react-query";
 import { useAuth } from "@clerk/clerk-expo";
-import { useQuery } from "@tanstack/react-query";
-import { useAuth } from "@clerk/clerk-expo";
+import { useSearch } from "@/contexts/search-context";
+import { useMockTeamBoard } from "@/components/teams/use-mock-team-board";
+import { createTeamStyles } from "@/components/teams/teams-styles";
 import { ContentArea } from "@/components/ui/content-area";
 import { Header } from "@/components/header/header";
 import { HeaderButton } from "@/components/header/header-button";
@@ -24,13 +25,9 @@ function TeamHeader({
   id,
   isOwner,
   onFollow,
-  isOwner,
-  onFollow,
 }: {
   readonly title: string;
   readonly id: string;
-  readonly isOwner: boolean;
-  readonly onFollow: () => void;
   readonly isOwner: boolean;
   readonly onFollow: () => void;
 }) {
@@ -55,16 +52,10 @@ function TeamHeader({
 
 export default function TeamDetailById() {
   const params = useLocalSearchParams<{ id?: string | string[] }>();
-
-
   const rawId = params.id;
   const id = Array.isArray(rawId) ? rawId[0] : rawId ?? "";
-
-  const [tab, setTab] = React.useState<"board" | "overview" | "games">("board");
-
   const { query } = useSearch();
-  const { items, loading: boardLoading } = useMockTeamBoard(id, query);
-
+  const { loading: boardLoading } = useMockTeamBoard(id, query);
 
   const api = useAxiosWithClerk();
   const { userId } = useAuth();
@@ -97,19 +88,8 @@ export default function TeamDetailById() {
     const title =
       (team?.name || mockTeamImmediate?.name) ?? (id ? `Team ${id}` : "Team");
     const isOwner = Boolean(userId && team && team.ownerUserId === userId);
-    const title =
-      (team?.name || mockTeamImmediate?.name) ?? (id ? `Team ${id}` : "Team");
-    const isOwner = Boolean(userId && team && team.ownerUserId === userId);
 
     function renderTeamHeader() {
-      return (
-        <TeamHeader
-          title={title}
-          id={id}
-          isOwner={isOwner}
-          onFollow={handleFollow}
-        />
-      );
       return (
         <TeamHeader
           title={title}
@@ -122,12 +102,11 @@ export default function TeamDetailById() {
 
     navigation.setOptions({ headerTitle: renderTeamHeader });
   }, [navigation, team, mockTeamImmediate, id, userId, handleFollow]);
-  }, [navigation, team, mockTeamImmediate, id, userId, handleFollow]);
 
   return (
     <ContentArea scrollable paddingBottom={60} backgroundProps={{ preset: "red" }}>
       <View style={createTeamStyles.container}>
-        {isLoading ? (
+        {isLoading || boardLoading ? (
           <ActivityIndicator size="large" color="#fff" />
         ) : null}
       </View>
