@@ -2,6 +2,7 @@ package com.game.on.go_messaging_service.config;
 
 import com.game.on.go_messaging_service.websocket.GatewayHandshakeHandler;
 import com.game.on.go_messaging_service.websocket.SubscriptionAuthorizationInterceptor;
+import com.game.on.go_messaging_service.websocket.WebSocketAuthorizationChannelInterceptor;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.messaging.simp.config.ChannelRegistration;
@@ -17,6 +18,7 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
 
     private final GatewayHandshakeHandler handshakeHandler;
     private final SubscriptionAuthorizationInterceptor subscriptionAuthorizationInterceptor;
+    private final WebSocketAuthorizationChannelInterceptor webSocketAuthorizationChannelInterceptor;
 
     @Override
     public void configureMessageBroker(MessageBrokerRegistry registry) {
@@ -35,6 +37,6 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
 
     @Override
     public void configureClientInboundChannel(ChannelRegistration registration) {
-        registration.interceptors(subscriptionAuthorizationInterceptor);
+        registration.interceptors(webSocketAuthorizationChannelInterceptor, subscriptionAuthorizationInterceptor);
     }
 }
