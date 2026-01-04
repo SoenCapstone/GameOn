@@ -42,19 +42,34 @@ enum VERSIONING {
 enum SERVICE {
   USER = "user",
   TEAMS = "teams",
+  MESSAGING = "messaging",
 }
 
-const buildUserRoute = (version: string, service: string, path?: string) => {
+const buildRoute = (version: string, service: string, path?: string) => {
   const base = `${API}/${version}/${service}`;
   return path ? `${base}/${path}` : base;
 };
 
 export const GO_USER_SERVICE_ROUTES = {
-  TEST: buildUserRoute(VERSIONING.v1, SERVICE.USER, "test"),
-  CREATE: buildUserRoute(VERSIONING.v1, SERVICE.USER, "create"),
+  TEST: buildRoute(VERSIONING.v1, SERVICE.USER, "test"),
+  CREATE: buildRoute(VERSIONING.v1, SERVICE.USER, "create"),
+  ALL: buildRoute(VERSIONING.v1, SERVICE.USER, "getAllUsers"),
+  BY_EMAIL: (email: string) => buildRoute(VERSIONING.v1, SERVICE.USER, email),
+  BY_ID: (userId: string) => buildRoute(VERSIONING.v1, SERVICE.USER, `id/${userId}`),
 };
 
 export const GO_TEAM_SERVICE_ROUTES = {
-  ALL: buildUserRoute(VERSIONING.v1, SERVICE.TEAMS),
-  CREATE: buildUserRoute(VERSIONING.v1, SERVICE.TEAMS, "create"),
+  ALL: buildRoute(VERSIONING.v1, SERVICE.TEAMS),
+  CREATE: buildRoute(VERSIONING.v1, SERVICE.TEAMS, "create"),
+};
+
+const messagingBase = buildRoute(VERSIONING.v1, SERVICE.MESSAGING);
+
+export const GO_MESSAGING_ROUTES = {
+  CONVERSATIONS: `${messagingBase}/conversations`,
+  DIRECT_CONVERSATION: `${messagingBase}/conversations/direct`,
+  TEAM_CONVERSATIONS: (teamId: string) =>
+    `${messagingBase}/teams/${teamId}/conversations`,
+  MESSAGES: (conversationId: string) =>
+    `${messagingBase}/conversations/${conversationId}/messages`,
 };
