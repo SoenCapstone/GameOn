@@ -1,12 +1,15 @@
 import React from "react";
 import { Stack } from "expo-router";
+import { MessagingProvider } from "@/features/messaging/provider";
 
 export default function MessagesLayout() {
   return (
-    <Stack
-      screenOptions={{
-        headerShown: false, // we build our own headers inside screens
-      }}
-    />
+    <MessagingProvider>
+      <Stack
+        screenOptions={{
+          headerShown: false,
+        }}
+      />
+    </MessagingProvider>
   );
 }
