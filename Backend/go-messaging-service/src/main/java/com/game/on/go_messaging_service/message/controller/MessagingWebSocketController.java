@@ -16,8 +16,8 @@ public class MessagingWebSocketController {
     private final CurrentUserProvider currentUserProvider;
 
     @MessageMapping("/messages/send")
-    public void send(@Valid SendMessageRequest request) {
-        var senderId = currentUserProvider.requireUserId();
+    public void send(@Valid SendMessageRequest request, java.security.Principal principal) {
+        var senderId = currentUserProvider.requireUserId(principal);
         messageService.sendMessage(request.conversationId(), senderId, request.content());
     }
 }

@@ -40,12 +40,22 @@ public class SubscriptionAuthorizationInterceptor implements ChannelInterceptor 
         if (!(principal instanceof MessagingPrincipal mp) || mp.userId() == null) {
             throw new ForbiddenException("User context not found for subscription");
         }
+        // if (destination.startsWith("/user/")) {
+        //     var expectedPrefix = "/user/" + mp.userId();
+        //     if (!destination.startsWith(expectedPrefix)) {
+        //         throw new ForbiddenException("Cannot subscribe to another user's queue");
+        //     }
+        // }
+        if (destination.equals("/user/queue") || destination.startsWith("/user/queue/")) {
+         return;
+        }
         if (destination.startsWith("/user/")) {
             var expectedPrefix = "/user/" + mp.userId();
             if (!destination.startsWith(expectedPrefix)) {
                 throw new ForbiddenException("Cannot subscribe to another user's queue");
             }
         }
+
         if (destination.startsWith("/topic/chatrooms/")) {
             var idPart = destination.substring("/topic/chatrooms/".length());
             try {

@@ -4,6 +4,9 @@ import com.game.on.go_messaging_service.exception.UnauthorizedException;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.oauth2.jwt.Jwt;
+import com.game.on.go_messaging_service.websocket.MessagingPrincipal;
+
+import java.security.Principal;
 import org.springframework.stereotype.Component;
 
 import java.util.Optional;
@@ -38,5 +41,12 @@ public class CurrentUserProvider {
             return Optional.ofNullable(jwt.getClaimAsString(claimName));
         }
         return Optional.empty();
+    }
+
+    public String requireUserId(Principal principal) {
+        if (principal instanceof MessagingPrincipal mp && mp.userId() != null) {
+            return mp.userId();
+        }
+        return requireUserId();
     }
 }
