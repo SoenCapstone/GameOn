@@ -34,7 +34,10 @@ export class MessagingSocket {
     if (!base) {
       throw new Error("Missing EXPO_PUBLIC_API_BASE_URL for messaging socket");
     }
-    const baseUrl = base.replace(/\/+$/, "");
+    let baseUrl = base;
+    while (baseUrl.endsWith("/")) {
+      baseUrl = baseUrl.slice(0, -1);
+    }
     this.wsBaseUrl = baseUrl;
   }
 
