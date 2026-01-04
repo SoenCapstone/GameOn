@@ -19,7 +19,7 @@ import {
   useMyTeams,
   useUserDirectory,
 } from "@/features/messaging/hooks";
-import errorToString from "@/utils/error";
+import { errorToString } from "@/utils/error";
 
 const styles = StyleSheet.create({
   container: {

@@ -23,7 +23,7 @@ import {
 } from "@/features/messaging/hooks";
 import { useMessagingContext } from "@/features/messaging/provider";
 import { buildMessagesFromPages, formatMessageTimestamp } from "@/features/messaging/utils";
-import errorToString from "@/utils/error";
+import { errorToString } from "@/utils/error";
 
 const styles = StyleSheet.create({
   screen: { flex: 1 },
