@@ -1,11 +1,12 @@
 import React, { useMemo, useState } from "react";
+import { messagesIndexStyles as styles } from "./styles";
+
 import { ContentArea } from "@/components/ui/content-area";
 import {
   ActivityIndicator,
   FlatList,
   Pressable,
   RefreshControl,
-  StyleSheet,
   Text,
   View,
 } from "react-native";
@@ -19,134 +20,7 @@ import {
 } from "@/features/messaging/hooks";
 import { formatMessageTimestamp } from "@/features/messaging/utils";
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    paddingTop: 8,
-  },
-  header: {
-    paddingHorizontal: 18,
-    paddingTop: 8,
-    paddingBottom: 10,
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-  },
-  title: {
-    fontSize: 22,
-    fontWeight: "700",
-    color: "white",
-  },
-  plusBtn: {
-    width: 34,
-    height: 34,
-    borderRadius: 17,
-    backgroundColor: "rgba(255,255,255,0.18)",
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  plusText: {
-    fontSize: 22,
-    lineHeight: 22,
-    fontWeight: "700",
-    color: "white",
-    marginTop: -2,
-  },
-  statusText: {
-    color: "rgba(255,255,255,0.7)",
-    fontSize: 12,
-    marginLeft: 18,
-    marginBottom: 6,
-  },
-  listContent: {
-    paddingHorizontal: 18,
-    paddingTop: 6,
-    paddingBottom: 18,
-  },
-  row: {
-    flexDirection: "row",
-    alignItems: "center",
-    paddingVertical: 12,
-  },
-  avatar: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    backgroundColor: "rgba(255,255,255,0.18)",
-    alignItems: "center",
-    justifyContent: "center",
-    marginRight: 12,
-    overflow: "hidden",
-  },
-  avatarText: {
-    color: "white",
-    fontWeight: "700",
-    fontSize: 16,
-  },
-  rowMid: {
-    flex: 1,
-  },
-  name: {
-    color: "white",
-    fontWeight: "700",
-    fontSize: 16,
-    marginBottom: 2,
-  },
-  preview: {
-    color: "rgba(255,255,255,0.65)",
-    fontSize: 13,
-  },
-  rowRight: {
-    alignItems: "flex-end",
-    gap: 4,
-    marginLeft: 10,
-  },
-  time: {
-    color: "rgba(255,255,255,0.75)",
-    fontSize: 12,
-  },
-  chev: {
-    color: "rgba(255,255,255,0.6)",
-    fontSize: 18,
-    marginTop: -4,
-  },
-  separator: {
-    height: 1,
-    backgroundColor: "rgba(255,255,255,0.10)",
-  },
-  badgeRow: {
-    flexDirection: "row",
-    gap: 6,
-    marginTop: 4,
-  },
-  badge: {
-    paddingHorizontal: 8,
-    paddingVertical: 2,
-    borderRadius: 10,
-    backgroundColor: "rgba(255,255,255,0.18)",
-  },
-  badgeText: {
-    color: "white",
-    fontSize: 10,
-    fontWeight: "600",
-  },
-  emptyState: {
-    alignItems: "center",
-    marginTop: 80,
-    paddingHorizontal: 24,
-  },
-  emptyTitle: {
-    color: "white",
-    fontSize: 18,
-    fontWeight: "700",
-    marginBottom: 8,
-  },
-  emptySubtitle: {
-    color: "rgba(255,255,255,0.7)",
-    fontSize: 14,
-    textAlign: "center",
-  },
-});
+
 
 type ListRow = {
   id: string;

@@ -1,11 +1,12 @@
 import React, { useMemo, useState } from "react";
+import { messagesNewStyles as styles } from "./styles";
+
 import { ContentArea } from "@/components/ui/content-area";
 import {
   ActivityIndicator,
   Alert,
   FlatList,
   Pressable,
-  StyleSheet,
   Switch,
   Text,
   TextInput,
@@ -20,123 +21,6 @@ import {
   useUserDirectory,
 } from "@/features/messaging/hooks";
 import { errorToString } from "@/utils/error";
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
-  header: {
-    paddingHorizontal: 18,
-    paddingBottom: 12,
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-  },
-  title: {
-    color: "white",
-    fontSize: 18,
-    fontWeight: "800",
-  },
-  circleBtn: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    backgroundColor: "rgba(255,255,255,0.16)",
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  circleIcon: {
-    color: "white",
-    fontSize: 22,
-    fontWeight: "700",
-    marginTop: -2,
-  },
-  tabs: {
-    flexDirection: "row",
-    paddingHorizontal: 18,
-    marginBottom: 12,
-    gap: 12,
-  },
-  tabBtn: {
-    paddingVertical: 6,
-    paddingHorizontal: 12,
-    borderRadius: 999,
-    backgroundColor: "rgba(255,255,255,0.15)",
-  },
-  tabActive: {
-    backgroundColor: "rgba(255,255,255,0.3)",
-  },
-  tabText: {
-    color: "white",
-    fontWeight: "700",
-  },
-  searchWrap: {
-    paddingHorizontal: 18,
-    paddingBottom: 12,
-  },
-  search: {
-    height: 44,
-    borderRadius: 22,
-    paddingHorizontal: 16,
-    backgroundColor: "rgba(255,255,255,0.12)",
-    color: "white",
-    fontSize: 15,
-    fontWeight: "600",
-  },
-  list: {
-    paddingHorizontal: 18,
-    paddingBottom: 18,
-  },
-  row: {
-    flexDirection: "row",
-    alignItems: "center",
-    paddingVertical: 12,
-    justifyContent: "space-between",
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: "rgba(255,255,255,0.15)",
-  },
-  name: {
-    color: "white",
-    fontSize: 16,
-    fontWeight: "700",
-  },
-  actionLink: {
-    color: "rgba(255,255,255,0.85)",
-    fontWeight: "600",
-  },
-  form: {
-    paddingHorizontal: 18,
-    gap: 12,
-    marginTop: 12,
-  },
-  label: {
-    color: "rgba(255,255,255,0.7)",
-    fontWeight: "600",
-    marginBottom: 4,
-  },
-  switchRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-  },
-  primaryBtn: {
-    marginTop: 12,
-    height: 46,
-    borderRadius: 23,
-    backgroundColor: "rgba(255,255,255,0.2)",
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  primaryText: {
-    color: "white",
-    fontWeight: "700",
-    fontSize: 16,
-  },
-  infoText: {
-    color: "rgba(255,255,255,0.7)",
-    fontSize: 13,
-  },
-});
 
 type TabKey = "direct" | "team";
 
