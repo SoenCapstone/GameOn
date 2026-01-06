@@ -16,8 +16,7 @@ public record LeagueInviteRespondRequest(
         LeagueRole role,
         OffsetDateTime createdAt,
         OffsetDateTime updatedAt,
-        OffsetDateTime expiresAt,
-        OffsetDateTime respondedAt
+        OffsetDateTime expiresAt
 ) {
 }
 

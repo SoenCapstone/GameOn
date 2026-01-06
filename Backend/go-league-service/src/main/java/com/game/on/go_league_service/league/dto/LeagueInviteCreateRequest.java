@@ -1,6 +1,7 @@
 package com.game.on.go_league_service.league.dto;
 
 import com.game.on.go_league_service.league.model.LeagueRole;
+import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.Future;
 import jakarta.validation.constraints.NotNull;
 
@@ -9,11 +10,9 @@ import java.util.UUID;
 
 public record LeagueInviteCreateRequest(
 
-        @NotNull(message = "League ID is required")
-        UUID leagueId,
-
-        @NotNull(message = "Invitee user ID is required")
-        String inviteeUserId,
+        @NotNull(message = "Invitee user email is required")
+        @Email
+        String inviteeEmail,
 
         @NotNull(message = "League role is required")
         LeagueRole role,

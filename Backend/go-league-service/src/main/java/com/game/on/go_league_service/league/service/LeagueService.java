@@ -55,6 +55,7 @@ public class LeagueService {
 
 
 
+
     @Transactional
     public LeagueDetailResponse createLeague(LeagueCreateRequest request, Long ownerUserId) {
         var league = League.builder()
@@ -121,30 +122,31 @@ public class LeagueService {
     }
 
     @Transactional
-public void createInvite(LeagueInviteCreateRequest request, Long callerId) {
-    var league = requireActiveLeague(request.leagueId());
-    ensureOwner(league, callerId);
+    public void createInvite(UUID leagueId, LeagueInviteCreateRequest request, Long callerId) {
+        var league = leagueRepository.findById(leagueId)
+                .orElseThrow(() -> new NotFoundException("League not found"));
+        ensureOwner(league, callerId);
 
-    leagueInviteRepository.findByLeagueIdAndInviteeUserId(
-            request.leagueId(),
-            request.inviteeUserId()
-    ).ifPresent(invite -> {
-        throw new BadRequestException("User already invited to this league");
-    });
+        String email = request.inviteeEmail().toLowerCase();
 
-    Long inviteeUserId = request.inviteeUserId() != null
-        ? Long.valueOf(request.inviteeUserId())
-        : null;
+        leagueInviteRepository.findByLeagueIdAndInviteeEmail(
+                leagueId,
+                request.inviteeEmail()
+        ).ifPresent(invite -> {
+            throw new BadRequestException("User already invited to this league");
+        });
 
-    var invite = LeagueInvite.builder()
-            .leagueId(request.leagueId())
-            .inviteeUserId(inviteeUserId)
-            .role(request.role())
-            .expiresAt(request.expiresAt())
-            .build();
+        String inviteeEmail = request.inviteeEmail();
 
-    leagueInviteRepository.save(invite);
-}
+        var invite = LeagueInvite.builder()
+                .leagueId(leagueId)
+                .inviteeEmail(inviteeEmail)
+                .role(request.role())
+                .expiresAt(request.expiresAt())
+                .build();
+
+        leagueInviteRepository.save(invite);
+    }
 
 
     @Transactional
@@ -167,7 +169,7 @@ public void createInvite(LeagueInviteCreateRequest request, Long callerId) {
         }
 
         invite.setStatus(request.status());
-        invite.setRespondedAt(OffsetDateTime.now());
+        invite.setUpdatedAt(OffsetDateTime.now());
     }
 
 
@@ -291,4 +293,35 @@ public void createInvite(LeagueInviteCreateRequest request, Long callerId) {
     private long defaultSeasonCount(League league) {
         return league.getSeasonCount() == null ? 0 : league.getSeasonCount();
     }
+
+    public List<LeagueInviteRespondRequest> getInvitesByLeagueId(UUID leagueId) {
+        return leagueInviteRepository.findByLeagueId(leagueId)
+                .stream()
+                .map(leagueMapper::toResponse)
+                .toList();
+    }
+
+    public LeagueInviteRespondRequest getInviteById(UUID inviteId) {
+        LeagueInvite invite = leagueInviteRepository.findByInviteId(inviteId)
+                .orElseThrow(() -> new NotFoundException("Invite not found"));
+
+        return leagueMapper.toResponse(invite);
+    }
+
+
+    public List<LeagueInviteRespondRequest> getInvitesByUserId(Long userId) {
+        return leagueInviteRepository.findByInviteeUserId(userId)
+                .stream()
+                .map(leagueMapper::toResponse)
+                .toList();
+    }
+
+    public List<LeagueInviteRespondRequest> getInvitesByStatus(Long userId, LeagueInviteStatus status) {
+        return leagueInviteRepository.findByInviteeUserIdAndStatus(userId, status)
+                .stream()
+                .map(leagueMapper::toResponse)
+                .toList();
+    }
+
+
 }

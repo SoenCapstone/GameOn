@@ -26,7 +26,7 @@ public class LeagueInvite {
     @Column(name = "league_id", nullable = false)
     private UUID leagueId;
 
-    @Column(name = "invited_by_user_id", nullable = false)
+    @Column(name = "invited_by_user_id", nullable = true)
     private Long invitedByUserId;
 
     @Column(name = "invitee_user_id")
@@ -54,6 +54,4 @@ public class LeagueInvite {
     @Column(name = "expires_at")
     private OffsetDateTime expiresAt;
 
-    @Column(name = "responded_at")
-    private OffsetDateTime respondedAt;
 }
