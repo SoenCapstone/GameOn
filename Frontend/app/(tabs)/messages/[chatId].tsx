@@ -1,4 +1,6 @@
 import React, { useMemo, useState } from "react";
+import { messagesChatStyles as styles } from "./styles";
+
 import { ContentArea } from "@/components/ui/content-area";
 import {
   ActivityIndicator,
@@ -7,7 +9,6 @@ import {
   KeyboardAvoidingView,
   Platform,
   Pressable,
-  StyleSheet,
   Text,
   TextInput,
   View,
@@ -25,142 +26,7 @@ import { useMessagingContext } from "@/features/messaging/provider";
 import { buildMessagesFromPages, formatMessageTimestamp } from "@/features/messaging/utils";
 import { errorToString } from "@/utils/error";
 
-const styles = StyleSheet.create({
-  screen: { flex: 1 },
-  header: {
-    paddingHorizontal: 16,
-    paddingBottom: 10,
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 12,
-  },
-  circleBtn: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    backgroundColor: "rgba(255,255,255,0.16)",
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  circleIcon: {
-    color: "white",
-    fontSize: 22,
-    fontWeight: "700",
-    marginTop: -2,
-  },
-  avatarCircle: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    backgroundColor: "rgba(255,255,255,0.22)",
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  avatarLetter: { color: "white", fontWeight: "800", fontSize: 18 },
-  headerText: { flex: 1 },
-  headerTitle: { color: "white", fontSize: 18, fontWeight: "800" },
-  headerSub: {
-    color: "rgba(255,255,255,0.65)",
-    fontSize: 13,
-    marginTop: 2,
-  },
-  badge: {
-    marginTop: 6,
-    alignSelf: "flex-start",
-    paddingHorizontal: 10,
-    paddingVertical: 2,
-    borderRadius: 10,
-    backgroundColor: "rgba(255,255,255,0.18)",
-  },
-  badgeText: { color: "white", fontWeight: "600", fontSize: 12 },
-  infoText: {
-    textAlign: "center",
-    color: "rgba(255,255,255,0.55)",
-    marginTop: 6,
-    marginBottom: 10,
-    fontWeight: "600",
-  },
-  list: { paddingHorizontal: 14, paddingBottom: 10 },
-  bubble: {
-    maxWidth: "80%",
-    paddingVertical: 10,
-    paddingHorizontal: 14,
-    borderRadius: 18,
-    marginBottom: 10,
-  },
-  bubbleMe: { backgroundColor: "rgba(255,255,255,0.20)" },
-  bubbleThem: { backgroundColor: "rgba(0,0,0,0.18)" },
-  right: { alignSelf: "flex-end", borderTopRightRadius: 6 },
-  left: { alignSelf: "flex-start", borderTopLeftRadius: 6 },
-  senderLabel: {
-    color: "rgba(255,255,255,0.7)",
-    fontSize: 11,
-    marginBottom: 2,
-  },
-  bubbleText: { color: "white", fontSize: 16 },
-  timestamp: {
-    color: "rgba(255,255,255,0.5)",
-    fontSize: 11,
-    marginTop: 4,
-    textAlign: "right",
-  },
-  composerContainer: {
-    paddingHorizontal: 20,
-    paddingTop: 8,
-  },
-  composer: {
-    flexDirection: "row",
-    alignItems: "center",
-    paddingHorizontal: 18,
-    paddingVertical: 10,
-    gap: 14,
-    backgroundColor: "rgba(0,0,0,0.45)",
-    borderRadius: 32,
-    shadowColor: "#000",
-    shadowOpacity: 0.25,
-    shadowRadius: 16,
-    shadowOffset: { width: 0, height: 6 },
-    elevation: 6,
-  },
-  input: {
-    flex: 1,
-    minHeight: 48,
-    borderRadius: 24,
-    paddingHorizontal: 18,
-    paddingVertical: 10,
-    color: "white",
-    backgroundColor: "rgba(255,255,255,0.12)",
-    fontSize: 16,
-  },
-  sendBtn: {
-    height: 48,
-    minWidth: 68,
-    paddingHorizontal: 18,
-    borderRadius: 24,
-    backgroundColor: "rgba(0,0,0,0.7)",
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  sendText: { color: "white", fontWeight: "800", fontSize: 15 },
-  loadMore: {
-    paddingVertical: 12,
-    alignItems: "center",
-  },
-  loadMoreText: {
-    color: "rgba(255,255,255,0.8)",
-    fontWeight: "600",
-  },
-  emptyState: {
-    marginTop: 40,
-    alignItems: "center",
-    paddingHorizontal: 24,
-  },
-  emptyTitle: { color: "white", fontSize: 18, fontWeight: "700", marginBottom: 6 },
-  emptySubtitle: {
-    color: "rgba(255,255,255,0.7)",
-    textAlign: "center",
-  },
-});
+
 
 type DisplayMessage = {
   id: string;
