@@ -82,20 +82,19 @@ public class LeagueMapper {
     }
 
     public LeagueInviteRespondRequest toResponse(LeagueInvite invite) {
-    return new LeagueInviteRespondRequest(
-            invite.getId(),
-            invite.getLeagueId(),
-            String.valueOf(invite.getInvitedByUserId()),
-            invite.getInviteeUserId() != null ? invite.getInviteeUserId().toString() : null,
-            invite.getInviteeEmail(),
-            invite.getStatus(),
-            invite.getRole(),
-            invite.getCreatedAt(),
-            invite.getUpdatedAt(),
-            invite.getExpiresAt(),
-            invite.getRespondedAt()
-    );
-}
+        return new LeagueInviteRespondRequest(
+                invite.getId(),
+                invite.getLeagueId(),
+                String.valueOf(invite.getInvitedByUserId()),
+                invite.getInviteeUserId() != null ? invite.getInviteeUserId().toString() : null,
+                invite.getInviteeEmail(),
+                invite.getStatus(),
+                invite.getRole(),
+                invite.getCreatedAt(),
+                invite.getUpdatedAt(),
+                invite.getExpiresAt()
+        );
+    }
 
 
 }

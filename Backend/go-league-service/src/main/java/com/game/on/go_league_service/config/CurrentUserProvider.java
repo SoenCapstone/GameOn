@@ -10,7 +10,7 @@ import org.springframework.stereotype.Component;
  * It retrieves the user ID from the JWT token present in the security context allowing to avoid passing user IDs
  * explicitly in service methods.
  */
-@Component
+@Component ("jwtCurrentUserProvider")
 public class CurrentUserProvider {
 
     public String clerkUserId() {

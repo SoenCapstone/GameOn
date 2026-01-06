@@ -11,12 +11,16 @@ import java.util.UUID;
 
 public interface LeagueInviteRepository extends JpaRepository<LeagueInvite, UUID> {
 
-    List<LeagueInvite> findByInviteeUserIdAndAcceptedAtIsNull(String userId);
+    Optional<LeagueInvite> findByLeagueIdAndInviteeEmail(UUID leagueId, String email);
 
-    Optional<LeagueInvite> findByLeagueIdAndInviteeUserId(UUID leagueId, String userId);
+    Optional<LeagueInvite> findByInviteId(UUID id);
 
-    Optional<LeagueInvite> findByIdAndStatus(UUID id, LeagueInviteStatus status);
+    List<LeagueInvite> findByLeagueId(UUID leagueId);
 
-    
+    List<LeagueInvite> findByInviteeUserId(Long inviteeUserId);
+
+    List<LeagueInvite> findByInviteeUserIdAndStatus(Long inviteeUserId, LeagueInviteStatus status);
+
+
 
 }

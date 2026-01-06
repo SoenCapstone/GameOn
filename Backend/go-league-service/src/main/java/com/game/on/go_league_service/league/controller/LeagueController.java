@@ -8,6 +8,7 @@ import com.game.on.go_league_service.league.dto.LeagueSearchCriteria;
 import com.game.on.go_league_service.league.dto.LeagueSeasonResponse;
 import com.game.on.go_league_service.league.dto.LeagueUpdateRequest;
 import com.game.on.go_league_service.league.dto.LeagueInviteRespondRequest;
+import com.game.on.go_league_service.league.model.LeagueInviteStatus;
 import com.game.on.go_league_service.league.service.LeagueService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -82,16 +83,17 @@ public class LeagueController {
         return ResponseEntity.ok(response);
     }
 
-    @PostMapping("/invites")
+    @PostMapping("/{leagueId}/invites")
     public ResponseEntity<Void> createInvite(
+            @PathVariable UUID leagueId,
             @Valid @RequestBody LeagueInviteCreateRequest request
     ) {
         var callerId = currentUserProvider.requireUserId();
-        leagueService.createInvite(request, callerId);
+        leagueService.createInvite(leagueId, request, callerId);
         return ResponseEntity.status(HttpStatus.CREATED).build();
     }
 
-    @PostMapping("/invites/respond")
+    @PostMapping("/invites/{inviteID}/respond")
     public ResponseEntity<Void> respondToInvite(
             @Valid @RequestBody LeagueInviteRespondRequest request
     ) {
@@ -99,6 +101,32 @@ public class LeagueController {
         leagueService.respondToInvite(request.id(), userId, request);
         return ResponseEntity.noContent().build();
     }
+    @GetMapping("/{leagueId}/invites")
+    public ResponseEntity<List<LeagueInviteRespondRequest>> getInvitesByLeague(@PathVariable UUID leagueId) {
+        return ResponseEntity.ok(leagueService.getInvitesByLeagueId(leagueId));
+    }
+
+    @GetMapping("/invites/user")
+    public ResponseEntity<List<LeagueInviteRespondRequest>> getInvitesForCurrentUser() {
+        var userId = currentUserProvider.requireUserId();
+        return ResponseEntity.ok(leagueService.getInvitesByUserId(userId));
+    }
+
+    @GetMapping("/invites/status")
+    public ResponseEntity<List<LeagueInviteRespondRequest>> getInvitesByStatus(
+            @RequestParam("status") LeagueInviteStatus status
+    ) {
+        var userId = currentUserProvider.requireUserId();
+        return ResponseEntity.ok(leagueService.getInvitesByStatus(userId, status));
+    }
+
+    @GetMapping("/invites/{inviteId}")
+    public ResponseEntity<LeagueInviteRespondRequest> getInviteById(@PathVariable UUID inviteId) {
+        var response = leagueService.getInviteById(inviteId);
+        return ResponseEntity.ok(response);
+    }
+
+
 
 
 
