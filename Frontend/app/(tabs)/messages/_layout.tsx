@@ -1,24 +1,15 @@
-import { Stack } from "expo-router";
 import React from "react";
-import { Header } from "@/components/header/header";
-import { Logo } from "@/components/header/logo";
-import { PageTitle } from "@/components/header/page-title";
-
-const messagesHeader = () => (
-  <Header left={<Logo />} center={<PageTitle title="Messages" />} />
-);
+import { Stack } from "expo-router";
+import { MessagingProvider } from "@/features/messaging/provider";
 
 export default function MessagesLayout() {
   return (
-    <Stack>
-      <Stack.Screen
-        name="index"
-        options={{
-          headerTransparent: true,
-          headerShadowVisible: false,
-          headerTitle: messagesHeader,
+    <MessagingProvider>
+      <Stack
+        screenOptions={{
+          headerShown: false,
         }}
       />
-    </Stack>
+    </MessagingProvider>
   );
 }
