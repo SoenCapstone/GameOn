@@ -13,7 +13,7 @@ public record LeagueDetailResponse(
         String slug,
         String location,
         String region,
-        Long ownerUserId,
+        String ownerUserId,
         LeagueLevel level,
         LeaguePrivacy privacy,
         long seasonCount,

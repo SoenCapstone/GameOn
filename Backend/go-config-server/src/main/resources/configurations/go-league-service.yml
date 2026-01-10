@@ -20,8 +20,19 @@ spring:
     table: league_flyway_history
     locations: classpath:db/migration
 
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: https://one-magpie-92.clerk.accounts.dev
+
 server:
   port: 8093
+
+eureka:
+  client:
+    service-url:
+      defaultZone: http://localhost:8761/eureka/
 
 management:
   endpoints:
