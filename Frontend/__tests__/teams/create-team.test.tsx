@@ -1,9 +1,15 @@
 import React from "react";
-import { render, fireEvent, act, waitFor, cleanup } from "@testing-library/react-native";
+import {
+  render,
+  fireEvent,
+  act,
+  waitFor,
+  cleanup,
+} from "@testing-library/react-native";
 import CreateTeamScreen from "@/app/(contexts)/teams/create-team";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { Alert } from "react-native";
 
-const logSpy = jest.spyOn(console, "log").mockImplementation(() => {});
 jest.spyOn(console, "warn").mockImplementation(() => {});
 jest.spyOn(console, "error").mockImplementation(() => {});
 
@@ -22,7 +28,9 @@ jest.mock("@/hooks/use-axios-clerk", () => {
     useAxiosWithClerk: jest.fn(() => ({
       get post() {
         if (!mockPost) {
-          mockPost = jest.fn(async () => ({ data: { id: "abc", slug: "my-new-team" } }));
+          mockPost = jest.fn(async () => ({
+            data: { id: "abc", slug: "my-new-team" },
+          }));
         }
         return mockPost;
       },
@@ -47,7 +55,9 @@ jest.mock("@/components/teams/logo-picker", () => {
 
 beforeEach(() => {
   jest.clearAllMocks();
-  mockPost = jest.fn(async () => ({ data: { id: "abc", slug: "my-new-team" } }));
+  mockPost = jest.fn(async () => ({
+    data: { id: "abc", slug: "my-new-team" },
+  }));
 });
 
 function createDelayedResponse() {
@@ -61,9 +71,9 @@ describe("CreateTeamScreen", () => {
 
   beforeEach(() => {
     queryClient = new QueryClient({
-      defaultOptions: { 
-        queries: { retry: false, gcTime: 0 }, 
-        mutations: { retry: false, gcTime: 0 } 
+      defaultOptions: {
+        queries: { retry: false, gcTime: 0 },
+        mutations: { retry: false, gcTime: 0 },
       },
     });
   });
@@ -75,11 +85,15 @@ describe("CreateTeamScreen", () => {
   });
 
   function renderWithClient(ui: React.ReactElement) {
-    return render(<QueryClientProvider client={queryClient}>{ui}</QueryClientProvider>);
+    return render(
+      <QueryClientProvider client={queryClient}>{ui}</QueryClientProvider>,
+    );
   }
 
   it("renders core UI elements", () => {
-    const { getByPlaceholderText, getByText } = renderWithClient(<CreateTeamScreen />);
+    const { getByPlaceholderText, getByText } = renderWithClient(
+      <CreateTeamScreen />,
+    );
 
     expect(getByPlaceholderText("Team Name")).toBeTruthy();
     expect(getByText("Details")).toBeTruthy();
@@ -88,22 +102,27 @@ describe("CreateTeamScreen", () => {
   });
 
   it("shows validation warnings when required fields are missing", () => {
-    const { getByPlaceholderText, getByText } = renderWithClient(<CreateTeamScreen />);
+    const alertSpy = jest.spyOn(Alert, "alert");
+    const { getByPlaceholderText, getByText } = renderWithClient(
+      <CreateTeamScreen />,
+    );
 
     fireEvent.changeText(getByPlaceholderText("Team Name"), "My New Team");
     fireEvent.press(getByText("Create Team"));
 
-    expect(logSpy).toHaveBeenCalled();
-    const [[warnMessage]] = logSpy.mock.calls as [[string]];
-    expect(warnMessage).toContain("Sport is required");
+    expect(alertSpy).toHaveBeenCalledWith(
+      "Team creation failed",
+      "Sport is required",
+    );
     expect(mockReplace).not.toHaveBeenCalled();
     expect(mockBack).not.toHaveBeenCalled();
+
+    alertSpy.mockRestore();
   });
 
   it("allows clearing the team name", () => {
-    const { getByPlaceholderText, getByText, queryByDisplayValue } = renderWithClient(
-      <CreateTeamScreen />,
-    );
+    const { getByPlaceholderText, getByText, queryByDisplayValue } =
+      renderWithClient(<CreateTeamScreen />);
     const input = getByPlaceholderText("Team Name");
     fireEvent.changeText(input, "Temp Name");
     expect(queryByDisplayValue("Temp Name")).toBeTruthy();
@@ -155,7 +174,6 @@ describe("CreateTeamScreen", () => {
     fireEvent.press(getByText("Toronto"));
     const switchToggle = getByRole("switch");
     fireEvent(switchToggle, "valueChange", false);
-    
     act(() => {
       fireEvent.press(getByText("Create Team"));
     });
@@ -170,7 +188,9 @@ describe("CreateTeamScreen", () => {
   it("shows 'Creating...' while request is in-flight", async () => {
     mockPost.mockImplementationOnce(() => createDelayedResponse());
 
-    const { getByText, getByPlaceholderText } = renderWithClient(<CreateTeamScreen />);
+    const { getByText, getByPlaceholderText } = renderWithClient(
+      <CreateTeamScreen />,
+    );
     fireEvent.changeText(getByPlaceholderText("Team Name"), "Async Team");
     fireEvent.press(getByText("Sports"));
     fireEvent.press(getByText("Soccer"));
