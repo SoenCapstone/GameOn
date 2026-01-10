@@ -1,11 +1,169 @@
-import React from "react";
+import React, { useMemo, useState } from "react";
+import { messagesIndexStyles as styles } from "./styles";
+
 import { ContentArea } from "@/components/ui/content-area";
-import { View } from "react-native";
+import {
+  ActivityIndicator,
+  FlatList,
+  Pressable,
+  RefreshControl,
+  Text,
+  View,
+} from "react-native";
+import { useRouter } from "expo-router";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { useAuth } from "@clerk/clerk-expo";
+import { useMessagingContext } from "@/features/messaging/provider";
+import {
+  useConversationsQuery,
+  useUserDirectory,
+} from "@/features/messaging/hooks";
+import { formatMessageTimestamp } from "@/features/messaging/utils";
+
+
+
+type ListRow = {
+  id: string;
+  title: string;
+  subtitle: string;
+  preview: string;
+  timestamp: string;
+  badge?: string;
+  badgeTone?: string;
+};
 
 export default function Messages() {
+  const router = useRouter();
+  const insets = useSafeAreaInsets();
+  const { userId } = useAuth();
+  const { socketState } = useMessagingContext();
+  const { data, isLoading, refetch, isRefetching } = useConversationsQuery();
+  const { data: users } = useUserDirectory();
+  const [filter, setFilter] = useState<"all" | "direct" | "group">("all");
+
+  const userMap = useMemo(() => {
+    const map = new Map<string, string>();
+    users?.forEach((user) => {
+      const full = `${user.firstname ?? ""} ${user.lastname ?? ""}`.trim();
+      map.set(user.id, full || user.email);
+    });
+    return map;
+  }, [users]);
+
+  const listData = useMemo<ListRow[]>(() => {
+    if (!data) return [];
+    return data
+      .filter((conversation) => {
+        if (filter === "direct") return conversation.type === "DIRECT";
+        if (filter === "group") return conversation.type === "GROUP";
+        return true;
+      })
+      .map((conversation) => {
+        const isGroup = conversation.type === "GROUP";
+        const otherParticipant = conversation.participants.find(
+          (p) => p.userId !== userId,
+        );
+        const title = isGroup
+          ? conversation.name ?? "Team chat"
+          : userMap.get(otherParticipant?.userId ?? "") ?? "Direct message";
+        const preview = conversation.lastMessage?.content ?? "Start the conversation";
+        const badge = isGroup ? (conversation.isEvent ? "Event" : "Team") : undefined;
+        const timestamp = formatMessageTimestamp(
+          conversation.lastMessage?.createdAt ??
+            conversation.lastMessageAt ??
+            conversation.createdAt,
+        );
+        return {
+          id: conversation.id,
+          title,
+          subtitle: isGroup ? (conversation.isEvent ? "Event chat" : "Team chat") : "Direct message",
+          preview,
+          timestamp,
+          badge,
+        } satisfies ListRow;
+      });
+  }, [data, filter, userId, userMap]);
+
+  const openConversation = (id: string) => router.push(`/messages/${id}`);
+  const openNewChat = () => router.push("/messages/new");
+
   return (
     <ContentArea backgroundProps={{ preset: "green" }}>
-      <View />
+      <View style={styles.container}>
+        <View style={[styles.header, { paddingTop: insets.top + 8 }]}>
+          <Text style={styles.title}>Messages</Text>
+          <Pressable onPress={openNewChat} style={styles.plusBtn} accessibilityLabel="Start a new conversation">
+            <Text style={styles.plusText}>+</Text>
+          </Pressable>
+        </View>
+
+        <View style={[styles.header, { paddingTop: 0 }]}> 
+          <Pressable onPress={() => setFilter("all")} style={{ opacity: filter === "all" ? 1 : 0.6 }}>
+            <Text style={styles.toggleText}>All</Text>
+          </Pressable>
+          <Pressable onPress={() => setFilter("direct")} style={{ opacity: filter === "direct" ? 1 : 0.6 }}>
+            <Text style={styles.toggleText}>Direct</Text>
+          </Pressable>
+          <Pressable onPress={() => setFilter("group")} style={{ opacity: filter === "group" ? 1 : 0.6 }}>
+            <Text style={styles.toggleText}>Groups</Text>
+          </Pressable>
+        </View>
+
+        <Text style={styles.statusText}>
+          Connection: {socketState === "connected" ? "Online" : socketState}
+        </Text>
+
+        {isLoading ? (
+          <View style={styles.emptyState}>
+            <ActivityIndicator color="white" />
+          </View>
+        ) : listData.length === 0 ? (
+          <View style={styles.emptyState}>
+            <Text style={styles.emptyTitle}>No conversations yet</Text>
+            <Text style={styles.emptySubtitle}>
+              Start a direct message or create a team chat to begin.
+            </Text>
+          </View>
+        ) : (
+          <FlatList
+            data={listData}
+            keyExtractor={(item) => item.id}
+            contentContainerStyle={styles.listContent}
+            ItemSeparatorComponent={() => <View style={styles.separator} />}
+            refreshControl={
+              <RefreshControl refreshing={isRefetching} onRefresh={refetch} tintColor="white" />
+            }
+            renderItem={({ item }) => (
+              <Pressable onPress={() => openConversation(item.id)} style={styles.row}>
+                <View style={styles.avatar}>
+                  <Text style={styles.avatarText}>
+                    {item.title?.[0]?.toUpperCase() ?? "?"}
+                  </Text>
+                </View>
+
+                <View style={styles.rowMid}>
+                  <Text style={styles.name}>{item.title}</Text>
+                  <Text style={styles.preview} numberOfLines={1}>
+                    {item.preview}
+                  </Text>
+                  {item.badge && (
+                    <View style={styles.badgeRow}>
+                      <View style={styles.badge}>
+                        <Text style={styles.badgeText}>{item.badge}</Text>
+                      </View>
+                    </View>
+                  )}
+                </View>
+
+                <View style={styles.rowRight}>
+                  <Text style={styles.time}>{item.timestamp}</Text>
+                  <Text style={styles.chev}>›</Text>
+                </View>
+              </Pressable>
+            )}
+          />
+        )}
+      </View>
     </ContentArea>
   );
 }
