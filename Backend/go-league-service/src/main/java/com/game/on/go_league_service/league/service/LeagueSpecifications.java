@@ -34,13 +34,13 @@ public final class LeagueSpecifications {
                 );
     }
 
-    public static Specification<League> ownerIs(Long ownerId) {
+    public static Specification<League> ownerIs(String  ownerId) {
         return (root, query, builder) -> ownerId == null
                 ? builder.disjunction()
                 : builder.equal(root.get("ownerUserId"), ownerId);
     }
 
-    public static Specification<League> visibleTo(Long callerId) {
+    public static Specification<League> visibleTo(String callerId) {
         return (root, query, builder) -> {
             if (callerId == null) {
                 return builder.equal(root.get("privacy"), LeaguePrivacy.PUBLIC);
