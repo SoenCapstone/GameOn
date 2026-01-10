@@ -2,6 +2,15 @@ import { renderHook, act } from "@testing-library/react-native";
 import { useTeamForm } from "@/hooks/use-team-form";
 import { SCOPE_OPTIONS } from "@/components/teams/team-form-constants";
 
+interface TeamFormInitialData {
+  readonly name: string;
+  readonly sport?: string;
+  readonly scope?: string;
+  readonly location?: string;
+  readonly logoUrl?: string;
+  readonly privacy?: "PUBLIC" | "PRIVATE";
+}
+
 describe("useTeamForm", () => {
   it("initializes with default values", () => {
     const { result } = renderHook(() => useTeamForm());
@@ -230,7 +239,7 @@ describe("useTeamForm", () => {
 
   it("updates state when initialData changes", () => {
     const { result, rerender } = renderHook(
-      ({ initialData }) => useTeamForm({ initialData }),
+      (props: { initialData: TeamFormInitialData }) => useTeamForm({ initialData: props.initialData }),
       {
         initialProps: {
           initialData: {

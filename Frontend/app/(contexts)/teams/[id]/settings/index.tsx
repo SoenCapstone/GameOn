@@ -9,7 +9,6 @@ import {
 } from "react-native";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useNavigation } from "@react-navigation/native";
-import { useQuery, useMutation } from "@tanstack/react-query";
 import { ContentArea } from "@/components/ui/content-area";
 import { Header } from "@/components/header/header";
 import { HeaderButton } from "@/components/header/header-button";
@@ -19,10 +18,7 @@ import { TeamNameField } from "@/components/teams/name-field";
 import { TeamDetailsCard } from "@/components/teams/details-card";
 import { TeamVisibilitySection } from "@/components/teams/visibility";
 import PickerModal from "@/components/ui/pickerModal";
-import {
-  useAxiosWithClerk,
-  GO_TEAM_SERVICE_ROUTES,
-} from "@/hooks/use-axios-clerk";
+import { useTeam, useUpdateTeam } from "@/hooks/use-team-settings";
 import { createScopedLog } from "@/utils/logger";
 import { errorToString } from "@/utils/error";
 import { useTeamForm } from "@/hooks/use-team-form";
@@ -30,17 +26,15 @@ import { getPickerConfig } from "@/components/teams/team-form-constants";
 
 const log = createScopedLog("Team Settings");
 
-interface SettingsHeaderProps {
-  readonly onSave: () => void;
-  readonly isSaveEnabled: boolean;
-  readonly isSaving: boolean;
-}
-
 function SettingsHeader({
   onSave,
   isSaveEnabled,
   isSaving,
-}: SettingsHeaderProps) {
+}:{
+  readonly onSave: () => void;
+  readonly isSaveEnabled: boolean;
+  readonly isSaving: boolean;
+}) {
   const isDisabled = !isSaveEnabled || isSaving;
 
   return (
@@ -72,23 +66,8 @@ export default function TeamSettingsScreen() {
   const id = params.id ?? "";
   const navigation = useNavigation();
   const router = useRouter();
-  const api = useAxiosWithClerk();
 
-  const { data: team, isLoading: teamLoading } = useQuery({
-    queryKey: ["team", id],
-    queryFn: async () => {
-      try {
-        const resp = await api.get(`${GO_TEAM_SERVICE_ROUTES.ALL}/${id}`);
-        return resp.data;
-      } catch (err) {
-        log.error("Failed to fetch team:", err);
-        throw err;
-      }
-    },
-    enabled: !!id,
-    retry: false,
-    refetchOnWindowFocus: false,
-  });
+  const { data: team, isLoading: teamLoading } = useTeam(id);
 
   const {
     teamName,
@@ -109,23 +88,7 @@ export default function TeamSettingsScreen() {
     initialData: team,
   });
 
-  const updateTeamMutation = useMutation({
-    mutationFn: async () => {
-      const payload = {
-        name: teamName.trim(),
-        sport: selectedSport?.id ?? "",
-        scope: selectedScope?.id ?? "",
-        logoUrl: logoUri ?? "",
-        location: selectedCity?.label ?? "",
-        privacy: isPublic ? "PUBLIC" : "PRIVATE",
-      };
-      log.info("Sending team update payload:", payload);
-      const resp = await api.patch(
-        `${GO_TEAM_SERVICE_ROUTES.ALL}/${id}`,
-        payload,
-      );
-      return resp.data;
-    },
+  const updateTeamMutation = useUpdateTeam(id, {
     onSuccess: () => {
       log.info("Team updated successfully");
       router.back();
@@ -162,7 +125,17 @@ export default function TeamSettingsScreen() {
           Alert.alert("Team update failed", "Team name is required");
           return;
         }
-        updateTeamMutation.mutate();
+
+        const payload = {
+          name: teamName.trim(),
+          sport: selectedSport?.id ?? "",
+          scope: selectedScope?.id ?? "",
+          logoUrl: logoUri ?? "",
+          location: selectedCity?.label ?? "",
+          privacy: isPublic ? "PUBLIC" : "PRIVATE",
+        } as const;
+
+        updateTeamMutation.mutate(payload);
       };
 
       return (
@@ -185,17 +158,10 @@ export default function TeamSettingsScreen() {
     teamName,
     selectedSport,
     selectedCity,
+    isPublic,
+    logoUri,
+    selectedScope,
   ]);
-
-  if (teamLoading) {
-    return (
-      <ContentArea backgroundProps={{ preset: "red" }}>
-        <View style={settingsStyles.container}>
-          <ActivityIndicator size="large" color="#fff" />
-        </View>
-      </ContentArea>
-    );
-  }
 
   if (!team) {
     return (
@@ -209,6 +175,12 @@ export default function TeamSettingsScreen() {
 
   return (
     <ContentArea scrollable backgroundProps={{ preset: "purple" }}>
+      {teamLoading && (
+        <View style={settingsStyles.loadingOverlay}>
+          <ActivityIndicator size="large" color="#fff" />
+        </View>
+      )}
+
       <TeamLogoSection value={logoUri} onChange={setLogoUri} />
 
       <TeamNameField teamName={teamName} onChangeTeamName={setTeamName} />
@@ -246,5 +218,16 @@ const settingsStyles = StyleSheet.create({
   errorText: {
     color: "#fff",
     fontSize: 16,
+  },
+  loadingOverlay: {
+    position: "absolute",
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "rgba(0, 0, 0, 0.3)",
+    zIndex: 999,
   },
 });
