@@ -1,5 +1,6 @@
 package com.game.on.go_league_service.league.service;
 
+import com.game.on.go_league_service.config.CurrentUserProvider;
 import com.game.on.go_league_service.exception.BadRequestException;
 import com.game.on.go_league_service.exception.ForbiddenException;
 import com.game.on.go_league_service.exception.NotFoundException;
@@ -36,6 +37,7 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 
 import static com.game.on.go_league_service.league.service.LeagueSpecifications.*;
+import static java.lang.String.format;
 
 @Slf4j
 @Service
@@ -45,32 +47,27 @@ public class LeagueService {
     private final LeagueRepository leagueRepository;
     private final LeagueSeasonRepository leagueSeasonRepository;
     private final LeagueMapper leagueMapper;
+    private final CurrentUserProvider userProvider;
     private final LeagueMetricsPublisher metricsPublisher;
 
     @Transactional
-    public LeagueDetailResponse createLeague(LeagueCreateRequest request, Long ownerUserId) {
-        var league = League.builder()
-                .name(request.name().trim())
-                .sport(request.sport().trim())
-                .slug(generateUniqueSlug(request.name()))
-                .location(trimToNull(request.location()))
-                .region(trimToNull(request.region()))
-                .ownerUserId(ownerUserId)
-                .level(request.level())
-                .privacy(request.privacy() == null ? LeaguePrivacy.PUBLIC : request.privacy())
-                .seasonCount(0)
-                .build();
+    public LeagueDetailResponse createLeague(LeagueCreateRequest request) {
+        String ownerUserId = userProvider.clerkUserId();
+
+        League league = leagueMapper.toLeague(request, ownerUserId);
 
         var saved = leagueRepository.save(league);
-        metricsPublisher.leagueCreated();
         log.info("league_created leagueId={} ownerId={}", saved.getId(), ownerUserId);
+        metricsPublisher.leagueCreated();
+
         return leagueMapper.toDetail(saved, 0);
     }
 
     @Transactional
-    public LeagueDetailResponse updateLeague(UUID leagueId, LeagueUpdateRequest request, Long callerId) {
+    public LeagueDetailResponse updateLeague(UUID leagueId, LeagueUpdateRequest request) {
+        String userId = userProvider.clerkUserId();
         var league = requireActiveLeague(leagueId);
-        ensureOwner(league, callerId);
+        ensureOwner(league, userId);
 
         if (isNoop(request)) {
             throw new BadRequestException("At least one field must be provided for update");
@@ -97,23 +94,25 @@ public class LeagueService {
 
         var saved = leagueRepository.save(league);
         metricsPublisher.leagueUpdated();
-        log.info("league_updated leagueId={} byUser={}", leagueId, callerId);
+        log.info("league_updated leagueId={} byUser={}", leagueId, userId);
         var seasonCount = leagueSeasonRepository.countByLeague_IdAndArchivedAtIsNull(leagueId);
         return leagueMapper.toDetail(saved, seasonCount);
     }
 
     @Transactional
-    public void archiveLeague(UUID leagueId, Long callerId) {
+    public void archiveLeague(UUID leagueId) {
+        String userId = userProvider.clerkUserId();
         var league = requireActiveLeague(leagueId);
-        ensureOwner(league, callerId);
+        ensureOwner(league, userId);
         league.setArchivedAt(OffsetDateTime.now());
         leagueRepository.save(league);
         metricsPublisher.leagueArchived();
-        log.info("league_archived leagueId={} byUser={}", leagueId, callerId);
+        log.info("League {} archived by user {}", leagueId, userId);
     }
 
     @Transactional(readOnly = true)
-    public LeagueDetailResponse getLeague(UUID leagueId, Long callerId) {
+    public LeagueDetailResponse getLeague(UUID leagueId) {
+        String callerId = userProvider.clerkUserId();
         var league = requireActiveLeague(leagueId);
         ensureCanView(league, callerId);
         var seasonCount = leagueSeasonRepository.countByLeague_IdAndArchivedAtIsNull(leagueId);
@@ -121,7 +120,8 @@ public class LeagueService {
     }
 
     @Transactional(readOnly = true)
-    public LeagueDetailResponse getLeagueBySlug(String slug, Long callerId) {
+    public LeagueDetailResponse getLeagueBySlug(String slug) {
+        String callerId = userProvider.clerkUserId();
         var league = leagueRepository.findBySlugIgnoreCaseAndArchivedAtIsNull(slug)
                 .orElseThrow(() -> new NotFoundException("League not found"));
         ensureCanView(league, callerId);
@@ -130,20 +130,27 @@ public class LeagueService {
     }
 
     @Transactional(readOnly = true)
-    public LeagueListResponse listLeagues(LeagueSearchCriteria criteria, int page, int size, Long callerId) {
+    public LeagueListResponse listLeagues(LeagueSearchCriteria criteria, int page, int size) {
+        String userId = userProvider.clerkUserId();
+
         int safePage = Math.max(page, 0);
         int effectiveSize = size <= 0 ? 20 : Math.min(size, 50);
-        Pageable pageable = PageRequest.of(safePage, effectiveSize, Sort.by(Sort.Direction.DESC, "createdAt"));
+        Pageable pageable = PageRequest.of(
+                safePage,
+                effectiveSize,
+                Sort.by(Sort.Direction.DESC, "createdAt")
+        );
 
-        Specification<League> spec = Specification.where(notArchived())
-                .and(withSport(trimToNull(criteria.sport())))
-                .and(withRegion(trimToNull(criteria.region())))
-                .and(search(trimToNull(criteria.query())));
+        Specification<League> spec = null;
+        spec = and(spec, notArchived());
+        spec = and(spec, withSport(trimToNull(criteria.sport())));
+        spec = and(spec, withRegion(trimToNull(criteria.region())));
+        spec = and(spec, search(trimToNull(criteria.query())));
 
         if (criteria.onlyMine()) {
-            spec = spec.and(ownerIs(callerId));
+            spec = and(spec, ownerIs(userId));
         } else {
-            spec = spec.and(visibleTo(callerId));
+            spec = and(spec, visibleTo(userId));
         }
 
         var pageResult = leagueRepository.findAll(spec, pageable);
@@ -157,7 +164,7 @@ public class LeagueService {
 
         metricsPublisher.leagueListQuery();
         log.info("league_list_query userId={} total={} page={} size={} filters={{my={},sport={},region={},q={}}}",
-                callerId, pageResult.getTotalElements(), pageResult.getNumber(), pageResult.getSize(),
+                userId, pageResult.getTotalElements(), pageResult.getNumber(), pageResult.getSize(),
                 criteria.onlyMine(), criteria.sport(), criteria.region(), criteria.query());
 
         return new LeagueListResponse(
@@ -170,9 +177,10 @@ public class LeagueService {
     }
 
     @Transactional(readOnly = true)
-    public List<LeagueSeasonResponse> listSeasons(UUID leagueId, Long callerId) {
+    public List<LeagueSeasonResponse> listSeasons(UUID leagueId) {
+        String userId = userProvider.clerkUserId();
         var league = requireActiveLeague(leagueId);
-        ensureCanView(league, callerId);
+        ensureCanView(league, userId);
         return leagueSeasonRepository.findByLeague_IdAndArchivedAtIsNullOrderByStartDateAscNameAsc(leagueId)
                 .stream()
                 .map(leagueMapper::toSeason)
@@ -184,13 +192,13 @@ public class LeagueService {
                 .orElseThrow(() -> new NotFoundException("League not found"));
     }
 
-    private void ensureOwner(League league, Long callerId) {
+    private void ensureOwner(League league, String callerId) {
         if (!league.getOwnerUserId().equals(callerId)) {
             throw new ForbiddenException("Only the owner can perform this action");
         }
     }
 
-    private void ensureCanView(League league, Long callerId) {
+    private void ensureCanView(League league, String callerId) {
         if (league.getPrivacy() == LeaguePrivacy.PRIVATE
                 && !league.getOwnerUserId().equals(callerId)) {
             throw new NotFoundException("League not found");
@@ -229,5 +237,11 @@ public class LeagueService {
 
     private long defaultSeasonCount(League league) {
         return league.getSeasonCount() == null ? 0 : league.getSeasonCount();
+    }
+
+    private static <T> Specification<T> and(Specification<T> base, Specification<T> next) {
+        if (next == null) return base;
+        if (base == null) return next;
+        return base.and(next);
     }
 }
