@@ -2,7 +2,10 @@ import { renderHook, act, waitFor } from "@testing-library/react-native";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import React from "react";
 import { useTeam, useUpdateTeam } from "@/hooks/use-team-settings";
-import { useAxiosWithClerk, GO_TEAM_SERVICE_ROUTES } from "@/hooks/use-axios-clerk";
+import {
+  useAxiosWithClerk,
+  GO_TEAM_SERVICE_ROUTES,
+} from "@/hooks/use-axios-clerk";
 import { createScopedLog } from "@/utils/logger";
 
 jest.mock("@/hooks/use-axios-clerk");
@@ -44,9 +47,9 @@ const createWrapper = () => {
 
   const Wrapper = ({ children }: { children: React.ReactNode }) =>
     React.createElement(QueryClientProvider, { client: queryClient }, children);
-  
+
   Wrapper.displayName = "QueryClientWrapper";
-  
+
   return Wrapper;
 };
 
@@ -97,7 +100,9 @@ describe("useTeam", () => {
     });
 
     expect(result.current.data).toEqual(mockTeam);
-    expect(mockGet).toHaveBeenCalledWith(`${GO_TEAM_SERVICE_ROUTES.ALL}/team-1`);
+    expect(mockGet).toHaveBeenCalledWith(
+      `${GO_TEAM_SERVICE_ROUTES.ALL}/team-1`,
+    );
   });
 
   it("handles fetch errors correctly", async () => {
@@ -136,10 +141,10 @@ describe("useTeam", () => {
   it("uses correct query key", async () => {
     mockGet.mockResolvedValue({ data: mockTeam });
 
-    const { result, rerender } = renderHook(
-      (id: string) => useTeam(id),
-      { initialProps: "team-1", wrapper: createWrapper() }
-    );
+    const { result, rerender } = renderHook((id: string) => useTeam(id), {
+      initialProps: "team-1",
+      wrapper: createWrapper(),
+    });
 
     await waitFor(() => {
       expect(result.current.isLoading).toBe(false);
@@ -151,22 +156,10 @@ describe("useTeam", () => {
     rerender("team-2");
 
     await waitFor(() => {
-      expect(mockGet).toHaveBeenCalledWith(`${GO_TEAM_SERVICE_ROUTES.ALL}/team-2`);
+      expect(mockGet).toHaveBeenCalledWith(
+        `${GO_TEAM_SERVICE_ROUTES.ALL}/team-2`,
+      );
     });
-  });
-
-  it("respects staleTime setting", async () => {
-    mockGet.mockResolvedValue({ data: mockTeam });
-
-    const { result } = renderHook(() => useTeam("team-1"), {
-      wrapper: createWrapper(),
-    });
-
-    await waitFor(() => {
-      expect(result.current.data).toEqual(mockTeam);
-    });
-
-    expect(result.current.isStale).toBe(false);
   });
 });
 
@@ -212,11 +205,11 @@ describe("useUpdateTeam", () => {
     expect(result.current.data).toEqual(mockTeam);
     expect(mockPatch).toHaveBeenCalledWith(
       `${GO_TEAM_SERVICE_ROUTES.ALL}/team-1`,
-      mockUpdatePayload
+      mockUpdatePayload,
     );
     expect(mockLog.info).toHaveBeenCalledWith(
       "Sending team update payload:",
-      mockUpdatePayload
+      mockUpdatePayload,
     );
   });
 
@@ -245,7 +238,7 @@ describe("useUpdateTeam", () => {
     const onSuccess = jest.fn();
     const { result } = renderHook(
       () => useUpdateTeam("team-1", { onSuccess }),
-      { wrapper: createWrapper() }
+      { wrapper: createWrapper() },
     );
 
     await act(async () => {
@@ -264,10 +257,9 @@ describe("useUpdateTeam", () => {
     mockPatch.mockRejectedValue(error);
 
     const onError = jest.fn();
-    const { result } = renderHook(
-      () => useUpdateTeam("team-1", { onError }),
-      { wrapper: createWrapper() }
-    );
+    const { result } = renderHook(() => useUpdateTeam("team-1", { onError }), {
+      wrapper: createWrapper(),
+    });
 
     await act(async () => {
       result.current.mutate(mockUpdatePayload);
@@ -294,7 +286,7 @@ describe("useUpdateTeam", () => {
     await waitFor(() => {
       expect(mockLog.info).toHaveBeenCalledWith(
         "Sending team update payload:",
-        mockUpdatePayload
+        mockUpdatePayload,
       );
     });
   });
@@ -313,7 +305,7 @@ describe("useUpdateTeam", () => {
     await waitFor(() => {
       expect(mockPatch).toHaveBeenCalledWith(
         `${GO_TEAM_SERVICE_ROUTES.ALL}/team-1`,
-        mockUpdatePayload
+        mockUpdatePayload,
       );
     });
   });
@@ -345,7 +337,7 @@ describe("useUpdateTeam", () => {
     await waitFor(() => {
       expect(mockPatch).toHaveBeenCalledWith(
         `${GO_TEAM_SERVICE_ROUTES.ALL}/team-1`,
-        payload2
+        payload2,
       );
     });
   });

@@ -30,7 +30,7 @@ function SettingsHeader({
   onSave,
   isSaveEnabled,
   isSaving,
-}:{
+}: {
   readonly onSave: () => void;
   readonly isSaveEnabled: boolean;
   readonly isSaving: boolean;

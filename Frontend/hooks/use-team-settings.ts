@@ -1,5 +1,12 @@
-import { useQuery, useMutation, UseMutationOptions } from "@tanstack/react-query";
-import { useAxiosWithClerk, GO_TEAM_SERVICE_ROUTES } from "@/hooks/use-axios-clerk";
+import {
+  useQuery,
+  useMutation,
+  UseMutationOptions,
+} from "@tanstack/react-query";
+import {
+  useAxiosWithClerk,
+  GO_TEAM_SERVICE_ROUTES,
+} from "@/hooks/use-axios-clerk";
 import { createScopedLog } from "@/utils/logger";
 
 const log = createScopedLog("useTeamSettings");
@@ -53,7 +60,10 @@ export function useUpdateTeam(
   return useMutation<Team, Error, UpdateTeamPayload>({
     mutationFn: async (payload: UpdateTeamPayload) => {
       innerLog.info("Sending team update payload:", payload);
-      const resp = await api.patch(`${GO_TEAM_SERVICE_ROUTES.ALL}/${id}`, payload);
+      const resp = await api.patch(
+        `${GO_TEAM_SERVICE_ROUTES.ALL}/${id}`,
+        payload,
+      );
       return resp.data;
     },
     ...options,

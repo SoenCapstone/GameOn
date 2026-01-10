@@ -37,9 +37,18 @@ describe("useTeamForm", () => {
     const { result } = renderHook(() => useTeamForm({ initialData }));
 
     expect(result.current.teamName).toBe("Test Team");
-    expect(result.current.selectedSport).toEqual({ id: "soccer", label: "Soccer" });
-    expect(result.current.selectedScope).toEqual({ id: "managed", label: "Managed" });
-    expect(result.current.selectedCity).toEqual({ id: "mtl", label: "Montreal" });
+    expect(result.current.selectedSport).toEqual({
+      id: "soccer",
+      label: "Soccer",
+    });
+    expect(result.current.selectedScope).toEqual({
+      id: "managed",
+      label: "Managed",
+    });
+    expect(result.current.selectedCity).toEqual({
+      id: "mtl",
+      label: "Montreal",
+    });
     expect(result.current.logoUri).toBe("https://example.com/logo.png");
     expect(result.current.isPublic).toBe(true);
   });
@@ -239,7 +248,8 @@ describe("useTeamForm", () => {
 
   it("updates state when initialData changes", () => {
     const { result, rerender } = renderHook(
-      (props: { initialData: TeamFormInitialData }) => useTeamForm({ initialData: props.initialData }),
+      (props: { initialData: TeamFormInitialData }) =>
+        useTeamForm({ initialData: props.initialData }),
       {
         initialProps: {
           initialData: {
@@ -247,11 +257,14 @@ describe("useTeamForm", () => {
             sport: "Soccer",
           },
         },
-      }
+      },
     );
 
     expect(result.current.teamName).toBe("First Team");
-    expect(result.current.selectedSport).toEqual({ id: "soccer", label: "Soccer" });
+    expect(result.current.selectedSport).toEqual({
+      id: "soccer",
+      label: "Soccer",
+    });
 
     rerender({
       initialData: {
