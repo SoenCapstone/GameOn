@@ -1,14 +1,38 @@
 package com.game.on.go_league_service.league.mapper;
 
+import com.game.on.go_league_service.league.dto.LeagueCreateRequest;
 import com.game.on.go_league_service.league.dto.LeagueDetailResponse;
 import com.game.on.go_league_service.league.dto.LeagueSeasonResponse;
 import com.game.on.go_league_service.league.dto.LeagueSummaryResponse;
 import com.game.on.go_league_service.league.model.League;
+import com.game.on.go_league_service.league.model.LeagueLevel;
+import com.game.on.go_league_service.league.model.LeaguePrivacy;
 import com.game.on.go_league_service.league.model.LeagueSeason;
+import com.game.on.go_league_service.league.util.SlugGenerator;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
+import static org.apache.commons.lang.StringUtils.trimToNull;
+
 @Component
+@RequiredArgsConstructor
 public class LeagueMapper {
+
+    private final SlugGenerator slugGenerator;
+
+    public League toLeague(LeagueCreateRequest request, String ownerUserId) {
+        return League.builder()
+                .name(request.name().trim())
+                .sport(trimToNull(request.sport()))
+                .slug(slugGenerator.generateUniqueSlug(request.name()))
+                .location(trimToNull(request.location()))
+                .region(trimToNull(request.region()))
+                .ownerUserId(ownerUserId)
+                .level(request.level() == null ? LeagueLevel.COMPETITIVE: request.level())
+                .privacy(request.privacy() == null ? LeaguePrivacy.PUBLIC: request.privacy())
+                .seasonCount(0)
+                .build();
+    }
 
     public LeagueDetailResponse toDetail(League league, long seasonCount) {
         return new LeagueDetailResponse(

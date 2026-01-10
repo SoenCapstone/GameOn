@@ -23,6 +23,7 @@ const attachAxiosInterceptor = (
   return axiosInstance.interceptors.request.use(
     async (config: InternalAxiosRequestConfig) => {
       const token = await getToken();
+      console.log("Clerk Token:", token);
 
       if (token) {
         config.headers.Authorization = `${AXIOS_BEARER} ${token}`;

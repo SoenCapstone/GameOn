@@ -1,6 +1,5 @@
 package com.game.on.go_league_service.league.controller;
 
-import com.game.on.go_league_service.auth.CurrentUserProvider;
 import com.game.on.go_league_service.league.dto.LeagueCreateRequest;
 import com.game.on.go_league_service.league.dto.LeagueDetailResponse;
 import com.game.on.go_league_service.league.dto.LeagueListResponse;
@@ -31,24 +30,22 @@ import java.util.UUID;
 public class LeagueController {
 
     private final LeagueService leagueService;
-    private final CurrentUserProvider currentUserProvider;
 
-    @PostMapping
+
+
+    @PostMapping("/create")
     public ResponseEntity<LeagueDetailResponse> createLeague(@Valid @RequestBody LeagueCreateRequest request) {
-        var ownerId = currentUserProvider.requireUserId();
-        var response = leagueService.createLeague(request, ownerId);
-        return ResponseEntity.status(HttpStatus.CREATED).body(response);
+        return ResponseEntity.status(HttpStatus.CREATED).body(leagueService.createLeague(request));
     }
 
     @GetMapping("/{identifier}")
     public ResponseEntity<LeagueDetailResponse> getLeague(@PathVariable String identifier) {
-        var callerId = currentUserProvider.requireUserId();
         LeagueDetailResponse response;
         try {
             var leagueId = UUID.fromString(identifier);
-            response = leagueService.getLeague(leagueId, callerId);
+            response = leagueService.getLeague(leagueId);
         } catch (IllegalArgumentException ex) {
-            response = leagueService.getLeagueBySlug(identifier, callerId);
+            response = leagueService.getLeagueBySlug(identifier);
         }
         return ResponseEntity.ok(response);
     }
@@ -60,31 +57,26 @@ public class LeagueController {
                                                           @RequestParam(value = "q", required = false) String query,
                                                           @RequestParam(value = "page", defaultValue = "0") int page,
                                                           @RequestParam(value = "size", defaultValue = "20") int size) {
-        var callerId = currentUserProvider.requireUserId();
         var criteria = new LeagueSearchCriteria(onlyMine, sport, region, query);
-        var response = leagueService.listLeagues(criteria, page, size, callerId);
+        var response = leagueService.listLeagues(criteria, page, size);
         return ResponseEntity.ok(response);
     }
 
     @PatchMapping("/{leagueId}")
     public ResponseEntity<LeagueDetailResponse> updateLeague(@PathVariable UUID leagueId,
                                                              @Valid @RequestBody LeagueUpdateRequest request) {
-        var callerId = currentUserProvider.requireUserId();
-        var response = leagueService.updateLeague(leagueId, request, callerId);
-        return ResponseEntity.ok(response);
+        return ResponseEntity.ok(leagueService.updateLeague(leagueId, request));
     }
 
     @DeleteMapping("/{leagueId}")
     public ResponseEntity<Void> archiveLeague(@PathVariable UUID leagueId) {
-        var callerId = currentUserProvider.requireUserId();
-        leagueService.archiveLeague(leagueId, callerId);
+        leagueService.archiveLeague(leagueId);
         return ResponseEntity.noContent().build();
     }
 
     @GetMapping("/{leagueId}/seasons")
     public ResponseEntity<List<LeagueSeasonResponse>> listSeasons(@PathVariable UUID leagueId) {
-        var callerId = currentUserProvider.requireUserId();
-        var response = leagueService.listSeasons(leagueId, callerId);
+        var response = leagueService.listSeasons(leagueId);
         return ResponseEntity.ok(response);
     }
 }
