@@ -25,8 +25,10 @@ public class LeagueMember {
     @Column(name = "user_id", nullable = false)
     private Long userId;
 
+    @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private LeagueRole role;
+
 
     @Column(name = "joined_at", nullable = false)
     private OffsetDateTime joinedAt = OffsetDateTime.now();
