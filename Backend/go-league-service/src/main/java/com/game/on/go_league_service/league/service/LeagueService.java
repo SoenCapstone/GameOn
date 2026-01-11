@@ -129,7 +129,7 @@ public class LeagueService {
         league.setArchivedAt(OffsetDateTime.now());
         leagueRepository.save(league);
         metricsPublisher.leagueArchived();
-        log.info("League {} archived by user {}", leagueId, userId);
+        log.info("league_archived leagueId={} byUser={}", leagueId, callerId);
     }
 
     @Transactional
@@ -327,12 +327,6 @@ public class LeagueService {
 
     private long defaultSeasonCount(League league) {
         return league.getSeasonCount() == null ? 0 : league.getSeasonCount();
-    }
-
-    private static <T> Specification<T> and(Specification<T> base, Specification<T> next) {
-        if (next == null) return base;
-        if (base == null) return next;
-        return base.and(next);
     }
 
     private static <T> Specification<T> and(Specification<T> base, Specification<T> next) {
