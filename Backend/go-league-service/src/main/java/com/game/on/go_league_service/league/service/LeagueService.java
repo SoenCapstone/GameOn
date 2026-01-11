@@ -28,6 +28,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
@@ -319,7 +320,15 @@ public class LeagueService {
         return league.getSeasonCount() == null ? 0 : league.getSeasonCount();
     }
 
-    public List<LeagueInviteRespondRequest> getInvitesByLeagueId(UUID leagueId) {
+    public List<LeagueInviteRespondRequest> getInvitesByLeagueId(UUID leagueId, Long callerUserId) {
+        LeagueRole role = leagueMemberRepository
+                .findRoleByLeagueIdAndUserId(leagueId, callerUserId)
+                .orElseThrow(() -> new NotFoundException("Not a member of this league"));
+
+        if (role != LeagueRole.OWNER && role != LeagueRole.ADMIN) {
+            throw new AccessDeniedException("Only admins or owners can view league invites");
+        }
+
         return leagueInviteRepository.findByLeagueId(leagueId)
                 .stream()
                 .map(leagueMapper::toResponse)

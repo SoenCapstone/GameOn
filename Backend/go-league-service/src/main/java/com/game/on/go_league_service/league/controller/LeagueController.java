@@ -103,15 +103,17 @@ public class LeagueController {
 
     @PostMapping("/invites/{inviteID}/respond")
     public ResponseEntity<Void> respondToInvite(
-            @Valid @RequestBody LeagueInviteRespondRequest request
+            @Valid @RequestBody LeagueInviteRespondRequest request,
+            @PathVariable UUID inviteId
     ) {
         var userId = currentUserProvider.requireUserId();
-        leagueService.respondToInvite(request.inviteId(), userId, request);
+        leagueService.respondToInvite(inviteId, userId, request);
         return ResponseEntity.noContent().build();
     }
     @GetMapping("/{leagueId}/invites")
     public ResponseEntity<List<LeagueInviteRespondRequest>> getInvitesByLeague(@PathVariable UUID leagueId) {
-        return ResponseEntity.ok(leagueService.getInvitesByLeagueId(leagueId));
+        var callerId = currentUserProvider.requireUserId();
+        return ResponseEntity.ok(leagueService.getInvitesByLeagueId(leagueId, callerId));
     }
 
     @GetMapping("/invites/users/{email}")

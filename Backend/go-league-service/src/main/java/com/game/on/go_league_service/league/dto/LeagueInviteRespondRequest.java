@@ -8,8 +8,6 @@ import java.time.OffsetDateTime;
 import java.util.UUID;
 
 public record LeagueInviteRespondRequest(
-        @NotNull(message = "Invite id is required")
-        UUID inviteId,
         @NotNull(message = "Status is required")
         LeagueInviteStatus status
 ) {
