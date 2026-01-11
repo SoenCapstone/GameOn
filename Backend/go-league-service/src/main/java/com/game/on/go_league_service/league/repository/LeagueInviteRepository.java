@@ -17,10 +17,7 @@ public interface LeagueInviteRepository extends JpaRepository<LeagueInvite, UUID
 
     List<LeagueInvite> findByLeagueId(UUID leagueId);
 
-    List<LeagueInvite> findByInviteeUserId(Long inviteeUserId);
-
-    List<LeagueInvite> findByInviteeUserIdAndStatus(Long inviteeUserId, LeagueInviteStatus status);
-
+    List<LeagueInvite> findByInviteeEmail(String email);
 
 
 }

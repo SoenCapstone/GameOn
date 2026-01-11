@@ -15,9 +15,7 @@ public record LeagueInviteCreateRequest(
         String inviteeEmail,
 
         @NotNull(message = "League role is required")
-        LeagueRole role,
+        LeagueRole role
 
-        @Future(message = "expiresAt must be in the future")
-        OffsetDateTime expiresAt
 ) {
 }
