@@ -9,7 +9,7 @@ import com.game.on.go_league_service.league.dto.LeagueSearchCriteria;
 import com.game.on.go_league_service.league.dto.LeagueSeasonResponse;
 import com.game.on.go_league_service.league.dto.LeagueUpdateRequest;
 import com.game.on.go_league_service.league.dto.LeagueInviteRespondRequest;
-import com.game.on.go_league_service.league.model.LeagueInviteStatus;
+import com.game.on.go_league_service.league.model.LeagueMember;
 import com.game.on.go_league_service.league.service.LeagueService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -106,7 +106,7 @@ public class LeagueController {
             @Valid @RequestBody LeagueInviteRespondRequest request
     ) {
         var userId = currentUserProvider.requireUserId();
-        leagueService.respondToInvite(request.id(), userId, request);
+        leagueService.respondToInvite(request.inviteId(), userId, request);
         return ResponseEntity.noContent().build();
     }
     @GetMapping("/{leagueId}/invites")
@@ -114,18 +114,9 @@ public class LeagueController {
         return ResponseEntity.ok(leagueService.getInvitesByLeagueId(leagueId));
     }
 
-    @GetMapping("/invites/user")
-    public ResponseEntity<List<LeagueInviteRespondRequest>> getInvitesForCurrentUser() {
-        var userId = currentUserProvider.requireUserId();
-        return ResponseEntity.ok(leagueService.getInvitesByUserId(userId));
-    }
-
-    @GetMapping("/invites/status")
-    public ResponseEntity<List<LeagueInviteRespondRequest>> getInvitesByStatus(
-            @RequestParam("status") LeagueInviteStatus status
-    ) {
-        var userId = currentUserProvider.requireUserId();
-        return ResponseEntity.ok(leagueService.getInvitesByStatus(userId, status));
+    @GetMapping("/invites/users/{email}")
+    public ResponseEntity<List<LeagueInviteRespondRequest>> getInvitesForUser(@PathVariable String email) {
+        return ResponseEntity.ok(leagueService.getInvitesByEmail(email));
     }
 
     @GetMapping("/invites/{inviteId}")
@@ -134,8 +125,28 @@ public class LeagueController {
         return ResponseEntity.ok(response);
     }
 
+    @GetMapping("/{leagueId}/members")
+    public ResponseEntity<List<LeagueMember>> getLeagueMembers(
+            @PathVariable UUID leagueId
+    ) {
+        return ResponseEntity.ok(leagueService.getMembersByLeague(leagueId));
+    }
 
+    @GetMapping("/memberships")
+    public ResponseEntity<List<LeagueMember>> getMyMemberships() {
+        var userId = currentUserProvider.requireUserId();
+        return ResponseEntity.ok(leagueService.getMembershipsByUser(userId));
+    }
 
+    @GetMapping("/{leagueId}/members/me")
+    public ResponseEntity<LeagueMember> getMyMembershipInLeague(
+            @PathVariable UUID leagueId
+    ) {
+        var userId = currentUserProvider.requireUserId();
+        return ResponseEntity.ok(
+                leagueService.getMembership(leagueId, userId)
+        );
+    }
 
 
 }

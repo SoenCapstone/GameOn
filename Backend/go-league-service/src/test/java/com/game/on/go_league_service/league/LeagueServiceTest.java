@@ -10,6 +10,7 @@ import com.game.on.go_league_service.league.metrics.LeagueMetricsPublisher;
 import com.game.on.go_league_service.league.model.League;
 import com.game.on.go_league_service.league.model.LeagueLevel;
 import com.game.on.go_league_service.league.model.LeaguePrivacy;
+import com.game.on.go_league_service.league.repository.LeagueMemberRepository;
 import com.game.on.go_league_service.league.repository.LeagueRepository;
 import com.game.on.go_league_service.league.repository.LeagueSeasonRepository;
 import com.game.on.go_league_service.league.repository.LeagueInviteRepository;
@@ -52,11 +53,14 @@ class LeagueServiceTest {
     @Mock
     private LeagueInviteRepository leagueInviteRepository;
 
+    @Mock
+    private LeagueMemberRepository leagueMemberRepository;
+
     private LeagueService leagueService;
 
     @BeforeEach
     void setUp() {
-        leagueService = new LeagueService(leagueRepository, leagueSeasonRepository, new LeagueMapper(), metricsPublisher, leagueInviteRepository);
+        leagueService = new LeagueService(leagueRepository, leagueSeasonRepository, new LeagueMapper(), metricsPublisher, leagueInviteRepository, leagueMemberRepository);
     }
 
     @Test

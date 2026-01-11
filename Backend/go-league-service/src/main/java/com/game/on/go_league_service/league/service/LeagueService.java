@@ -14,10 +14,8 @@ import com.game.on.go_league_service.league.dto.LeagueUpdateRequest;
 import com.game.on.go_league_service.league.dto.LeagueInviteRespondRequest;
 import com.game.on.go_league_service.league.mapper.LeagueMapper;
 import com.game.on.go_league_service.league.metrics.LeagueMetricsPublisher;
-import com.game.on.go_league_service.league.model.League;
-import com.game.on.go_league_service.league.model.LeaguePrivacy;
-import com.game.on.go_league_service.league.model.LeagueInvite;
-import com.game.on.go_league_service.league.model.LeagueInviteStatus;
+import com.game.on.go_league_service.league.model.*;
+import com.game.on.go_league_service.league.repository.LeagueMemberRepository;
 import com.game.on.go_league_service.league.repository.LeagueRepository;
 import com.game.on.go_league_service.league.repository.LeagueSeasonRepository;
 import com.game.on.go_league_service.league.repository.LeagueSeasonRepository.LeagueSeasonCountProjection;
@@ -29,11 +27,14 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.time.OffsetDateTime;
+import java.time.temporal.ChronoUnit;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
@@ -52,6 +53,7 @@ public class LeagueService {
     private final LeagueMapper leagueMapper;
     private final LeagueMetricsPublisher metricsPublisher;
     private final LeagueInviteRepository leagueInviteRepository;
+    private final LeagueMemberRepository leagueMemberRepository;
 
 
 
@@ -71,6 +73,15 @@ public class LeagueService {
                 .build();
 
         var saved = leagueRepository.save(league);
+
+        LeagueMember ownerMember = LeagueMember.builder()
+                .leagueId(saved.getId())
+                .userId(ownerUserId)
+                .role(LeagueRole.OWNER)
+                .joinedAt(OffsetDateTime.now())
+                .build();
+        leagueMemberRepository.save(ownerMember);
+
         metricsPublisher.leagueCreated();
         log.info("league_created leagueId={} ownerId={}", saved.getId(), ownerUserId);
         return leagueMapper.toDetail(saved, 0);
@@ -135,6 +146,13 @@ public class LeagueService {
         ).ifPresent(invite -> {
             throw new BadRequestException("User already invited to this league");
         });
+        LeagueRole callerRole = leagueMemberRepository
+                .findRoleByLeagueIdAndUserId(leagueId, callerId)
+                .orElseThrow(() -> new ForbiddenException("Not a member of this league"));
+
+        if (callerRole != LeagueRole.OWNER && callerRole != LeagueRole.ADMIN) {
+            throw new ForbiddenException("Only OWNER or ADMIN can invite users");
+        }
 
         String inviteeEmail = request.inviteeEmail();
 
@@ -142,7 +160,10 @@ public class LeagueService {
                 .leagueId(leagueId)
                 .inviteeEmail(inviteeEmail)
                 .role(request.role())
-                .expiresAt(request.expiresAt())
+                .invitedByUserId(callerId)
+                .status(LeagueInviteStatus.PENDING)
+                .createdAt(OffsetDateTime.now())
+                .expiresAt(OffsetDateTime.now().plusDays(7))
                 .build();
 
         leagueInviteRepository.save(invite);
@@ -154,25 +175,29 @@ public class LeagueService {
         LeagueInvite invite = leagueInviteRepository.findById(inviteId)
                 .orElseThrow(() -> new NotFoundException("Invite not found"));
 
-        if (!invite.getInviteeUserId().equals(callerId)) {
-            throw new ForbiddenException("Not your invite");
+        if (invite.getExpiresAt() != null && invite.getExpiresAt().isBefore(OffsetDateTime.now())) {
+            invite.setStatus(LeagueInviteStatus.EXPIRED);
+            return;
         }
 
         if (invite.getStatus() != LeagueInviteStatus.PENDING) {
             throw new BadRequestException("Invite already responded to");
         }
 
-        if (invite.getExpiresAt() != null &&
-            invite.getExpiresAt().isBefore(OffsetDateTime.now())) {
-            invite.setStatus(LeagueInviteStatus.EXPIRED);
-            return;
+        if (request.status() == LeagueInviteStatus.ACCEPTED) {
+            LeagueMember member = LeagueMember.builder()
+                    .leagueId(invite.getLeagueId())
+                    .userId(callerId)
+                    .role(invite.getRole())
+                    .joinedAt(OffsetDateTime.now())
+                    .build();
+
+            leagueMemberRepository.save(member);
         }
 
         invite.setStatus(request.status());
         invite.setUpdatedAt(OffsetDateTime.now());
     }
-
-
 
 
     @Transactional(readOnly = true)
@@ -307,21 +332,35 @@ public class LeagueService {
 
         return leagueMapper.toResponse(invite);
     }
-
-
-    public List<LeagueInviteRespondRequest> getInvitesByUserId(Long userId) {
-        return leagueInviteRepository.findByInviteeUserId(userId)
-                .stream()
+    public List<LeagueInviteRespondRequest> getInvitesByEmail(String email) {
+        var invites = leagueInviteRepository.findByInviteeEmail(email);
+        return invites.stream()
                 .map(leagueMapper::toResponse)
                 .toList();
     }
 
-    public List<LeagueInviteRespondRequest> getInvitesByStatus(Long userId, LeagueInviteStatus status) {
-        return leagueInviteRepository.findByInviteeUserIdAndStatus(userId, status)
-                .stream()
-                .map(leagueMapper::toResponse)
-                .toList();
+
+    public List<LeagueMember> getMembersByLeague(UUID leagueId) {
+        return leagueMemberRepository.findByLeagueId(leagueId);
     }
+
+
+    public List<LeagueMember> getMembershipsByUser(Long userId) {
+        return leagueMemberRepository.findByUserId(userId);
+    }
+
+
+    public LeagueMember getMembership(UUID leagueId, Long userId) {
+        return leagueMemberRepository
+                .findByLeagueIdAndUserId(leagueId, userId)
+                .orElseThrow(() ->
+                        new ResponseStatusException(
+                                HttpStatus.NOT_FOUND,
+                                "User is not a member of this league"
+                        )
+                );
+    }
+
 
 
 }

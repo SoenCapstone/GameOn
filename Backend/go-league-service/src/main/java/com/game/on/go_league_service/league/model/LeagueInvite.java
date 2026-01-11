@@ -21,16 +21,14 @@ public class LeagueInvite {
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
-    private UUID id;
+    @Column(name = "id")
+    private UUID inviteId;
 
     @Column(name = "league_id", nullable = false)
     private UUID leagueId;
 
     @Column(name = "invited_by_user_id", nullable = true)
     private Long invitedByUserId;
-
-    @Column(name = "invitee_user_id")
-    private Long inviteeUserId;
 
     @Column(name = "invitee_email", length = 255)
     private String inviteeEmail;
