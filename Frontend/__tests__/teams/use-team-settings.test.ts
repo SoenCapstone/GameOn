@@ -16,7 +16,11 @@ jest.mock("@/utils/logger", () => ({
   })),
 }));
 
-import { useTeam, useUpdateTeam, useDeleteTeam } from "@/hooks/use-team-settings";
+import {
+  useTeam,
+  useUpdateTeam,
+  useDeleteTeam,
+} from "@/hooks/use-team-settings";
 
 const mockUseAxiosWithClerk = useAxiosWithClerk as jest.MockedFunction<
   typeof useAxiosWithClerk
@@ -255,8 +259,6 @@ describe("useUpdateTeam", () => {
 
     expect(onError).toHaveBeenCalled();
   });
-
-
 
   it("sends patch request to correct endpoint", async () => {
     mockPatch.mockResolvedValue({ data: mockTeam });

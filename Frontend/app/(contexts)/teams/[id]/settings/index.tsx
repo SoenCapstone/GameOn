@@ -18,7 +18,11 @@ import { TeamNameField } from "@/components/teams/name-field";
 import { TeamDetailsCard } from "@/components/teams/details-card";
 import { TeamVisibilitySection } from "@/components/teams/visibility";
 import PickerModal from "@/components/ui/pickerModal";
-import { useTeam, useUpdateTeam, useDeleteTeam } from "@/hooks/use-team-settings";
+import {
+  useTeam,
+  useUpdateTeam,
+  useDeleteTeam,
+} from "@/hooks/use-team-settings";
 import { createScopedLog } from "@/utils/logger";
 import { errorToString } from "@/utils/error";
 import { useTeamForm } from "@/hooks/use-team-form";
@@ -222,7 +226,10 @@ export default function TeamSettingsScreen() {
       <TeamVisibilitySection isPublic={isPublic} onChangePublic={setIsPublic} />
 
       <Pressable
-        style={[settingsStyles.deleteButton, deleteTeamMutation.isPending && settingsStyles.deleteButtonDisabled]}
+        style={[
+          settingsStyles.deleteButton,
+          deleteTeamMutation.isPending && settingsStyles.deleteButtonDisabled,
+        ]}
         onPress={handleDeleteTeam}
         disabled={deleteTeamMutation.isPending}
       >
@@ -284,4 +291,3 @@ const settingsStyles = StyleSheet.create({
     fontWeight: "600",
   },
 });
-
