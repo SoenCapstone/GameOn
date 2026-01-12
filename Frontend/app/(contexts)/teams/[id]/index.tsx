@@ -20,7 +20,6 @@ import { createTeamStyles } from "@/components/teams/teams-styles";
 import { useSearch } from "@/contexts/search-context";
 import { useMockTeamBoard } from "@/components/teams/use-mock-team-board";
 
-
 const log = createScopedLog("Team Detail");
 
 function TeamHeader({
@@ -39,7 +38,6 @@ function TeamHeader({
       left={<HeaderButton type="back" />}
       center={<PageTitle title={title} />}
       right={
-
         isOwner ? (
           <HeaderButton
             type="custom"
@@ -57,9 +55,8 @@ function TeamHeader({
 export default function TeamDetailById() {
   const params = useLocalSearchParams<{ id?: string | string[] }>();
 
-
   const rawId = params.id;
-  const id = Array.isArray(rawId) ? rawId[0] : rawId ?? "";
+  const id = Array.isArray(rawId) ? rawId[0] : (rawId ?? "");
 
   const [tab, setTab] = React.useState<"board" | "overview" | "games">("board");
   const [refreshing, setRefreshing] = React.useState(false);
@@ -67,12 +64,15 @@ export default function TeamDetailById() {
   const { query } = useSearch();
   const { items, loading: boardLoading } = useMockTeamBoard(id, query);
 
-
   const api = useAxiosWithClerk();
   const { userId } = useAuth();
   const mockTeamImmediate =
     mockSearchResults.find((r) => r.id === id && r.type === "team") || null;
-  const { data: team, isLoading, refetch } = useQuery({
+  const {
+    data: team,
+    isLoading,
+    refetch,
+  } = useQuery({
     queryKey: ["team", id],
     queryFn: async () => {
       try {
@@ -142,9 +142,7 @@ export default function TeamDetailById() {
           <ActivityIndicator size="small" color="#fff" />
         ) : (
           <>
-          {refreshing && (
-            <ActivityIndicator size="small" color="#fff" />
-          )}
+            {refreshing && <ActivityIndicator size="small" color="#fff" />}
             <SegmentedControl
               values={["Board", "Overview", "Games"]}
               selectedIndex={tab === "board" ? 0 : tab === "overview" ? 1 : 2}
@@ -167,7 +165,6 @@ export default function TeamDetailById() {
                 ) : (
                   items.map((item) => (
                     <Card key={item.id}>
-
                       <View
                         style={{
                           flexDirection: "row",

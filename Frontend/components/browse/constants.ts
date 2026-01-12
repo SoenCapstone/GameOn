@@ -77,5 +77,5 @@ export const mockSearchResults: SearchResult[] = [
       sport: "Soccer",
       location: "Italy",
     },
-  ].map((l) => ({ ...l, type: "league" as const } as SearchResult)),
+  ].map((l) => ({ ...l, type: "league" as const }) as SearchResult),
 ];

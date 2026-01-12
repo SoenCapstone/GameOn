@@ -116,7 +116,7 @@ export function useTeamResults(query: string) {
     sport: t.sport,
     logo: t.logoUrl || mapSportToEmoji(t.sport),
     league: "",
-    location: t.location
+    location: t.location,
   }));
 
   return {

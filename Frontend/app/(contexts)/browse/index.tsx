@@ -180,9 +180,7 @@ export default function Browse() {
           </Text>
         </View>
       ) : null}
-      {refreshing && (
-        <ActivityIndicator size="small" color="#fff" />
-      )}
+      {refreshing && <ActivityIndicator size="small" color="#fff" />}
 
       {/* Search Results */}
       <LegendList

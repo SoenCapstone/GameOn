@@ -1,5 +1,11 @@
 import { ComponentProps, ReactNode, ReactElement } from "react";
-import { View, StyleSheet, StyleProp, ViewStyle, RefreshControlProps } from "react-native";
+import {
+  View,
+  StyleSheet,
+  StyleProp,
+  ViewStyle,
+  RefreshControlProps,
+} from "react-native";
 import { useHeaderHeight } from "@react-navigation/elements";
 import { Background } from "@/components/ui/background";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
