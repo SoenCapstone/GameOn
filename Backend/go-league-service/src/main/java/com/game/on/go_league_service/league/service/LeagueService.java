@@ -129,11 +129,11 @@ public class LeagueService {
         league.setArchivedAt(OffsetDateTime.now());
         leagueRepository.save(league);
         metricsPublisher.leagueArchived();
-        log.info("league_archived leagueId={} byUser={}", leagueId, callerId);
+        log.info("League {} archived by user {}", leagueId, userId);
     }
 
     @Transactional
-    public void createInvite(UUID leagueId, LeagueInviteCreateRequest request, Long callerId) {
+    public void createInvite(UUID leagueId, LeagueInviteCreateRequest request, String callerId) {
         var league = leagueRepository.findById(leagueId)
                 .orElseThrow(() -> new NotFoundException("League not found"));
         ensureOwner(league, callerId);
@@ -171,7 +171,7 @@ public class LeagueService {
 
 
     @Transactional
-    public void respondToInvite(UUID inviteId, Long callerId, LeagueInviteRespondRequest request) {
+    public void respondToInvite(UUID inviteId, String callerId, LeagueInviteRespondRequest request) {
         LeagueInvite invite = leagueInviteRepository.findById(inviteId)
                 .orElseThrow(() -> new NotFoundException("Invite not found"));
 
@@ -335,7 +335,7 @@ public class LeagueService {
         return base.and(next);
     }
 
-    public List<LeagueInviteRespondRequest> getInvitesByLeagueId(UUID leagueId, Long callerUserId) {
+    public List<LeagueInviteRespondRequest> getInvitesByLeagueId(UUID leagueId, String callerUserId) {
         LeagueRole role = leagueMemberRepository
                 .findRoleByLeagueIdAndUserId(leagueId, callerUserId)
                 .orElseThrow(() -> new NotFoundException("Not a member of this league"));
@@ -369,12 +369,12 @@ public class LeagueService {
     }
 
 
-    public List<LeagueMember> getMembershipsByUser(Long userId) {
+    public List<LeagueMember> getMembershipsByUser(String userId) {
         return leagueMemberRepository.findByUserId(userId);
     }
 
 
-    public LeagueMember getMembership(UUID leagueId, Long userId) {
+    public LeagueMember getMembership(UUID leagueId, String userId) {
         return leagueMemberRepository
                 .findByLeagueIdAndUserId(leagueId, userId)
                 .orElseThrow(() ->

@@ -28,7 +28,7 @@ public class LeagueInvite {
     private UUID leagueId;
 
     @Column(name = "invited_by_user_id", nullable = true)
-    private Long invitedByUserId;
+    private String invitedByUserId;
 
     @Column(name = "invitee_email", length = 255)
     private String inviteeEmail;

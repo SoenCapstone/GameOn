@@ -1,8 +1,8 @@
 CREATE TABLE league_members (
     id UUID PRIMARY KEY,
     league_id UUID NOT NULL,
-    user_id BIGINT NOT NULL,
-    role VARCHAR(50) NOT NULL,
+    user_id VARCHAR(20) NOT NULL,
+    role VARCHAR(15) NOT NULL,
     joined_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
 

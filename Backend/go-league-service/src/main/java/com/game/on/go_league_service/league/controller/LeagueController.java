@@ -10,6 +10,7 @@ import com.game.on.go_league_service.league.dto.LeagueUpdateRequest;
 import com.game.on.go_league_service.league.dto.LeagueInviteRespondRequest;
 import com.game.on.go_league_service.league.model.LeagueMember;
 import com.game.on.go_league_service.league.service.LeagueService;
+import com.game.on.go_league_service.config.CurrentUserProvider;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -34,7 +35,7 @@ public class LeagueController {
 
     private final LeagueService leagueService;
 
-
+    private final CurrentUserProvider currentUserProvider;
 
     @PostMapping("/create")
     public ResponseEntity<LeagueDetailResponse> createLeague(@Valid @RequestBody LeagueCreateRequest request) {
@@ -88,7 +89,7 @@ public class LeagueController {
             @PathVariable UUID leagueId,
             @Valid @RequestBody LeagueInviteCreateRequest request
     ) {
-        var callerId = currentUserProvider.requireUserId();
+        var callerId = currentUserProvider.clerkUserId();
         leagueService.createInvite(leagueId, request, callerId);
         return ResponseEntity.status(HttpStatus.CREATED).build();
     }
@@ -98,13 +99,13 @@ public class LeagueController {
             @Valid @RequestBody LeagueInviteRespondRequest request,
             @PathVariable UUID inviteId
     ) {
-        var userId = currentUserProvider.requireUserId();
+        var userId = currentUserProvider.clerkUserId();
         leagueService.respondToInvite(inviteId, userId, request);
         return ResponseEntity.noContent().build();
     }
     @GetMapping("/{leagueId}/invites")
     public ResponseEntity<List<LeagueInviteRespondRequest>> getInvitesByLeague(@PathVariable UUID leagueId) {
-        var callerId = currentUserProvider.requireUserId();
+        var callerId = currentUserProvider.clerkUserId();
         return ResponseEntity.ok(leagueService.getInvitesByLeagueId(leagueId, callerId));
     }
 
@@ -128,7 +129,7 @@ public class LeagueController {
 
     @GetMapping("/memberships")
     public ResponseEntity<List<LeagueMember>> getMyMemberships() {
-        var userId = currentUserProvider.requireUserId();
+        var userId = currentUserProvider.clerkUserId();
         return ResponseEntity.ok(leagueService.getMembershipsByUser(userId));
     }
 
@@ -136,7 +137,7 @@ public class LeagueController {
     public ResponseEntity<LeagueMember> getMyMembershipInLeague(
             @PathVariable UUID leagueId
     ) {
-        var userId = currentUserProvider.requireUserId();
+        var userId = currentUserProvider.clerkUserId();
         return ResponseEntity.ok(
                 leagueService.getMembership(leagueId, userId)
         );

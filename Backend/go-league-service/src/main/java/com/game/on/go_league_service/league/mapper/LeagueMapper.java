@@ -83,7 +83,6 @@ public class LeagueMapper {
 
     public LeagueInviteRespondRequest toResponse(LeagueInvite invite) {
         return new LeagueInviteRespondRequest(
-                invite.getInviteId(),
                 invite.getStatus()
         );
     }
