@@ -24,6 +24,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
+import java.time.LocalDate;
 import java.time.OffsetDateTime;
 import java.util.Collection;
 import java.util.List;
@@ -188,6 +189,9 @@ public class LeagueService {
         var league = requireActiveLeague(leagueId);
         ensureOwner(league, userId);
 
+        validateSeasonDates(request.getStartDate(), request.getEndDate());
+        validateNoSeasonOverlap(leagueId, request.getStartDate(), request.getEndDate());
+
         LeagueSeason season = leagueMapper.toSeason(request, league);
 
         var saved = leagueSeasonRepository.save(season);
@@ -207,7 +211,7 @@ public class LeagueService {
         ensureCanView(league, userId);
 
         var season = leagueSeasonRepository
-                .findByIdAndLeague_IdAndArchivedAtIsNotNull(seasonId, leagueId)
+                .findByIdAndLeague_IdAndArchivedAtIsNull(seasonId, leagueId)
                 .orElseThrow(() -> new NotFoundException("Season not found"));
         return leagueMapper.toSeason(season);
     }
@@ -221,12 +225,19 @@ public class LeagueService {
         ensureOwner(league, userId);
 
         var season = leagueSeasonRepository
-                .findByIdAndLeague_IdAndArchivedAtIsNotNull(seasonId, leagueId)
+                .findByIdAndLeague_IdAndArchivedAtIsNull(seasonId, leagueId)
                 .orElseThrow(() -> new NotFoundException("Season not found"));
 
         if (isNoop(request)) {
             throw new BadRequestException("At least one field must be provided for update");
         }
+
+        // Determine effective dates for validation
+        var effectiveStartDate = request.getStartDate() != null ? request.getStartDate() : season.getStartDate();
+        var effectiveEndDate = request.getEndDate() != null ? request.getEndDate() : season.getEndDate();
+        
+        validateSeasonDates(effectiveStartDate, effectiveEndDate);
+        validateNoSeasonOverlapOnUpdate(leagueId, seasonId, effectiveStartDate, effectiveEndDate);
 
         if (request.getName() != null) {
             season.setName(request.getName().trim());
@@ -253,7 +264,7 @@ public class LeagueService {
         ensureOwner(league, userId);
 
         var season = leagueSeasonRepository
-                .findByIdAndLeague_IdAndArchivedAtIsNotNull(seasonId, leagueId)
+                .findByIdAndLeague_IdAndArchivedAtIsNull(seasonId, leagueId)
                 .orElseThrow(() -> new NotFoundException("Season not found"));
 
         season.setArchivedAt(OffsetDateTime.now());
@@ -355,5 +366,39 @@ public class LeagueService {
         long count = leagueSeasonRepository.countByLeague_IdAndArchivedAtIsNull(league.getId());
         league.setSeasonCount((int) count);
         leagueRepository.save(league);
+    }
+
+    private void validateSeasonDates(LocalDate startDate, LocalDate endDate) {
+        if (startDate == null || endDate == null) {
+            throw new BadRequestException("Both start date and end date are required");
+        }
+        
+        if (startDate.isAfter(endDate)) {
+            throw new BadRequestException("Start date must be before or equal to end date");
+        }
+    }
+
+    private void validateNoSeasonOverlap(UUID leagueId, LocalDate startDate, LocalDate endDate) {
+        var overlappingSeasons = leagueSeasonRepository
+                .findByLeague_IdAndArchivedAtIsNullAndStartDateLessThanEqualAndEndDateGreaterThanEqual(
+                        leagueId, endDate, startDate);
+        
+        if (!overlappingSeasons.isEmpty()) {
+            throw new BadRequestException("This season overlaps with an existing season");
+        }
+    }
+
+    private void validateNoSeasonOverlapOnUpdate(UUID leagueId, UUID seasonId, LocalDate startDate, LocalDate endDate) {
+        var overlappingSeasons = leagueSeasonRepository
+                .findByLeague_IdAndArchivedAtIsNullAndStartDateLessThanEqualAndEndDateGreaterThanEqual(
+                        leagueId, endDate, startDate);
+        
+        overlappingSeasons = overlappingSeasons.stream()
+                .filter(s -> !s.getId().equals(seasonId))
+                .toList();
+        
+        if (!overlappingSeasons.isEmpty()) {
+            throw new BadRequestException("This season overlaps with an existing season");
+        }
     }
 }
