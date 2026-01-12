@@ -55,11 +55,10 @@ export function useUpdateTeam(
   options?: UseMutationOptions<Team, Error, UpdateTeamPayload>,
 ) {
   const api = useAxiosWithClerk();
-  const innerLog = createScopedLog("useUpdateTeam");
 
   return useMutation<Team, Error, UpdateTeamPayload>({
     mutationFn: async (payload: UpdateTeamPayload) => {
-      innerLog.info("Sending team update payload:", payload);
+      log.info("Sending team update payload:", payload);
       const resp = await api.patch(
         `${GO_TEAM_SERVICE_ROUTES.ALL}/${id}`,
         payload,
@@ -69,3 +68,19 @@ export function useUpdateTeam(
     ...options,
   });
 }
+
+export function useDeleteTeam(
+  id: string,
+  options?: UseMutationOptions<void, Error, void>,
+) {
+  const api = useAxiosWithClerk();
+
+  return useMutation<void, Error, void>({
+    mutationFn: async () => {
+      log.info("Deleting team:", id);
+      await api.delete(`${GO_TEAM_SERVICE_ROUTES.ALL}/${id}`);
+    },
+    ...options,
+  });
+}
+
