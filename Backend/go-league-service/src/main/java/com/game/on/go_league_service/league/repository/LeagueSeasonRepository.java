@@ -6,6 +6,7 @@ import org.springframework.data.jpa.repository.Query;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 public interface LeagueSeasonRepository extends JpaRepository<LeagueSeason, UUID> {
@@ -13,6 +14,8 @@ public interface LeagueSeasonRepository extends JpaRepository<LeagueSeason, UUID
     List<LeagueSeason> findByLeague_IdAndArchivedAtIsNullOrderByStartDateAscNameAsc(UUID leagueId);
 
     long countByLeague_IdAndArchivedAtIsNull(UUID leagueId);
+
+    Optional<LeagueSeason> findByIdAndLeague_IdAndArchivedAtIsNotNull(UUID id, UUID leagueId);
 
     @Query("SELECT ls.league.id AS leagueId, COUNT(ls) AS count " +
             "FROM LeagueSeason ls " +
