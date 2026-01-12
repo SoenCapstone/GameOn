@@ -6,6 +6,12 @@ import {
   GO_TEAM_SERVICE_ROUTES,
 } from "@/hooks/use-axios-clerk";
 
+import {
+  useTeam,
+  useUpdateTeam,
+  useDeleteTeam,
+} from "@/hooks/use-team-settings";
+
 jest.mock("@/hooks/use-axios-clerk");
 jest.mock("@/utils/logger", () => ({
   createScopedLog: jest.fn(() => ({
@@ -15,12 +21,6 @@ jest.mock("@/utils/logger", () => ({
     debug: jest.fn(),
   })),
 }));
-
-import {
-  useTeam,
-  useUpdateTeam,
-  useDeleteTeam,
-} from "@/hooks/use-team-settings";
 
 const mockUseAxiosWithClerk = useAxiosWithClerk as jest.MockedFunction<
   typeof useAxiosWithClerk
