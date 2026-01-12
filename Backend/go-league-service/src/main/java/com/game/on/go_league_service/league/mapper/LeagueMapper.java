@@ -1,9 +1,6 @@
 package com.game.on.go_league_service.league.mapper;
 
-import com.game.on.go_league_service.league.dto.LeagueCreateRequest;
-import com.game.on.go_league_service.league.dto.LeagueDetailResponse;
-import com.game.on.go_league_service.league.dto.LeagueSeasonResponse;
-import com.game.on.go_league_service.league.dto.LeagueSummaryResponse;
+import com.game.on.go_league_service.league.dto.*;
 import com.game.on.go_league_service.league.model.League;
 import com.game.on.go_league_service.league.model.LeagueLevel;
 import com.game.on.go_league_service.league.model.LeaguePrivacy;
@@ -77,5 +74,14 @@ public class LeagueMapper {
                 season.getCreatedAt(),
                 season.getArchivedAt()
         );
+    }
+
+    public LeagueSeason toSeason(LeagueSeasonCreateRequest request, League league) {
+        LeagueSeason season = new LeagueSeason();
+        season.setLeague(league);
+        season.setName(request.getName().trim());
+        season.setStartDate(request.getStartDate());
+        season.setEndDate(request.getEndDate());
+        return season;
     }
 }

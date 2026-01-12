@@ -4,17 +4,12 @@ import com.game.on.go_league_service.config.CurrentUserProvider;
 import com.game.on.go_league_service.exception.BadRequestException;
 import com.game.on.go_league_service.exception.ForbiddenException;
 import com.game.on.go_league_service.exception.NotFoundException;
-import com.game.on.go_league_service.league.dto.LeagueCreateRequest;
-import com.game.on.go_league_service.league.dto.LeagueDetailResponse;
-import com.game.on.go_league_service.league.dto.LeagueListResponse;
-import com.game.on.go_league_service.league.dto.LeagueSearchCriteria;
-import com.game.on.go_league_service.league.dto.LeagueSeasonResponse;
-import com.game.on.go_league_service.league.dto.LeagueSummaryResponse;
-import com.game.on.go_league_service.league.dto.LeagueUpdateRequest;
+import com.game.on.go_league_service.league.dto.*;
 import com.game.on.go_league_service.league.mapper.LeagueMapper;
 import com.game.on.go_league_service.league.metrics.LeagueMetricsPublisher;
 import com.game.on.go_league_service.league.model.League;
 import com.game.on.go_league_service.league.model.LeaguePrivacy;
+import com.game.on.go_league_service.league.model.LeagueSeason;
 import com.game.on.go_league_service.league.repository.LeagueRepository;
 import com.game.on.go_league_service.league.repository.LeagueSeasonRepository;
 import com.game.on.go_league_service.league.repository.LeagueSeasonRepository.LeagueSeasonCountProjection;
@@ -187,6 +182,111 @@ public class LeagueService {
                 .toList();
     }
 
+    @Transactional
+    public LeagueSeasonResponse createSeason(UUID leagueId, LeagueSeasonCreateRequest request) {
+        String userId = userProvider.clerkUserId();
+        var league = requireActiveLeague(leagueId);
+        ensureOwner(league, userId);
+
+        LeagueSeason season = leagueMapper.toSeason(request, league);
+
+        var saved = leagueSeasonRepository.save(season);
+
+        updateSeasonCount(league);
+
+        log.info("league_season_created leagueId={} seasonId={} byUser={}",
+                leagueId, saved.getId(), userId);
+
+        return leagueMapper.toSeason(saved);
+    }
+
+    @Transactional(readOnly = true)
+    public LeagueSeasonResponse getSeason(UUID leagueId, UUID seasonId) {
+        String userId = userProvider.clerkUserId();
+        var league = requireActiveLeague(leagueId);
+        ensureCanView(league, userId);
+
+        var season = leagueSeasonRepository
+                .findByIdAndLeague_IdAndArchivedAtIsNotNull(seasonId, leagueId)
+                .orElseThrow(() -> new NotFoundException("Season not found"));
+        return leagueMapper.toSeason(season);
+    }
+
+    @Transactional
+    public LeagueSeasonResponse updateSeason(UUID leagueId,
+                                             UUID seasonId,
+                                             LeagueSeasonUpdateRequest request) {
+        String userId = userProvider.clerkUserId();
+        var league = requireActiveLeague(leagueId);
+        ensureOwner(league, userId);
+
+        var season = leagueSeasonRepository
+                .findByIdAndLeague_IdAndArchivedAtIsNotNull(seasonId, leagueId)
+                .orElseThrow(() -> new NotFoundException("Season not found"));
+
+        if (isNoop(request)) {
+            throw new BadRequestException("At least one field must be provided for update");
+        }
+
+        if (request.getName() != null) {
+            season.setName(request.getName().trim());
+        }
+        if (request.getStartDate() != null) {
+            season.setStartDate(request.getStartDate());
+        }
+        if (request.getEndDate() != null) {
+            season.setEndDate(request.getEndDate());
+        }
+
+        var saved = leagueSeasonRepository.save(season);
+
+        log.info("league_season_updated leagueId={} seasonId={} byUser={}",
+                leagueId, seasonId, userId);
+
+        return leagueMapper.toSeason(saved);
+    }
+
+    @Transactional
+    public void archiveSeason(UUID leagueId, UUID seasonId) {
+        String userId = userProvider.clerkUserId();
+        var league = requireActiveLeague(leagueId);
+        ensureOwner(league, userId);
+
+        var season = leagueSeasonRepository
+                .findByIdAndLeague_IdAndArchivedAtIsNotNull(seasonId, leagueId)
+                .orElseThrow(() -> new NotFoundException("Season not found"));
+
+        season.setArchivedAt(OffsetDateTime.now());
+        leagueSeasonRepository.save(season);
+
+        updateSeasonCount(league);
+
+        log.info("league_season_archived leagueId={} seasonId={} byUser={}",
+                leagueId, seasonId, userId);
+        // metricsPublisher.seasonArchived(); // optional
+    }
+
+    @Transactional
+    public LeagueSeasonResponse restoreSeason(UUID leagueId, UUID seasonId) {
+        String userId = userProvider.clerkUserId();
+        var league = requireActiveLeague(leagueId);
+        ensureOwner(league, userId);
+
+        var season = leagueSeasonRepository
+                .findByIdAndLeague_IdAndArchivedAtIsNotNull(seasonId, leagueId)
+                .orElseThrow(() -> new NotFoundException("Season not found"));
+
+        season.setArchivedAt(null);
+        var saved = leagueSeasonRepository.save(season);
+
+        updateSeasonCount(league);
+
+        log.info("league_season_restored leagueId={} seasonId={} byUser={}",
+                leagueId, seasonId, userId);
+
+        return leagueMapper.toSeason(saved);
+    }
+
     private League requireActiveLeague(UUID leagueId) {
         return leagueRepository.findByIdAndArchivedAtIsNull(leagueId)
                 .orElseThrow(() -> new NotFoundException("League not found"));
@@ -235,6 +335,12 @@ public class LeagueService {
                 && request.location() == null && request.level() == null && request.privacy() == null;
     }
 
+    private boolean isNoop(LeagueSeasonUpdateRequest request) {
+        return request.getName() == null
+                && request.getStartDate() == null
+                && request.getEndDate() == null;
+    }
+
     private long defaultSeasonCount(League league) {
         return league.getSeasonCount() == null ? 0 : league.getSeasonCount();
     }
@@ -243,5 +349,11 @@ public class LeagueService {
         if (next == null) return base;
         if (base == null) return next;
         return base.and(next);
+    }
+
+    private void updateSeasonCount(League league) {
+        long count = leagueSeasonRepository.countByLeague_IdAndArchivedAtIsNull(league.getId());
+        league.setSeasonCount((int) count);
+        leagueRepository.save(league);
     }
 }

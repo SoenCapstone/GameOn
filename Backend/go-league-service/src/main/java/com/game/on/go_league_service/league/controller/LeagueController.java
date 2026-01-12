@@ -1,11 +1,6 @@
 package com.game.on.go_league_service.league.controller;
 
-import com.game.on.go_league_service.league.dto.LeagueCreateRequest;
-import com.game.on.go_league_service.league.dto.LeagueDetailResponse;
-import com.game.on.go_league_service.league.dto.LeagueListResponse;
-import com.game.on.go_league_service.league.dto.LeagueSearchCriteria;
-import com.game.on.go_league_service.league.dto.LeagueSeasonResponse;
-import com.game.on.go_league_service.league.dto.LeagueUpdateRequest;
+import com.game.on.go_league_service.league.dto.*;
 import com.game.on.go_league_service.league.service.LeagueService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -77,6 +72,42 @@ public class LeagueController {
     @GetMapping("/{leagueId}/seasons")
     public ResponseEntity<List<LeagueSeasonResponse>> listSeasons(@PathVariable UUID leagueId) {
         var response = leagueService.listSeasons(leagueId);
+        return ResponseEntity.ok(response);
+    }
+
+    @PostMapping("/{leagueId}/seasons")
+    public ResponseEntity<LeagueSeasonResponse> createSeason(@PathVariable UUID leagueId,
+                                                             @Valid @RequestBody LeagueSeasonCreateRequest request) {
+        var response = leagueService.createSeason(leagueId, request);
+        return ResponseEntity.status(HttpStatus.CREATED).body(response);
+    }
+
+    @GetMapping("/{leagueId}/seasons/{seasonId}")
+    public ResponseEntity<LeagueSeasonResponse> getSeason(@PathVariable UUID leagueId,
+                                                          @PathVariable UUID seasonId) {
+        var response = leagueService.getSeason(leagueId, seasonId);
+        return ResponseEntity.ok(response);
+    }
+
+    @PatchMapping("/{leagueId}/seasons/{seasonId}")
+    public ResponseEntity<LeagueSeasonResponse> updateSeason(@PathVariable UUID leagueId,
+                                                             @PathVariable UUID seasonId,
+                                                             @Valid @RequestBody LeagueSeasonUpdateRequest request) {
+        var response = leagueService.updateSeason(leagueId, seasonId, request);
+        return ResponseEntity.ok(response);
+    }
+
+    @DeleteMapping("/{leagueId}/seasons/{seasonId}")
+    public ResponseEntity<Void> archiveSeason(@PathVariable UUID leagueId,
+                                              @PathVariable UUID seasonId) {
+        leagueService.archiveSeason(leagueId, seasonId);
+        return ResponseEntity.noContent().build();
+    }
+
+    @PostMapping("/{leagueId}/seasons/{seasonId}/restore")
+    public ResponseEntity<LeagueSeasonResponse> restoreSeason(@PathVariable UUID leagueId,
+                                                              @PathVariable UUID seasonId) {
+        var response = leagueService.restoreSeason(leagueId, seasonId);
         return ResponseEntity.ok(response);
     }
 }
