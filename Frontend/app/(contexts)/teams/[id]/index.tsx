@@ -1,5 +1,5 @@
 import React, { useLayoutEffect } from "react";
-import { View, ActivityIndicator, Text } from "react-native";
+import { View, ActivityIndicator, Text, RefreshControl } from "react-native";
 import { useLocalSearchParams } from "expo-router";
 import { useNavigation } from "@react-navigation/native";
 import { useQuery } from "@tanstack/react-query";
@@ -62,6 +62,7 @@ export default function TeamDetailById() {
   const id = Array.isArray(rawId) ? rawId[0] : rawId ?? "";
 
   const [tab, setTab] = React.useState<"board" | "overview" | "games">("board");
+  const [refreshing, setRefreshing] = React.useState(false);
 
   const { query } = useSearch();
   const { items, loading: boardLoading } = useMockTeamBoard(id, query);
@@ -71,7 +72,7 @@ export default function TeamDetailById() {
   const { userId } = useAuth();
   const mockTeamImmediate =
     mockSearchResults.find((r) => r.id === id && r.type === "team") || null;
-  const { data: team, isLoading } = useQuery({
+  const { data: team, isLoading, refetch } = useQuery({
     queryKey: ["team", id],
     queryFn: async () => {
       try {
@@ -94,6 +95,16 @@ export default function TeamDetailById() {
     log.info(`Owner with id ${userId} has followed team with id ${id}`);
   }, [userId, id]);
 
+  const onRefresh = React.useCallback(async () => {
+    try {
+      setRefreshing(true);
+      await refetch();
+    } finally {
+      setRefreshing(false);
+    }
+    log.info("Page updated");
+  }, [refetch]);
+
   useLayoutEffect(() => {
     const title =
       (team?.name || mockTeamImmediate?.name) ?? (id ? `Team ${id}` : "Team");
@@ -114,12 +125,26 @@ export default function TeamDetailById() {
   }, [navigation, team, mockTeamImmediate, id, userId, handleFollow]);
 
   return (
-    <ContentArea scrollable paddingBottom={60} backgroundProps={{ preset: "red" }}>
+    <ContentArea
+      scrollable
+      paddingBottom={60}
+      backgroundProps={{ preset: "red" }}
+      refreshControl={
+        <RefreshControl
+          refreshing={refreshing}
+          onRefresh={onRefresh}
+          tintColor="#fff"
+        />
+      }
+    >
       <View style={createTeamStyles.container}>
         {isLoading ? (
-          <ActivityIndicator size="large" color="#fff" />
+          <ActivityIndicator size="small" color="#fff" />
         ) : (
           <>
+          {refreshing && (
+            <ActivityIndicator size="small" color="#fff" />
+          )}
             <SegmentedControl
               values={["Board", "Overview", "Games"]}
               selectedIndex={tab === "board" ? 0 : tab === "overview" ? 1 : 2}

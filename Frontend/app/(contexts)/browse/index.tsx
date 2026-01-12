@@ -5,6 +5,7 @@ import {
   ActivityIndicator,
   ImageSourcePropType,
   StyleSheet,
+  RefreshControl,
 } from "react-native";
 import SegmentedControl from "@react-native-segmented-control/segmented-control";
 import { useRouter } from "expo-router";
@@ -31,12 +32,24 @@ export default function Browse() {
     searchActive,
     isLoading,
     error,
+    refetch,
   } = useSearch();
   const q = (query || "").toLowerCase().trim();
   const renderT0 = useRef<number | null>(null);
   const renderLogged = useRef(false);
 
   const [mode, setMode] = React.useState<"teams" | "leagues">("teams");
+  const [refreshing, setRefreshing] = React.useState(false);
+
+  const onRefresh = React.useCallback(async () => {
+    try {
+      setRefreshing(true);
+      await refetch();
+    } finally {
+      setRefreshing(false);
+    }
+    log.info("Page updated");
+  }, [refetch, log]);
 
   // log when mode changes
   React.useEffect(() => {
@@ -135,6 +148,13 @@ export default function Browse() {
       segmentedControl
       paddingBottom={60}
       backgroundProps={{ preset: "blue" }}
+      refreshControl={
+        <RefreshControl
+          refreshing={refreshing}
+          onRefresh={onRefresh}
+          tintColor="#fff"
+        />
+      }
     >
       {!q && !searchActive && (
         <SegmentedControl
@@ -160,6 +180,9 @@ export default function Browse() {
           </Text>
         </View>
       ) : null}
+      {refreshing && (
+        <ActivityIndicator size="small" color="#fff" />
+      )}
 
       {/* Search Results */}
       <LegendList
