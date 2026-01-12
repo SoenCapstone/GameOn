@@ -4,20 +4,15 @@ import com.game.on.go_league_service.config.CurrentUserProvider;
 import com.game.on.go_league_service.exception.BadRequestException;
 import com.game.on.go_league_service.exception.ForbiddenException;
 import com.game.on.go_league_service.exception.NotFoundException;
-import com.game.on.go_league_service.league.dto.LeagueCreateRequest;
-import com.game.on.go_league_service.league.dto.LeagueDetailResponse;
-import com.game.on.go_league_service.league.dto.LeagueListResponse;
-import com.game.on.go_league_service.league.dto.LeagueSearchCriteria;
-import com.game.on.go_league_service.league.dto.LeagueSeasonResponse;
-import com.game.on.go_league_service.league.dto.LeagueSummaryResponse;
-import com.game.on.go_league_service.league.dto.LeagueUpdateRequest;
+import com.game.on.go_league_service.league.dto.*;
 import com.game.on.go_league_service.league.mapper.LeagueMapper;
 import com.game.on.go_league_service.league.metrics.LeagueMetricsPublisher;
-import com.game.on.go_league_service.league.model.League;
-import com.game.on.go_league_service.league.model.LeaguePrivacy;
+import com.game.on.go_league_service.league.model.*;
+import com.game.on.go_league_service.league.repository.LeagueMemberRepository;
 import com.game.on.go_league_service.league.repository.LeagueRepository;
 import com.game.on.go_league_service.league.repository.LeagueSeasonRepository;
 import com.game.on.go_league_service.league.repository.LeagueSeasonRepository.LeagueSeasonCountProjection;
+import com.game.on.go_league_service.league.repository.LeagueInviteRepository;
 import com.game.on.go_league_service.league.util.SlugGenerator;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -25,9 +20,12 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
+import org.springframework.http.HttpStatus;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.time.OffsetDateTime;
 import java.util.Collection;
@@ -49,6 +47,11 @@ public class LeagueService {
     private final LeagueMapper leagueMapper;
     private final CurrentUserProvider userProvider;
     private final LeagueMetricsPublisher metricsPublisher;
+    private final LeagueInviteRepository leagueInviteRepository;
+    private final LeagueMemberRepository leagueMemberRepository;
+
+
+
 
     @Transactional
     public LeagueDetailResponse createLeague(LeagueCreateRequest request) {
@@ -57,6 +60,16 @@ public class LeagueService {
         League league = leagueMapper.toLeague(request, ownerUserId);
 
         var saved = leagueRepository.save(league);
+
+        LeagueMember ownerMember = LeagueMember.builder()
+                .leagueId(saved.getId())
+                .userId(ownerUserId)
+                .role(LeagueRole.OWNER)
+                .joinedAt(OffsetDateTime.now())
+                .build();
+        leagueMemberRepository.save(ownerMember);
+
+        metricsPublisher.leagueCreated();
         log.info("league_created leagueId={} ownerId={}", saved.getId(), ownerUserId);
         metricsPublisher.leagueCreated();
 
@@ -109,6 +122,74 @@ public class LeagueService {
         metricsPublisher.leagueArchived();
         log.info("League {} archived by user {}", leagueId, userId);
     }
+
+    @Transactional
+    public void createInvite(UUID leagueId, LeagueInviteCreateRequest request, String callerId) {
+        var league = leagueRepository.findById(leagueId)
+                .orElseThrow(() -> new NotFoundException("League not found"));
+        ensureOwner(league, callerId);
+
+        String email = request.inviteeEmail().toLowerCase();
+
+        leagueInviteRepository.findByLeagueIdAndInviteeEmail(
+                leagueId,
+                request.inviteeEmail()
+        ).ifPresent(invite -> {
+            throw new BadRequestException("User already invited to this league");
+        });
+        LeagueRole callerRole = leagueMemberRepository
+                .findRoleByLeagueIdAndUserId(leagueId, callerId)
+                .orElseThrow(() -> new ForbiddenException("Not a member of this league"));
+
+        if (callerRole != LeagueRole.OWNER && callerRole != LeagueRole.ADMIN) {
+            throw new ForbiddenException("Only OWNER or ADMIN can invite users");
+        }
+
+        String inviteeEmail = request.inviteeEmail();
+
+        var invite = LeagueInvite.builder()
+                .leagueId(leagueId)
+                .inviteeEmail(inviteeEmail)
+                .role(request.role())
+                .invitedByUserId(callerId)
+                .status(LeagueInviteStatus.PENDING)
+                .createdAt(OffsetDateTime.now())
+                .expiresAt(OffsetDateTime.now().plusDays(7))
+                .build();
+
+        leagueInviteRepository.save(invite);
+    }
+
+
+    @Transactional
+    public void respondToInvite(UUID inviteId, String callerId, LeagueInviteRespondRequest request) {
+        LeagueInvite invite = leagueInviteRepository.findById(inviteId)
+                .orElseThrow(() -> new NotFoundException("Invite not found"));
+
+        if (invite.getExpiresAt() != null && invite.getExpiresAt().isBefore(OffsetDateTime.now())) {
+            invite.setStatus(LeagueInviteStatus.EXPIRED);
+            return;
+        }
+
+        if (invite.getStatus() != LeagueInviteStatus.PENDING) {
+            throw new BadRequestException("Invite already responded to");
+        }
+
+        if (request.status() == LeagueInviteStatus.ACCEPTED) {
+            LeagueMember member = LeagueMember.builder()
+                    .leagueId(invite.getLeagueId())
+                    .userId(callerId)
+                    .role(invite.getRole())
+                    .joinedAt(OffsetDateTime.now())
+                    .build();
+
+            leagueMemberRepository.save(member);
+        }
+
+        invite.setStatus(request.status());
+        invite.setUpdatedAt(OffsetDateTime.now());
+    }
+
 
     @Transactional(readOnly = true)
     public LeagueDetailResponse getLeague(UUID leagueId) {
@@ -244,4 +325,57 @@ public class LeagueService {
         if (base == null) return next;
         return base.and(next);
     }
+
+    public List<LeagueInviteResponse> getInvitesByLeagueId(UUID leagueId, String callerUserId) {
+        LeagueRole role = leagueMemberRepository
+                .findRoleByLeagueIdAndUserId(leagueId, callerUserId)
+                .orElseThrow(() -> new NotFoundException("Not a member of this league"));
+
+        if (role != LeagueRole.OWNER && role != LeagueRole.ADMIN) {
+            throw new AccessDeniedException("Only admins or owners can view league invites");
+        }
+
+        return leagueInviteRepository.findByLeagueId(leagueId)
+                .stream()
+                .map(leagueMapper::toInviteResponse)
+                .toList();
+    }
+
+    public LeagueInviteResponse getInviteById(UUID inviteId) {
+        LeagueInvite invite = leagueInviteRepository.findByInviteId(inviteId)
+                .orElseThrow(() -> new NotFoundException("Invite not found"));
+
+        return leagueMapper.toInviteResponse(invite);
+    }
+    public List<LeagueInviteResponse> getInvitesByEmail(String email) {
+        var invites = leagueInviteRepository.findByInviteeEmail(email);
+        return invites.stream()
+                .map(leagueMapper::toInviteResponse)
+                .toList();
+    }
+
+
+    public List<LeagueMember> getMembersByLeague(UUID leagueId) {
+        return leagueMemberRepository.findByLeagueId(leagueId);
+    }
+
+
+    public List<LeagueMember> getMembershipsByUser(String userId) {
+        return leagueMemberRepository.findByUserId(userId);
+    }
+
+
+    public LeagueMember getMembership(UUID leagueId, String userId) {
+        return leagueMemberRepository
+                .findByLeagueIdAndUserId(leagueId, userId)
+                .orElseThrow(() ->
+                        new ResponseStatusException(
+                                HttpStatus.NOT_FOUND,
+                                "User is not a member of this league"
+                        )
+                );
+    }
+
+
+
 }
