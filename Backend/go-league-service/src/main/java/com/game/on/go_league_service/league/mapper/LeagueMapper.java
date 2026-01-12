@@ -1,10 +1,6 @@
 package com.game.on.go_league_service.league.mapper;
 
-import com.game.on.go_league_service.league.dto.LeagueCreateRequest;
-import com.game.on.go_league_service.league.dto.LeagueDetailResponse;
-import com.game.on.go_league_service.league.dto.LeagueInviteRespondRequest;
-import com.game.on.go_league_service.league.dto.LeagueSeasonResponse;
-import com.game.on.go_league_service.league.dto.LeagueSummaryResponse;
+import com.game.on.go_league_service.league.dto.*;
 import com.game.on.go_league_service.league.model.League;
 import com.game.on.go_league_service.league.model.LeagueLevel;
 import com.game.on.go_league_service.league.model.LeaguePrivacy;
@@ -84,6 +80,16 @@ public class LeagueMapper {
     public LeagueInviteRespondRequest toResponse(LeagueInvite invite) {
         return new LeagueInviteRespondRequest(
                 invite.getStatus()
+        );
+    }
+    public LeagueInviteResponse toInviteResponse(LeagueInvite invite) {
+        return new LeagueInviteResponse(
+                invite.getInviteId(),
+                invite.getLeagueId(),
+                invite.getInviteeEmail(),
+                invite.getStatus(),
+                invite.getExpiresAt(),
+                invite.getCreatedAt()
         );
     }
 

@@ -4,15 +4,7 @@ import com.game.on.go_league_service.config.CurrentUserProvider;
 import com.game.on.go_league_service.exception.BadRequestException;
 import com.game.on.go_league_service.exception.ForbiddenException;
 import com.game.on.go_league_service.exception.NotFoundException;
-import com.game.on.go_league_service.league.dto.LeagueCreateRequest;
-import com.game.on.go_league_service.league.dto.LeagueDetailResponse;
-import com.game.on.go_league_service.league.dto.LeagueInviteCreateRequest;
-import com.game.on.go_league_service.league.dto.LeagueListResponse;
-import com.game.on.go_league_service.league.dto.LeagueSearchCriteria;
-import com.game.on.go_league_service.league.dto.LeagueSeasonResponse;
-import com.game.on.go_league_service.league.dto.LeagueSummaryResponse;
-import com.game.on.go_league_service.league.dto.LeagueUpdateRequest;
-import com.game.on.go_league_service.league.dto.LeagueInviteRespondRequest;
+import com.game.on.go_league_service.league.dto.*;
 import com.game.on.go_league_service.league.mapper.LeagueMapper;
 import com.game.on.go_league_service.league.metrics.LeagueMetricsPublisher;
 import com.game.on.go_league_service.league.model.*;
@@ -36,7 +28,6 @@ import org.springframework.util.StringUtils;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.time.OffsetDateTime;
-import java.time.temporal.ChronoUnit;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
@@ -335,7 +326,7 @@ public class LeagueService {
         return base.and(next);
     }
 
-    public List<LeagueInviteRespondRequest> getInvitesByLeagueId(UUID leagueId, String callerUserId) {
+    public List<LeagueInviteResponse> getInvitesByLeagueId(UUID leagueId, String callerUserId) {
         LeagueRole role = leagueMemberRepository
                 .findRoleByLeagueIdAndUserId(leagueId, callerUserId)
                 .orElseThrow(() -> new NotFoundException("Not a member of this league"));
@@ -346,20 +337,20 @@ public class LeagueService {
 
         return leagueInviteRepository.findByLeagueId(leagueId)
                 .stream()
-                .map(leagueMapper::toResponse)
+                .map(leagueMapper::toInviteResponse)
                 .toList();
     }
 
-    public LeagueInviteRespondRequest getInviteById(UUID inviteId) {
+    public LeagueInviteResponse getInviteById(UUID inviteId) {
         LeagueInvite invite = leagueInviteRepository.findByInviteId(inviteId)
                 .orElseThrow(() -> new NotFoundException("Invite not found"));
 
-        return leagueMapper.toResponse(invite);
+        return leagueMapper.toInviteResponse(invite);
     }
-    public List<LeagueInviteRespondRequest> getInvitesByEmail(String email) {
+    public List<LeagueInviteResponse> getInvitesByEmail(String email) {
         var invites = leagueInviteRepository.findByInviteeEmail(email);
         return invites.stream()
-                .map(leagueMapper::toResponse)
+                .map(leagueMapper::toInviteResponse)
                 .toList();
     }
 

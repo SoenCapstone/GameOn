@@ -37,7 +37,7 @@ CREATE INDEX IF NOT EXISTS idx_league_seasons_archived ON league_seasons(archive
 CREATE TABLE IF NOT EXISTS league_invites (
     id UUID PRIMARY KEY,
     league_id UUID NOT NULL REFERENCES leagues(id) ON DELETE CASCADE,
-    invited_by_user_id VARCHAR(20) NOT NULL,
+    invited_by_user_id VARCHAR(40) NOT NULL,
     invitee_user_id BIGINT,
     invitee_email VARCHAR(255),
     role VARCHAR(20) NOT NULL,

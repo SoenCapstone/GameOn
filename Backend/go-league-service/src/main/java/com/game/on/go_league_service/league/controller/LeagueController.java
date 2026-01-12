@@ -1,13 +1,6 @@
 package com.game.on.go_league_service.league.controller;
 
-import com.game.on.go_league_service.league.dto.LeagueCreateRequest;
-import com.game.on.go_league_service.league.dto.LeagueDetailResponse;
-import com.game.on.go_league_service.league.dto.LeagueInviteCreateRequest;
-import com.game.on.go_league_service.league.dto.LeagueListResponse;
-import com.game.on.go_league_service.league.dto.LeagueSearchCriteria;
-import com.game.on.go_league_service.league.dto.LeagueSeasonResponse;
-import com.game.on.go_league_service.league.dto.LeagueUpdateRequest;
-import com.game.on.go_league_service.league.dto.LeagueInviteRespondRequest;
+import com.game.on.go_league_service.league.dto.*;
 import com.game.on.go_league_service.league.model.LeagueMember;
 import com.game.on.go_league_service.league.service.LeagueService;
 import com.game.on.go_league_service.config.CurrentUserProvider;
@@ -94,7 +87,7 @@ public class LeagueController {
         return ResponseEntity.status(HttpStatus.CREATED).build();
     }
 
-    @PostMapping("/invites/{inviteID}/respond")
+    @PostMapping("/invites/{inviteId}/respond")
     public ResponseEntity<Void> respondToInvite(
             @Valid @RequestBody LeagueInviteRespondRequest request,
             @PathVariable UUID inviteId
@@ -104,18 +97,18 @@ public class LeagueController {
         return ResponseEntity.noContent().build();
     }
     @GetMapping("/{leagueId}/invites")
-    public ResponseEntity<List<LeagueInviteRespondRequest>> getInvitesByLeague(@PathVariable UUID leagueId) {
+    public ResponseEntity<List<LeagueInviteResponse>> getInvitesByLeague(@PathVariable UUID leagueId) {
         var callerId = currentUserProvider.clerkUserId();
         return ResponseEntity.ok(leagueService.getInvitesByLeagueId(leagueId, callerId));
     }
 
     @GetMapping("/invites/users/{email}")
-    public ResponseEntity<List<LeagueInviteRespondRequest>> getInvitesForUser(@PathVariable String email) {
+    public ResponseEntity<List<LeagueInviteResponse>> getInvitesForUser(@PathVariable String email) {
         return ResponseEntity.ok(leagueService.getInvitesByEmail(email));
     }
 
     @GetMapping("/invites/{inviteId}")
-    public ResponseEntity<LeagueInviteRespondRequest> getInviteById(@PathVariable UUID inviteId) {
+    public ResponseEntity<LeagueInviteResponse> getInviteById(@PathVariable UUID inviteId) {
         var response = leagueService.getInviteById(inviteId);
         return ResponseEntity.ok(response);
     }
