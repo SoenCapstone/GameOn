@@ -4,8 +4,10 @@ import com.game.on.go_league_service.league.model.LeagueSeason;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 
+import java.time.LocalDate;
 import java.util.Collection;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 public interface LeagueSeasonRepository extends JpaRepository<LeagueSeason, UUID> {
@@ -13,6 +15,13 @@ public interface LeagueSeasonRepository extends JpaRepository<LeagueSeason, UUID
     List<LeagueSeason> findByLeague_IdAndArchivedAtIsNullOrderByStartDateAscNameAsc(UUID leagueId);
 
     long countByLeague_IdAndArchivedAtIsNull(UUID leagueId);
+
+    Optional<LeagueSeason> findByIdAndLeague_IdAndArchivedAtIsNotNull(UUID id, UUID leagueId);
+
+    Optional<LeagueSeason> findByIdAndLeague_IdAndArchivedAtIsNull(UUID id, UUID leagueId);
+
+    List<LeagueSeason> findByLeague_IdAndArchivedAtIsNullAndStartDateLessThanEqualAndEndDateGreaterThanEqual(
+            UUID leagueId, LocalDate startDate, LocalDate endDate);
 
     @Query("SELECT ls.league.id AS leagueId, COUNT(ls) AS count " +
             "FROM LeagueSeason ls " +
