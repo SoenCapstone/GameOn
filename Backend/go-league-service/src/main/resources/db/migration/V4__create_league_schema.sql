@@ -5,7 +5,7 @@ CREATE TABLE IF NOT EXISTS leagues (
     slug VARCHAR(160) NOT NULL UNIQUE,
     location VARCHAR(255),
     region VARCHAR(120),
-    owner_user_id BIGINT NOT NULL,
+    owner_user_id VARCHAR(50) NOT NULL,
     level VARCHAR(20),
     privacy VARCHAR(20) NOT NULL,
     season_count INTEGER NOT NULL DEFAULT 0,
@@ -37,7 +37,7 @@ CREATE INDEX IF NOT EXISTS idx_league_seasons_archived ON league_seasons(archive
 CREATE TABLE IF NOT EXISTS league_invites (
     id UUID PRIMARY KEY,
     league_id UUID NOT NULL REFERENCES leagues(id) ON DELETE CASCADE,
-    invited_by_user_id VARCHAR(40) NOT NULL,
+    invited_by_user_id VARCHAR(50) NOT NULL,
     invitee_user_id BIGINT,
     invitee_email VARCHAR(255),
     role VARCHAR(20) NOT NULL,
