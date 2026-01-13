@@ -61,6 +61,8 @@ export const GO_USER_SERVICE_ROUTES = {
 export const GO_TEAM_SERVICE_ROUTES = {
   ALL: buildRoute(VERSIONING.v1, SERVICE.TEAMS),
   CREATE: buildRoute(VERSIONING.v1, SERVICE.TEAMS, "create"),
+  GET_TEAM_MEMBERS: (teamId: string) =>
+    buildRoute(VERSIONING.v1, SERVICE.TEAMS, `${teamId}/members`),
 };
 
 const messagingBase = buildRoute(VERSIONING.v1, SERVICE.MESSAGING);
