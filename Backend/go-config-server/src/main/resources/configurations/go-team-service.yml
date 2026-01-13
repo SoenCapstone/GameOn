@@ -17,6 +17,7 @@ spring:
     enabled: true
     baseline-on-migrate: true
     baseline-version: 0
+    table: team_flyway_history
     locations: classpath:db/migration
     repair: true
 
@@ -39,4 +40,3 @@ management:
     web:
       exposure:
         include: health,info,metrics
-
