@@ -8,7 +8,7 @@ import {
   Alert,
 } from "react-native";
 import { useLocalSearchParams, useRouter } from "expo-router";
-import { useNavigation } from "@react-navigation/native";
+import { useNavigation, StackActions } from "@react-navigation/native";
 import { ContentArea } from "@/components/ui/content-area";
 import { Header } from "@/components/header/header";
 import { HeaderButton } from "@/components/header/header-button";
@@ -105,8 +105,7 @@ export default function TeamSettingsScreen() {
   const deleteTeamMutation = useDeleteTeam(id, {
     onSuccess: () => {
       log.info("Team deleted successfully");
-      router.back();
-      router.back();
+      navigation.dispatch(StackActions.popTo("browse"));
     },
     onError: (err) => {
       log.error("Delete team failed", errorToString(err));

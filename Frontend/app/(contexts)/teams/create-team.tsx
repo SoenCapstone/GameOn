@@ -9,7 +9,7 @@ import { TeamNameField } from "@/components/teams/name-field";
 import { TeamDetailsCard } from "@/components/teams/details-card";
 import { TeamVisibilitySection } from "@/components/teams/visibility";
 import { createScopedLog } from "@/utils/logger";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import {
   useAxiosWithClerk,
   GO_TEAM_SERVICE_ROUTES,
@@ -23,6 +23,7 @@ const log = createScopedLog("Create Team Page");
 export default function CreateTeamScreen() {
   const router = useRouter();
   const api = useAxiosWithClerk();
+  const queryClient = useQueryClient();
 
   const {
     teamName,
@@ -67,8 +68,11 @@ export default function CreateTeamScreen() {
       const resp = await api.post(GO_TEAM_SERVICE_ROUTES.CREATE, payload);
       return resp.data as { id: string; slug: string };
     },
-    onSuccess: (data) => {
+    onSuccess: async (data) => {
       log.info("Team created:", data);
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: ["teams"] }),
+      ]);
       router.replace(`/teams/${data.id}`);
     },
     onError: (err) => {
