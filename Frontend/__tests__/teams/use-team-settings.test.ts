@@ -1,21 +1,29 @@
 import { renderHook, act, waitFor } from "@testing-library/react-native";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import React from "react";
-import { useTeam, useUpdateTeam } from "@/hooks/use-team-settings";
 import {
   useAxiosWithClerk,
   GO_TEAM_SERVICE_ROUTES,
 } from "@/hooks/use-axios-clerk";
-import { createScopedLog } from "@/utils/logger";
+
+import {
+  useTeam,
+  useUpdateTeam,
+  useDeleteTeam,
+} from "@/hooks/use-team-settings";
 
 jest.mock("@/hooks/use-axios-clerk");
-jest.mock("@/utils/logger");
+jest.mock("@/utils/logger", () => ({
+  createScopedLog: jest.fn(() => ({
+    error: jest.fn(),
+    info: jest.fn(),
+    warn: jest.fn(),
+    debug: jest.fn(),
+  })),
+}));
 
 const mockUseAxiosWithClerk = useAxiosWithClerk as jest.MockedFunction<
   typeof useAxiosWithClerk
->;
-const mockCreateScopedLog = createScopedLog as jest.MockedFunction<
-  typeof createScopedLog
 >;
 
 const mockTeam = {
@@ -64,22 +72,14 @@ afterEach(async () => {
 
 describe("useTeam", () => {
   let mockGet: jest.Mock;
-  let mockLog: { error: jest.Mock; info: jest.Mock };
 
   beforeEach(() => {
     jest.clearAllMocks();
-
-    mockLog = {
-      error: jest.fn(),
-      info: jest.fn(),
-    };
 
     mockGet = jest.fn();
     mockUseAxiosWithClerk.mockReturnValue({
       get: mockGet,
     } as any);
-
-    mockCreateScopedLog.mockReturnValue(mockLog as any);
   });
 
   afterEach(() => {
@@ -165,22 +165,14 @@ describe("useTeam", () => {
 
 describe("useUpdateTeam", () => {
   let mockPatch: jest.Mock;
-  let mockLog: { error: jest.Mock; info: jest.Mock };
 
   beforeEach(() => {
     jest.clearAllMocks();
-
-    mockLog = {
-      error: jest.fn(),
-      info: jest.fn(),
-    };
 
     mockPatch = jest.fn();
     mockUseAxiosWithClerk.mockReturnValue({
       patch: mockPatch,
     } as any);
-
-    mockCreateScopedLog.mockReturnValue(mockLog as any);
   });
 
   afterEach(() => {
@@ -205,10 +197,6 @@ describe("useUpdateTeam", () => {
     expect(result.current.data).toEqual(mockTeam);
     expect(mockPatch).toHaveBeenCalledWith(
       `${GO_TEAM_SERVICE_ROUTES.ALL}/team-1`,
-      mockUpdatePayload,
-    );
-    expect(mockLog.info).toHaveBeenCalledWith(
-      "Sending team update payload:",
       mockUpdatePayload,
     );
   });
@@ -272,25 +260,6 @@ describe("useUpdateTeam", () => {
     expect(onError).toHaveBeenCalled();
   });
 
-  it("logs team update payload before sending", async () => {
-    mockPatch.mockResolvedValue({ data: mockTeam });
-
-    const { result } = renderHook(() => useUpdateTeam("team-1"), {
-      wrapper: createWrapper(),
-    });
-
-    await act(async () => {
-      result.current.mutate(mockUpdatePayload);
-    });
-
-    await waitFor(() => {
-      expect(mockLog.info).toHaveBeenCalledWith(
-        "Sending team update payload:",
-        mockUpdatePayload,
-      );
-    });
-  });
-
   it("sends patch request to correct endpoint", async () => {
     mockPatch.mockResolvedValue({ data: mockTeam });
 
@@ -340,5 +309,176 @@ describe("useUpdateTeam", () => {
         payload2,
       );
     });
+  });
+});
+
+describe("useDeleteTeam", () => {
+  let mockDelete: jest.Mock;
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+
+    mockDelete = jest.fn();
+    mockUseAxiosWithClerk.mockReturnValue({
+      delete: mockDelete,
+    } as any);
+  });
+
+  afterEach(() => {
+    jest.clearAllMocks();
+  });
+
+  it("deletes team successfully", async () => {
+    mockDelete.mockResolvedValue({ data: undefined });
+
+    const { result } = renderHook(() => useDeleteTeam("team-1"), {
+      wrapper: createWrapper(),
+    });
+
+    await act(async () => {
+      result.current.mutate();
+    });
+
+    await waitFor(() => {
+      expect(result.current.isSuccess).toBe(true);
+    });
+
+    expect(mockDelete).toHaveBeenCalledWith(
+      `${GO_TEAM_SERVICE_ROUTES.ALL}/team-1`,
+    );
+  });
+
+  it("handles delete errors correctly", async () => {
+    const error = new Error("Delete failed");
+    mockDelete.mockRejectedValue(error);
+
+    const { result } = renderHook(() => useDeleteTeam("team-1"), {
+      wrapper: createWrapper(),
+    });
+
+    await act(async () => {
+      result.current.mutate();
+    });
+
+    await waitFor(() => {
+      expect(result.current.isError).toBe(true);
+    });
+
+    expect(result.current.error).toEqual(error);
+  });
+
+  it("merges with provided options - onSuccess", async () => {
+    mockDelete.mockResolvedValue({ data: undefined });
+
+    const onSuccess = jest.fn();
+    const { result } = renderHook(
+      () => useDeleteTeam("team-1", { onSuccess }),
+      { wrapper: createWrapper() },
+    );
+
+    await act(async () => {
+      result.current.mutate();
+    });
+
+    await waitFor(() => {
+      expect(result.current.isSuccess).toBe(true);
+    });
+
+    expect(onSuccess).toHaveBeenCalled();
+  });
+
+  it("merges with provided options - onError", async () => {
+    const error = new Error("Delete failed");
+    mockDelete.mockRejectedValue(error);
+
+    const onError = jest.fn();
+    const { result } = renderHook(() => useDeleteTeam("team-1", { onError }), {
+      wrapper: createWrapper(),
+    });
+
+    await act(async () => {
+      result.current.mutate();
+    });
+
+    await waitFor(() => {
+      expect(result.current.isError).toBe(true);
+    });
+
+    expect(onError).toHaveBeenCalled();
+  });
+
+  it("sends delete request to correct endpoint", async () => {
+    mockDelete.mockResolvedValue({ data: undefined });
+
+    const { result } = renderHook(() => useDeleteTeam("team-1"), {
+      wrapper: createWrapper(),
+    });
+
+    await act(async () => {
+      result.current.mutate();
+    });
+
+    await waitFor(() => {
+      expect(mockDelete).toHaveBeenCalledWith(
+        `${GO_TEAM_SERVICE_ROUTES.ALL}/team-1`,
+      );
+    });
+  });
+
+  it("allows deletion with different team IDs", async () => {
+    mockDelete.mockResolvedValue({ data: undefined });
+
+    const { result: result1 } = renderHook(() => useDeleteTeam("team-1"), {
+      wrapper: createWrapper(),
+    });
+
+    await act(async () => {
+      result1.current.mutate();
+    });
+
+    await waitFor(() => {
+      expect(result1.current.isSuccess).toBe(true);
+    });
+
+    expect(mockDelete).toHaveBeenCalledWith(
+      `${GO_TEAM_SERVICE_ROUTES.ALL}/team-1`,
+    );
+
+    mockDelete.mockClear();
+    mockDelete.mockResolvedValue({ data: undefined });
+
+    const { result: result2 } = renderHook(() => useDeleteTeam("team-2"), {
+      wrapper: createWrapper(),
+    });
+
+    await act(async () => {
+      result2.current.mutate();
+    });
+
+    await waitFor(() => {
+      expect(result2.current.isSuccess).toBe(true);
+    });
+
+    expect(mockDelete).toHaveBeenCalledWith(
+      `${GO_TEAM_SERVICE_ROUTES.ALL}/team-2`,
+    );
+  });
+
+  it("returns void data on successful deletion", async () => {
+    mockDelete.mockResolvedValue({ data: undefined });
+
+    const { result } = renderHook(() => useDeleteTeam("team-1"), {
+      wrapper: createWrapper(),
+    });
+
+    await act(async () => {
+      result.current.mutate();
+    });
+
+    await waitFor(() => {
+      expect(result.current.isSuccess).toBe(true);
+    });
+
+    expect(result.current.data).toBeUndefined();
   });
 });

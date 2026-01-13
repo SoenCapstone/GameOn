@@ -1,6 +1,7 @@
 import {
   useQuery,
   useMutation,
+  useQueryClient,
   UseMutationOptions,
 } from "@tanstack/react-query";
 import {
@@ -55,17 +56,55 @@ export function useUpdateTeam(
   options?: UseMutationOptions<Team, Error, UpdateTeamPayload>,
 ) {
   const api = useAxiosWithClerk();
-  const innerLog = createScopedLog("useUpdateTeam");
+  const queryClient = useQueryClient();
+  const { onSuccess, ...restOptions } = options ?? {};
+
 
   return useMutation<Team, Error, UpdateTeamPayload>({
     mutationFn: async (payload: UpdateTeamPayload) => {
-      innerLog.info("Sending team update payload:", payload);
+      log.info("Sending team update payload:", payload);
       const resp = await api.patch(
         `${GO_TEAM_SERVICE_ROUTES.ALL}/${id}`,
         payload,
       );
       return resp.data;
     },
-    ...options,
+    onSuccess: async (...args) => {
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: ["team", id] }),
+        queryClient.invalidateQueries({ queryKey: ["teams"] }),
+      ]);
+      onSuccess?.(...args);
+    },
+    ...restOptions,
+  });
+}
+
+export function useDeleteTeam(
+  id: string,
+  options?: UseMutationOptions<void, Error, void>,
+) {
+  const api = useAxiosWithClerk();
+  const queryClient = useQueryClient();
+  const { onSuccess, ...restOptions } = options ?? {};
+
+  return useMutation<void, Error, void>({
+    mutationFn: async () => {
+      if (!id) {
+        const err = new Error("Team id is required");
+        log.error("Delete team failed:", err);
+        throw err;
+      }
+      log.info("Deleting team:", id);
+      await api.delete(`${GO_TEAM_SERVICE_ROUTES.ALL}/${id}`);
+    },
+    onSuccess: async (...args) => {
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: ["team", id] }),
+        queryClient.invalidateQueries({ queryKey: ["teams"] }),
+      ]);
+      onSuccess?.(...args);
+    },
+    ...restOptions,
   });
 }
