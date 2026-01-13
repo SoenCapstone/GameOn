@@ -1,6 +1,7 @@
 package com.game.on.go_league_service.league.dto;
 
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import lombok.Getter;
 import lombok.Setter;
@@ -15,7 +16,8 @@ public class LeagueSeasonCreateRequest {
     @Size(max = 150)
     private String name;
 
-    // Optional – if null, you handle defaults in service
+    @NotNull
     private LocalDate startDate;
+    @NotNull
     private LocalDate endDate;
 }
