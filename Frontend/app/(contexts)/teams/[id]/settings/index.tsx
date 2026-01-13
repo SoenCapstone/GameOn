@@ -8,7 +8,7 @@ import {
   Alert,
 } from "react-native";
 import { useLocalSearchParams, useRouter } from "expo-router";
-import { useNavigation } from "@react-navigation/native";
+import { useNavigation, StackActions } from "@react-navigation/native";
 import { ContentArea } from "@/components/ui/content-area";
 import { Header } from "@/components/header/header";
 import { HeaderButton } from "@/components/header/header-button";
@@ -18,7 +18,11 @@ import { TeamNameField } from "@/components/teams/name-field";
 import { TeamDetailsCard } from "@/components/teams/details-card";
 import { TeamVisibilitySection } from "@/components/teams/visibility";
 import PickerModal from "@/components/ui/pickerModal";
-import { useTeam, useUpdateTeam } from "@/hooks/use-team-settings";
+import {
+  useTeam,
+  useUpdateTeam,
+  useDeleteTeam,
+} from "@/hooks/use-team-settings";
 import { createScopedLog } from "@/utils/logger";
 import { errorToString } from "@/utils/error";
 import { useTeamForm } from "@/hooks/use-team-form";
@@ -97,6 +101,32 @@ export default function TeamSettingsScreen() {
       log.error("Update team failed", errorToString(err));
     },
   });
+
+  const deleteTeamMutation = useDeleteTeam(id, {
+    onSuccess: () => {
+      log.info("Team deleted successfully");
+      navigation.dispatch(StackActions.popTo("browse"));
+    },
+    onError: (err) => {
+      log.error("Delete team failed", errorToString(err));
+      Alert.alert("Delete failed", errorToString(err));
+    },
+  });
+
+  const handleDeleteTeam = () => {
+    Alert.alert(
+      "Delete Team",
+      "Are you sure you want to delete this team? This action cannot be undone.",
+      [
+        { text: "Cancel", onPress: () => {}, style: "cancel" },
+        {
+          text: "Delete",
+          onPress: () => deleteTeamMutation.mutate(),
+          style: "destructive",
+        },
+      ],
+    );
+  };
 
   const sportLabel = selectedSport?.label ?? "None";
   const scopeLabel = selectedScope.label;
@@ -194,6 +224,19 @@ export default function TeamSettingsScreen() {
 
       <TeamVisibilitySection isPublic={isPublic} onChangePublic={setIsPublic} />
 
+      <Pressable
+        style={[
+          settingsStyles.deleteButton,
+          deleteTeamMutation.isPending && settingsStyles.deleteButtonDisabled,
+        ]}
+        onPress={handleDeleteTeam}
+        disabled={deleteTeamMutation.isPending}
+      >
+        <Text style={settingsStyles.deleteButtonText}>
+          {deleteTeamMutation.isPending ? "Deleting..." : "Delete Team"}
+        </Text>
+      </Pressable>
+
       <PickerModal
         visible={openPicker !== null}
         title={currentConfig?.title ?? ""}
@@ -229,5 +272,21 @@ const settingsStyles = StyleSheet.create({
     alignItems: "center",
     backgroundColor: "rgba(0, 0, 0, 0.3)",
     zIndex: 999,
+  },
+  deleteButton: {
+    marginTop: 16,
+    borderRadius: 999,
+    paddingVertical: 14,
+    alignItems: "center",
+    backgroundColor: "#dc2626",
+  },
+  deleteButtonDisabled: {
+    backgroundColor: "#ef5350",
+    opacity: 0.6,
+  },
+  deleteButtonText: {
+    color: "#fff",
+    fontSize: 16,
+    fontWeight: "600",
   },
 });
