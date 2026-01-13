@@ -70,9 +70,7 @@ export default function CreateTeamScreen() {
     },
     onSuccess: async (data) => {
       log.info("Team created:", data);
-      await Promise.all([
-        queryClient.invalidateQueries({ queryKey: ["teams"] }),
-      ]);
+      await queryClient.invalidateQueries({ queryKey: ["teams"] });
       router.replace(`/teams/${data.id}`);
     },
     onError: (err) => {
