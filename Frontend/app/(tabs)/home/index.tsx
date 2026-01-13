@@ -18,7 +18,9 @@ export default function Home() {
   // Placeholder data - to be replaced
   const invites: Invite[] = [
     { id: "inv_1", teamName: "Concordia Lions", inviterName: "John Doe" },
+    { id: "inv_2", teamName: "LaLiga", inviterName: "Pierre" },
   ];
+
 
   const handleAccept = (inviteId: string) => {
     console.log("accept", inviteId);
@@ -29,7 +31,7 @@ export default function Home() {
   };
 
   return (
-    <ContentArea backgroundProps={{ preset: "blue" }}>
+    <ContentArea scrollable backgroundProps={{ preset: "blue" }}>
       <View style={styles.container}>
         <SegmentedControl
           values={["My Updates", "Spectating"]}
