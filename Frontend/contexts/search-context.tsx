@@ -112,6 +112,7 @@ export const SearchProvider: React.FC<{ children: React.ReactNode }> = ({
       notifyModeChange: logModeChange,
       isLoading: teamLeague.isLoading,
       error: teamLeague.error ? errorToString(teamLeague.error) : null,
+      refetch: teamLeague.refetch,
     }),
     [
       query,
@@ -120,6 +121,7 @@ export const SearchProvider: React.FC<{ children: React.ReactNode }> = ({
       logModeChange,
       teamLeague.isLoading,
       teamLeague.error,
+      teamLeague.refetch,
     ],
   );
 

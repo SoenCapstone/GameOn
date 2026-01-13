@@ -26,9 +26,13 @@ export function useTeamLeagueResults(query: string) {
     data: combined,
     isLoading: teamQuery.isLoading,
     error: teamQuery.error ?? null,
+    refetch: async () => {
+      await teamQuery.refetch();
+    },
   } as {
     data: SearchResult[];
     isLoading: boolean;
-    error: unknown;
+    error: Error | null;
+    refetch: () => Promise<void>;
   };
 }

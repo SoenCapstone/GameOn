@@ -59,6 +59,7 @@ type TeamSummaryResponse = {
   id: string;
   name: string;
   sport: string;
+  location: string;
   leagueId?: string | null;
   slug: string;
   logoUrl?: string | null;
@@ -115,6 +116,7 @@ export function useTeamResults(query: string) {
     sport: t.sport,
     logo: t.logoUrl || mapSportToEmoji(t.sport),
     league: "",
+    location: t.location,
   }));
 
   return {
@@ -123,12 +125,16 @@ export function useTeamResults(query: string) {
     isLoading: queryResult.isLoading,
     isFetching: queryResult.isFetching,
     error: queryResult.error ?? null,
+    refetch: async () => {
+      await queryResult.refetch();
+    },
   } as {
     data: SearchResult[];
     raw: TeamListResponse | null;
     isLoading: boolean;
     isFetching: boolean;
-    error: unknown;
+    error: Error | null;
+    refetch: () => Promise<void>;
   };
 }
 
