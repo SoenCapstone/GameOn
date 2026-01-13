@@ -12,6 +12,7 @@ export const styles = StyleSheet.create({
   },
   cardWrap: {
     width: "90%",
+    gap: 12,
   },
   teamName: {
     color: "white",
