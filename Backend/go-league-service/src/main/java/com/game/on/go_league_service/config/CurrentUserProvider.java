@@ -5,6 +5,9 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.stereotype.Component;
 
+import java.util.List;
+import java.util.Map;
+
 /**
  * Component to provide information about the currently authenticated user.
  * It retrieves the user ID from the JWT token present in the security context allowing to avoid passing user IDs
@@ -21,6 +24,34 @@ public class CurrentUserProvider {
         }
 
         return jwt.getSubject();
+    }
+
+    public String requireEmail() {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+
+        if (auth == null || !(auth.getPrincipal() instanceof Jwt jwt)) {
+            throw new RuntimeException("No authenticated JWT found");
+        }
+
+        String email = jwt.getClaimAsString("email");
+
+        if (email == null) {
+            Object emailAddresses = jwt.getClaim("email_addresses");
+
+            if (emailAddresses instanceof List<?> list && !list.isEmpty()) {
+                Object first = list.get(0);
+                if (first instanceof Map<?, ?> map) {
+                    Object value = map.get("email_address");
+                    if (value instanceof String s) {
+                        email = s;
+                    }
+                }
+            }
+        }
+        if (email == null || email.isBlank()) {
+            throw new RuntimeException("Authenticated user email not found in JWT");
+        }
+        return email;
     }
 }
 

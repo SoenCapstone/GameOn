@@ -2,6 +2,7 @@ package com.game.on.go_league_service.league.service;
 
 import com.game.on.go_league_service.config.CurrentUserProvider;
 import com.game.on.go_league_service.exception.BadRequestException;
+import com.game.on.go_league_service.exception.ConflictException;
 import com.game.on.go_league_service.exception.ForbiddenException;
 import com.game.on.go_league_service.exception.NotFoundException;
 import com.game.on.go_league_service.league.dto.*;
@@ -162,7 +163,7 @@ public class LeagueService {
 
 
     @Transactional
-    public void respondToInvite(UUID inviteId, String callerId, LeagueInviteRespondRequest request) {
+    public void respondToInvite(UUID inviteId, String callerId, String callerEmail, LeagueInviteRespondRequest request) {
         LeagueInvite invite = leagueInviteRepository.findById(inviteId)
                 .orElseThrow(() -> new NotFoundException("Invite not found"));
 
@@ -171,8 +172,21 @@ public class LeagueService {
             return;
         }
 
+        if (!invite.getInviteeEmail().equalsIgnoreCase(callerEmail)) {
+            throw new ForbiddenException("You are not authorized to respond to this invite");
+        }
+
         if (invite.getStatus() != LeagueInviteStatus.PENDING) {
             throw new BadRequestException("Invite already responded to");
+        }
+
+        boolean alreadyMember =
+                leagueMemberRepository
+                        .findByLeagueIdAndUserId(invite.getLeagueId(), callerId)
+                        .isPresent();
+
+        if (alreadyMember) {
+            throw new ConflictException("User is already a member of this league");
         }
 
         if (request.status() == LeagueInviteStatus.ACCEPTED) {

@@ -93,7 +93,8 @@ public class LeagueController {
             @PathVariable UUID inviteId
     ) {
         var userId = currentUserProvider.clerkUserId();
-        leagueService.respondToInvite(inviteId, userId, request);
+        var email = currentUserProvider.requireEmail();
+        leagueService.respondToInvite(inviteId, userId, email, request);
         return ResponseEntity.noContent().build();
     }
     @GetMapping("/{leagueId}/invites")
@@ -102,9 +103,12 @@ public class LeagueController {
         return ResponseEntity.ok(leagueService.getInvitesByLeagueId(leagueId, callerId));
     }
 
-    @GetMapping("/invites/users/{email}")
-    public ResponseEntity<List<LeagueInviteResponse>> getInvitesForUser(@PathVariable String email) {
-        return ResponseEntity.ok(leagueService.getInvitesByEmail(email));
+    @GetMapping("/invites/me")
+    public ResponseEntity<List<LeagueInviteResponse>> getInvitesForUser() {
+        var callerEmail = currentUserProvider.requireEmail();
+        return ResponseEntity.ok(
+                leagueService.getInvitesByEmail(callerEmail)
+        );
     }
 
     @GetMapping("/invites/{inviteId}")

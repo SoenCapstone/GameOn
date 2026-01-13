@@ -15,5 +15,10 @@ DROP COLUMN invitee_user_id;
 ALTER TABLE league_invites
 ALTER COLUMN invitee_email SET NOT NULL;
 
+ALTER TABLE league_members
+ADD CONSTRAINT uq_league_members_league_user
+UNIQUE (league_id, user_id);
+
+
 CREATE INDEX idx_league_invites_invitee_email
 ON league_invites (invitee_email);
