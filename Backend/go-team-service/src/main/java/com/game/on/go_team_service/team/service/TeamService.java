@@ -208,10 +208,10 @@ public class TeamService {
     }
 
     @Transactional(readOnly = true)
-    public List<TeamMemberResponse> listMembers(UUID teamId) {
+    public List<UserResponse> listMembers(UUID teamId) {
         requireActiveTeam(teamId);
         return sortMembers(teamMemberRepository.findByTeamId(teamId)).stream()
-                .map(teamMapper::toMember)
+                .map((member) -> userClient.getUserById(member.getUserId()))
                 .toList();
     }
 
