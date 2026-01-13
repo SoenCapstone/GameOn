@@ -1,5 +1,11 @@
-import { ComponentProps, ReactNode } from "react";
-import { View, StyleSheet, StyleProp, ViewStyle } from "react-native";
+import { ComponentProps, ReactNode, ReactElement } from "react";
+import {
+  View,
+  StyleSheet,
+  StyleProp,
+  ViewStyle,
+  RefreshControlProps,
+} from "react-native";
 import { useHeaderHeight } from "@react-navigation/elements";
 import { Background } from "@/components/ui/background";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -13,6 +19,7 @@ interface ContentAreaProps {
   readonly paddingBottom?: number;
   readonly style?: StyleProp<ViewStyle>;
   readonly auth?: boolean;
+  readonly refreshControl?: ReactElement<RefreshControlProps>;
 }
 
 export function ContentArea({
@@ -23,6 +30,7 @@ export function ContentArea({
   paddingBottom,
   style,
   auth,
+  refreshControl,
 }: Readonly<ContentAreaProps>) {
   const headerHeight = useHeaderHeight();
   const insets = useSafeAreaInsets();
@@ -46,6 +54,7 @@ export function ContentArea({
           },
           style,
         ]}
+        {...(scrollable && refreshControl ? { refreshControl } : {})}
         {...(segmentedControl ? { stickyHeaderIndices: [0] } : {})}
       >
         {children}
