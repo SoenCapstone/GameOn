@@ -4,6 +4,8 @@ import { useLocalSearchParams } from "expo-router";
 import { ContentArea } from "@/components/ui/content-area";
 import { useTeamDetail } from "@/hooks/use-team-detail";
 import { useTeamHeader } from "@/hooks/use-team-header";
+// import { StyleSheet } from "react-native";
+// import { PlayMakerArea } from "@/components/play-maker/play-maker-area";
 
 export default function TeamDetailById() {
   const params = useLocalSearchParams<{ id?: string | string[] }>();
@@ -29,7 +31,28 @@ export default function TeamDetailById() {
         />
       }
     >
+      {/* <PlayMakerArea styles={styles} /> */}
       {isLoading ? <ActivityIndicator size="small" color="#fff" /> : null}
     </ContentArea>
   );
 }
+
+/* Example of how to use the PlayMakerArea component */
+
+// const styles = StyleSheet.create({
+//   container: { flex: 1 },
+//   hint: {
+//     color: "white",
+//     opacity: 0.85,
+//     paddingTop: 10,
+//     paddingBottom: 8,
+//   },
+//   boardWrapper: { height: "50%" },
+//   shapeArea: {
+//     height: "7%",
+//     flexDirection: "row",
+//     justifyContent: "center",
+//     alignItems: "center",
+//   },
+//   panelArea: { height: "34%" },
+// });
