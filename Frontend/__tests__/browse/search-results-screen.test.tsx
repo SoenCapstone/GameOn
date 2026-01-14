@@ -77,18 +77,17 @@ jest.mock("@react-native-segmented-control/segmented-control", () => {
       return mockReact.createElement(
         mockView,
         { testID: "segmented-control" },
-        values &&
-          values.map((value: string) =>
-            mockReact.createElement(
-              mockTouchableOpacity,
-              {
-                key: value,
-                testID: `segment-${value}`,
-                onPress: () => onValueChange && onValueChange(value),
-              },
-              mockReact.createElement(mockText, null, value),
-            ),
+        values?.map((value: string) =>
+          mockReact.createElement(
+            mockTouchableOpacity,
+            {
+              key: value,
+              testID: `segment-${value}`,
+              onPress: () => onValueChange?.(value),
+            },
+            mockReact.createElement(mockText, null, value),
           ),
+        ),
       );
     },
   };

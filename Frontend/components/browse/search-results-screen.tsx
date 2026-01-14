@@ -24,8 +24,8 @@ export type SearchModeConfig = {
 };
 
 type Props = {
-  logScope: string;
-  backgroundPreset:
+  readonly logScope: string;
+  readonly backgroundPreset:
     | "blue"
     | "purple"
     | "green"
@@ -33,8 +33,8 @@ type Props = {
     | "red"
     | "salmon"
     | undefined;
-  modes: SearchModeConfig[];
-  onResultPress: (result: SearchResult) => void;
+  readonly modes: SearchModeConfig[];
+  readonly onResultPress: (result: SearchResult) => void;
 };
 
 function Separator() {

@@ -32,6 +32,8 @@ export type SearchContextValue = {
   refetch: () => Promise<unknown>;
 };
 
+export type Modes = "teams" | "leagues" | "tournaments";
+
 export const mockSearchResults: SearchResult[] = [
   {
     id: "b3e1c2d4-5f6a-4b7c-8d9e-0123456789ab",

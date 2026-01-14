@@ -5,7 +5,8 @@ import React, {
   useMemo,
   useState,
 } from "react";
-import { SearchContextValue } from "@/components/browse/constants";
+import { SearchContextValue, Modes } from "@/components/browse/constants";
+import type { SearchResult } from "@/components/browse/constants";
 import { useTeamLeagueResults } from "@/components/browse/hooks/use-team-league-results";
 import { createScopedLog } from "@/utils/logger";
 import { errorToString } from "@/utils/error";
@@ -25,7 +26,7 @@ export const SearchProvider: React.FC<{
     id: number;
     query: string;
     resultCount: number;
-    mode?: "teams" | "leagues" | "tournaments";
+    mode?: Modes;
   } | null>(null);
   const nextId = React.useRef(1);
 
@@ -44,14 +45,14 @@ export const SearchProvider: React.FC<{
       if (lastSearchRef.current?.mode) {
         const mode = lastSearchRef.current.mode;
         const q = (query || "").toLowerCase().trim();
+        const modeTypeMap: Record<Modes, SearchResult["type"]> = {
+          teams: "team",
+          leagues: "league",
+          tournaments: "tournament",
+        };
+        const selectedType = modeTypeMap[mode];
         displayedCount = combined
-          .filter((r) =>
-            mode === "teams"
-              ? r.type === "team"
-              : mode === "leagues"
-                ? r.type === "league"
-                : r.type === "tournament",
-          )
+          .filter((r) => r.type === selectedType)
           .filter((r) => {
             if (!q) return true;
             return r.name.toLowerCase().includes(q);
@@ -75,7 +76,7 @@ export const SearchProvider: React.FC<{
   const markRendered = (
     renderTookMs: number,
     opts?: {
-      mode?: "teams" | "leagues" | "tournaments";
+      mode?: Modes;
       resultCount?: number;
       query?: string;
     },
@@ -95,7 +96,7 @@ export const SearchProvider: React.FC<{
   };
 
   const logModeChange = React.useCallback(
-    (mode: "teams" | "leagues" | "tournaments", resultCount: number) => {
+    (mode: Modes, resultCount: number) => {
       if (lastSearchRef.current) {
         lastSearchRef.current.mode = mode;
         lastSearchRef.current.resultCount = resultCount;
