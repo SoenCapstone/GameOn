@@ -1,7 +1,7 @@
 import React from "react";
 import { useRouter } from "expo-router";
 import { SearchResultsScreen } from "@/components/browse/search-results-screen";
-import { SearchResult } from "@/components/browse/constants";
+import { SearchResult, SPACES_MODES } from "@/components/browse/constants";
 
 export default function Spaces() {
   const router = useRouter();
@@ -19,11 +19,7 @@ export default function Spaces() {
     <SearchResultsScreen
       logScope="Spaces Page"
       backgroundPreset="purple"
-      modes={[
-        { key: "teams", label: "Teams", type: "team" },
-        { key: "leagues", label: "Leagues", type: "league" },
-        { key: "tournaments", label: "Tournaments", type: "tournament" },
-      ]}
+      modes={SPACES_MODES}
       onResultPress={handleResultPress}
     />
   );

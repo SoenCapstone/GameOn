@@ -34,6 +34,18 @@ export type SearchContextValue = {
 
 export type Modes = "teams" | "leagues" | "tournaments";
 
+export interface SearchModeConfig {
+  key: Modes;
+  label: string;
+  type: SearchResult["type"];
+}
+
+export const SPACES_MODES: SearchModeConfig[] = [
+  { key: "teams", label: "Teams", type: "team" },
+  { key: "leagues", label: "Leagues", type: "league" },
+  { key: "tournaments", label: "Tournaments", type: "tournament" },
+];
+
 export const mockSearchResults: SearchResult[] = [
   {
     id: "b3e1c2d4-5f6a-4b7c-8d9e-0123456789ab",
