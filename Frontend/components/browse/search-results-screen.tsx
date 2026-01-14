@@ -14,7 +14,11 @@ import { InfoCard } from "@/components/info-card";
 import SvgImage from "@/components/svg-image";
 import { createScopedLog } from "@/utils/logger";
 import { useSearch } from "@/contexts/search-context";
-import type { SearchResult, Modes, SearchModeConfig } from "@/components/browse/constants";
+import type {
+  SearchResult,
+  Modes,
+  SearchModeConfig,
+} from "@/components/browse/constants";
 
 type Props = {
   readonly logScope: string;
@@ -55,9 +59,7 @@ export function SearchResultsScreen({
   const q = (query || "").toLowerCase().trim();
   const renderT0 = useRef<number | null>(null);
   const renderLogged = useRef(false);
-  const [mode, setMode] = React.useState<Modes>(
-    modes[0]?.key ?? "teams",
-  );
+  const [mode, setMode] = React.useState<Modes>(modes[0]?.key ?? "teams");
   const [refreshing, setRefreshing] = React.useState(false);
 
   const selectedMode = modes.find((m) => m.key === mode) ?? modes[0];

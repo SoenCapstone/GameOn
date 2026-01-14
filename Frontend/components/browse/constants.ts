@@ -20,15 +20,12 @@ export type SearchContextValue = {
   markRendered: (
     renderTookMs: number,
     opts?: {
-      mode?: "teams" | "leagues" | "tournaments";
+      mode?: Modes;
       resultCount?: number;
       query?: string;
     },
   ) => void;
-  notifyModeChange: (
-    mode: "teams" | "leagues" | "tournaments",
-    resultCount: number,
-  ) => void;
+  notifyModeChange: (mode: Modes, resultCount: number) => void;
   refetch: () => Promise<unknown>;
 };
 
