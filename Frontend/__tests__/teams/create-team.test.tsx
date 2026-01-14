@@ -160,7 +160,9 @@ describe("CreateTeamScreen", () => {
       sport: "soccer",
     });
 
-    expect(mockReplace).toHaveBeenCalledWith("/teams/abc");
+    await waitFor(() => {
+      expect(mockBack).toHaveBeenCalled();
+    });
   });
 
   it("respects privacy toggle (PRIVATE)", async () => {
@@ -206,9 +208,9 @@ describe("CreateTeamScreen", () => {
 
     await waitFor(() => {
       expect(mockPost).toHaveBeenCalled();
-    });
+    }, { timeout: 200 });
     await waitFor(() => {
-      expect(mockReplace).toHaveBeenCalled();
-    });
+      expect(mockBack).toHaveBeenCalled();
+    }, { timeout: 200 });
   });
 });

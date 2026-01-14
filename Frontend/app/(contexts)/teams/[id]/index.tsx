@@ -1,56 +1,14 @@
-import React, { useLayoutEffect } from "react";
+import React from "react";
 import { View, ActivityIndicator, Text, RefreshControl } from "react-native";
 import { useLocalSearchParams } from "expo-router";
-import { useNavigation } from "@react-navigation/native";
-import { useQuery } from "@tanstack/react-query";
-import { useAuth } from "@clerk/clerk-expo";
 import { ContentArea } from "@/components/ui/content-area";
-import { Header } from "@/components/header/header";
-import { HeaderButton } from "@/components/header/header-button";
-import { PageTitle } from "@/components/header/page-title";
-import { mockSearchResults } from "@/components/browse/constants";
-import {
-  useAxiosWithClerk,
-  GO_TEAM_SERVICE_ROUTES,
-} from "@/hooks/use-axios-clerk";
-import { createScopedLog } from "@/utils/logger";
 import SegmentedControl from "@react-native-segmented-control/segmented-control";
 import { Card } from "@/components/ui/card";
 import { createTeamStyles } from "@/components/teams/teams-styles";
 import { useSearch } from "@/contexts/search-context";
 import { useMockTeamBoard } from "@/components/teams/use-mock-team-board";
-
-const log = createScopedLog("Team Detail");
-
-function TeamHeader({
-  title,
-  id,
-  isOwner,
-  onFollow,
-}: {
-  readonly title: string;
-  readonly id: string;
-  readonly isOwner: boolean;
-  readonly onFollow: () => void;
-}) {
-  return (
-    <Header
-      left={<HeaderButton type="back" />}
-      center={<PageTitle title={title} />}
-      right={
-        isOwner ? (
-          <HeaderButton
-            type="custom"
-            route={`/teams/${id}/settings`}
-            icon="gear"
-          />
-        ) : (
-          <HeaderButton type="custom" label="Follow" onPress={onFollow} />
-        )
-      }
-    />
-  );
-}
+import { useTeamDetail } from "@/hooks/use-team-detail";
+import { useTeamHeader } from "@/hooks/use-team-header";
 
 export default function TeamDetailById() {
   const params = useLocalSearchParams<{ id?: string | string[] }>();
@@ -59,70 +17,14 @@ export default function TeamDetailById() {
   const id = Array.isArray(rawId) ? rawId[0] : (rawId ?? "");
 
   const [tab, setTab] = React.useState<"board" | "overview" | "games">("board");
-  const [refreshing, setRefreshing] = React.useState(false);
 
   const { query } = useSearch();
   const { items, loading: boardLoading } = useMockTeamBoard(id, query);
 
-  const api = useAxiosWithClerk();
-  const { userId } = useAuth();
-  const mockTeamImmediate =
-    mockSearchResults.find((r) => r.id === id && r.type === "team") || null;
-  const {
-    data: team,
-    isLoading,
-    refetch,
-  } = useQuery({
-    queryKey: ["team", id],
-    queryFn: async () => {
-      try {
-        const resp = await api.get(`${GO_TEAM_SERVICE_ROUTES.ALL}/${id}`);
-        return resp.data;
-      } catch (err) {
-        log.error("Failed to fetch team:", err);
-        throw err;
-      }
-    },
-    enabled: !!id && !mockTeamImmediate,
-    initialData: mockTeamImmediate,
-    retry: false,
-    refetchOnWindowFocus: false,
-  });
+  const { isLoading, refreshing, onRefresh, handleFollow, title, isOwner } =
+    useTeamDetail(id);
 
-  const navigation = useNavigation();
-
-  const handleFollow = React.useCallback(() => {
-    log.info(`Owner with id ${userId} has followed team with id ${id}`);
-  }, [userId, id]);
-
-  const onRefresh = React.useCallback(async () => {
-    try {
-      setRefreshing(true);
-      await refetch();
-    } finally {
-      setRefreshing(false);
-    }
-    log.info("Page updated");
-  }, [refetch]);
-
-  useLayoutEffect(() => {
-    const title =
-      (team?.name || mockTeamImmediate?.name) ?? (id ? `Team ${id}` : "Team");
-    const isOwner = Boolean(userId && team && team.ownerUserId === userId);
-
-    function renderTeamHeader() {
-      return (
-        <TeamHeader
-          title={title}
-          id={id}
-          isOwner={isOwner}
-          onFollow={handleFollow}
-        />
-      );
-    }
-
-    navigation.setOptions({ headerTitle: renderTeamHeader });
-  }, [navigation, team, mockTeamImmediate, id, userId, handleFollow]);
+  useTeamHeader({ title, id, isOwner, onFollow: handleFollow });
 
   return (
     <ContentArea

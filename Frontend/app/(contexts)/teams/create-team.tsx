@@ -71,7 +71,7 @@ export default function CreateTeamScreen() {
     onSuccess: async (data) => {
       log.info("Team created:", data);
       await queryClient.invalidateQueries({ queryKey: ["teams"] });
-      router.replace(`/teams/${data.id}`);
+      router.back();
     },
     onError: (err) => {
       log.error("Create team failed", errorToString(err));

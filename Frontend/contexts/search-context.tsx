@@ -5,7 +5,8 @@ import React, {
   useMemo,
   useState,
 } from "react";
-import { SearchContextValue } from "@/components/browse/constants";
+import { SearchContextValue, Modes } from "@/components/browse/constants";
+import type { SearchResult } from "@/components/browse/constants";
 import { useTeamLeagueResults } from "@/components/browse/hooks/use-team-league-results";
 import { createScopedLog } from "@/utils/logger";
 import { errorToString } from "@/utils/error";
@@ -14,9 +15,10 @@ const ctxLog = createScopedLog("Search.context");
 
 const SearchContext = createContext<SearchContextValue | undefined>(undefined);
 
-export const SearchProvider: React.FC<{ children: React.ReactNode }> = ({
-  children,
-}) => {
+export const SearchProvider: React.FC<{
+  children: React.ReactNode;
+  onlyMine?: boolean;
+}> = ({ children, onlyMine }) => {
   const [query, setQuery] = useState("");
   const [searchActive, setSearchActive] = useState(false);
   // track last search data to log a single combined log after render
@@ -24,11 +26,11 @@ export const SearchProvider: React.FC<{ children: React.ReactNode }> = ({
     id: number;
     query: string;
     resultCount: number;
-    mode?: "teams" | "leagues";
+    mode?: Modes;
   } | null>(null);
   const nextId = React.useRef(1);
 
-  const teamLeague = useTeamLeagueResults(query);
+  const teamLeague = useTeamLeagueResults(query, onlyMine);
   const combined = teamLeague.data;
 
   useEffect(() => {
@@ -43,10 +45,14 @@ export const SearchProvider: React.FC<{ children: React.ReactNode }> = ({
       if (lastSearchRef.current?.mode) {
         const mode = lastSearchRef.current.mode;
         const q = (query || "").toLowerCase().trim();
+        const modeTypeMap: Record<Modes, SearchResult["type"]> = {
+          teams: "team",
+          leagues: "league",
+          tournaments: "tournament",
+        };
+        const selectedType = modeTypeMap[mode];
         displayedCount = combined
-          .filter((r) =>
-            mode === "teams" ? r.type === "team" : r.type === "league",
-          )
+          .filter((r) => r.type === selectedType)
           .filter((r) => {
             if (!q) return true;
             return r.name.toLowerCase().includes(q);
@@ -69,7 +75,11 @@ export const SearchProvider: React.FC<{ children: React.ReactNode }> = ({
 
   const markRendered = (
     renderTookMs: number,
-    opts?: { mode?: "teams" | "leagues"; resultCount?: number; query?: string },
+    opts?: {
+      mode?: Modes;
+      resultCount?: number;
+      query?: string;
+    },
   ) => {
     const meta = lastSearchRef.current;
     if (!meta && !opts) return;
@@ -86,7 +96,7 @@ export const SearchProvider: React.FC<{ children: React.ReactNode }> = ({
   };
 
   const logModeChange = React.useCallback(
-    (mode: "teams" | "leagues", resultCount: number) => {
+    (mode: Modes, resultCount: number) => {
       if (lastSearchRef.current) {
         lastSearchRef.current.mode = mode;
         lastSearchRef.current.resultCount = resultCount;
