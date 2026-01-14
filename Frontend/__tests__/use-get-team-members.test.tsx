@@ -1,5 +1,5 @@
 import { PropsWithChildren } from "react";
-import { renderHook, waitFor } from "@testing-library/react-native";
+import { renderHook, waitFor, cleanup } from "@testing-library/react-native";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { useGetTeamMembers } from "@/hooks/use-get-team-members/use-get-team-members";
 import { useAxiosWithClerk } from "@/hooks/use-axios-clerk";
@@ -20,11 +20,14 @@ const mockedFetchTeamMembers = fetchTeamMembers as jest.MockedFunction<
   typeof fetchTeamMembers
 >;
 
+let queryClient: QueryClient;
+
 function createWrapper() {
-  const queryClient = new QueryClient({
+  queryClient = new QueryClient({
     defaultOptions: {
       queries: {
         retry: false,
+        gcTime: 0,
       },
     },
   });
@@ -39,6 +42,14 @@ function createWrapper() {
 describe("useGetTeamMembers", () => {
   beforeEach(() => {
     jest.clearAllMocks();
+  });
+
+  afterEach(async () => {
+    cleanup();
+    if (queryClient) {
+      queryClient.clear();
+    }
+    await new Promise((resolve) => setTimeout(resolve, 0));
   });
 
   it("calls fetchTeamMembers with teamId and clerk axios client and returns data", async () => {
