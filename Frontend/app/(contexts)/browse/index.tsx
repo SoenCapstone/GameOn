@@ -18,7 +18,7 @@ import { ContentArea } from "@/components/ui/content-area";
 import { InfoCard } from "@/components/info-card";
 
 function Separator() {
-  return <View style={searchStyles.separator} />;
+  return <View style={styles.separator} />;
 }
 
 export default function Browse() {
@@ -110,7 +110,7 @@ export default function Browse() {
         // Let InfoCard render image source
         logoElement = null;
       } else {
-        logoElement = <Text style={searchStyles.logoText}>{item.logo}</Text>;
+        logoElement = <Text style={styles.logoText}>{item.logo}</Text>;
       }
 
       return (
@@ -169,14 +169,14 @@ export default function Browse() {
 
       {/* Loading spinner / error banner */}
       {isLoading ? (
-        <View style={searchStyles.loadingContainer}>
+        <View style={styles.loadingContainer}>
           <ActivityIndicator size="small" color="#FFFFFF" />
         </View>
       ) : null}
       {error ? (
-        <View style={searchStyles.errorContainer}>
-          <Text style={searchStyles.errorText}>
-            Failed to load teams: {error}
+        <View style={styles.errorContainer}>
+          <Text style={styles.errorText}>
+            Failed to load results: {error}
           </Text>
         </View>
       ) : null}
@@ -188,7 +188,7 @@ export default function Browse() {
         keyExtractor={(item) => item.id}
         renderItem={renderItem}
         style={{ overflow: "visible" }}
-        contentContainerStyle={searchStyles.resultsContentStatic}
+        contentContainerStyle={styles.resultsContentStatic}
         onContentSizeChange={() => {
           if (renderT0.current !== null && !renderLogged.current) {
             const took = Math.max(0, Math.round(now() - renderT0.current));
@@ -212,7 +212,7 @@ export default function Browse() {
   );
 }
 
-const searchStyles = StyleSheet.create({
+const styles = StyleSheet.create({
   logoText: {
     fontSize: 30,
   },

@@ -100,7 +100,6 @@ export function useDeleteTeam(
     },
     onSuccess: async (...args) => {
       await Promise.all([
-        queryClient.invalidateQueries({ queryKey: ["team", id] }),
         queryClient.invalidateQueries({ queryKey: ["teams"] }),
       ]);
       onSuccess?.(...args);

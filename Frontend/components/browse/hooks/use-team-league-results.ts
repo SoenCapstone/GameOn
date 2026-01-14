@@ -2,8 +2,8 @@ import { useMemo } from "react";
 import { SearchResult, mockSearchResults } from "@/components/browse/constants";
 import { useTeamResults, filterLocalLeagues } from "@/components/browse/utils";
 
-export function useTeamLeagueResults(query: string) {
-  const teamQuery = useTeamResults(query);
+export function useTeamLeagueResults(query: string, onlyMine?: boolean) {
+  const teamQuery = useTeamResults(query, onlyMine);
 
   const combined = useMemo(() => {
     const teamItems = (teamQuery.data ?? []).slice();

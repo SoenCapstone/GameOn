@@ -105,7 +105,8 @@ export default function TeamSettingsScreen() {
   const deleteTeamMutation = useDeleteTeam(id, {
     onSuccess: () => {
       log.info("Team deleted successfully");
-      navigation.dispatch(StackActions.popTo("browse"));
+      navigation.dispatch(StackActions.pop(2));
+      router.back();
     },
     onError: (err) => {
       log.error("Delete team failed", errorToString(err));
@@ -204,7 +205,7 @@ export default function TeamSettingsScreen() {
   }
 
   return (
-    <ContentArea scrollable backgroundProps={{ preset: "purple" }}>
+    <ContentArea scrollable backgroundProps={{ preset: "red", mode: "form" }}>
       {teamLoading && (
         <View style={settingsStyles.loadingOverlay}>
           <ActivityIndicator size="large" color="#fff" />

@@ -81,9 +81,12 @@ type TeamListResponse = {
 async function fetchTeamResults(
   api: AxiosInstance,
   query: string,
+  onlyMine?: boolean
 ): Promise<TeamListResponse> {
-  const params: Record<string, string> = { size: "50" };
+  const params: Record<string, string | boolean> = { size: "50" };
+  
   if (query && query.trim().length > 0) params.q = query.trim();
+  if (onlyMine) params.my = onlyMine;
 
   try {
     const resp = await api.get<TeamListResponse>(GO_TEAM_SERVICE_ROUTES.ALL, {
@@ -97,13 +100,13 @@ async function fetchTeamResults(
   }
 }
 
-export function useTeamResults(query: string) {
+export function useTeamResults(query: string, onlyMine?: boolean) {
   const api = useAxiosWithClerk();
 
   const queryResult = useQuery<TeamListResponse, Error>({
-    queryKey: ["teams", query],
-    queryFn: async () => fetchTeamResults(api, query),
-    retry: 1,
+    queryKey: ["teams", query, onlyMine ?? false],
+    queryFn: async () => fetchTeamResults(api, query, onlyMine),
+    retry: false,
   });
 
   const raw = queryResult.data ?? null;

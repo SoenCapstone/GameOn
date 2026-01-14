@@ -14,8 +14,12 @@ const ctxLog = createScopedLog("Search.context");
 
 const SearchContext = createContext<SearchContextValue | undefined>(undefined);
 
-export const SearchProvider: React.FC<{ children: React.ReactNode }> = ({
+export const SearchProvider: React.FC<{ 
+  children: React.ReactNode;
+  onlyMine?: boolean;
+}> = ({
   children,
+  onlyMine,
 }) => {
   const [query, setQuery] = useState("");
   const [searchActive, setSearchActive] = useState(false);
@@ -24,11 +28,11 @@ export const SearchProvider: React.FC<{ children: React.ReactNode }> = ({
     id: number;
     query: string;
     resultCount: number;
-    mode?: "teams" | "leagues";
+    mode?: "teams" | "leagues" | "tournaments";
   } | null>(null);
   const nextId = React.useRef(1);
 
-  const teamLeague = useTeamLeagueResults(query);
+  const teamLeague = useTeamLeagueResults(query, onlyMine);
   const combined = teamLeague.data;
 
   useEffect(() => {
@@ -45,7 +49,11 @@ export const SearchProvider: React.FC<{ children: React.ReactNode }> = ({
         const q = (query || "").toLowerCase().trim();
         displayedCount = combined
           .filter((r) =>
-            mode === "teams" ? r.type === "team" : r.type === "league",
+            mode === "teams"
+        ? r.type === "team"
+        : mode === "leagues"
+          ? r.type === "league"
+          : r.type === "tournament",
           )
           .filter((r) => {
             if (!q) return true;
@@ -69,7 +77,7 @@ export const SearchProvider: React.FC<{ children: React.ReactNode }> = ({
 
   const markRendered = (
     renderTookMs: number,
-    opts?: { mode?: "teams" | "leagues"; resultCount?: number; query?: string },
+    opts?: { mode?: "teams" | "leagues" | "tournaments"; resultCount?: number; query?: string },
   ) => {
     const meta = lastSearchRef.current;
     if (!meta && !opts) return;
@@ -86,7 +94,7 @@ export const SearchProvider: React.FC<{ children: React.ReactNode }> = ({
   };
 
   const logModeChange = React.useCallback(
-    (mode: "teams" | "leagues", resultCount: number) => {
+    (mode: "teams" | "leagues" | "tournaments", resultCount: number) => {
       if (lastSearchRef.current) {
         lastSearchRef.current.mode = mode;
         lastSearchRef.current.resultCount = resultCount;

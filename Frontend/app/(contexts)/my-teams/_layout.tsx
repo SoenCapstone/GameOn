@@ -1,30 +1,12 @@
 import { Stack } from "expo-router";
 import React from "react";
-import { Header } from "@/components/header/header";
-import { PageTitle } from "@/components/header/page-title";
-import { HeaderButton } from "@/components/header/header-button";
 import { useSearch } from "@/contexts/search-context";
 
 
-const createTeamHeader = () => (
-  <Header
-    left={<HeaderButton type="back" />}
-    center={<PageTitle title="Create Team" />}
-  />
-);
-
-export default function TeamsLayout() {
+export default function MyTeamsLayout() {
   const { setQuery, setSearchActive } = useSearch();
   return (
     <Stack>
-      <Stack.Screen
-        name="create-team"
-        options={{
-          headerTransparent: true,
-          headerShadowVisible: false,
-          headerTitle: createTeamHeader,
-        }}
-      />
       <Stack.Screen
         name="[id]/index"
         options={{
@@ -41,14 +23,6 @@ export default function TeamsLayout() {
             onFocus: () => setSearchActive(true),
             onBlur: () => setSearchActive(false),
           },
-        }}
-      />
-      <Stack.Screen
-        name="[id]/settings/index"
-        options={{
-          headerTransparent: true,
-          headerShadowVisible: false,
-          headerBackVisible: false,
         }}
       />
     </Stack>

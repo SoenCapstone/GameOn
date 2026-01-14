@@ -1,6 +1,6 @@
 export interface SearchResult {
   id: string;
-  type: "team" | "league";
+  type: "team" | "league" | "tournament";
   name: string;
   subtitle: string;
   logo: string;
@@ -19,9 +19,9 @@ export type SearchContextValue = {
   error?: string | null;
   markRendered: (
     renderTookMs: number,
-    opts?: { mode?: "teams" | "leagues"; resultCount?: number; query?: string },
+    opts?: { mode?: "teams" | "leagues" | "tournaments"; resultCount?: number; query?: string },
   ) => void;
-  notifyModeChange: (mode: "teams" | "leagues", resultCount: number) => void;
+  notifyModeChange: (mode: "teams" | "leagues" | "tournaments", resultCount: number) => void;
   refetch: () => Promise<unknown>;
 };
 
