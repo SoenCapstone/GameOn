@@ -2,7 +2,6 @@ import { Stack } from "expo-router";
 import React from "react";
 import { useSearch } from "@/contexts/search-context";
 
-
 export default function MyTeamsLayout() {
   const { setQuery, setSearchActive } = useSearch();
   return (

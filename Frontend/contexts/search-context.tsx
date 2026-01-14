@@ -14,13 +14,10 @@ const ctxLog = createScopedLog("Search.context");
 
 const SearchContext = createContext<SearchContextValue | undefined>(undefined);
 
-export const SearchProvider: React.FC<{ 
+export const SearchProvider: React.FC<{
   children: React.ReactNode;
   onlyMine?: boolean;
-}> = ({
-  children,
-  onlyMine,
-}) => {
+}> = ({ children, onlyMine }) => {
   const [query, setQuery] = useState("");
   const [searchActive, setSearchActive] = useState(false);
   // track last search data to log a single combined log after render
@@ -50,10 +47,10 @@ export const SearchProvider: React.FC<{
         displayedCount = combined
           .filter((r) =>
             mode === "teams"
-        ? r.type === "team"
-        : mode === "leagues"
-          ? r.type === "league"
-          : r.type === "tournament",
+              ? r.type === "team"
+              : mode === "leagues"
+                ? r.type === "league"
+                : r.type === "tournament",
           )
           .filter((r) => {
             if (!q) return true;
@@ -77,7 +74,11 @@ export const SearchProvider: React.FC<{
 
   const markRendered = (
     renderTookMs: number,
-    opts?: { mode?: "teams" | "leagues" | "tournaments"; resultCount?: number; query?: string },
+    opts?: {
+      mode?: "teams" | "leagues" | "tournaments";
+      resultCount?: number;
+      query?: string;
+    },
   ) => {
     const meta = lastSearchRef.current;
     if (!meta && !opts) return;

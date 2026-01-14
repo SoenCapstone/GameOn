@@ -19,9 +19,16 @@ export type SearchContextValue = {
   error?: string | null;
   markRendered: (
     renderTookMs: number,
-    opts?: { mode?: "teams" | "leagues" | "tournaments"; resultCount?: number; query?: string },
+    opts?: {
+      mode?: "teams" | "leagues" | "tournaments";
+      resultCount?: number;
+      query?: string;
+    },
   ) => void;
-  notifyModeChange: (mode: "teams" | "leagues" | "tournaments", resultCount: number) => void;
+  notifyModeChange: (
+    mode: "teams" | "leagues" | "tournaments",
+    resultCount: number,
+  ) => void;
   refetch: () => Promise<unknown>;
 };
 

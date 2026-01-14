@@ -81,10 +81,10 @@ type TeamListResponse = {
 async function fetchTeamResults(
   api: AxiosInstance,
   query: string,
-  onlyMine?: boolean
+  onlyMine?: boolean,
 ): Promise<TeamListResponse> {
   const params: Record<string, string | boolean> = { size: "50" };
-  
+
   if (query && query.trim().length > 0) params.q = query.trim();
   if (onlyMine) params.my = onlyMine;
 
