@@ -59,7 +59,6 @@ export function useUpdateTeam(
   const queryClient = useQueryClient();
   const { onSuccess, ...restOptions } = options ?? {};
 
-
   return useMutation<Team, Error, UpdateTeamPayload>({
     mutationFn: async (payload: UpdateTeamPayload) => {
       log.info("Sending team update payload:", payload);
@@ -99,10 +98,7 @@ export function useDeleteTeam(
       await api.delete(`${GO_TEAM_SERVICE_ROUTES.ALL}/${id}`);
     },
     onSuccess: async (...args) => {
-      await Promise.all([
-        queryClient.invalidateQueries({ queryKey: ["team", id] }),
-        queryClient.invalidateQueries({ queryKey: ["teams"] }),
-      ]);
+      await queryClient.invalidateQueries({ queryKey: ["teams"] });
       onSuccess?.(...args);
     },
     ...restOptions,
