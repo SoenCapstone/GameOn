@@ -1,4 +1,4 @@
-import React, { createContext, useContext } from "react";
+import React, { createContext, useContext, useMemo } from "react";
 import { useTeamDetail } from "@/hooks/use-team-detail";
 
 type TeamDetailContextValue = ReturnType<typeof useTeamDetail> & { id: string };
@@ -9,12 +9,13 @@ export function TeamDetailProvider({
   id,
   children,
 }: {
-  id: string;
-  children: React.ReactNode;
+  readonly id: string;
+  readonly children: React.ReactNode;
 }) {
   const detail = useTeamDetail(id);
+  const value = useMemo(() => ({ id, ...detail }), [id, detail]);
   return (
-    <TeamDetailContext.Provider value={{ id, ...detail }}>
+    <TeamDetailContext.Provider value={value}>
       {children}
     </TeamDetailContext.Provider>
   );
