@@ -13,19 +13,19 @@ import {
   useTeamDetailContext,
 } from "@/contexts/team-detail-context";
 
-export default function TeamDetailById() {
+export default function TeamScreen() {
   const params = useLocalSearchParams<{ id?: string | string[] }>();
   const rawId = params.id;
   const id = Array.isArray(rawId) ? rawId[0] : (rawId ?? "");
 
   return (
     <TeamDetailProvider id={id}>
-      <TeamDetailContent />
+      <TeamContent />
     </TeamDetailProvider>
   );
 }
 
-function TeamDetailContent() {
+function TeamContent() {
   const [tab, setTab] = React.useState<"board" | "overview" | "games">("board");
   const { query } = useSearch();
   const { id, isLoading, refreshing, onRefresh, handleFollow, title, isOwner } =

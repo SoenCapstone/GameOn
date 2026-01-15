@@ -10,19 +10,19 @@ import {
 // import { StyleSheet } from "react-native";
 // import { PlayMakerArea } from "@/components/play-maker/play-maker-area";
 
-export default function TeamDetailById() {
+export default function MyTeamScreen() {
   const params = useLocalSearchParams<{ id?: string | string[] }>();
   const rawId = params.id;
   const id = Array.isArray(rawId) ? rawId[0] : (rawId ?? "");
 
   return (
     <TeamDetailProvider id={id}>
-      <TeamDetailContent />
+      <MyTeamContent />
     </TeamDetailProvider>
   );
 }
 
-function TeamDetailContent() {
+function MyTeamContent() {
   const { id, isLoading, refreshing, onRefresh, handleFollow, title, isOwner } =
     useTeamDetailContext();
 
