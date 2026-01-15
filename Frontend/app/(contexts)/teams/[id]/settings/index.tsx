@@ -18,15 +18,15 @@ import { TeamNameField } from "@/components/teams/name-field";
 import { TeamDetailsCard } from "@/components/teams/details-card";
 import { TeamVisibilitySection } from "@/components/teams/visibility";
 import PickerModal from "@/components/ui/pickerModal";
-import {
-  useUpdateTeam,
-  useDeleteTeam,
-} from "@/hooks/use-team-settings";
+import { useUpdateTeam, useDeleteTeam } from "@/hooks/use-team-settings";
 import { createScopedLog } from "@/utils/logger";
 import { errorToString } from "@/utils/error";
 import { useTeamForm } from "@/hooks/use-team-form";
 import { getPickerConfig } from "@/components/teams/team-form-constants";
-import { TeamDetailProvider, useTeamDetailContext } from "@/contexts/team-detail-context";
+import {
+  TeamDetailProvider,
+  useTeamDetailContext,
+} from "@/contexts/team-detail-context";
 
 const log = createScopedLog("Team Settings");
 

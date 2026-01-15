@@ -3,7 +3,10 @@ import { ActivityIndicator, RefreshControl } from "react-native";
 import { useLocalSearchParams } from "expo-router";
 import { ContentArea } from "@/components/ui/content-area";
 import { useTeamHeader } from "@/hooks/use-team-header";
-import { TeamDetailProvider, useTeamDetailContext } from "@/contexts/team-detail-context";
+import {
+  TeamDetailProvider,
+  useTeamDetailContext,
+} from "@/contexts/team-detail-context";
 // import { StyleSheet } from "react-native";
 // import { PlayMakerArea } from "@/components/play-maker/play-maker-area";
 

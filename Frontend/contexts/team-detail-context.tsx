@@ -23,6 +23,7 @@ export function TeamDetailProvider({
 
 export function useTeamDetailContext() {
   const ctx = useContext(TeamDetailContext);
-  if (!ctx) throw new Error("useTeamDetailContext must be used inside provider");
+  if (!ctx)
+    throw new Error("useTeamDetailContext must be used inside provider");
   return ctx;
 }

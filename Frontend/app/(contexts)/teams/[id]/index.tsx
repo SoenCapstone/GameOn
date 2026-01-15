@@ -8,8 +8,10 @@ import { createTeamStyles } from "@/components/teams/teams-styles";
 import { useSearch } from "@/contexts/search-context";
 import { useMockTeamBoard } from "@/components/teams/use-mock-team-board";
 import { useTeamHeader } from "@/hooks/use-team-header";
-import { TeamDetailProvider, useTeamDetailContext } from "@/contexts/team-detail-context";
-
+import {
+  TeamDetailProvider,
+  useTeamDetailContext,
+} from "@/contexts/team-detail-context";
 
 export default function TeamDetailById() {
   const params = useLocalSearchParams<{ id?: string | string[] }>();
