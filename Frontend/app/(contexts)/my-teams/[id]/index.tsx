@@ -2,19 +2,26 @@ import React from "react";
 import { ActivityIndicator, RefreshControl } from "react-native";
 import { useLocalSearchParams } from "expo-router";
 import { ContentArea } from "@/components/ui/content-area";
-import { useTeamDetail } from "@/hooks/use-team-detail";
 import { useTeamHeader } from "@/hooks/use-team-header";
+import { TeamDetailProvider, useTeamDetailContext } from "@/contexts/team-detail-context";
 // import { StyleSheet } from "react-native";
 // import { PlayMakerArea } from "@/components/play-maker/play-maker-area";
 
 export default function TeamDetailById() {
   const params = useLocalSearchParams<{ id?: string | string[] }>();
-
   const rawId = params.id;
   const id = Array.isArray(rawId) ? rawId[0] : (rawId ?? "");
 
-  const { isLoading, refreshing, onRefresh, handleFollow, title, isOwner } =
-    useTeamDetail(id);
+  return (
+    <TeamDetailProvider id={id}>
+      <TeamDetailContent />
+    </TeamDetailProvider>
+  );
+}
+
+function TeamDetailContent() {
+  const { id, isLoading, refreshing, onRefresh, handleFollow, title, isOwner } =
+    useTeamDetailContext();
 
   useTeamHeader({ title, id, isOwner, onFollow: handleFollow });
 

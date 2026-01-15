@@ -2,8 +2,8 @@ import { useState, useEffect } from "react";
 import { Option } from "@/components/ui/pickerModal";
 import {
   SCOPE_OPTIONS,
-  MOCK_SPORTS,
-  MOCK_CITIES,
+  SPORTS,
+  CITIES,
   PickerType,
 } from "@/components/teams/team-form-constants";
 
@@ -44,7 +44,7 @@ export const useTeamForm = (props?: UseTeamFormProps) => {
       setLogoUri(data.logoUrl || null);
       setIsPublic(data.privacy === "PUBLIC");
 
-      const sportOption = MOCK_SPORTS.find(
+      const sportOption = SPORTS.find(
         (s) => s.label.toLowerCase() === data.sport?.toLowerCase(),
       );
       if (sportOption) {
@@ -59,7 +59,7 @@ export const useTeamForm = (props?: UseTeamFormProps) => {
       }
 
       if (data.location) {
-        const cityOption = MOCK_CITIES.find(
+        const cityOption = CITIES.find(
           (c) => c.label.toLowerCase() === data.location?.toLowerCase(),
         );
         if (cityOption) {
