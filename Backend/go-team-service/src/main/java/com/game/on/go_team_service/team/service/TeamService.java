@@ -208,10 +208,19 @@ public class TeamService {
     }
 
     @Transactional(readOnly = true)
-    public List<UserResponse> listMembers(UUID teamId) {
+    public List<TeamMemberProfileResponse> listMembers(UUID teamId) {
         requireActiveTeam(teamId);
         return sortMembers(teamMemberRepository.findByTeamId(teamId)).stream()
-                .map((member) -> userClient.getUserById(member.getUserId()))
+                .map((member) -> {
+                    var user = userClient.getUserById(member.getUserId());
+                    return new TeamMemberProfileResponse(
+                            member.getUserId(),
+                            user.email(),
+                            user.firstname(),
+                            user.lastname(),
+                            member.getRole()
+                    );
+                })
                 .toList();
     }
 
@@ -250,7 +259,24 @@ public class TeamService {
                     throw new ConflictException("An active invite already exists for this user");
                 });
 
-        TeamInvite invite = teamInviteRepository.save(teamMapper.toTeamInvite(team, userId, inviteeUserId, user.email(), request.role(), request.expiresAt()));
+        var existingInvite = teamInviteRepository.findByTeamIdAndInviteeUserId(teamId, inviteeUserId);
+        if (existingInvite.isPresent()) {
+            var invite = existingInvite.get();
+            invite.setInvitedByUserId(userId);
+            invite.setInviteeEmail(user.email());
+            invite.setRole(request.role());
+            invite.setStatus(TeamInviteStatus.PENDING);
+            invite.setExpiresAt(request.expiresAt());
+            invite.setRespondedAt(null);
+            invite = teamInviteRepository.save(invite);
+            metricsPublisher.inviteSent();
+            log.info("Team invite re-sent : teamId {} to user {} by user {}", teamId, invite.getId(), userId);
+            return teamMapper.toInviteResponse(invite);
+        }
+
+        TeamInvite invite = teamInviteRepository.save(
+                teamMapper.toTeamInvite(team, userId, inviteeUserId, user.email(), request.role(), request.expiresAt())
+        );
         metricsPublisher.inviteSent();
 
         log.info("Team invite sent : teamId {} to user {} by user {}", teamId, invite.getId(), userId);
