@@ -63,6 +63,12 @@ export const GO_TEAM_SERVICE_ROUTES = {
   CREATE: buildRoute(VERSIONING.v1, SERVICE.TEAMS, "create"),
   GET_TEAM_MEMBERS: (teamId: string) =>
     buildRoute(VERSIONING.v1, SERVICE.TEAMS, `${teamId}/members`),
+  REMOVE_TEAM_MEMBER: (teamId: string, userId: string) =>
+    buildRoute(VERSIONING.v1, SERVICE.TEAMS, `${teamId}/delete/${userId}`),
+  CREATE_INVITE: buildRoute(VERSIONING.v1, SERVICE.TEAMS, "create-invite"),
+  TEAM_INVITES: (teamId: string) =>
+    buildRoute(VERSIONING.v1, SERVICE.TEAMS, `invites/${teamId}`),
+  USER_INVITES: buildRoute(VERSIONING.v1, SERVICE.TEAMS, "invites"),
 };
 
 const messagingBase = buildRoute(VERSIONING.v1, SERVICE.MESSAGING);
@@ -74,4 +80,10 @@ export const GO_MESSAGING_ROUTES = {
     `${messagingBase}/teams/${teamId}/conversations`,
   MESSAGES: (conversationId: string) =>
     `${messagingBase}/conversations/${conversationId}/messages`,
+};
+
+const invitesBase = buildRoute(VERSIONING.v1, "invites");
+
+export const GO_INVITE_ROUTES = {
+  RESPOND: `${invitesBase}/response`,
 };
