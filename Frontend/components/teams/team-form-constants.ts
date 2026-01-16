@@ -6,13 +6,13 @@ export const SCOPE_OPTIONS: Option[] = [
   { id: "league_ready", label: "League Ready" },
 ];
 
-export const MOCK_SPORTS: Option[] = [
+export const SPORTS: Option[] = [
   { id: "soccer", label: "Soccer" },
   { id: "basketball", label: "Basketball" },
   { id: "volleyball", label: "Volleyball" },
 ];
 
-export const MOCK_CITIES: Option[] = [
+export const CITIES: Option[] = [
   { id: "mtl", label: "Montreal" },
   { id: "tor", label: "Toronto" },
   { id: "van", label: "Vancouver" },
@@ -30,7 +30,7 @@ export const getPickerConfig = (
 > => ({
   sport: {
     title: "Select Sport",
-    options: MOCK_SPORTS,
+    options: SPORTS,
     setter: setSelectedSport,
   },
   scope: {
@@ -40,7 +40,7 @@ export const getPickerConfig = (
   },
   city: {
     title: "Select City",
-    options: MOCK_CITIES,
+    options: CITIES,
     setter: setSelectedCity,
   },
 });
