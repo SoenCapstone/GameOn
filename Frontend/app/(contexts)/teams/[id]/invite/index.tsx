@@ -1,12 +1,5 @@
 import React, { useLayoutEffect, useMemo } from "react";
-import {
-  ActivityIndicator,
-  Alert,
-  Pressable,
-  StyleSheet,
-  Text,
-  View,
-} from "react-native";
+import { ActivityIndicator, Alert, Pressable, StyleSheet, Text, View } from "react-native";
 import { useLocalSearchParams } from "expo-router";
 import { useNavigation } from "@react-navigation/native";
 import { useAuth } from "@clerk/clerk-expo";
@@ -16,6 +9,8 @@ import { Header } from "@/components/header/header";
 import { HeaderButton } from "@/components/header/header-button";
 import { PageTitle } from "@/components/header/page-title";
 import { Card } from "@/components/ui/card";
+import { MemberRow } from "@/components/teams/member-row";
+import { formatFullName } from "@/components/teams/member-row-utils";
 import { useTeamDetail } from "@/hooks/use-team-detail";
 import { useGetTeamMembers } from "@/hooks/use-get-team-members/use-get-team-members";
 import { fetchUserDirectory } from "@/features/messaging/api";
@@ -136,18 +131,10 @@ export default function InvitePlayersScreen() {
               const name = formatFullName(user.firstname, user.lastname);
               return (
                 <Card key={user.id}>
-                  <View style={styles.memberRow}>
-                    <View style={styles.avatar}>
-                      <Text style={styles.avatarText}>
-                        {getInitials(name, user.email)}
-                      </Text>
-                    </View>
-
-                    <View style={styles.memberInfo}>
-                      <Text style={styles.memberName}>{name}</Text>
-                      <Text style={styles.memberEmail}>{user.email}</Text>
-                    </View>
-
+                  <MemberRow
+                    name={name}
+                    email={user.email}
+                    right={
                     <Pressable
                       style={[
                         styles.inviteButton,
@@ -165,7 +152,8 @@ export default function InvitePlayersScreen() {
                     >
                       <Text style={styles.inviteButtonText}>Invite</Text>
                     </Pressable>
-                  </View>
+                    }
+                  />
                 </Card>
               );
             })}
@@ -175,22 +163,6 @@ export default function InvitePlayersScreen() {
     </ContentArea>
   );
 }
-
-const formatFullName = (first?: string | null, last?: string | null) => {
-  const full = `${first ?? ""} ${last ?? ""}`.trim();
-  return full || "Unknown Player";
-};
-
-const getInitials = (name: string, email?: string | null) => {
-  const parts = name.split(" ").filter(Boolean);
-  if (parts.length >= 2) {
-    return `${parts[0][0]}${parts[1][0]}`.toUpperCase();
-  }
-  if (parts.length === 1) {
-    return parts[0][0]?.toUpperCase() ?? "?";
-  }
-  return email?.[0]?.toUpperCase() ?? "?";
-};
 
 const styles = StyleSheet.create({
   section: {
@@ -206,37 +178,6 @@ const styles = StyleSheet.create({
   },
   memberList: {
     gap: 14,
-  },
-  memberRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 12,
-  },
-  avatar: {
-    width: 46,
-    height: 46,
-    borderRadius: 23,
-    backgroundColor: "rgba(255,255,255,0.18)",
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  avatarText: {
-    color: "#fff",
-    fontWeight: "700",
-    fontSize: 14,
-  },
-  memberInfo: {
-    flex: 1,
-    gap: 2,
-  },
-  memberName: {
-    color: "#fff",
-    fontSize: 15,
-    fontWeight: "600",
-  },
-  memberEmail: {
-    color: "rgba(255,255,255,0.65)",
-    fontSize: 12,
   },
   inviteButton: {
     paddingHorizontal: 12,
