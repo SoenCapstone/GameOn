@@ -1,12 +1,5 @@
 import React, { useLayoutEffect } from "react";
-import {
-  ActivityIndicator,
-  Alert,
-  Pressable,
-  StyleSheet,
-  Text,
-  View,
-} from "react-native";
+import { ActivityIndicator, Alert, Pressable, StyleSheet, Text, View } from "react-native";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useNavigation } from "@react-navigation/native";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
@@ -15,6 +8,8 @@ import { Header } from "@/components/header/header";
 import { HeaderButton } from "@/components/header/header-button";
 import { PageTitle } from "@/components/header/page-title";
 import { Card } from "@/components/ui/card";
+import { MemberRow } from "@/components/teams/member-row";
+import { formatFullName } from "@/components/teams/member-row-utils";
 import { useTeamDetail } from "@/hooks/use-team-detail";
 import { useGetTeamMembers } from "@/hooks/use-get-team-members/use-get-team-members";
 import {
@@ -113,30 +108,23 @@ export default function ManageRolesScreen() {
 
               return (
                 <Card key={member.id}>
-                  <View style={styles.memberRow}>
-                    <View style={styles.avatar}>
-                      <Text style={styles.avatarText}>
-                        {getInitials(name, member.email)}
-                      </Text>
-                    </View>
-
-                    <View style={styles.memberInfo}>
-                      <Text style={styles.memberName}>{name}</Text>
-                      <Text style={styles.memberEmail}>{member.email}</Text>
-                    </View>
-
-                    <View style={styles.memberActions}>
-                      <Text style={styles.memberRole}>{roleLabel}</Text>
-                      {canRemove && (
-                        <Pressable
-                          style={styles.removeButton}
-                          onPress={() => handleRemoveMember(member.id, name)}
-                        >
-                          <Text style={styles.removeButtonText}>Remove</Text>
-                        </Pressable>
-                      )}
-                    </View>
-                  </View>
+                  <MemberRow
+                    name={name}
+                    email={member.email}
+                    right={
+                      <>
+                        <Text style={styles.memberRole}>{roleLabel}</Text>
+                        {canRemove && (
+                          <Pressable
+                            style={styles.removeButton}
+                            onPress={() => handleRemoveMember(member.id, name)}
+                          >
+                            <Text style={styles.removeButtonText}>Remove</Text>
+                          </Pressable>
+                        )}
+                      </>
+                    }
+                  />
                 </Card>
               );
             })}
@@ -146,26 +134,9 @@ export default function ManageRolesScreen() {
     </ContentArea>
   );
 }
-
-const formatFullName = (first?: string | null, last?: string | null) => {
-  const full = `${first ?? ""} ${last ?? ""}`.trim();
-  return full || "Unknown Player";
-};
-
 const formatRole = (role?: string | null) => {
   if (!role) return "Player";
   return role[0] + role.slice(1).toLowerCase();
-};
-
-const getInitials = (name: string, email?: string | null) => {
-  const parts = name.split(" ").filter(Boolean);
-  if (parts.length >= 2) {
-    return `${parts[0][0]}${parts[1][0]}`.toUpperCase();
-  }
-  if (parts.length === 1) {
-    return parts[0][0]?.toUpperCase() ?? "?";
-  }
-  return email?.[0]?.toUpperCase() ?? "?";
 };
 
 const styles = StyleSheet.create({
@@ -182,41 +153,6 @@ const styles = StyleSheet.create({
   },
   memberList: {
     gap: 14,
-  },
-  memberRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 12,
-  },
-  avatar: {
-    width: 46,
-    height: 46,
-    borderRadius: 23,
-    backgroundColor: "rgba(255,255,255,0.18)",
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  avatarText: {
-    color: "#fff",
-    fontWeight: "700",
-    fontSize: 14,
-  },
-  memberInfo: {
-    flex: 1,
-    gap: 2,
-  },
-  memberName: {
-    color: "#fff",
-    fontSize: 15,
-    fontWeight: "600",
-  },
-  memberEmail: {
-    color: "rgba(255,255,255,0.65)",
-    fontSize: 12,
-  },
-  memberActions: {
-    alignItems: "flex-end",
-    gap: 6,
   },
   memberRole: {
     color: "rgba(255,255,255,0.8)",
