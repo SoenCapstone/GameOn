@@ -12,7 +12,6 @@ import { useTeamHeader } from "@/hooks/use-team-header";
 
 export default function TeamDetailById() {
   const params = useLocalSearchParams<{ id?: string | string[] }>();
-
   const rawId = params.id;
   const id = Array.isArray(rawId) ? rawId[0] : (rawId ?? "");
 
@@ -53,7 +52,7 @@ export default function TeamDetailById() {
                 if (value === "Overview") setTab("overview");
                 if (value === "Games") setTab("games");
               }}
-              style={{ marginBottom: 16, width: "90%" }}
+              style={{ marginBottom: 12, width: "90%" }}
             />
 
             {tab === "board" && (
@@ -206,6 +205,7 @@ export default function TeamDetailById() {
             {tab === "games" && (
               <Text style={{ color: "white" }}>Games content here</Text>
             )}
+
           </>
         )}
       </View>
