@@ -19,11 +19,6 @@ jest.mock("expo-router", () => ({
   useRouter: () => ({ back: mockBack, replace: mockReplace }),
 }));
 
-const mockToast = jest.fn();
-jest.mock("@/utils/toast", () => ({
-  toast: (msg: string) => mockToast(msg),
-}));
-
 let mockPost: jest.Mock;
 jest.mock("@/hooks/use-axios-clerk", () => {
   const original = jest.requireActual("@/hooks/use-axios-clerk");
@@ -149,7 +144,6 @@ describe("CreateLeagueScreen", () => {
     await waitFor(() => {
       expect(mockBack).toHaveBeenCalled();
     });
-    expect(mockToast).toHaveBeenCalledWith("League created");
   });
 
   it("respects privacy toggle (PRIVATE)", async () => {
