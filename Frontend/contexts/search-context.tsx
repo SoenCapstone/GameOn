@@ -21,6 +21,7 @@ export const SearchProvider: React.FC<{
 }> = ({ children, onlyMine }) => {
   const [query, setQuery] = useState("");
   const [searchActive, setSearchActive] = useState(false);
+  const [activeMode, setActiveMode] = useState<Modes | undefined>(undefined);
   // track last search data to log a single combined log after render
   const lastSearchRef = React.useRef<{
     id: number;
@@ -118,6 +119,8 @@ export const SearchProvider: React.FC<{
       results: combined,
       searchActive,
       setSearchActive,
+      activeMode,
+      setActiveMode,
       markRendered,
       notifyModeChange: logModeChange,
       isLoading: teamLeague.isLoading,
@@ -128,6 +131,7 @@ export const SearchProvider: React.FC<{
       query,
       combined,
       searchActive,
+      activeMode,
       logModeChange,
       teamLeague.isLoading,
       teamLeague.error,
