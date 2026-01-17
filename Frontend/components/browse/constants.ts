@@ -15,6 +15,8 @@ export type SearchContextValue = {
   results: SearchResult[];
   searchActive: boolean;
   setSearchActive: (active: boolean) => void;
+  activeMode?: Modes;
+  setActiveMode: (mode: Modes) => void;
   isLoading?: boolean;
   error?: string | null;
   markRendered: (
