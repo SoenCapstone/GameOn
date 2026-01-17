@@ -35,21 +35,8 @@ public class CurrentUserProvider {
 
         String email = jwt.getClaimAsString("email");
 
-        if (email == null) {
-            Object emailAddresses = jwt.getClaim("email_addresses");
-
-            if (emailAddresses instanceof List<?> list && !list.isEmpty()) {
-                Object first = list.get(0);
-                if (first instanceof Map<?, ?> map) {
-                    Object value = map.get("email_address");
-                    if (value instanceof String s) {
-                        email = s;
-                    }
-                }
-            }
-        }
         if (email == null || email.isBlank()) {
-            throw new RuntimeException("Authenticated user email not found in JWT");
+            throw new RuntimeException("Authenticated user email not found in JWT. Check custom claims in Clerk");
         }
         return email;
     }
