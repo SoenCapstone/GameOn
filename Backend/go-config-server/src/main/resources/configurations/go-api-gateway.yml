@@ -26,7 +26,7 @@ spring:
             - id: go-league-service
               uri: lb://GO-LEAGUE-SERVICE
               predicates:
-                - Path=/api/v1/leagues/**
+                - Path=/api/v1/leagues/**,/api/v1/payments/**
             - id: go-messaging-service-ws
               uri: lb:ws://GO-MESSAGING-SERVICE
               predicates:
