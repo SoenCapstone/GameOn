@@ -1,10 +1,10 @@
-import React, { useState } from "react";
+import React from "react";
 import { View, Text, Pressable, FlatList } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { GlassView } from "expo-glass-effect";
 import { styles } from "./league.styles";
 import { Background } from "@/components/ui/background";
- // <-- adjust path if different
+import { useLocalSearchParams, useRouter } from "expo-router";
 
 type Tab = "Overview" | "Games" | "Teams";
 
@@ -14,23 +14,45 @@ const PLACEHOLDER_ROWS = Array.from({ length: 14 }).map((_, i) => ({
 
 export default function LeagueDetailsScreen() {
   const insets = useSafeAreaInsets();
-  const [tab, setTab] = useState<Tab>("Overview");
+  const router = useRouter();
+  const { id, name } = useLocalSearchParams<{ id: string; name?: string }>();
+
+  const activeTab: Tab = "Overview";
+
+  const go = (t: Tab) => {
+  const params = { id, name };
+
+  if (t === "Overview") {
+    router.push({ pathname: "/(contexts)/leagues/[id]" as any, params });
+    return;
+  }
+
+  if (t === "Games") {
+    router.push({ pathname: "/(contexts)/leagues/[id]/games" as any, params });
+    return;
+  }
+
+  router.push({ pathname: "/(contexts)/leagues/[id]/teams" as any, params });
+};
+
+
+
 
   return (
     <View style={styles.screen}>
-      {/* ✅ Same gradient background as the rest of your app */}
       <Background preset="purple" mode="default" />
 
       <View style={styles.container}>
         <View style={{ height: insets.top + 76 }} />
 
+        {/* Tabs */}
         <GlassView glassEffectStyle="regular" style={styles.tabsGlass}>
           {(["Overview", "Games", "Teams"] as Tab[]).map((t, idx) => {
-            const active = t === tab;
+            const active = t === activeTab;
             return (
               <Pressable
                 key={t}
-                onPress={() => setTab(t)}
+                onPress={() => go(t)}
                 style={[
                   styles.tabBtn,
                   active && styles.tabBtnActive,
@@ -45,6 +67,7 @@ export default function LeagueDetailsScreen() {
           })}
         </GlassView>
 
+        {/* Table Header */}
         <GlassView glassEffectStyle="regular" style={styles.tableHeaderGlass}>
           <Text style={styles.hRank}>#</Text>
           <Text style={styles.hTeam}>Team</Text>
@@ -56,6 +79,7 @@ export default function LeagueDetailsScreen() {
           <Text style={styles.hPts}>Pts</Text>
         </GlassView>
 
+        {/* Placeholder rows */}
         <FlatList
           data={PLACEHOLDER_ROWS}
           keyExtractor={(x) => x.id}
@@ -101,19 +125,7 @@ export default function LeagueDetailsScreen() {
           )}
         />
 
-        <View style={styles.fabRow}>
-          <GlassView glassEffectStyle="regular" style={styles.fabGlass}>
-            <Pressable style={styles.fabPressable}>
-              <Text style={styles.fabIcon}>⌗</Text>
-            </Pressable>
-          </GlassView>
-
-          <GlassView glassEffectStyle="regular" style={styles.fabGlass}>
-            <Pressable style={styles.fabPressable}>
-              <Text style={styles.fabIcon}>💬</Text>
-            </Pressable>
-          </GlassView>
-        </View>
+       
       </View>
     </View>
   );
