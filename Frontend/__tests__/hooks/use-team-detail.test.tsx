@@ -21,20 +21,6 @@ jest.mock("@clerk/clerk-expo", () => ({
   useAuth: jest.fn(),
 }));
 
-jest.mock("@/components/browse/constants", () => ({
-  mockSearchResults: [
-    {
-      id: "mock-team-1",
-      type: "team",
-      name: "Mock Team",
-      subtitle: "Test",
-      logo: "🏀",
-      league: "Test League",
-      ownerUserId: "user-123",
-    },
-  ],
-}));
-
 const mockedUseAxiosWithClerk = useAxiosWithClerk as jest.MockedFunction<
   typeof useAxiosWithClerk
 >;
@@ -132,20 +118,6 @@ describe("useTeamDetail", () => {
       expect(result.current.title).toBe("Test Team");
       expect(result.current.isOwner).toBe(true);
     }
-  });
-
-  it("uses mock data when team ID matches mock", async () => {
-    const { result } = renderHook(() => useTeamDetail("mock-team-1"), {
-      wrapper: createWrapper(),
-    });
-
-    await waitFor(() => {
-      expect(result.current.isLoading).toBe(false);
-    });
-
-    expect(result.current.team?.name).toBe("Mock Team");
-    expect(result.current.title).toBe("Mock Team");
-    expect(mockApi.get).not.toHaveBeenCalled();
   });
 
   it("determines isOwner correctly when user is owner", async () => {
@@ -319,26 +291,6 @@ describe("useTeamDetail", () => {
     });
 
     consoleSpy.mockRestore();
-  });
-
-  it("does not fetch when mock data is immediately available", () => {
-    renderHook(() => useTeamDetail("mock-team-1"), {
-      wrapper: createWrapper(),
-    });
-
-    expect(mockApi.get).not.toHaveBeenCalled();
-  });
-
-  it("returns correct title from mock data", async () => {
-    const { result } = renderHook(() => useTeamDetail("mock-team-1"), {
-      wrapper: createWrapper(),
-    });
-
-    await waitFor(() => {
-      expect(result.current.isLoading).toBe(false);
-    });
-
-    expect(result.current.title).toBe("Mock Team");
   });
 
   it("isOwner is false when userId is null", async () => {
