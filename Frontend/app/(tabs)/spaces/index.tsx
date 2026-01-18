@@ -14,9 +14,22 @@ export default function Spaces() {
     }
 
     if (result.type === "league") {
-      router.push(`../(contexts)/leagues/${result.id}`);
-      return;
-    }
+  router.push({
+    pathname: "../(contexts)/leagues/[id]",
+    params: {
+      id: result.id,
+      name:
+        (result as any).name ??
+        (result as any).title ??
+        (result as any).displayName ??
+        (result as any).label ??
+        "League 1",
+    },
+  });
+  return;
+}
+
+
   },
   [router],
 );
