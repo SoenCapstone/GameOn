@@ -7,13 +7,20 @@ export default function Spaces() {
   const router = useRouter();
 
   const handleResultPress = React.useCallback(
-    (result: SearchResult) => {
-      if (result.type === "team") {
-        router.push(`../(contexts)/my-teams/${result.id}`);
-      }
-    },
-    [router],
-  );
+  (result: SearchResult) => {
+    if (result.type === "team") {
+      router.push(`../(contexts)/my-teams/${result.id}`);
+      return;
+    }
+
+    if (result.type === "league") {
+      router.push(`../(contexts)/leagues/${result.id}`);
+      return;
+    }
+  },
+  [router],
+);
+
 
   return (
     <SearchResultsScreen
