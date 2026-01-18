@@ -6,11 +6,11 @@ import * as utils from "@/components/browse/utils";
 
 jest.mock("@/components/browse/utils", () => ({
   useTeamResults: jest.fn(),
-  filterLocalLeagues: jest.fn(),
+  useLeagueResults: jest.fn(),
 }));
 
 const useTeamResults = utils.useTeamResults as jest.MockedFunction<any>;
-const filterLocalLeagues = utils.filterLocalLeagues as jest.MockedFunction<any>;
+const useLeagueResults = utils.useLeagueResults as jest.MockedFunction<any>;
 
 function TestComp({ query }: Readonly<{ query: string }>) {
   const { data } = useTeamLeagueResults(query);
@@ -42,16 +42,20 @@ describe("useTeamLeagueResults", () => {
       error: null,
     });
 
-    filterLocalLeagues.mockReturnValue([
-      {
-        id: "l1",
-        type: "league",
-        name: "League A",
-        subtitle: "league",
-        logo: "🏅",
-        league: "A",
-      },
-    ]);
+    useLeagueResults.mockReturnValue({
+      data: [
+        {
+          id: "l1",
+          type: "league",
+          name: "League A",
+          subtitle: "league",
+          logo: "🏅",
+          league: "A",
+        },
+      ],
+      isLoading: false,
+      error: null,
+    });
 
     const { getByTestId } = render(<TestComp query="x" />);
     const text = getByTestId("out").props.children as string;
@@ -61,16 +65,20 @@ describe("useTeamLeagueResults", () => {
 
   it("handles empty team data", () => {
     useTeamResults.mockReturnValue({ data: [], isLoading: false, error: null });
-    filterLocalLeagues.mockReturnValue([
-      {
-        id: "l1",
-        type: "league",
-        name: "League A",
-        subtitle: "league",
-        logo: "🏅",
-        league: "A",
-      },
-    ]);
+    useLeagueResults.mockReturnValue({
+      data: [
+        {
+          id: "l1",
+          type: "league",
+          name: "League A",
+          subtitle: "league",
+          logo: "🏅",
+          league: "A",
+        },
+      ],
+      isLoading: false,
+      error: null,
+    });
 
     const { getByTestId } = render(<TestComp query="x" />);
     const ids = JSON.parse(

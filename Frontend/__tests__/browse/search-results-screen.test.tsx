@@ -153,6 +153,8 @@ const defaultSearchContext = {
   results: mockResults,
   markRendered: jest.fn(),
   notifyModeChange: jest.fn(),
+  activeMode: "teams",
+  setActiveMode: jest.fn(),
   searchActive: false,
   isLoading: false,
   error: null,

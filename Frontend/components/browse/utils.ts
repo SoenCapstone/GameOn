@@ -1,10 +1,11 @@
-import { SearchResult, mockSearchResults } from "@/components/browse/constants";
+import { SearchResult } from "@/components/browse/constants";
 import { AxiosInstance } from "axios";
 import { useQuery } from "@tanstack/react-query";
 import { createScopedLog } from "@/utils/logger";
 import {
   useAxiosWithClerk,
   GO_TEAM_SERVICE_ROUTES,
+  GO_LEAGUE_SERVICE_ROUTES,
 } from "@/hooks/use-axios-clerk";
 
 const log = createScopedLog("Browse");
@@ -42,19 +43,6 @@ export function mapSportToEmoji(sport?: string | null): string {
   }
 }
 
-// Filter for mock leagues (until backend has leagues endpoint)
-export function filterLocalLeagues(query: string): SearchResult[] {
-  const q = (query || "").toLowerCase().trim();
-  const leagues = mockSearchResults.filter((r) => r.type === "league");
-  if (!q) return leagues;
-  return leagues.filter(
-    (r) =>
-      r.name.toLowerCase().includes(q) ||
-      r.subtitle.toLowerCase().includes(q) ||
-      r.league?.toLowerCase().includes(q),
-  );
-}
-
 type TeamSummaryResponse = {
   id: string;
   name: string;
@@ -72,6 +60,27 @@ type TeamSummaryResponse = {
 
 type TeamListResponse = {
   items: TeamSummaryResponse[];
+  totalElements: number;
+  page: number;
+  size: number;
+  hasNext: boolean;
+};
+
+type LeagueSummaryResponse = {
+  id: string;
+  name: string;
+  sport: string;
+  slug: string;
+  region?: string | null;
+  level?: string | null;
+  privacy?: string | null;
+  seasonCount?: number | null;
+  createdAt: string;
+  updatedAt: string;
+};
+
+type LeagueListResponse = {
+  items: LeagueSummaryResponse[];
   totalElements: number;
   page: number;
   size: number;
@@ -96,6 +105,28 @@ async function fetchTeamResults(
     return resp.data;
   } catch (err) {
     log.warn("fetchTeamResults failed", err);
+    throw err;
+  }
+}
+
+async function fetchLeagueResults(
+  api: AxiosInstance,
+  query: string,
+  onlyMine?: boolean,
+): Promise<LeagueListResponse> {
+  const params: Record<string, string | boolean> = { size: "50" };
+
+  if (query && query.trim().length > 0) params.q = query.trim();
+  if (onlyMine) params.my = onlyMine;
+
+  try {
+    const resp = await api.get<LeagueListResponse>(GO_LEAGUE_SERVICE_ROUTES.ALL, {
+      params,
+      timeout: 5000,
+    });
+    return resp.data;
+  } catch (err) {
+    log.warn("fetchLeagueResults failed", err);
     throw err;
   }
 }
@@ -141,4 +172,48 @@ export function useTeamResults(query: string, onlyMine?: boolean) {
   };
 }
 
-export { fetchTeamResults };
+export function useLeagueResults(query: string, onlyMine?: boolean) {
+  const api = useAxiosWithClerk();
+
+  const queryResult = useQuery<LeagueListResponse, Error>({
+    queryKey: ["leagues", query, onlyMine ?? false],
+    queryFn: async () => fetchLeagueResults(api, query, onlyMine),
+    retry: false,
+  });
+
+  const raw = queryResult.data ?? null;
+  const items: LeagueSummaryResponse[] = raw?.items ?? [];
+  const data: SearchResult[] = items.map((league) => {
+    const subtitle = league.region || league.sport || "League";
+    return {
+      id: String(league.id),
+      type: "league",
+      name: league.name,
+      subtitle,
+      sport: league.sport,
+      logo: mapSportToEmoji(league.sport),
+      league: "",
+      location: league.region ?? "",
+    };
+  });
+
+  return {
+    data,
+    raw,
+    isLoading: queryResult.isLoading,
+    isFetching: queryResult.isFetching,
+    error: queryResult.error ?? null,
+    refetch: async () => {
+      await queryResult.refetch();
+    },
+  } as {
+    data: SearchResult[];
+    raw: LeagueListResponse | null;
+    isLoading: boolean;
+    isFetching: boolean;
+    error: Error | null;
+    refetch: () => Promise<void>;
+  };
+}
+
+export { fetchTeamResults, fetchLeagueResults };
