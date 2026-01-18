@@ -35,6 +35,15 @@ Thumbs.db
 application-local.yml
 application-local.properties
 
+### Certificates and keys ###
+certs/
+*.pem
+*.cert
+*.key
+*.p12
+*.jks
+
+
 ### Others ###
 /bin/
 /build/

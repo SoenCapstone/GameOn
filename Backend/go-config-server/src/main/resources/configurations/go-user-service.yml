@@ -17,6 +17,30 @@ spring:
         jwt:
           issuer-uri: https://one-magpie-92.clerk.accounts.dev
 
+  kafka:
+    # Config to run Docker Kafka from local
+    bootstrap-servers: ${KAFKA_BOOTSTRAP:localhost:9092}
+    # Config to run deployed Kafka from local (keep commented out if running Docker Kafka)
+#    bootstrap-servers: ${KAFKA_BOOTSTRAP:kafka-1f7f0718-game-on.d.aivencloud.com:25817}
+
+    consumer:
+      group-id: ${KAFKA_GROUP_ID:gameon-service}
+      auto-offset-reset: earliest
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
+    properties:
+      spring.json.trusted.packages: "com.game.on.common.dto,com.game.on.*"
+      spring.json.value.default.type: com.game.on.common.dto.PaymentDTO
+      spring.json.use.type.headers: false
+
+      # Config to test deployed Kafka from local (keep commented out if running Docker Kafka)
+#      security.protocol: SSL
+#      ssl.keystore.type: PKCS12
+#      ssl.keystore.location: ${KAFKA_KEYSTORE_PATH}
+#      ssl.keystore.password: ${KAFKA_KEYSTORE_PASSWORD}
+#      ssl.truststore.type: JKS
+#      ssl.truststore.location: ${KAFKA_TRUSTSTORE_PATH}
+#      ssl.truststore.password: ${KAFKA_TRUSTSTORE_PASSWORD}
 server:
   port: 8090
 
