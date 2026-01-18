@@ -10,9 +10,11 @@ import com.game.on.go_league_service.league.metrics.LeagueMetricsPublisher;
 import com.game.on.go_league_service.league.model.League;
 import com.game.on.go_league_service.league.model.LeaguePrivacy;
 import com.game.on.go_league_service.league.model.LeagueSeason;
+import com.game.on.go_league_service.league.mapper.LeagueTeamMapper;
 import com.game.on.go_league_service.league.repository.LeagueRepository;
 import com.game.on.go_league_service.league.repository.LeagueSeasonRepository;
 import com.game.on.go_league_service.league.repository.LeagueSeasonRepository.LeagueSeasonCountProjection;
+import com.game.on.go_league_service.league.repository.LeagueTeamRepository;
 import com.game.on.go_league_service.league.util.SlugGenerator;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -43,6 +45,8 @@ public class LeagueService {
     private final LeagueRepository leagueRepository;
     private final LeagueSeasonRepository leagueSeasonRepository;
     private final LeagueMapper leagueMapper;
+    private final LeagueTeamRepository leagueTeamRepository;
+    private final LeagueTeamMapper leagueTeamMapper;
     private final CurrentUserProvider userProvider;
     private final LeagueMetricsPublisher metricsPublisher;
 
@@ -180,6 +184,16 @@ public class LeagueService {
         return leagueSeasonRepository.findByLeague_IdAndArchivedAtIsNullOrderByStartDateAscNameAsc(leagueId)
                 .stream()
                 .map(leagueMapper::toSeason)
+                .toList();
+    }
+
+    @Transactional(readOnly = true)
+    public List<LeagueTeamResponse> listLeagueTeams(UUID leagueId) {
+        String userId = userProvider.clerkUserId();
+        var league = requireActiveLeague(leagueId);
+        ensureCanView(league, userId);
+        return leagueTeamRepository.findByLeague_IdOrderByCreatedAtDesc(leagueId).stream()
+                .map(leagueTeamMapper::toResponse)
                 .toList();
     }
 
