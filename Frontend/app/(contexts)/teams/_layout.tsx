@@ -50,6 +50,22 @@ export default function TeamsLayout() {
           headerBackVisible: false,
         }}
       />
+      <Stack.Screen
+        name="[id]/manage-roles/index"
+        options={{
+          headerTransparent: true,
+          headerShadowVisible: false,
+          headerBackVisible: false,
+        }}
+      />
+      <Stack.Screen
+        name="[id]/invite/index"
+        options={{
+          headerTransparent: true,
+          headerShadowVisible: false,
+          headerBackVisible: false,
+        }}
+      />
     </Stack>
   );
 }

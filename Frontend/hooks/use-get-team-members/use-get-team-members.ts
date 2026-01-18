@@ -6,7 +6,8 @@ import { TeamMember } from "./model";
 export const useGetTeamMembers = (teamId: string) => {
     const api = useAxiosWithClerk();
     return useQuery<TeamMember[]>({
-        queryKey: ["team", teamId],
+        queryKey: ["team-members", teamId],
         queryFn: async () => fetchTeamMembers(teamId, api),
+        enabled: Boolean(teamId),
     }); 
 }

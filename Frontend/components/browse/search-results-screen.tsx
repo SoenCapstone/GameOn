@@ -157,10 +157,12 @@ export function SearchResultsScreen({
 
   if (!selectedMode) return null;
 
+  const showSegmentedControl = !q && !searchActive;
+
   return (
     <ContentArea
       scrollable
-      segmentedControl
+      segmentedControl={showSegmentedControl}
       paddingBottom={60}
       backgroundProps={
         backgroundPreset ? { preset: backgroundPreset } : undefined
@@ -173,7 +175,7 @@ export function SearchResultsScreen({
         />
       }
     >
-      {!q && !searchActive && (
+      {showSegmentedControl && (
         <SegmentedControl
           values={modes.map((m) => m.label)}
           selectedIndex={modes.findIndex((m) => m.key === selectedMode.key)}

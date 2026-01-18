@@ -61,7 +61,7 @@ function TeamContent() {
                 if (value === "Overview") setTab("overview");
                 if (value === "Games") setTab("games");
               }}
-              style={{ marginBottom: 16, width: "90%" }}
+              style={{ marginBottom: 12, width: "90%" }}
             />
 
             {tab === "board" && (
@@ -214,6 +214,7 @@ function TeamContent() {
             {tab === "games" && (
               <Text style={{ color: "white" }}>Games content here</Text>
             )}
+
           </>
         )}
       </View>
