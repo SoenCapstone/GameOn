@@ -34,6 +34,10 @@ eureka:
     service-url:
       defaultZone: http://localhost:8761/eureka/
 
+stripe:
+  secret-key: ${STRIPE_SECRET_KEY}
+  webhook-secret: ${STRIPE_WEBHOOK_SECRET}
+
 management:
   endpoints:
     web:
