@@ -224,6 +224,14 @@ public class TeamService {
                 .toList();
     }
 
+    @Transactional(readOnly = true)
+    public TeamMemberResponse getMyMembership(UUID teamId) {
+        String userId = userProvider.clerkUserId();
+        requireActiveTeam(teamId);
+        var membership = requireActiveMembership(teamId, userId);
+        return teamMapper.toMember(membership);
+    }
+
     @Transactional
     public TeamInviteResponse createInvite(TeamInviteCreateRequest request) {
         String userId = userProvider.clerkUserId();
