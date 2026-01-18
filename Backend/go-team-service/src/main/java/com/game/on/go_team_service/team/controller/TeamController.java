@@ -64,6 +64,11 @@ public class TeamController {
         return ResponseEntity.ok(teamService.listMembers(teamId));
     }
 
+    @GetMapping("/{teamId}/memberships/me")
+    public ResponseEntity<TeamMemberResponse> getMyMembership(@PathVariable UUID teamId) {
+        return ResponseEntity.ok(teamService.getMyMembership(teamId));
+    }
+
     @DeleteMapping("/{teamId}/delete/{userId}")
     public ResponseEntity<Void> removeMember(@PathVariable UUID teamId, @PathVariable String userId) {
         teamService.removeMember(teamId, userId);
