@@ -1,77 +1,120 @@
-import React from "react";
-import { Stack, useLocalSearchParams } from "expo-router";
-import { View, Text, StyleSheet } from "react-native";
-import SegmentedControl from "@react-native-segmented-control/segmented-control";
+import React, { useState } from "react";
+import { View, Text, Pressable, FlatList } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { GlassView } from "expo-glass-effect";
+import { styles } from "./league.styles";
+import { Background } from "@/components/ui/background";
+ // <-- adjust path if different
 
-import { ContentArea } from "@/components/ui/content-area";
-import { PageTitle } from "@/components/header/page-title";
+type Tab = "Overview" | "Games" | "Teams";
 
-type Mode = "overview" | "games" | "teams";
+const PLACEHOLDER_ROWS = Array.from({ length: 14 }).map((_, i) => ({
+  id: `placeholder-${i}`,
+}));
 
-export default function LeagueDetailPage() {
-  const { id } = useLocalSearchParams<{ id: string }>();
-  const [mode, setMode] = React.useState<Mode>("overview");
-
-  const selectedIndex = mode === "overview" ? 0 : mode === "games" ? 1 : 2;
+export default function LeagueDetailsScreen() {
+  const insets = useSafeAreaInsets();
+  const [tab, setTab] = useState<Tab>("Overview");
 
   return (
-    <>
-      <Stack.Screen
-        options={{
-          headerTitle: () => <PageTitle title={`League ${String(id)}`} />,
-        }}
-      />
+    <View style={styles.screen}>
+      {/* ✅ Same gradient background as the rest of your app */}
+      <Background preset="purple" mode="default" />
 
-      <ContentArea
-        scrollable
-        paddingBottom={60}
-        backgroundProps={{ preset: "purple" }}
-      >
-        <View style={styles.body}>
-          <SegmentedControl
-            values={["Overview", "Games", "Teams"]}
-            selectedIndex={selectedIndex}
-            onValueChange={(value) => {
-              if (value === "Overview") setMode("overview");
-              else if (value === "Games") setMode("games");
-              else setMode("teams");
-            }}
-            style={styles.segmented}
-          />
+      <View style={styles.container}>
+        <View style={{ height: insets.top + 76 }} />
 
-          <View style={styles.card}>
-            <Text style={styles.placeholder}>
-              {mode === "overview" &&
-                "Overview placeholder. Backend will plug real data."}
-              {mode === "games" &&
-                "Games placeholder. Backend will plug real data."}
-              {mode === "teams" &&
-                "Teams/standings placeholder. Backend will plug real data."}
-            </Text>
-          </View>
+        <GlassView glassEffectStyle="regular" style={styles.tabsGlass}>
+          {(["Overview", "Games", "Teams"] as Tab[]).map((t, idx) => {
+            const active = t === tab;
+            return (
+              <Pressable
+                key={t}
+                onPress={() => setTab(t)}
+                style={[
+                  styles.tabBtn,
+                  active && styles.tabBtnActive,
+                  idx === 1 && styles.tabMiddle,
+                ]}
+              >
+                <Text style={[styles.tabText, active && styles.tabTextActive]}>
+                  {t}
+                </Text>
+              </Pressable>
+            );
+          })}
+        </GlassView>
+
+        <GlassView glassEffectStyle="regular" style={styles.tableHeaderGlass}>
+          <Text style={styles.hRank}>#</Text>
+          <Text style={styles.hTeam}>Team</Text>
+          <Text style={styles.hStat}>P</Text>
+          <Text style={styles.hStat}>W</Text>
+          <Text style={styles.hStat}>D</Text>
+          <Text style={styles.hStat}>L</Text>
+          <Text style={styles.hGD}>GD</Text>
+          <Text style={styles.hPts}>Pts</Text>
+        </GlassView>
+
+        <FlatList
+          data={PLACEHOLDER_ROWS}
+          keyExtractor={(x) => x.id}
+          showsVerticalScrollIndicator={false}
+          contentContainerStyle={styles.listContent}
+          renderItem={({ index }) => (
+            <View style={styles.row}>
+              <View style={styles.rankPill}>
+                <Text style={styles.rankText}>{index + 1}</Text>
+              </View>
+
+              <View style={styles.teamCell}>
+                <View style={styles.teamBadge}>
+                  <Text style={styles.teamBadgeText}>--</Text>
+                </View>
+
+                <View style={styles.teamNameWrap}>
+                  <View style={styles.skelName} />
+                </View>
+              </View>
+
+              <View style={styles.statsCell}>
+                <View style={styles.skelNum} />
+              </View>
+              <View style={styles.statsCell}>
+                <View style={styles.skelNum} />
+              </View>
+              <View style={styles.statsCell}>
+                <View style={styles.skelNum} />
+              </View>
+              <View style={styles.statsCell}>
+                <View style={styles.skelNum} />
+              </View>
+
+              <View style={styles.gdCell}>
+                <View style={styles.skelNumSmall} />
+              </View>
+
+              <View style={styles.ptsCell}>
+                <View style={styles.skelNumSmall} />
+              </View>
+            </View>
+          )}
+        />
+
+        <View style={styles.fabRow}>
+          <GlassView glassEffectStyle="regular" style={styles.fabGlass}>
+            <Pressable style={styles.fabPressable}>
+              <Text style={styles.fabIcon}>⌗</Text>
+            </Pressable>
+          </GlassView>
+
+          <GlassView glassEffectStyle="regular" style={styles.fabGlass}>
+            <Pressable style={styles.fabPressable}>
+              <Text style={styles.fabIcon}>💬</Text>
+            </Pressable>
+          </GlassView>
         </View>
-      </ContentArea>
-    </>
+      </View>
+    </View>
   );
 }
-
-const styles = StyleSheet.create({
-  body: {
-    paddingTop: 0, //  pushes content below the transparent header
-  },
-  segmented: {
-    height: 40,
-    marginBottom: 14,
-  },
-  card: {
-    borderRadius: 18,
-    padding: 16,
-    backgroundColor: "rgba(0,0,0,0.35)",
-    minHeight: 240,
-  },
-  placeholder: {
-    color: "rgba(255,255,255,0.75)",
-    fontSize: 14,
-    lineHeight: 20,
-  },
-});
