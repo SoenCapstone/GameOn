@@ -92,7 +92,7 @@ export function SearchResultsScreen({
         resultCount: cnt,
       });
     }
-  }, [selectedMode, notifyModeChange, results, log]);
+  }, [selectedMode, notifyModeChange, results, log, setActiveMode]);
 
   React.useEffect(() => {
     renderT0.current = now();

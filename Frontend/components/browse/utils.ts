@@ -1,4 +1,4 @@
-import { SearchResult, mockSearchResults } from "@/components/browse/constants";
+import { SearchResult } from "@/components/browse/constants";
 import { AxiosInstance } from "axios";
 import { useQuery } from "@tanstack/react-query";
 import { createScopedLog } from "@/utils/logger";
@@ -41,19 +41,6 @@ export function mapSportToEmoji(sport?: string | null): string {
     default:
       return "🏅";
   }
-}
-
-// Filter for mock leagues (fallback for manual testing)
-export function filterLocalLeagues(query: string): SearchResult[] {
-  const q = (query || "").toLowerCase().trim();
-  const leagues = mockSearchResults.filter((r) => r.type === "league");
-  if (!q) return leagues;
-  return leagues.filter(
-    (r) =>
-      r.name.toLowerCase().includes(q) ||
-      r.subtitle.toLowerCase().includes(q) ||
-      r.league?.toLowerCase().includes(q),
-  );
 }
 
 type TeamSummaryResponse = {
