@@ -1,6 +1,5 @@
 package com.game.on.go_team_service.team.controller;
 
-import com.game.on.common.dto.UserResponse;
 import com.game.on.go_team_service.team.dto.*;
 import com.game.on.go_team_service.team.service.TeamService;
 import jakarta.validation.Valid;
@@ -60,7 +59,7 @@ public class TeamController {
     }
 
     @GetMapping("/{teamId}/members")
-    public ResponseEntity<List<UserResponse>> listMembers(@PathVariable UUID teamId) {
+    public ResponseEntity<List<TeamMemberProfileResponse>> listMembers(@PathVariable UUID teamId) {
         return ResponseEntity.ok(teamService.listMembers(teamId));
     }
 

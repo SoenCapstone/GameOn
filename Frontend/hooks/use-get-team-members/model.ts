@@ -3,4 +3,6 @@ export type TeamMember = {
   firstname: string;
   id: string;
   lastname: string;
+  role?: "OWNER" | "MANAGER" | "PLAYER" | "COACH";
+  userId?: string;
 };

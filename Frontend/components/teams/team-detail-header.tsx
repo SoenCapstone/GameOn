@@ -1,4 +1,5 @@
 import React from "react";
+import { View, StyleSheet } from "react-native";
 import { Header } from "@/components/header/header";
 import { HeaderButton } from "@/components/header/header-button";
 import { PageTitle } from "@/components/header/page-title";
@@ -22,11 +23,22 @@ export function TeamDetailHeader({
       center={<PageTitle title={title} />}
       right={
         isOwner ? (
-          <HeaderButton
-            type="custom"
-            route={`/teams/${id}/settings`}
-            icon="gear"
-          />
+          <View style={styles.ownerActions}>
+            <View style={styles.ownerActionButton}>
+              <HeaderButton
+                type="custom"
+                route={`/teams/${id}/manage-roles`}
+                icon="person.2.fill"
+              />
+            </View>
+            <View style={styles.ownerActionButton}>
+              <HeaderButton
+                type="custom"
+                route={`/teams/${id}/settings`}
+                icon="gear"
+              />
+            </View>
+          </View>
         ) : (
           <HeaderButton type="custom" label="Follow" onPress={onFollow} />
         )
@@ -34,3 +46,16 @@ export function TeamDetailHeader({
     />
   );
 }
+
+const styles = StyleSheet.create({
+  ownerActions: {
+    flexDirection: "row",
+    gap: 8,
+    alignItems: "center",
+    justifyContent: "flex-end",
+  },
+  ownerActionButton: {
+    width: 44,
+    height: 44,
+  },
+});
