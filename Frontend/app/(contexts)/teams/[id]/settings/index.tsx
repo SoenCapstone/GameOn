@@ -79,7 +79,7 @@ export default function TeamSettingsScreen() {
 function TeamSettingsContent() {
   const navigation = useNavigation();
   const router = useRouter();
-  const { id, team, isLoading: teamLoading } = useTeamDetailContext();
+  const { id, team, isLoading: teamLoading, isOwner } = useTeamDetailContext();
 
   const {
     teamName,
@@ -203,6 +203,18 @@ function TeamSettingsContent() {
     logoUri,
     selectedScope,
   ]);
+
+  if (!isOwner) {
+      return (
+        <ContentArea backgroundProps={{ preset: "red" }}>
+          <View style={settingsStyles.container}>
+            <Text style={settingsStyles.errorText}>
+              You don&apos;t have permission to edit this league
+            </Text>
+          </View>
+        </ContentArea>
+      );
+    }
 
   if (!team) {
     return (
