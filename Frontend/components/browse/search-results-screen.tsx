@@ -50,6 +50,7 @@ export function SearchResultsScreen({
     results,
     markRendered,
     notifyModeChange,
+    setActiveMode,
     searchActive,
     isLoading,
     error,
@@ -82,6 +83,7 @@ export function SearchResultsScreen({
   React.useEffect(() => {
     if (!selectedMode) return;
     const cnt = results.filter((r) => r.type === selectedMode.type).length;
+    setActiveMode(selectedMode.key);
     try {
       notifyModeChange(selectedMode.key, cnt);
     } catch {
@@ -90,7 +92,7 @@ export function SearchResultsScreen({
         resultCount: cnt,
       });
     }
-  }, [selectedMode, notifyModeChange, results, log]);
+  }, [selectedMode, notifyModeChange, results, log, setActiveMode]);
 
   React.useEffect(() => {
     renderT0.current = now();

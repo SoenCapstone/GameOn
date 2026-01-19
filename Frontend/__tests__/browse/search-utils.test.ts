@@ -1,6 +1,5 @@
 import {
   mapSportToEmoji,
-  filterLocalLeagues,
   fetchTeamResults,
   useTeamResults,
 } from "@/components/browse/utils";
@@ -45,28 +44,6 @@ describe("mapSportToEmoji", () => {
     expect(mapSportToEmoji()).toBe("🏅");
   });
  });
-
-describe("filterLocalLeagues", () => {
-  it("returns all leagues if query is empty", () => {
-    const leagues = filterLocalLeagues("");
-    expect(leagues.length).toBeGreaterThan(0);
-    expect(leagues.every((r) => r.type === "league")).toBe(true);
-  });
-  it("filters leagues by name", () => {
-    const leagues = filterLocalLeagues("bundes");
-    expect(leagues.length).toBe(1);
-    expect(leagues.every((l) => l.name.toLowerCase().includes("bundes"))).toBe(
-      true,
-    );
-  });
-  it("is case-insensitive", () => {
-    const leagues = filterLocalLeagues("PREMIER");
-    expect(leagues.length).toBe(1);
-    expect(leagues.every((l) => l.name.toLowerCase().includes("premier"))).toBe(
-      true,
-    );
-  });
-});
 
 describe("fetchTeamResults", () => {
   beforeEach(() => {

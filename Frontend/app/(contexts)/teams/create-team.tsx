@@ -71,6 +71,7 @@ export default function CreateTeamScreen() {
     onSuccess: async (data) => {
       log.info("Team created:", data);
       await queryClient.invalidateQueries({ queryKey: ["teams"] });
+      Alert.alert("Team created", "Your team has been created.");
       router.back();
     },
     onError: (err) => {

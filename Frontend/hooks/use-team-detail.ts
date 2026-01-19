@@ -1,7 +1,6 @@
 import { useCallback, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useAuth } from "@clerk/clerk-expo";
-import { mockSearchResults } from "@/components/browse/constants";
 import {
   useAxiosWithClerk,
   GO_TEAM_SERVICE_ROUTES,
@@ -14,9 +13,6 @@ export function useTeamDetail(id: string) {
   const [refreshing, setRefreshing] = useState(false);
   const api = useAxiosWithClerk();
   const { userId } = useAuth();
-
-  const mockTeamImmediate =
-    mockSearchResults.find((r) => r.id === id && r.type === "team") || null;
 
   const {
     data: team,
@@ -33,8 +29,7 @@ export function useTeamDetail(id: string) {
         throw err;
       }
     },
-    enabled: !!id && !mockTeamImmediate,
-    initialData: mockTeamImmediate,
+    enabled: !!id,
     retry: false,
     refetchOnWindowFocus: false,
   });
@@ -53,8 +48,7 @@ export function useTeamDetail(id: string) {
     log.info("Page updated");
   }, [refetch]);
 
-  const title =
-    (team?.name || mockTeamImmediate?.name) ?? (id ? `Team ${id}` : "Team");
+  const title = team?.name ?? (id ? `Team ${id}` : "Team");
   const isOwner = Boolean(userId && team && team.ownerUserId === userId);
 
   return {
