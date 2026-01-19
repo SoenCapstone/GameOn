@@ -210,7 +210,7 @@ function LeagueSettingsContent() {
   }
 
   return (
-    <ContentArea scrollable backgroundProps={{ preset: "red" }}>
+    <ContentArea scrollable backgroundProps={{ preset: "red", mode: "form" }}>
       {leagueLoading && (
         <View style={settingsStyles.loadingOverlay}>
           <ActivityIndicator size="large" color="#fff" />
