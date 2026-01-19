@@ -2,7 +2,7 @@ import React from "react";
 import { ActivityIndicator, RefreshControl } from "react-native";
 import { useLocalSearchParams } from "expo-router";
 import { ContentArea } from "@/components/ui/content-area";
-import { useTeamHeader } from "@/hooks/use-team-header";
+import { useTeamHeader } from "@/hooks/use-team-league-header";
 import {
   TeamDetailProvider,
   useTeamDetailContext,

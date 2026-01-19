@@ -3,6 +3,7 @@ import React from "react";
 import { Header } from "@/components/header/header";
 import { PageTitle } from "@/components/header/page-title";
 import { HeaderButton } from "@/components/header/header-button";
+import { useSearch } from "@/contexts/search-context";
 
 const createLeagueHeader = () => (
   <Header
@@ -12,6 +13,7 @@ const createLeagueHeader = () => (
 );
 
 export default function LeaguesLayout() {
+  const { setQuery, setSearchActive } = useSearch();
   return (
     <Stack>
       <Stack.Screen
@@ -22,6 +24,32 @@ export default function LeaguesLayout() {
           headerTitle: createLeagueHeader,
         }}
       />
+            <Stack.Screen
+              name="[id]/index"
+              options={{
+                headerTransparent: true,
+                headerShadowVisible: false,
+                headerBackVisible: false,
+                headerSearchBarOptions: {
+                  hideNavigationBar: false,
+                  placement: "automatic",
+                  onChangeText: (event) => {
+                    const text = event.nativeEvent.text || "";
+                    setQuery(text);
+                  },
+                  onFocus: () => setSearchActive(true),
+                  onBlur: () => setSearchActive(false),
+                },
+              }}
+            />
+            <Stack.Screen
+              name="[id]/settings/index"
+              options={{
+                headerTransparent: true,
+                headerShadowVisible: false,
+                headerBackVisible: false,
+              }}
+            />
     </Stack>
   );
 }

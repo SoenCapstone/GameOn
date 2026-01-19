@@ -1,5 +1,5 @@
 import { renderHook } from "@testing-library/react-native";
-import { useTeamHeader } from "@/hooks/use-team-header";
+import { useTeamHeader } from "@/hooks/use-team-league-header";
 import { useNavigation } from "@react-navigation/native";
 
 jest.mock("@react-navigation/native", () => ({

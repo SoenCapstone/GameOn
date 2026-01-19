@@ -39,6 +39,11 @@ export interface SearchModeConfig {
   type: SearchResult["type"];
 }
 
+export const BROWSE_MODES: SearchModeConfig[] = [
+  { key: "teams", label: "Teams", type: "team" },
+  { key: "leagues", label: "Leagues", type: "league" },
+];
+
 export const SPACES_MODES: SearchModeConfig[] = [
   { key: "teams", label: "Teams", type: "team" },
   { key: "leagues", label: "Leagues", type: "league" },

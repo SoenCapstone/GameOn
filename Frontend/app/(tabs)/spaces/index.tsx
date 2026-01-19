@@ -11,6 +11,9 @@ export default function Spaces() {
       if (result.type === "team") {
         router.push(`../(contexts)/my-teams/${result.id}`);
       }
+      else if (result.type === "league") {
+        router.push(`../(contexts)/my-leagues/${result.id}`);
+      }
     },
     [router],
   );

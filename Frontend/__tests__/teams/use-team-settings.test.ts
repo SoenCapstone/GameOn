@@ -10,7 +10,7 @@ import {
   useTeam,
   useUpdateTeam,
   useDeleteTeam,
-} from "@/hooks/use-team-settings";
+} from "@/hooks/use-team-league-settings";
 
 jest.mock("@/hooks/use-axios-clerk");
 jest.mock("@/utils/logger", () => ({

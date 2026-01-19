@@ -1,5 +1,4 @@
 import {
-  useQuery,
   useMutation,
   useQueryClient,
   UseMutationOptions,
@@ -7,6 +6,7 @@ import {
 import {
   useAxiosWithClerk,
   GO_TEAM_SERVICE_ROUTES,
+  GO_LEAGUE_SERVICE_ROUTES,
 } from "@/hooks/use-axios-clerk";
 import { createScopedLog } from "@/utils/logger";
 
@@ -31,24 +31,23 @@ interface UpdateTeamPayload {
   readonly privacy: "PUBLIC" | "PRIVATE";
 }
 
-export function useTeam(id: string) {
-  const api = useAxiosWithClerk();
+interface League {
+  readonly id: string;
+  readonly name: string;
+  readonly sport: string;
+  readonly region: string;
+  readonly location: string;
+  readonly level: string;
+  readonly privacy: "PUBLIC" | "PRIVATE";
+}
 
-  return useQuery<Team>({
-    queryKey: ["team", id],
-    queryFn: async () => {
-      try {
-        const resp = await api.get(`${GO_TEAM_SERVICE_ROUTES.ALL}/${id}`);
-        return resp.data;
-      } catch (err) {
-        log.error("Failed to fetch team:", err);
-        throw err;
-      }
-    },
-    enabled: !!id,
-    retry: false,
-    refetchOnWindowFocus: false,
-  });
+interface UpdateLeaguePayload {
+readonly name: string;
+readonly sport: string;
+readonly region: string;
+readonly location: string;
+readonly level: string;
+readonly privacy: "PUBLIC" | "PRIVATE";
 }
 
 export function useUpdateTeam(
@@ -99,6 +98,60 @@ export function useDeleteTeam(
     },
     onSuccess: async (...args) => {
       await queryClient.invalidateQueries({ queryKey: ["teams"] });
+      onSuccess?.(...args);
+    },
+    ...restOptions,
+  });
+}
+
+export function useUpdateLeague(
+  id: string,
+  options?: UseMutationOptions<League, Error, UpdateLeaguePayload>,
+) {
+  const api = useAxiosWithClerk();
+  const queryClient = useQueryClient();
+  const { onSuccess, ...restOptions } = options ?? {};
+
+  return useMutation<League, Error, UpdateLeaguePayload>({
+    mutationFn: async (payload: UpdateLeaguePayload) => {
+      log.info("Sending league update payload:", payload);
+      const resp = await api.patch(
+        `${GO_LEAGUE_SERVICE_ROUTES.ALL}/${id}`,
+        payload,
+      );
+      return resp.data;
+    },
+    onSuccess: async (...args) => {
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: ["league", id] }),
+        queryClient.invalidateQueries({ queryKey: ["leagues"] }),
+      ]);
+      onSuccess?.(...args);
+    },
+    ...restOptions,
+  });
+}
+
+export function useDeleteLeague(
+  id: string,
+  options?: UseMutationOptions<void, Error, void>,
+) {
+  const api = useAxiosWithClerk();
+  const queryClient = useQueryClient();
+  const { onSuccess, ...restOptions } = options ?? {};
+
+  return useMutation<void, Error, void>({
+    mutationFn: async () => {
+      if (!id) {
+        const err = new Error("League id is required");
+        log.error("Delete league failed:", err);
+        throw err;
+      }
+      log.info("Deleting league:", id);
+      await api.delete(`${GO_LEAGUE_SERVICE_ROUTES.ALL}/${id}`);
+    },
+    onSuccess: async (...args) => {
+      await queryClient.invalidateQueries({ queryKey: ["leagues"] });
       onSuccess?.(...args);
     },
     ...restOptions,
