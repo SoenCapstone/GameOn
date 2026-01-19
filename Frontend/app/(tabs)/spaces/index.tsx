@@ -6,17 +6,18 @@ import { SearchResult, SPACES_MODES } from "@/components/browse/constants";
 export default function Spaces() {
   const router = useRouter();
 
-  const handleResultPress = React.useCallback(
-    (result: SearchResult) => {
-      if (result.type === "team") {
-        router.push(`../(contexts)/my-teams/${result.id}`);
-      }
-      else if (result.type === "league") {
-        router.push(`../(contexts)/my-leagues/${result.id}`);
-      }
-    },
-    [router],
-  );
+const handleResultPress = React.useCallback(
+  (result: SearchResult) => {
+    if (result.type === "team") {
+      router.push(`../(contexts)/my-teams/${result.id}`);
+    }
+    else if (result.type === "league") {
+      router.push(`../(contexts)/my-leagues/${result.id}`);
+    }
+  },
+  [router],
+);
+
 
   return (
     <SearchResultsScreen
