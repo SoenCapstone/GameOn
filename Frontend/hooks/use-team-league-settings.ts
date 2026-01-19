@@ -1,4 +1,5 @@
 import {
+  QueryClient,
   useMutation,
   useQueryClient,
   UseMutationOptions,
@@ -11,6 +12,17 @@ import {
 import { createScopedLog } from "@/utils/logger";
 
 const log = createScopedLog("useTeamSettings");
+
+const invalidateDetailAndList = (
+  queryClient: QueryClient,
+  detailKey: string,
+  listKey: string,
+  id: string,
+) =>
+  Promise.all([
+    queryClient.invalidateQueries({ queryKey: [detailKey, id] }),
+    queryClient.invalidateQueries({ queryKey: [listKey] }),
+  ]);
 
 interface Team {
   readonly id: string;
@@ -68,10 +80,7 @@ export function useUpdateTeam(
       return resp.data;
     },
     onSuccess: async (...args) => {
-      await Promise.all([
-        queryClient.invalidateQueries({ queryKey: ["team", id] }),
-        queryClient.invalidateQueries({ queryKey: ["teams"] }),
-      ]);
+      await invalidateDetailAndList(queryClient, "team", "teams", id);
       onSuccess?.(...args);
     },
     ...restOptions,
@@ -122,10 +131,7 @@ export function useUpdateLeague(
       return resp.data;
     },
     onSuccess: async (...args) => {
-      await Promise.all([
-        queryClient.invalidateQueries({ queryKey: ["league", id] }),
-        queryClient.invalidateQueries({ queryKey: ["leagues"] }),
-      ]);
+      await invalidateDetailAndList(queryClient, "league", "leagues", id);
       onSuccess?.(...args);
     },
     ...restOptions,

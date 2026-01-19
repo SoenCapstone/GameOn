@@ -4,7 +4,6 @@ import {
   ActivityIndicator,
   Pressable,
   Text,
-  StyleSheet,
   Alert,
 } from "react-native";
 import { useLocalSearchParams, useRouter } from "expo-router";
@@ -26,6 +25,7 @@ import {
   LeagueDetailProvider,
   useLeagueDetailContext,
 } from "@/contexts/league-detail-context";
+import { settingsStyles } from "@/constants/settings-styles";
 
 const log = createScopedLog("League Settings");
 
@@ -125,13 +125,14 @@ function LeagueSettingsContent() {
   const sportLabel = selectedSport?.label ?? "None";
   const levelLabel = selectedLevel?.label ?? "Optional";
 
-  const hasChanges =
-    leagueName !== (league?.name ?? "") ||
-    selectedSport?.label?.toLowerCase() !== league?.sport?.toLowerCase() ||
-    selectedLevel?.id?.toLowerCase() !== league?.level?.toLowerCase() ||
-    region !== (league?.region ?? "") ||
-    location !== (league?.location ?? "") ||
-    isPublic !== (league?.privacy === "PUBLIC");
+  const hasChanges = league
+    ? leagueName !== (league.name ?? "") ||
+      selectedSport?.label?.toLowerCase() !== league.sport?.toLowerCase() ||
+      selectedLevel?.id?.toLowerCase() !== league.level?.toLowerCase() ||
+      region !== (league.region ?? "") ||
+      location !== (league.location ?? "") ||
+      isPublic !== (league.privacy === "PUBLIC")
+    : false;
 
   const pickerConfig = getLeaguePickerConfig(
     setSelectedSport,
@@ -177,6 +178,7 @@ function LeagueSettingsContent() {
     hasChanges,
     updateLeagueMutation.isPending,
     updateLeagueMutation,
+    league,
     leagueName,
     selectedSport,
     selectedLevel,
@@ -276,41 +278,3 @@ function LeagueSettingsContent() {
   );
 }
 
-const settingsStyles = StyleSheet.create({
-  container: {
-    width: "100%",
-    alignItems: "center",
-    paddingTop: 20,
-  },
-  errorText: {
-    color: "#fff",
-    fontSize: 16,
-  },
-  loadingOverlay: {
-    position: "absolute",
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    justifyContent: "center",
-    alignItems: "center",
-    backgroundColor: "rgba(0, 0, 0, 0.3)",
-    zIndex: 999,
-  },
-  deleteButton: {
-    marginTop: 16,
-    borderRadius: 999,
-    paddingVertical: 14,
-    alignItems: "center",
-    backgroundColor: "#dc2626",
-  },
-  deleteButtonDisabled: {
-    backgroundColor: "#ef5350",
-    opacity: 0.6,
-  },
-  deleteButtonText: {
-    color: "#fff",
-    fontSize: 16,
-    fontWeight: "600",
-  },
-});
