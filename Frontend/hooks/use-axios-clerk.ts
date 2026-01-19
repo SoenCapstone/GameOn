@@ -42,6 +42,7 @@ enum VERSIONING {
 enum SERVICE {
   USER = "user",
   TEAMS = "teams",
+  LEAGUES = "leagues",
   MESSAGING = "messaging",
 }
 
@@ -69,6 +70,11 @@ export const GO_TEAM_SERVICE_ROUTES = {
   TEAM_INVITES: (teamId: string) =>
     buildRoute(VERSIONING.v1, SERVICE.TEAMS, `invites/${teamId}`),
   USER_INVITES: buildRoute(VERSIONING.v1, SERVICE.TEAMS, "invites"),
+};
+
+export const GO_LEAGUE_SERVICE_ROUTES = {
+  ALL: buildRoute(VERSIONING.v1, SERVICE.LEAGUES),
+  CREATE: buildRoute(VERSIONING.v1, SERVICE.LEAGUES, "create"),
 };
 
 const messagingBase = buildRoute(VERSIONING.v1, SERVICE.MESSAGING);

@@ -1,5 +1,7 @@
 package com.game.on.go_league_service.league.controller;
 
+import com.game.on.common.dto.PaymentDTO;
+import com.game.on.go_league_service.kafka.PaymentProducer;
 import com.game.on.go_league_service.league.dto.*;
 import com.game.on.go_league_service.league.service.LeagueService;
 import jakarta.validation.Valid;
@@ -25,8 +27,8 @@ import java.util.UUID;
 public class LeagueController {
 
     private final LeagueService leagueService;
-
-
+    /* Temporary placement of the Kafka producer class */
+    private final PaymentProducer paymentProducer;
 
     @PostMapping("/create")
     public ResponseEntity<LeagueDetailResponse> createLeague(@Valid @RequestBody LeagueCreateRequest request) {
@@ -109,5 +111,11 @@ public class LeagueController {
                                                               @PathVariable UUID seasonId) {
         var response = leagueService.restoreSeason(leagueId, seasonId);
         return ResponseEntity.ok(response);
+    }
+
+    /* Test endpoint... TO DO: remove once Payment/ stripe is implemented */
+    @PostMapping("/payment-event")
+    public void producePaymentEvent(@RequestBody PaymentDTO paymentDTO) {
+        paymentProducer.sendEvent("go-payment", paymentDTO);
     }
 }

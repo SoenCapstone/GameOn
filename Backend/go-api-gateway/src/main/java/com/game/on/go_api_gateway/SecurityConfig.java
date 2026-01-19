@@ -2,6 +2,7 @@ package com.game.on.go_api_gateway;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.reactive.EnableWebFluxSecurity;
 import org.springframework.security.config.web.server.ServerHttpSecurity;
@@ -18,6 +19,10 @@ public class SecurityConfig {
                 .csrf(ServerHttpSecurity.CsrfSpec::disable)
                 .authorizeExchange(exchange -> exchange
                         .pathMatchers(AUTH_WHITELIST)
+                        .permitAll()
+                        .pathMatchers(HttpMethod.POST, "/api/v1/payments/webhook")
+                        .permitAll()
+                        .pathMatchers(HttpMethod.POST, "/payments/webhook")
                         .permitAll()
                         .anyExchange()
                         .authenticated()

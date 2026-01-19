@@ -31,40 +31,19 @@ const createLeagueHeader = () => (
 export default function LeaguesLayout() {
   return (
     <Stack>
-      {/* ✅ Main branch screen (keep) */}
+      {/* ✅ Main added route (keep) */}
       <Stack.Screen
         name="create-league"
         options={{
           headerTransparent: true,
           headerShadowVisible: false,
           headerTitle: createLeagueHeader,
-          headerBackVisible: false,
         }}
       />
 
       {/* ✅ Your league details screens (keep) */}
       <Stack.Screen
         name="[id]/index"
-        options={{
-          headerTransparent: true,
-          headerShadowVisible: false,
-          headerTitle: () => <LeagueHeader />,
-          headerBackVisible: false,
-        }}
-      />
-
-      <Stack.Screen
-        name="[id]/games"
-        options={{
-          headerTransparent: true,
-          headerShadowVisible: false,
-          headerTitle: () => <LeagueHeader />,
-          headerBackVisible: false,
-        }}
-      />
-
-      <Stack.Screen
-        name="[id]/teams"
         options={{
           headerTransparent: true,
           headerShadowVisible: false,
