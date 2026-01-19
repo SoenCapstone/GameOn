@@ -21,9 +21,28 @@ function LeagueHeader() {
   );
 }
 
+const createLeagueHeader = () => (
+  <Header
+    left={<HeaderButton type="back" />}
+    center={<PageTitle title="Create League" />}
+  />
+);
+
 export default function LeaguesLayout() {
   return (
     <Stack>
+      {/* ✅ Main branch screen (keep) */}
+      <Stack.Screen
+        name="create-league"
+        options={{
+          headerTransparent: true,
+          headerShadowVisible: false,
+          headerTitle: createLeagueHeader,
+          headerBackVisible: false,
+        }}
+      />
+
+      {/* ✅ Your league details screens (keep) */}
       <Stack.Screen
         name="[id]/index"
         options={{
@@ -31,7 +50,6 @@ export default function LeaguesLayout() {
           headerShadowVisible: false,
           headerTitle: () => <LeagueHeader />,
           headerBackVisible: false,
-
         }}
       />
 
@@ -42,7 +60,6 @@ export default function LeaguesLayout() {
           headerShadowVisible: false,
           headerTitle: () => <LeagueHeader />,
           headerBackVisible: false,
-
         }}
       />
 
@@ -53,7 +70,6 @@ export default function LeaguesLayout() {
           headerShadowVisible: false,
           headerTitle: () => <LeagueHeader />,
           headerBackVisible: false,
-
         }}
       />
     </Stack>
