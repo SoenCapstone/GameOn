@@ -168,21 +168,21 @@ export const styles = StyleSheet.create({
   flex: 1,
 },
 emptyWrap: {
-  flex: 1,
+  marginTop: 120,
   alignItems: "center",
-  justifyContent: "center",
-  paddingHorizontal: 24,
 },
+
 emptyTitle: {
   color: "white",
   fontSize: 22,
-  fontWeight: "800",
-  marginBottom: 6,
+  fontWeight: "700",
 },
-emptySub: {
+
+emptySubtitle: {
+  marginTop: 6,
   color: "rgba(255,255,255,0.7)",
   fontSize: 14,
-  fontWeight: "600",
 },
+
 
 });
