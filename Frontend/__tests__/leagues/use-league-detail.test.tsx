@@ -37,8 +37,8 @@ const mockedUseAuth = useAuth as jest.MockedFunction<typeof useAuth>;
 
 let queryClient: QueryClient;
 
-function createWrapper() {
-  queryClient = new QueryClient({
+function createQueryClient() {
+  return new QueryClient({
     defaultOptions: {
       queries: {
         retry: false,
@@ -46,6 +46,10 @@ function createWrapper() {
       },
     },
   });
+}
+
+function createWrapper() {
+  queryClient = createQueryClient();
 
   return function Wrapper({ children }: PropsWithChildren) {
     return (
@@ -395,12 +399,11 @@ describe("useLeagueDetail", () => {
       ownerUserId: "user-123",
     };
 
-    mockApi.get.mockImplementation(
-      () =>
-        new Promise((resolve) =>
-          setTimeout(() => resolve({ data: leagueData }), 100),
-        ),
-    );
+    const delayedResponse = new Promise((resolve) => {
+      setTimeout(() => resolve({ data: leagueData }), 100);
+    });
+    
+    mockApi.get.mockImplementation(() => delayedResponse);
 
     const { result } = renderHook(() => useLeagueDetail("league-1"), {
       wrapper: createWrapper(),
@@ -414,7 +417,6 @@ describe("useLeagueDetail", () => {
       result.current.onRefresh();
     });
 
-    // Should be refreshing immediately after calling onRefresh
     expect(result.current.refreshing).toBe(true);
 
     await waitFor(
@@ -471,14 +473,7 @@ describe("useLeagueDetail", () => {
 
   it("handles different league structures", async () => {
     await cleanup();
-    queryClient = new QueryClient({
-      defaultOptions: {
-        queries: {
-          retry: false,
-          gcTime: 0,
-        },
-      },
-    });
+    queryClient = createQueryClient();
     
     const leagueData = {
       id: "league-1",
@@ -506,14 +501,7 @@ describe("useLeagueDetail", () => {
 
   it("handles multiple sequential refreshes", async () => {
     await cleanup();
-    queryClient = new QueryClient({
-      defaultOptions: {
-        queries: {
-          retry: false,
-          gcTime: 0,
-        },
-      },
-    });
+    queryClient = createQueryClient();
     
     const leagueData = {
       id: "league-1",
