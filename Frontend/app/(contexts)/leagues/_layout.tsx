@@ -30,6 +30,8 @@ export default function LeaguesLayout() {
           headerTransparent: true,
           headerShadowVisible: false,
           headerTitle: () => <LeagueHeader />,
+          headerBackVisible: false,
+
         }}
       />
 
@@ -39,6 +41,8 @@ export default function LeaguesLayout() {
           headerTransparent: true,
           headerShadowVisible: false,
           headerTitle: () => <LeagueHeader />,
+          headerBackVisible: false,
+
         }}
       />
 
@@ -48,6 +52,8 @@ export default function LeaguesLayout() {
           headerTransparent: true,
           headerShadowVisible: false,
           headerTitle: () => <LeagueHeader />,
+          headerBackVisible: false,
+
         }}
       />
     </Stack>
