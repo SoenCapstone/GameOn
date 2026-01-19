@@ -4,7 +4,6 @@ import {
   ActivityIndicator,
   Pressable,
   Text,
-  StyleSheet,
   Alert,
 } from "react-native";
 import { useLocalSearchParams, useRouter } from "expo-router";
@@ -18,7 +17,7 @@ import { TeamNameField } from "@/components/teams/name-field";
 import { TeamDetailsCard } from "@/components/teams/details-card";
 import { TeamVisibilitySection } from "@/components/teams/visibility";
 import PickerModal from "@/components/ui/pickerModal";
-import { useUpdateTeam, useDeleteTeam } from "@/hooks/use-team-settings";
+import { useUpdateTeam, useDeleteTeam } from "@/hooks/use-team-league-settings";
 import { createScopedLog } from "@/utils/logger";
 import { errorToString } from "@/utils/error";
 import { useTeamForm } from "@/hooks/use-team-form";
@@ -27,6 +26,7 @@ import {
   TeamDetailProvider,
   useTeamDetailContext,
 } from "@/contexts/team-detail-context";
+import { settingsStyles } from "@/constants/settings-styles";
 
 const log = createScopedLog("Team Settings");
 
@@ -141,13 +141,14 @@ function TeamSettingsContent() {
   const scopeLabel = selectedScope.label;
   const cityLabel = selectedCity?.label ?? "City";
 
-  const hasChanges =
-    teamName !== (team?.name ?? "") ||
-    selectedSport?.label?.toLowerCase() !== team?.sport?.toLowerCase() ||
-    selectedScope?.id?.toLowerCase() !== team?.scope?.toLowerCase() ||
-    selectedCity?.label?.toLowerCase() !== team?.location?.toLowerCase() ||
-    logoUri !== (team?.logoUrl ?? "") ||
-    isPublic !== (team?.privacy === "PUBLIC");
+  const hasChanges = team
+    ? teamName !== (team.name ?? "") ||
+      selectedSport?.label?.toLowerCase() !== team.sport?.toLowerCase() ||
+      selectedScope?.id?.toLowerCase() !== team.scope?.toLowerCase() ||
+      selectedCity?.label?.toLowerCase() !== team.location?.toLowerCase() ||
+      logoUri !== (team.logoUrl ?? "") ||
+      isPublic !== (team.privacy === "PUBLIC")
+    : false;
 
   const pickerConfig = getPickerConfig(
     setSelectedSport,
@@ -194,6 +195,7 @@ function TeamSettingsContent() {
     hasChanges,
     updateTeamMutation.isPending,
     updateTeamMutation,
+    team,
     teamName,
     selectedSport,
     selectedCity,
@@ -260,42 +262,3 @@ function TeamSettingsContent() {
     </ContentArea>
   );
 }
-
-const settingsStyles = StyleSheet.create({
-  container: {
-    width: "100%",
-    alignItems: "center",
-    paddingTop: 20,
-  },
-  errorText: {
-    color: "#fff",
-    fontSize: 16,
-  },
-  loadingOverlay: {
-    position: "absolute",
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    justifyContent: "center",
-    alignItems: "center",
-    backgroundColor: "rgba(0, 0, 0, 0.3)",
-    zIndex: 999,
-  },
-  deleteButton: {
-    marginTop: 16,
-    borderRadius: 999,
-    paddingVertical: 14,
-    alignItems: "center",
-    backgroundColor: "#dc2626",
-  },
-  deleteButtonDisabled: {
-    backgroundColor: "#ef5350",
-    opacity: 0.6,
-  },
-  deleteButtonText: {
-    color: "#fff",
-    fontSize: 16,
-    fontWeight: "600",
-  },
-});

@@ -1,0 +1,540 @@
+import {
+  renderHook,
+  waitFor,
+  cleanup,
+  act,
+} from "@testing-library/react-native";
+import { PropsWithChildren } from "react";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { useLeagueDetail } from "@/hooks/use-league-detail";
+import { useAxiosWithClerk } from "@/hooks/use-axios-clerk";
+import { useAuth } from "@clerk/clerk-expo";
+
+jest.mock("@/hooks/use-axios-clerk", () => ({
+  useAxiosWithClerk: jest.fn(),
+  GO_LEAGUE_SERVICE_ROUTES: {
+    ALL: "/api/leagues",
+  },
+}));
+
+jest.mock("@clerk/clerk-expo", () => ({
+  useAuth: jest.fn(),
+}));
+
+jest.mock("@/utils/logger", () => ({
+  createScopedLog: jest.fn(() => ({
+    error: jest.fn(),
+    info: jest.fn(),
+    warn: jest.fn(),
+    debug: jest.fn(),
+  })),
+}));
+
+const mockedUseAxiosWithClerk = useAxiosWithClerk as jest.MockedFunction<
+  typeof useAxiosWithClerk
+>;
+const mockedUseAuth = useAuth as jest.MockedFunction<typeof useAuth>;
+
+let queryClient: QueryClient;
+
+function createQueryClient() {
+  return new QueryClient({
+    defaultOptions: {
+      queries: {
+        retry: false,
+        gcTime: 0,
+      },
+    },
+  });
+}
+
+function createWrapper() {
+  queryClient = createQueryClient();
+
+  return function Wrapper({ children }: PropsWithChildren) {
+    return (
+      <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
+    );
+  };
+}
+
+describe("useLeagueDetail", () => {
+  const mockApi = {
+    get: jest.fn(),
+    post: jest.fn(),
+    put: jest.fn(),
+    delete: jest.fn(),
+  };
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+    mockedUseAxiosWithClerk.mockReturnValue(mockApi as any);
+    mockedUseAuth.mockReturnValue({
+      userId: "user-123",
+    } as any);
+  });
+
+  afterEach(async () => {
+    cleanup();
+    if (queryClient) {
+      queryClient.clear();
+    }
+  });
+
+  it("returns initial loading state", async () => {
+    mockApi.get.mockResolvedValue({
+      data: { id: "league-1", name: "Test League", ownerUserId: "user-123" },
+    });
+
+    const { result } = renderHook(() => useLeagueDetail("league-1"), {
+      wrapper: createWrapper(),
+    });
+
+    expect(result.current.refreshing).toBe(false);
+
+    await waitFor(() => {
+      expect(result.current.league).toBeTruthy();
+    });
+  });
+
+  it("fetches league data successfully", async () => {
+    const leagueData = {
+      id: "league-1",
+      name: "Test League",
+      ownerUserId: "user-123",
+      region: "North America",
+      level: "intermediate",
+    };
+
+    mockApi.get.mockResolvedValue({ data: leagueData });
+
+    const { result } = renderHook(() => useLeagueDetail("league-1"), {
+      wrapper: createWrapper(),
+    });
+
+    await waitFor(() => {
+      expect(result.current.isLoading).toBe(false);
+    });
+
+    await waitFor(() => {
+      expect(mockApi.get).toHaveBeenCalled();
+    });
+
+    await waitFor(() => {
+      expect(result.current.league).toBeTruthy();
+    });
+
+    if (result.current.league) {
+      expect(result.current.league.name).toBe("Test League");
+      expect(result.current.title).toBe("Test League");
+      expect(result.current.isOwner).toBe(true);
+    }
+  });
+
+  it("determines isOwner correctly when user is owner", async () => {
+    const leagueData = {
+      id: "league-1",
+      name: "Test League",
+      ownerUserId: "user-123",
+    };
+
+    mockApi.get.mockResolvedValue({ data: leagueData });
+
+    const { result } = renderHook(() => useLeagueDetail("league-1"), {
+      wrapper: createWrapper(),
+    });
+
+    await waitFor(() => {
+      expect(result.current.isLoading).toBe(false);
+    });
+
+    await waitFor(() => {
+      expect(result.current.league).toBeTruthy();
+    });
+
+    expect(result.current.isOwner).toBe(true);
+  });
+
+  it("determines isOwner correctly when user is not owner", async () => {
+    const leagueData = {
+      id: "league-1",
+      name: "Test League",
+      ownerUserId: "user-456",
+    };
+
+    mockApi.get.mockResolvedValue({ data: leagueData });
+
+    const { result } = renderHook(() => useLeagueDetail("league-1"), {
+      wrapper: createWrapper(),
+    });
+
+    await waitFor(() => {
+      expect(result.current.isLoading).toBe(false);
+    });
+
+    expect(result.current.isOwner).toBe(false);
+  });
+
+  it("handles missing league name gracefully", async () => {
+    const leagueData = {
+      id: "league-1",
+      ownerUserId: "user-123",
+    };
+
+    mockApi.get.mockResolvedValue({ data: leagueData });
+
+    const { result } = renderHook(() => useLeagueDetail("league-1"), {
+      wrapper: createWrapper(),
+    });
+
+    await waitFor(() => {
+      expect(result.current.isLoading).toBe(false);
+    });
+
+    expect(result.current.title).toBe("League league-1");
+  });
+
+  it("handles empty league ID", async () => {
+    const { result } = renderHook(() => useLeagueDetail(""), {
+      wrapper: createWrapper(),
+    });
+
+    await waitFor(() => {
+      expect(result.current.isLoading).toBe(false);
+    });
+
+    expect(result.current.title).toBe("League");
+    expect(mockApi.get).not.toHaveBeenCalled();
+  });
+
+  it("calls handleFollow with correct parameters", async () => {
+    mockApi.get.mockResolvedValue({
+      data: { id: "league-1", name: "Test League", ownerUserId: "user-123" },
+    });
+
+    const { result } = renderHook(() => useLeagueDetail("league-1"), {
+      wrapper: createWrapper(),
+    });
+
+    await waitFor(() => {
+      expect(result.current.isLoading).toBe(false);
+    });
+
+    result.current.handleFollow();
+    expect(result.current.handleFollow).toBeDefined();
+  });
+
+  it("refreshes data when onRefresh is called", async () => {
+    const leagueData = {
+      id: "league-1",
+      name: "Test League",
+      ownerUserId: "user-123",
+    };
+
+    mockApi.get.mockResolvedValue({ data: leagueData });
+
+    const { result } = renderHook(() => useLeagueDetail("league-1"), {
+      wrapper: createWrapper(),
+    });
+
+    await waitFor(() => {
+      expect(result.current.isLoading).toBe(false);
+    });
+
+    expect(result.current.refreshing).toBe(false);
+
+    await act(async () => {
+      await result.current.onRefresh();
+    });
+
+    await waitFor(() => {
+      expect(result.current.refreshing).toBe(false);
+    });
+
+    expect(mockApi.get).toHaveBeenCalled();
+  });
+
+  it("handles API errors gracefully", async () => {
+    mockApi.get.mockRejectedValue(new Error("Network error"));
+
+    const consoleSpy = jest.spyOn(console, "log").mockImplementation();
+
+    const { result } = renderHook(() => useLeagueDetail("league-1"), {
+      wrapper: createWrapper(),
+    });
+
+    await waitFor(() => {
+      expect(result.current.isLoading).toBe(false);
+    });
+
+    expect(result.current.league).toBeFalsy();
+
+    consoleSpy.mockRestore();
+  });
+
+  it("handles refresh errors gracefully", async () => {
+    mockApi.get
+      .mockResolvedValueOnce({
+        data: { id: "league-1", name: "Test League", ownerUserId: "user-123" },
+      })
+      .mockRejectedValueOnce(new Error("Refresh failed"));
+
+    const consoleSpy = jest.spyOn(console, "log").mockImplementation();
+
+    const { result } = renderHook(() => useLeagueDetail("league-1"), {
+      wrapper: createWrapper(),
+    });
+
+    await waitFor(() => {
+      expect(result.current.isLoading).toBe(false);
+    });
+
+    await act(async () => {
+      await result.current.onRefresh();
+    });
+
+    await waitFor(() => {
+      expect(result.current.refreshing).toBe(false);
+    });
+
+    consoleSpy.mockRestore();
+  });
+
+  it("isOwner is false when userId is null", async () => {
+    mockedUseAuth.mockReturnValue({
+      userId: null,
+    } as any);
+
+    const leagueData = {
+      id: "league-1",
+      name: "Test League",
+      ownerUserId: "user-123",
+    };
+
+    mockApi.get.mockResolvedValue({ data: leagueData });
+
+    const { result } = renderHook(() => useLeagueDetail("league-1"), {
+      wrapper: createWrapper(),
+    });
+
+    await waitFor(() => {
+      expect(result.current.isLoading).toBe(false);
+    });
+
+    expect(result.current.isOwner).toBe(false);
+  });
+
+  it("isOwner is false when league is null", async () => {
+    mockApi.get.mockResolvedValue({ data: null });
+
+    const { result } = renderHook(() => useLeagueDetail("league-1"), {
+      wrapper: createWrapper(),
+    });
+
+    await waitFor(() => {
+      expect(result.current.isLoading).toBe(false);
+    });
+
+    expect(result.current.isOwner).toBe(false);
+  });
+
+  it("maintains stable handleFollow callback", async () => {
+    mockApi.get.mockResolvedValue({
+      data: { id: "league-1", name: "Test League", ownerUserId: "user-123" },
+    });
+
+    const { result, rerender } = renderHook(() => useLeagueDetail("league-1"), {
+      wrapper: createWrapper(),
+    });
+
+    await waitFor(() => {
+      expect(result.current.isLoading).toBe(false);
+    });
+
+    const handleFollow1 = result.current.handleFollow;
+    rerender(() => useLeagueDetail("league-1"));
+    const handleFollow2 = result.current.handleFollow;
+
+    expect(handleFollow1).toBe(handleFollow2);
+  });
+
+  it("maintains stable onRefresh callback", async () => {
+    mockApi.get.mockResolvedValue({
+      data: { id: "league-1", name: "Test League", ownerUserId: "user-123" },
+    });
+
+    const { result, rerender } = renderHook(() => useLeagueDetail("league-1"), {
+      wrapper: createWrapper(),
+    });
+
+    await waitFor(() => {
+      expect(result.current.isLoading).toBe(false);
+    });
+
+    const onRefresh1 = result.current.onRefresh;
+    rerender(() => useLeagueDetail("league-1"));
+    const onRefresh2 = result.current.onRefresh;
+
+    expect(onRefresh1).toBe(onRefresh2);
+  });
+
+  it("calls correct API endpoint", async () => {
+    mockApi.get.mockResolvedValue({
+      data: { id: "league-1", name: "Test League", ownerUserId: "user-123" },
+    });
+
+    renderHook(() => useLeagueDetail("league-1"), {
+      wrapper: createWrapper(),
+    });
+
+    await waitFor(() => {
+      expect(mockApi.get).toHaveBeenCalledWith("/api/leagues/league-1");
+    });
+  });
+
+  it("sets refreshing state correctly during refresh", async () => {
+    const leagueData = {
+      id: "league-1",
+      name: "Test League",
+      ownerUserId: "user-123",
+    };
+
+    const delayedResponse = new Promise((resolve) => {
+      setTimeout(() => resolve({ data: leagueData }), 100);
+    });
+    
+    mockApi.get.mockImplementation(() => delayedResponse);
+
+    const { result } = renderHook(() => useLeagueDetail("league-1"), {
+      wrapper: createWrapper(),
+    });
+
+    await waitFor(() => {
+      expect(result.current.isLoading).toBe(false);
+    });
+
+    act(() => {
+      result.current.onRefresh();
+    });
+
+    expect(result.current.refreshing).toBe(true);
+
+    await waitFor(
+      () => {
+        expect(result.current.refreshing).toBe(false);
+      },
+      { timeout: 3000 },
+    );
+  });
+
+  it("does not fetch when ID is disabled", async () => {
+    const { result } = renderHook(() => useLeagueDetail(""), {
+      wrapper: createWrapper(),
+    });
+
+    await waitFor(() => {
+      expect(result.current.isLoading).toBe(false);
+    });
+
+    expect(mockApi.get).not.toHaveBeenCalled();
+  });
+
+  it("returns correct title when no ID provided", async () => {
+    const { result } = renderHook(() => useLeagueDetail(""), {
+      wrapper: createWrapper(),
+    });
+
+    expect(result.current.title).toBe("League");
+  });
+
+  it("returns correct title when ID provided but no data", async () => {
+    mockApi.get.mockImplementation(() => new Promise(() => {})); // Never resolves
+
+    const { result } = renderHook(() => useLeagueDetail("league-2"), {
+      wrapper: createWrapper(),
+    });
+
+    expect(result.current.title).toBe("League league-2");
+  });
+
+  it("returns correct title when data is loaded", async () => {
+    mockApi.get.mockResolvedValue({
+      data: { id: "league-3", name: "My League", ownerUserId: "user-123" },
+    });
+
+    const { result } = renderHook(() => useLeagueDetail("league-3"), {
+      wrapper: createWrapper(),
+    });
+
+    await waitFor(() => {
+      expect(result.current.title).toBe("My League");
+    });
+  });
+
+  it("handles different league structures", async () => {
+    await cleanup();
+    queryClient = createQueryClient();
+    
+    const leagueData = {
+      id: "league-1",
+      name: "Complex League",
+      ownerUserId: "user-123",
+      region: "Europe",
+      location: "London",
+      level: "advanced",
+      privacy: "PRIVATE" as const,
+      description: "A complex league",
+    };
+
+    mockApi.get.mockResolvedValue({ data: leagueData });
+
+    const { result } = renderHook(() => useLeagueDetail("league-1"), {
+      wrapper: createWrapper(),
+    });
+
+    await waitFor(() => {
+      expect(result.current.league).toBeTruthy();
+    });
+
+    expect(result.current.league).toEqual(leagueData);
+  });
+
+  it("handles multiple sequential refreshes", async () => {
+    await cleanup();
+    queryClient = createQueryClient();
+    
+    const leagueData = {
+      id: "league-1",
+      name: "Test League",
+      ownerUserId: "user-123",
+    };
+
+    mockApi.get.mockResolvedValue({ data: leagueData });
+
+    const { result } = renderHook(() => useLeagueDetail("league-1"), {
+      wrapper: createWrapper(),
+    });
+
+    await waitFor(() => {
+      expect(result.current.isLoading).toBe(false);
+    });
+
+    await act(async () => {
+      await result.current.onRefresh();
+    });
+
+    await act(async () => {
+      await result.current.onRefresh();
+    });
+
+    await act(async () => {
+      await result.current.onRefresh();
+    });
+
+    await waitFor(() => {
+      expect(result.current.refreshing).toBe(false);
+    });
+
+    expect(mockApi.get).toHaveBeenCalled();
+  });
+});

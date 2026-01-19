@@ -47,7 +47,7 @@ export function TeamDetailHeader({
   );
 }
 
-const styles = StyleSheet.create({
+export const styles = StyleSheet.create({
   ownerActions: {
     flexDirection: "row",
     gap: 8,

@@ -7,7 +7,7 @@ import { Card } from "@/components/ui/card";
 import { createTeamStyles } from "@/components/teams/teams-styles";
 import { useSearch } from "@/contexts/search-context";
 import { useMockTeamBoard } from "@/components/teams/use-mock-team-board";
-import { useTeamHeader } from "@/hooks/use-team-header";
+import { useTeamHeader } from "@/hooks/use-team-league-header";
 import {
   TeamDetailProvider,
   useTeamDetailContext,
