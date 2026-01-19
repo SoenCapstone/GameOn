@@ -22,36 +22,12 @@ import { LeagueNameField } from "@/components/leagues/league-name-field";
 import { LeagueDetailsCard } from "@/components/leagues/league-details-card";
 import { LeagueVisibilitySection } from "@/components/leagues/league-visibility";
 import { useUpdateLeague, useDeleteLeague } from "@/hooks/use-team-league-settings";
+import {
+  LeagueDetailProvider,
+  useLeagueDetailContext,
+} from "@/contexts/league-detail-context";
 
 const log = createScopedLog("League Settings");
-
-interface LeagueDetailContextValue {
-  id: string;
-  league: {
-    id: string;
-    name: string;
-    sport: string;
-    level: string;
-    region: string;
-    location: string;
-    privacy: "PUBLIC" | "PRIVATE";
-  } | null;
-  isLoading: boolean;
-  isOwner: boolean;
-}
-
-// Placeholder for useLeagueDetailContext - adjust import as needed
-const useLeagueDetailContext = (): LeagueDetailContextValue => {
-  const params = useLocalSearchParams<{ id?: string }>();
-  const id = params.id ?? "";
-  // TODO: Implement actual league detail context
-  return {
-    id,
-    league: null,
-    isLoading: false,
-    isOwner: false,
-  };
-};
 
 function SettingsHeader({
   onSave,
@@ -93,14 +69,16 @@ export default function LeagueSettingsScreen() {
   const id = params.id ?? "";
 
   return (
-    <LeagueSettingsContent id={id} />
+    <LeagueDetailProvider id={id}>
+      <LeagueSettingsContent />
+    </LeagueDetailProvider>
   );
 }
 
-function LeagueSettingsContent({ id }: { id: string }) {
+function LeagueSettingsContent() {
   const navigation = useNavigation();
   const router = useRouter();
-  const { league, isLoading: leagueLoading, isOwner } = useLeagueDetailContext();
+  const { id, league, isLoading: leagueLoading, isOwner } = useLeagueDetailContext();
 
   const {
     leagueName,
