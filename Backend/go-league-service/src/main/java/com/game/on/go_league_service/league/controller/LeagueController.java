@@ -77,6 +77,12 @@ public class LeagueController {
         return ResponseEntity.ok(response);
     }
 
+    @GetMapping("/{leagueId}/teams")
+    public ResponseEntity<List<LeagueTeamResponse>> listLeagueTeams(@PathVariable UUID leagueId) {
+        var response = leagueService.listLeagueTeams(leagueId);
+        return ResponseEntity.ok(response);
+    }
+
     @PostMapping("/{leagueId}/seasons")
     public ResponseEntity<LeagueSeasonResponse> createSeason(@PathVariable UUID leagueId,
                                                              @Valid @RequestBody LeagueSeasonCreateRequest request) {
