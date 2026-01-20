@@ -50,28 +50,38 @@ export default function Home() {
     enabled: Boolean(userId),
   });
 
+  const handleInviteResponseError = useCallback((err: unknown) => {
+    Alert.alert("Action failed", errorToString(err));
+  }, []);
+
+  const handleInviteResponseSuccess = useCallback(
+    (invalidateKeys: string[][], acceptedMessage: string) =>
+      (_data: unknown, variables: { invitationId: string; isAccepted: boolean }) => {
+        queryClient.setQueryData<InviteCard[]>(
+          ["user-updates", userId],
+          (previous) =>
+            previous?.filter((invite) => invite.id !== variables.invitationId) ?? [],
+        );
+        invalidateKeys.forEach((key) =>
+          queryClient.invalidateQueries({ queryKey: key }),
+        );
+        Alert.alert(
+          variables.isAccepted ? "Invite accepted" : "Invite declined",
+          variables.isAccepted ? acceptedMessage : "The invitation was declined.",
+        );
+      },
+    [queryClient, userId],
+  );
+
   const respondMutation = useMutation({
     mutationFn: async (payload: { invitationId: string; isAccepted: boolean }) => {
       await api.post(GO_INVITE_ROUTES.RESPOND, payload);
     },
-    onSuccess: (_data, variables) => {
-      queryClient.setQueryData<InviteCard[]>(
-        ["user-updates", userId],
-        (previous) =>
-          previous?.filter((invite) => invite.id !== variables.invitationId) ?? [],
-      );
-      queryClient.invalidateQueries({ queryKey: ["teams"] });
-      queryClient.invalidateQueries({ queryKey: ["team-members"] });
-      Alert.alert(
-        variables.isAccepted ? "Invite accepted" : "Invite declined",
-        variables.isAccepted
-          ? "You have joined the team."
-          : "The invitation was declined.",
-      );
-    },
-    onError: (err) => {
-      Alert.alert("Action failed", errorToString(err));
-    },
+    onSuccess: handleInviteResponseSuccess(
+      [["teams"], ["team-members"]],
+      "You have joined the team.",
+    ),
+    onError: handleInviteResponseError,
   });
 
   const respondLeagueInviteMutation = useMutation({
@@ -81,24 +91,11 @@ export default function Home() {
         : GO_LEAGUE_INVITE_ROUTES.DECLINE(payload.invitationId);
       await api.post(endpoint);
     },
-    onSuccess: (_data, variables) => {
-      queryClient.setQueryData<InviteCard[]>(
-        ["user-updates", userId],
-        (previous) =>
-          previous?.filter((invite) => invite.id !== variables.invitationId) ?? [],
-      );
-      queryClient.invalidateQueries({ queryKey: ["leagues"] });
-      queryClient.invalidateQueries({ queryKey: ["league-teams"] });
-      Alert.alert(
-        variables.isAccepted ? "Invite accepted" : "Invite declined",
-        variables.isAccepted
-          ? "The team has joined the league."
-          : "The invitation was declined.",
-      );
-    },
-    onError: (err) => {
-      Alert.alert("Action failed", errorToString(err));
-    },
+    onSuccess: handleInviteResponseSuccess(
+      [["leagues"], ["league-teams"]],
+      "The team has joined the league.",
+    ),
+    onError: handleInviteResponseError,
   });
 
   const handleAccept = useCallback(

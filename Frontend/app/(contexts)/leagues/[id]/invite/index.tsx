@@ -1,12 +1,5 @@
 import React, { useLayoutEffect, useMemo, useState } from "react";
-import {
-  ActivityIndicator,
-  Alert,
-  Pressable,
-  StyleSheet,
-  Text,
-  View,
-} from "react-native";
+import { Alert, Pressable, Text, View } from "react-native";
 import { useLocalSearchParams } from "expo-router";
 import { useNavigation } from "@react-navigation/native";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
@@ -16,6 +9,10 @@ import { HeaderButton } from "@/components/header/header-button";
 import { PageTitle } from "@/components/header/page-title";
 import { Card } from "@/components/ui/card";
 import { MemberRow } from "@/components/teams/member-row";
+import {
+  InviteSection,
+  inviteSectionStyles as styles,
+} from "@/components/invites/invite-section";
 import { useLeagueDetail } from "@/hooks/use-league-detail";
 import {
   GO_LEAGUE_SERVICE_ROUTES,
@@ -144,76 +141,36 @@ export default function InviteTeamsScreen() {
       backgroundProps={{ preset: "purple" }}
       paddingBottom={24}
     >
-      <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Available Teams</Text>
-
-        {isBusy && <ActivityIndicator size="small" color="#fff" />}
-
-        {!isBusy && availableTeams.length === 0 ? (
-          <Text style={styles.emptyText}>No teams available to invite.</Text>
-        ) : (
-          <View style={styles.memberList}>
-            {availableTeams.map((team) => {
-              const detailLine = team.sport || team.location || "Team";
-              return (
-                <Card key={team.id}>
-                  <MemberRow
-                    name={team.name}
-                    email={detailLine}
-                    right={
-                      <Pressable
-                        style={[
-                          styles.inviteButton,
-                          inviteTeamMutation.isPending && styles.inviteButtonDisabled,
-                        ]}
-                        onPress={() => inviteTeamMutation.mutate(team.id)}
-                        disabled={inviteTeamMutation.isPending}
-                      >
-                        <Text style={styles.inviteButtonText}>Invite</Text>
-                      </Pressable>
-                    }
-                  />
-                </Card>
-              );
-            })}
-          </View>
-        )}
-      </View>
+      <InviteSection
+        title="Available Teams"
+        isBusy={isBusy}
+        emptyText="No teams available to invite."
+        hasItems={availableTeams.length > 0}
+      >
+        {availableTeams.map((team) => {
+          const detailLine = team.sport || team.location || "Team";
+          return (
+            <Card key={team.id}>
+              <MemberRow
+                name={team.name}
+                email={detailLine}
+                right={
+                  <Pressable
+                    style={[
+                      styles.inviteButton,
+                      inviteTeamMutation.isPending && styles.inviteButtonDisabled,
+                    ]}
+                    onPress={() => inviteTeamMutation.mutate(team.id)}
+                    disabled={inviteTeamMutation.isPending}
+                  >
+                    <Text style={styles.inviteButtonText}>Invite</Text>
+                  </Pressable>
+                }
+              />
+            </Card>
+          );
+        })}
+      </InviteSection>
     </ContentArea>
   );
 }
-
-const styles = StyleSheet.create({
-  section: {
-    width: "100%",
-    gap: 16,
-    paddingTop: 12,
-  },
-  sectionTitle: {
-    color: "#ffffff",
-    fontSize: 16,
-    fontWeight: "600",
-    marginLeft: 6,
-  },
-  memberList: {
-    gap: 14,
-  },
-  inviteButton: {
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 999,
-    backgroundColor: "rgba(0,82,255,0.35)",
-  },
-  inviteButtonDisabled: {
-    opacity: 0.6,
-  },
-  inviteButtonText: {
-    color: "#bcd4ff",
-    fontSize: 11,
-    fontWeight: "600",
-  },
-  emptyText: {
-    color: "rgba(255,255,255,0.7)",
-    fontSize: 13,
-  },
-});
