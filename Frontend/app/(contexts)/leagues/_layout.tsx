@@ -6,7 +6,11 @@ export default function LeaguesLayout() {
   const screens = useContextStackScreens({
     create: { name: "create-league", title: "Create League" },
     indexName: "[id]/index",
-    extraScreens: ["[id]/settings/index"],
+    extraScreens: [
+      "[id]/settings/index",
+      "[id]/manage/index",
+      "[id]/invite/index",
+    ],
   });
 
   return <Stack>{screens}</Stack>;

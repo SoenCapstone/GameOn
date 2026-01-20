@@ -83,6 +83,13 @@ public class LeagueController {
         return ResponseEntity.ok(response);
     }
 
+    @DeleteMapping("/{leagueId}/teams/{teamId}")
+    public ResponseEntity<Void> removeTeamFromLeague(@PathVariable UUID leagueId,
+                                                     @PathVariable UUID teamId) {
+        leagueService.removeTeamFromLeague(leagueId, teamId);
+        return ResponseEntity.noContent().build();
+    }
+
     @PostMapping("/{leagueId}/seasons")
     public ResponseEntity<LeagueSeasonResponse> createSeason(@PathVariable UUID leagueId,
                                                              @Valid @RequestBody LeagueSeasonCreateRequest request) {
