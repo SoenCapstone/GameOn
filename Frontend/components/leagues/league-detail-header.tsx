@@ -3,7 +3,7 @@ import { View } from "react-native";
 import { Header } from "@/components/header/header";
 import { HeaderButton } from "@/components/header/header-button";
 import { PageTitle } from "@/components/header/page-title";
-import { styles } from "@/components/teams/team-detail-header"
+import { styles } from "@/components/teams/team-detail-header";
 
 interface LeagueDetailHeaderProps {
   readonly title: string;
@@ -28,7 +28,14 @@ export function LeagueDetailHeader({
             <View style={styles.ownerActionButton}>
               <HeaderButton
                 type="custom"
-                route={`../leagues/${id}/settings`}
+                route={`/leagues/${id}/manage`}
+                icon="person.2.fill"
+              />
+            </View>
+            <View style={styles.ownerActionButton}>
+              <HeaderButton
+                type="custom"
+                route={`/leagues/${id}/settings`}
                 icon="gear"
               />
             </View>

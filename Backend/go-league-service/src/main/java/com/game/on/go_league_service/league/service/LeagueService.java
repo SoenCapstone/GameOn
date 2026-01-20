@@ -1,5 +1,7 @@
 package com.game.on.go_league_service.league.service;
 
+import com.game.on.go_league_service.client.TeamClient;
+import com.game.on.go_league_service.client.dto.TeamListItem;
 import com.game.on.go_league_service.config.CurrentUserProvider;
 import com.game.on.go_league_service.exception.BadRequestException;
 import com.game.on.go_league_service.exception.ForbiddenException;
@@ -31,6 +33,7 @@ import java.time.OffsetDateTime;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
@@ -47,6 +50,7 @@ public class LeagueService {
     private final LeagueMapper leagueMapper;
     private final LeagueTeamRepository leagueTeamRepository;
     private final LeagueTeamMapper leagueTeamMapper;
+    private final TeamClient teamClient;
     private final CurrentUserProvider userProvider;
     private final LeagueMetricsPublisher metricsPublisher;
 
@@ -148,7 +152,12 @@ public class LeagueService {
         spec = and(spec, search(trimToNull(criteria.query())));
 
         if (criteria.onlyMine()) {
-            spec = and(spec, ownerIs(userId));
+            var teamIds = fetchTeamIdsForUser();
+            var leagueIds = teamIds.isEmpty()
+                    ? List.<UUID>of()
+                    : leagueTeamRepository.findLeagueIdsByTeamIdIn(teamIds);
+            var mineSpec = ownerIs(userId).or(idIn(leagueIds));
+            spec = and(spec, mineSpec);
         } else {
             spec = and(spec, visibleTo(userId));
         }
@@ -195,6 +204,18 @@ public class LeagueService {
         return leagueTeamRepository.findByLeague_IdOrderByCreatedAtDesc(leagueId).stream()
                 .map(leagueTeamMapper::toResponse)
                 .toList();
+    }
+
+    @Transactional
+    public void removeTeamFromLeague(UUID leagueId, UUID teamId) {
+        String userId = userProvider.clerkUserId();
+        var league = requireActiveLeague(leagueId);
+        ensureOwner(league, userId);
+
+        var leagueTeam = leagueTeamRepository.findByLeague_IdAndTeamId(leagueId, teamId)
+                .orElseThrow(() -> new NotFoundException("Team is not part of this league"));
+        leagueTeamRepository.delete(leagueTeam);
+        log.info("league_team_removed leagueId={} teamId={} byUser={}", leagueId, teamId, userId);
     }
 
     @Transactional
@@ -413,6 +434,22 @@ public class LeagueService {
         
         if (!overlappingSeasons.isEmpty()) {
             throw new BadRequestException("This season overlaps with an existing season");
+        }
+    }
+
+    private List<UUID> fetchTeamIdsForUser() {
+        try {
+            var response = teamClient.listTeams(true);
+            if (response == null || response.items() == null) {
+                return List.of();
+            }
+            return response.items().stream()
+                    .map(TeamListItem::id)
+                    .filter(Objects::nonNull)
+                    .toList();
+        } catch (Exception ex) {
+            log.error("Failed to fetch user teams from team service", ex);
+            return List.of();
         }
     }
 }

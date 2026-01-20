@@ -10,18 +10,26 @@ import { useAuth } from "@clerk/clerk-expo";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   GO_INVITE_ROUTES,
+  GO_LEAGUE_INVITE_ROUTES,
   GO_TEAM_SERVICE_ROUTES,
   GO_USER_SERVICE_ROUTES,
   useAxiosWithClerk,
 } from "@/hooks/use-axios-clerk";
 import { errorToString } from "@/utils/error";
+import {
+  fetchLeagueInvitesWithDetails,
+  LeagueInviteCard,
+} from "@/components/leagues/league-invite-utils";
 
-type Invite = {
+type TeamInviteCard = {
+  kind: "team";
   id: string;
   teamName: string;
   inviterName?: string;
   teamId: string;
 };
+
+type InviteCard = TeamInviteCard | LeagueInviteCard;
 
 type TeamInviteResponse = {
   id: string;
@@ -36,28 +44,60 @@ export default function Home() {
   const queryClient = useQueryClient();
   const { userId } = useAuth();
 
-  const { data: invites = [], isFetching, refetch } = useQuery<Invite[]>({
-    queryKey: ["user-invites", userId],
-    queryFn: async () => fetchInvitesWithDetails(api),
+  const { data: invites = [], isFetching, refetch } = useQuery<InviteCard[]>({
+    queryKey: ["user-updates", userId],
+    queryFn: async () => fetchUpdatesWithDetails(api),
     enabled: Boolean(userId),
   });
+
+  const handleInviteResponseError = useCallback((err: unknown) => {
+    Alert.alert("Action failed", errorToString(err));
+  }, []);
+
+  const handleInviteResponseSuccess = useCallback(
+    (invalidateKeys: string[][], acceptedMessage: string) =>
+      (_data: unknown, variables: { invitationId: string; isAccepted: boolean }) => {
+        const cacheKey = ["user-updates", userId];
+        const currentInvites =
+          queryClient.getQueryData<InviteCard[]>(cacheKey) ?? [];
+        queryClient.setQueryData<InviteCard[]>(
+          cacheKey,
+          currentInvites.filter((invite) => invite.id !== variables.invitationId),
+        );
+        for (const key of invalidateKeys) {
+          queryClient.invalidateQueries({ queryKey: key });
+        }
+        Alert.alert(
+          variables.isAccepted ? "Invite accepted" : "Invite declined",
+          variables.isAccepted ? acceptedMessage : "The invitation was declined.",
+        );
+      },
+    [queryClient, userId],
+  );
 
   const respondMutation = useMutation({
     mutationFn: async (payload: { invitationId: string; isAccepted: boolean }) => {
       await api.post(GO_INVITE_ROUTES.RESPOND, payload);
     },
-    onSuccess: (_data, variables) => {
-      queryClient.setQueryData<Invite[]>(
-        ["user-invites", userId],
-        (previous) =>
-          previous?.filter((invite) => invite.id !== variables.invitationId) ?? [],
-      );
-      queryClient.invalidateQueries({ queryKey: ["teams"] });
-      queryClient.invalidateQueries({ queryKey: ["team-members"] });
+    onSuccess: handleInviteResponseSuccess(
+      [["teams"], ["team-members"]],
+      "You have joined the team.",
+    ),
+    onError: handleInviteResponseError,
+  });
+
+  const respondLeagueInviteMutation = useMutation({
+    mutationFn: async (payload: { invitationId: string; isAccepted: boolean }) => {
+      const endpoint = payload.isAccepted
+        ? GO_LEAGUE_INVITE_ROUTES.ACCEPT(payload.invitationId)
+        : GO_LEAGUE_INVITE_ROUTES.DECLINE(payload.invitationId);
+      await api.post(endpoint);
     },
-    onError: (err) => {
-      Alert.alert("Action failed", errorToString(err));
-    },
+    onSuccess: handleInviteResponseSuccess(
+      [["leagues"], ["league-teams"]],
+      "The team has joined the league.",
+    ),
+    onError: handleInviteResponseError,
   });
 
   const handleAccept = useCallback(
@@ -72,6 +112,20 @@ export default function Home() {
       respondMutation.mutate({ invitationId: inviteId, isAccepted: false });
     },
     [respondMutation],
+  );
+
+  const handleAcceptLeague = useCallback(
+    (inviteId: string) => {
+      respondLeagueInviteMutation.mutate({ invitationId: inviteId, isAccepted: true });
+    },
+    [respondLeagueInviteMutation],
+  );
+
+  const handleDenyLeague = useCallback(
+    (inviteId: string) => {
+      respondLeagueInviteMutation.mutate({ invitationId: inviteId, isAccepted: false });
+    },
+    [respondLeagueInviteMutation],
   );
 
   const onRefresh = useCallback(async () => {
@@ -104,25 +158,48 @@ export default function Home() {
             ) : (
               invites.map((invite) => (
                 <Card key={invite.id}>
-                  <Text style={styles.teamName}>{invite.teamName}</Text>
+                  {invite.kind === "team" ? (
+                    <>
+                      <Text style={styles.teamName}>{invite.teamName}</Text>
 
-                  <Text style={styles.inviteText}>
-                    You received an invite
-                    {invite.inviterName ? ` from ${invite.inviterName}` : ""} to
-                    join {invite.teamName}.
-                  </Text>
+                      <Text style={styles.inviteText}>
+                        You received an invite
+                        {invite.inviterName ? ` from ${invite.inviterName}` : ""}{" "}
+                        to join {invite.teamName}.
+                      </Text>
 
-                  <View style={styles.actionsRow}>
-                    <ButtonItem
-                      label="Deny"
-                      color={denyColor}
-                      onPress={() => handleDeny(invite.id)}
-                    />
-                    <ButtonItem
-                      label="Accept"
-                      onPress={() => handleAccept(invite.id)}
-                    />
-                  </View>
+                      <View style={styles.actionsRow}>
+                        <ButtonItem
+                          label="Deny"
+                          color={denyColor}
+                          onPress={() => handleDeny(invite.id)}
+                        />
+                        <ButtonItem
+                          label="Accept"
+                          onPress={() => handleAccept(invite.id)}
+                        />
+                      </View>
+                    </>
+                  ) : (
+                    <>
+                      <Text style={styles.teamName}>{invite.leagueName}</Text>
+                      <Text style={styles.inviteText}>
+                        You received an invite to join {invite.leagueName} with{" "}
+                        {invite.teamName}.
+                      </Text>
+                      <View style={styles.actionsRow}>
+                        <ButtonItem
+                          label="Deny"
+                          color={denyColor}
+                          onPress={() => handleDenyLeague(invite.id)}
+                        />
+                        <ButtonItem
+                          label="Accept"
+                          onPress={() => handleAcceptLeague(invite.id)}
+                        />
+                      </View>
+                    </>
+                  )}
                 </Card>
               ))
             )}
@@ -135,7 +212,16 @@ export default function Home() {
   );
 }
 
-async function fetchInvitesWithDetails(api: AxiosInstance) {
+async function fetchUpdatesWithDetails(api: AxiosInstance) {
+  const [teamInvites, leagueInvites] = await Promise.all([
+    fetchTeamInvitesWithDetails(api),
+    fetchLeagueInvitesWithDetails(api),
+  ]);
+
+  return [...teamInvites, ...leagueInvites];
+}
+
+async function fetchTeamInvitesWithDetails(api: AxiosInstance) {
   const resp = await api.get<TeamInviteResponse[]>(
     GO_TEAM_SERVICE_ROUTES.USER_INVITES,
   );
@@ -154,6 +240,7 @@ async function fetchInvitesWithDetails(api: AxiosInstance) {
   ]);
 
   return invites.map((invite) => ({
+    kind: "team" as const,
     id: invite.id,
     teamId: invite.teamId,
     teamName: teamMap[invite.teamId] ?? "Team",
