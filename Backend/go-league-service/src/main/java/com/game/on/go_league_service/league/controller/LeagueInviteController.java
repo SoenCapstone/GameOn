@@ -2,6 +2,7 @@ package com.game.on.go_league_service.league.controller;
 
 import com.game.on.go_league_service.league.dto.LeagueTeamInviteCreateRequest;
 import com.game.on.go_league_service.league.dto.LeagueTeamInviteResponse;
+import com.game.on.go_league_service.league.model.LeagueTeamInviteStatus;
 import com.game.on.go_league_service.league.service.LeagueInviteService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -12,6 +13,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
@@ -29,6 +31,13 @@ public class LeagueInviteController {
                                                                  @Valid @RequestBody LeagueTeamInviteCreateRequest request) {
         var response = leagueInviteService.createInvite(leagueId, request);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
+    }
+
+    @GetMapping("/leagues/{leagueId}/invites")
+    public ResponseEntity<List<LeagueTeamInviteResponse>> listLeagueInvites(@PathVariable UUID leagueId,
+                                                                            @RequestParam(value = "status", required = false)
+                                                                            LeagueTeamInviteStatus status) {
+        return ResponseEntity.ok(leagueInviteService.listInvitesForLeague(leagueId, status));
     }
 
     @GetMapping("/teams/{teamId}/league-invites")
