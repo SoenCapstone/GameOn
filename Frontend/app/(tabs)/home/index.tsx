@@ -57,14 +57,16 @@ export default function Home() {
   const handleInviteResponseSuccess = useCallback(
     (invalidateKeys: string[][], acceptedMessage: string) =>
       (_data: unknown, variables: { invitationId: string; isAccepted: boolean }) => {
+        const cacheKey = ["user-updates", userId];
+        const currentInvites =
+          queryClient.getQueryData<InviteCard[]>(cacheKey) ?? [];
         queryClient.setQueryData<InviteCard[]>(
-          ["user-updates", userId],
-          (previous) =>
-            previous?.filter((invite) => invite.id !== variables.invitationId) ?? [],
+          cacheKey,
+          currentInvites.filter((invite) => invite.id !== variables.invitationId),
         );
-        invalidateKeys.forEach((key) =>
-          queryClient.invalidateQueries({ queryKey: key }),
-        );
+        for (const key of invalidateKeys) {
+          queryClient.invalidateQueries({ queryKey: key });
+        }
         Alert.alert(
           variables.isAccepted ? "Invite accepted" : "Invite declined",
           variables.isAccepted ? acceptedMessage : "The invitation was declined.",

@@ -140,53 +140,49 @@ export default function ManageLeagueScreen() {
     removeTeamMutation.isPending;
 
   return (
-    <>
-      <ContentArea
-        scrollable
-        backgroundProps={{ preset: "purple" }}
-        paddingBottom={24}
-      >
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>League Teams</Text>
+    <ContentArea
+      scrollable
+      backgroundProps={{ preset: "purple" }}
+      paddingBottom={24}
+    >
+      <View style={styles.section}>
+        <Text style={styles.sectionTitle}>League Teams</Text>
 
-          {isBusy && <ActivityIndicator size="small" color="#fff" />}
+        {isBusy && <ActivityIndicator size="small" color="#fff" />}
 
-          {!isBusy && leagueTeams.length === 0 ? (
-            <Text style={styles.emptyText}>No teams in this league yet.</Text>
-          ) : (
-            <View style={styles.memberList}>
-              {leagueTeams.map((team) => {
-                const details = teamDetailsQuery.data?.[team.teamId];
-                const name = details?.name ?? "Team";
-                const detailLine =
-                  details?.sport || details?.location || "Team";
-                const canRemove = isOwner && !removeTeamMutation.isPending;
+        {!isBusy && leagueTeams.length === 0 ? (
+          <Text style={styles.emptyText}>No teams in this league yet.</Text>
+        ) : (
+          <View style={styles.memberList}>
+            {leagueTeams.map((team) => {
+              const details = teamDetailsQuery.data?.[team.teamId];
+              const name = details?.name ?? "Team";
+              const detailLine = details?.sport || details?.location || "Team";
+              const canRemove = isOwner && !removeTeamMutation.isPending;
 
-                return (
-                  <Card key={team.id}>
-                    <MemberRow
-                      name={name}
-                      email={detailLine}
-                      right={
-                        canRemove ? (
-                          <Pressable
-                            style={styles.removeButton}
-                            onPress={() => handleRemoveTeam(team.teamId, name)}
-                          >
-                            <Text style={styles.removeButtonText}>Remove</Text>
-                          </Pressable>
-                        ) : undefined
-                      }
-                    />
-                  </Card>
-                );
-              })}
-            </View>
-          )}
-        </View>
-      </ContentArea>
-
-    </>
+              return (
+                <Card key={team.id}>
+                  <MemberRow
+                    name={name}
+                    email={detailLine}
+                    right={
+                      canRemove ? (
+                        <Pressable
+                          style={styles.removeButton}
+                          onPress={() => handleRemoveTeam(team.teamId, name)}
+                        >
+                          <Text style={styles.removeButtonText}>Remove</Text>
+                        </Pressable>
+                      ) : undefined
+                    }
+                  />
+                </Card>
+              );
+            })}
+          </View>
+        )}
+      </View>
+    </ContentArea>
   );
 }
 
