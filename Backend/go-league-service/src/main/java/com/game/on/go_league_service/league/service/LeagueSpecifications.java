@@ -4,6 +4,9 @@ import com.game.on.go_league_service.league.model.League;
 import com.game.on.go_league_service.league.model.LeaguePrivacy;
 import org.springframework.data.jpa.domain.Specification;
 
+import java.util.Collection;
+import java.util.UUID;
+
 public final class LeagueSpecifications {
 
     private LeagueSpecifications() {
@@ -49,6 +52,15 @@ public final class LeagueSpecifications {
                     builder.equal(root.get("privacy"), LeaguePrivacy.PUBLIC),
                     builder.equal(root.get("ownerUserId"), callerId)
             );
+        };
+    }
+
+    public static Specification<League> idIn(Collection<UUID> leagueIds) {
+        return (root, query, builder) -> {
+            if (leagueIds == null || leagueIds.isEmpty()) {
+                return builder.disjunction();
+            }
+            return root.get("id").in(leagueIds);
         };
     }
 
