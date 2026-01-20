@@ -23,6 +23,10 @@ import {
 } from "@/hooks/use-axios-clerk";
 import { errorToString } from "@/utils/error";
 import { fetchTeamResults } from "@/components/browse/utils";
+import {
+  fetchPendingLeagueInvites,
+  LeagueInviteResponse,
+} from "@/components/leagues/league-invite-utils";
 
 type LeagueTeamResponse = {
   id: string;
@@ -36,13 +40,6 @@ type TeamSummaryResponse = {
   name: string;
   sport: string;
   location?: string | null;
-};
-
-type LeagueInviteResponse = {
-  id: string;
-  leagueId: string;
-  teamId: string;
-  status?: string | null;
 };
 
 export default function InviteTeamsScreen() {
@@ -77,12 +74,7 @@ export default function InviteTeamsScreen() {
 
   const pendingInvitesQuery = useQuery<LeagueInviteResponse[]>({
     queryKey: ["league-invites", leagueId],
-    queryFn: async () => {
-      const resp = await api.get(GO_LEAGUE_SERVICE_ROUTES.INVITES(leagueId), {
-        params: { status: "PENDING" },
-      });
-      return resp.data ?? [];
-    },
+    queryFn: async () => fetchPendingLeagueInvites(api, leagueId),
     enabled: Boolean(leagueId && isOwner),
   });
 
