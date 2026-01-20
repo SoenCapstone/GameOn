@@ -1,13 +1,13 @@
 import React from "react";
 import { ActivityIndicator, StyleSheet, Text, View } from "react-native";
 
-type InviteSectionProps = {
+type InviteSectionProps = Readonly<{
   title: string;
   isBusy: boolean;
   emptyText: string;
   hasItems: boolean;
   children: React.ReactNode;
-};
+}>;
 
 export function InviteSection({
   title,
