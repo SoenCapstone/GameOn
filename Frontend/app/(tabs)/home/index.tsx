@@ -10,23 +10,45 @@ import { useAuth } from "@clerk/clerk-expo";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   GO_INVITE_ROUTES,
+  GO_LEAGUE_INVITE_ROUTES,
+  GO_LEAGUE_SERVICE_ROUTES,
   GO_TEAM_SERVICE_ROUTES,
   GO_USER_SERVICE_ROUTES,
   useAxiosWithClerk,
 } from "@/hooks/use-axios-clerk";
 import { errorToString } from "@/utils/error";
+import { fetchTeamResults } from "@/components/browse/utils";
 
-type Invite = {
+type TeamInviteCard = {
+  kind: "team";
   id: string;
   teamName: string;
   inviterName?: string;
   teamId: string;
 };
 
+type LeagueInviteCard = {
+  kind: "league";
+  id: string;
+  leagueId: string;
+  leagueName: string;
+  teamId: string;
+  teamName: string;
+};
+
+type InviteCard = TeamInviteCard | LeagueInviteCard;
+
 type TeamInviteResponse = {
   id: string;
   teamId: string;
   invitedByUserId?: string | null;
+  status?: string | null;
+};
+
+type LeagueInviteResponse = {
+  id: string;
+  leagueId: string;
+  teamId: string;
   status?: string | null;
 };
 
@@ -36,9 +58,9 @@ export default function Home() {
   const queryClient = useQueryClient();
   const { userId } = useAuth();
 
-  const { data: invites = [], isFetching, refetch } = useQuery<Invite[]>({
-    queryKey: ["user-invites", userId],
-    queryFn: async () => fetchInvitesWithDetails(api),
+  const { data: invites = [], isFetching, refetch } = useQuery<InviteCard[]>({
+    queryKey: ["user-updates", userId],
+    queryFn: async () => fetchUpdatesWithDetails(api),
     enabled: Boolean(userId),
   });
 
@@ -47,13 +69,46 @@ export default function Home() {
       await api.post(GO_INVITE_ROUTES.RESPOND, payload);
     },
     onSuccess: (_data, variables) => {
-      queryClient.setQueryData<Invite[]>(
-        ["user-invites", userId],
+      queryClient.setQueryData<InviteCard[]>(
+        ["user-updates", userId],
         (previous) =>
           previous?.filter((invite) => invite.id !== variables.invitationId) ?? [],
       );
       queryClient.invalidateQueries({ queryKey: ["teams"] });
       queryClient.invalidateQueries({ queryKey: ["team-members"] });
+      Alert.alert(
+        variables.isAccepted ? "Invite accepted" : "Invite declined",
+        variables.isAccepted
+          ? "You have joined the team."
+          : "The invitation was declined.",
+      );
+    },
+    onError: (err) => {
+      Alert.alert("Action failed", errorToString(err));
+    },
+  });
+
+  const respondLeagueInviteMutation = useMutation({
+    mutationFn: async (payload: { invitationId: string; isAccepted: boolean }) => {
+      const endpoint = payload.isAccepted
+        ? GO_LEAGUE_INVITE_ROUTES.ACCEPT(payload.invitationId)
+        : GO_LEAGUE_INVITE_ROUTES.DECLINE(payload.invitationId);
+      await api.post(endpoint);
+    },
+    onSuccess: (_data, variables) => {
+      queryClient.setQueryData<InviteCard[]>(
+        ["user-updates", userId],
+        (previous) =>
+          previous?.filter((invite) => invite.id !== variables.invitationId) ?? [],
+      );
+      queryClient.invalidateQueries({ queryKey: ["leagues"] });
+      queryClient.invalidateQueries({ queryKey: ["league-teams"] });
+      Alert.alert(
+        variables.isAccepted ? "Invite accepted" : "Invite declined",
+        variables.isAccepted
+          ? "The team has joined the league."
+          : "The invitation was declined.",
+      );
     },
     onError: (err) => {
       Alert.alert("Action failed", errorToString(err));
@@ -72,6 +127,20 @@ export default function Home() {
       respondMutation.mutate({ invitationId: inviteId, isAccepted: false });
     },
     [respondMutation],
+  );
+
+  const handleAcceptLeague = useCallback(
+    (inviteId: string) => {
+      respondLeagueInviteMutation.mutate({ invitationId: inviteId, isAccepted: true });
+    },
+    [respondLeagueInviteMutation],
+  );
+
+  const handleDenyLeague = useCallback(
+    (inviteId: string) => {
+      respondLeagueInviteMutation.mutate({ invitationId: inviteId, isAccepted: false });
+    },
+    [respondLeagueInviteMutation],
   );
 
   const onRefresh = useCallback(async () => {
@@ -104,25 +173,48 @@ export default function Home() {
             ) : (
               invites.map((invite) => (
                 <Card key={invite.id}>
-                  <Text style={styles.teamName}>{invite.teamName}</Text>
+                  {invite.kind === "team" ? (
+                    <>
+                      <Text style={styles.teamName}>{invite.teamName}</Text>
 
-                  <Text style={styles.inviteText}>
-                    You received an invite
-                    {invite.inviterName ? ` from ${invite.inviterName}` : ""} to
-                    join {invite.teamName}.
-                  </Text>
+                      <Text style={styles.inviteText}>
+                        You received an invite
+                        {invite.inviterName ? ` from ${invite.inviterName}` : ""}{" "}
+                        to join {invite.teamName}.
+                      </Text>
 
-                  <View style={styles.actionsRow}>
-                    <ButtonItem
-                      label="Deny"
-                      color={denyColor}
-                      onPress={() => handleDeny(invite.id)}
-                    />
-                    <ButtonItem
-                      label="Accept"
-                      onPress={() => handleAccept(invite.id)}
-                    />
-                  </View>
+                      <View style={styles.actionsRow}>
+                        <ButtonItem
+                          label="Deny"
+                          color={denyColor}
+                          onPress={() => handleDeny(invite.id)}
+                        />
+                        <ButtonItem
+                          label="Accept"
+                          onPress={() => handleAccept(invite.id)}
+                        />
+                      </View>
+                    </>
+                  ) : (
+                    <>
+                      <Text style={styles.teamName}>{invite.leagueName}</Text>
+                      <Text style={styles.inviteText}>
+                        You received an invite to join {invite.leagueName} with{" "}
+                        {invite.teamName}.
+                      </Text>
+                      <View style={styles.actionsRow}>
+                        <ButtonItem
+                          label="Deny"
+                          color={denyColor}
+                          onPress={() => handleDenyLeague(invite.id)}
+                        />
+                        <ButtonItem
+                          label="Accept"
+                          onPress={() => handleAcceptLeague(invite.id)}
+                        />
+                      </View>
+                    </>
+                  )}
                 </Card>
               ))
             )}
@@ -135,7 +227,16 @@ export default function Home() {
   );
 }
 
-async function fetchInvitesWithDetails(api: AxiosInstance) {
+async function fetchUpdatesWithDetails(api: AxiosInstance) {
+  const [teamInvites, leagueInvites] = await Promise.all([
+    fetchTeamInvitesWithDetails(api),
+    fetchLeagueInvitesWithDetails(api),
+  ]);
+
+  return [...teamInvites, ...leagueInvites];
+}
+
+async function fetchTeamInvitesWithDetails(api: AxiosInstance) {
   const resp = await api.get<TeamInviteResponse[]>(
     GO_TEAM_SERVICE_ROUTES.USER_INVITES,
   );
@@ -154,12 +255,54 @@ async function fetchInvitesWithDetails(api: AxiosInstance) {
   ]);
 
   return invites.map((invite) => ({
+    kind: "team" as const,
     id: invite.id,
     teamId: invite.teamId,
     teamName: teamMap[invite.teamId] ?? "Team",
     inviterName: invite.invitedByUserId
       ? inviterMap[invite.invitedByUserId] ?? "Someone"
       : undefined,
+  }));
+}
+
+async function fetchLeagueInvitesWithDetails(api: AxiosInstance) {
+  const teamResp = await fetchTeamResults(api, "", true);
+  const teams = teamResp.items ?? [];
+
+  if (teams.length === 0) return [];
+
+  const leagueInvitesNested = await Promise.all(
+    teams.map(async (team) => {
+      try {
+        const resp = await api.get<LeagueInviteResponse[]>(
+          GO_LEAGUE_INVITE_ROUTES.TEAM_INVITES(team.id),
+        );
+        const pending = (resp.data ?? []).filter(
+          (invite) => invite.status === "PENDING",
+        );
+        return pending.map((invite) => ({
+          ...invite,
+          teamName: team.name ?? "Team",
+        }));
+      } catch {
+        return [];
+      }
+    }),
+  );
+
+  const flatInvites = leagueInvitesNested.flat();
+  if (flatInvites.length === 0) return [];
+
+  const leagueIds = Array.from(new Set(flatInvites.map((invite) => invite.leagueId)));
+  const leagueMap = await fetchLeagueNameMap(api, leagueIds);
+
+  return flatInvites.map((invite) => ({
+    kind: "league" as const,
+    id: invite.id,
+    leagueId: invite.leagueId,
+    leagueName: leagueMap[invite.leagueId] ?? "League",
+    teamId: invite.teamId,
+    teamName: invite.teamName ?? "Team",
   }));
 }
 
@@ -174,6 +317,23 @@ async function fetchTeamNameMap(
         return [teamId, resp.data?.name ?? "Team"] as const;
       } catch {
         return [teamId, "Team"] as const;
+      }
+    }),
+  );
+  return Object.fromEntries(entries);
+}
+
+async function fetchLeagueNameMap(
+  api: AxiosInstance,
+  leagueIds: string[],
+) {
+  const entries = await Promise.all(
+    leagueIds.map(async (leagueId) => {
+      try {
+        const resp = await api.get(GO_LEAGUE_SERVICE_ROUTES.GET(leagueId));
+        return [leagueId, resp.data?.name ?? "League"] as const;
+      } catch {
+        return [leagueId, "League"] as const;
       }
     }),
   );
