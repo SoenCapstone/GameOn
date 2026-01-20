@@ -17,6 +17,11 @@ public interface LeagueTeamInviteRepository extends JpaRepository<LeagueTeamInvi
             LeagueTeamInviteStatus status
     );
 
+    List<LeagueTeamInvite> findByLeague_IdAndStatusOrderByCreatedAtDesc(
+            UUID leagueId,
+            LeagueTeamInviteStatus status
+    );
+
     List<LeagueTeamInvite> findByTeamIdAndStatusOrderByCreatedAtDesc(
             UUID teamId,
             LeagueTeamInviteStatus status

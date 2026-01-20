@@ -83,6 +83,19 @@ public class LeagueInviteService {
                 .toList();
     }
 
+    @Transactional(readOnly = true)
+    public List<LeagueTeamInviteResponse> listInvitesForLeague(UUID leagueId, LeagueTeamInviteStatus status) {
+        String userId = userProvider.clerkUserId();
+        var league = requireActiveLeague(leagueId);
+        ensureLeagueOwner(league, userId);
+        var effectiveStatus = status == null ? LeagueTeamInviteStatus.PENDING : status;
+        return leagueTeamInviteRepository
+                .findByLeague_IdAndStatusOrderByCreatedAtDesc(leagueId, effectiveStatus)
+                .stream()
+                .map(leagueTeamInviteMapper::toResponse)
+                .toList();
+    }
+
     @Transactional
     public LeagueTeamInviteResponse acceptInvite(UUID inviteId) {
         String userId = userProvider.clerkUserId();
