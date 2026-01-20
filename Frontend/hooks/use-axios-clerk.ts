@@ -75,6 +75,22 @@ export const GO_TEAM_SERVICE_ROUTES = {
 export const GO_LEAGUE_SERVICE_ROUTES = {
   ALL: buildRoute(VERSIONING.v1, SERVICE.LEAGUES),
   CREATE: buildRoute(VERSIONING.v1, SERVICE.LEAGUES, "create"),
+  GET: (leagueId: string) => buildRoute(VERSIONING.v1, SERVICE.LEAGUES, leagueId),
+  TEAMS: (leagueId: string) =>
+    buildRoute(VERSIONING.v1, SERVICE.LEAGUES, `${leagueId}/teams`),
+  REMOVE_TEAM: (leagueId: string, teamId: string) =>
+    buildRoute(VERSIONING.v1, SERVICE.LEAGUES, `${leagueId}/teams/${teamId}`),
+  INVITES: (leagueId: string) =>
+    buildRoute(VERSIONING.v1, SERVICE.LEAGUES, `${leagueId}/invites`),
+};
+
+const leagueInvitesBase = buildRoute(VERSIONING.v1, "league-invites");
+
+export const GO_LEAGUE_INVITE_ROUTES = {
+  TEAM_INVITES: (teamId: string) =>
+    buildRoute(VERSIONING.v1, "teams", `${teamId}/league-invites`),
+  ACCEPT: (inviteId: string) => `${leagueInvitesBase}/${inviteId}/accept`,
+  DECLINE: (inviteId: string) => `${leagueInvitesBase}/${inviteId}/decline`,
 };
 
 const messagingBase = buildRoute(VERSIONING.v1, SERVICE.MESSAGING);

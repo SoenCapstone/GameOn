@@ -13,7 +13,8 @@ import { useAuth } from "@clerk/clerk-expo";
 jest.mock("@/hooks/use-axios-clerk", () => ({
   useAxiosWithClerk: jest.fn(),
   GO_LEAGUE_SERVICE_ROUTES: {
-    ALL: "/api/leagues",
+    ALL: "/api/v1/leagues",
+    GET: (id: string) => `/api/v1/leagues/${id}`,
   },
 }));
 
@@ -388,7 +389,7 @@ describe("useLeagueDetail", () => {
     });
 
     await waitFor(() => {
-      expect(mockApi.get).toHaveBeenCalledWith("/api/leagues/league-1");
+      expect(mockApi.get).toHaveBeenCalledWith("/api/v1/leagues/league-1");
     });
   });
 
