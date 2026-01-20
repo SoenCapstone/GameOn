@@ -1,5 +1,5 @@
 import React, { useLayoutEffect, useMemo } from "react";
-import { ActivityIndicator, Alert, Pressable, StyleSheet, Text, View } from "react-native";
+import { Alert, Pressable, Text, View } from "react-native";
 import { useLocalSearchParams } from "expo-router";
 import { useNavigation } from "@react-navigation/native";
 import { useAuth } from "@clerk/clerk-expo";
@@ -11,6 +11,10 @@ import { PageTitle } from "@/components/header/page-title";
 import { Card } from "@/components/ui/card";
 import { MemberRow } from "@/components/teams/member-row";
 import { formatFullName } from "@/components/teams/member-row-utils";
+import {
+  InviteSection,
+  inviteSectionStyles as styles,
+} from "@/components/invites/invite-section";
 import { useTeamDetail } from "@/hooks/use-team-detail";
 import { useGetTeamMembers } from "@/hooks/use-get-team-members/use-get-team-members";
 import { fetchUserDirectory } from "@/features/messaging/api";
@@ -118,83 +122,43 @@ export default function InvitePlayersScreen() {
       backgroundProps={{ preset: "red" }}
       paddingBottom={24}
     >
-      <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Available Players</Text>
-
-        {isBusy && <ActivityIndicator size="small" color="#fff" />}
-
-        {!isBusy && availableUsers.length === 0 ? (
-          <Text style={styles.emptyText}>No available players to invite.</Text>
-        ) : (
-          <View style={styles.memberList}>
-            {availableUsers.map((user) => {
-              const name = formatFullName(user.firstname, user.lastname);
-              return (
-                <Card key={user.id}>
-                  <MemberRow
-                    name={name}
-                    email={user.email}
-                    right={
-                    <Pressable
-                      style={[
-                        styles.inviteButton,
-                        createInviteMutation.isPending &&
-                          styles.inviteButtonDisabled,
-                      ]}
-                      onPress={() =>
-                        createInviteMutation.mutate({
-                          teamId,
-                          inviteeUserId: user.id,
-                          role: "PLAYER",
-                        })
-                      }
-                      disabled={createInviteMutation.isPending}
-                    >
-                      <Text style={styles.inviteButtonText}>Invite</Text>
-                    </Pressable>
+      <InviteSection
+        title="Available Players"
+        isBusy={isBusy}
+        emptyText="No available players to invite."
+        hasItems={availableUsers.length > 0}
+      >
+        {availableUsers.map((user) => {
+          const name = formatFullName(user.firstname, user.lastname);
+          return (
+            <Card key={user.id}>
+              <MemberRow
+                name={name}
+                email={user.email}
+                right={
+                  <Pressable
+                    style={[
+                      styles.inviteButton,
+                      createInviteMutation.isPending &&
+                        styles.inviteButtonDisabled,
+                    ]}
+                    onPress={() =>
+                      createInviteMutation.mutate({
+                        teamId,
+                        inviteeUserId: user.id,
+                        role: "PLAYER",
+                      })
                     }
-                  />
-                </Card>
-              );
-            })}
-          </View>
-        )}
-      </View>
+                    disabled={createInviteMutation.isPending}
+                  >
+                    <Text style={styles.inviteButtonText}>Invite</Text>
+                  </Pressable>
+                }
+              />
+            </Card>
+          );
+        })}
+      </InviteSection>
     </ContentArea>
   );
 }
-
-const styles = StyleSheet.create({
-  section: {
-    width: "100%",
-    gap: 16,
-    paddingTop: 12,
-  },
-  sectionTitle: {
-    color: "#ffffff",
-    fontSize: 16,
-    fontWeight: "600",
-    marginLeft: 6,
-  },
-  memberList: {
-    gap: 14,
-  },
-  inviteButton: {
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 999,
-    backgroundColor: "rgba(0,82,255,0.35)",
-  },
-  inviteButtonDisabled: {
-    opacity: 0.6,
-  },
-  inviteButtonText: {
-    color: "#bcd4ff",
-    fontSize: 11,
-    fontWeight: "600",
-  },
-  emptyText: {
-    color: "rgba(255,255,255,0.7)",
-    fontSize: 13,
-  },
-});
