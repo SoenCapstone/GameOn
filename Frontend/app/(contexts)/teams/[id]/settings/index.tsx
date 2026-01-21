@@ -209,7 +209,7 @@ function TeamSettingsContent() {
         <ContentArea backgroundProps={{ preset: "red" }}>
           <View style={settingsStyles.container}>
             <Text style={settingsStyles.errorText}>
-              You don&apos;t have permission to edit this league
+              You don&apos;t have permission to edit this team
             </Text>
           </View>
         </ContentArea>
