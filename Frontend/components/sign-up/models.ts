@@ -1,5 +1,6 @@
 import React from "react";
 import { StyleProp, ViewStyle } from "react-native";
+import type { TextInputProps } from "react-native";
 
 export type User = {
   firstname: string;
@@ -17,11 +18,11 @@ export type LabeledInputProps = {
   value?: string;
   onChangeText: (t: string) => void;
   onBlur?: () => void;
-  keyboardType?: any;
+  keyboardType?:TextInputProps["keyboardType"];
   autoCapitalize?: "none" | "sentences" | "words" | "characters";
   secureTextEntry?: boolean;
   rightIcon?: React.ReactNode;
-  error?: any;
+  error?: string;
   style?: StyleProp<ViewStyle>;
 };
 
@@ -30,9 +31,9 @@ export type SignUpInputLabel = {
   placeholder: string;
   field: string;
   autoCapitalize?: "none" | "sentences" | "words" | "characters";
-  keyboardType?: any;
+  keyboardType?:TextInputProps["keyboardType"];
   secureTextEntry?: boolean;
-  rightIcon?: any;
+  rightIcon?: React.ReactNode;
 };
 
 export type SetActiveFn = (params: { session: string }) => Promise<void>;
