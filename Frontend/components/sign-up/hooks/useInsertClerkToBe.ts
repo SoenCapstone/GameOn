@@ -5,6 +5,13 @@ import { toast } from "@/components/sign-up/utils";
 import { GO_USER_SERVICE_ROUTES, useAxiosWithClerk } from "@/hooks/use-axios-clerk";
 import { SIGN_UP_SUCCESS_MESSAGE, SIGN_UP_CLERK_ERROR_MESSAGE, SIGN_UP_BACKEND_ERROR_MESSAGE } from "../constants";
 
+export type UpsertUserPayload = {
+  id?: string;
+  email: string;
+  firstname: string;
+  lastname: string;
+};
+
 export const useUpsertUser = () => {
   const { isLoaded, isSignedIn } = useAuth();
   const {user} = useUser();
@@ -13,7 +20,7 @@ export const useUpsertUser = () => {
   return useMutation({
     retry: 3,    
     retryDelay: 400,
-    mutationFn: async (payload) => {
+    mutationFn: async (payload: UpsertUserPayload) => {
       VerifyHasLoadedAndIsSignedIn(isLoaded, isSignedIn);
       return await api.post(GO_USER_SERVICE_ROUTES.CREATE, payload);
     },
