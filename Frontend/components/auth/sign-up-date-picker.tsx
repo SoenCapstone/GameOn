@@ -5,6 +5,7 @@ import { User } from "@/components/sign-up/models";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import { AccentColors } from "@/constants/colors";
 import { LabeledInput } from "@/components/auth/labeled-input";
+import type { DateTimePickerEvent } from "@react-native-community/datetimepicker";
 import { useState } from "react";
 import {
   formatDate,
@@ -12,13 +13,14 @@ import {
   autoFormatDateInput,
 } from "@/components/sign-up/utils";
 
+
 export const SignUpDatePicker: React.FC = () => {
   const { errors, touched, setFieldValue } = useFormikContext<User>();
 
   const [textValue, setTextValue] = useState("");
   const [pickerDate, setPickerDate] = useState(new Date());
 
-  const handlePickerChange = (_: any, date?: Date) => {
+  const handlePickerChange = (_: DateTimePickerEvent, date?: Date) => {
     if (date) {
       setPickerDate(date);
       setTextValue(formatDate(date));
