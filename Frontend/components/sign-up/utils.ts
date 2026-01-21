@@ -70,13 +70,15 @@ export const SignUpSchema = Yup.object({
     }),
 });
 
-export const humanizeClerkError = (err: ClerkError | string | Error): string => {
+export const humanizeClerkError = (
+  err: ClerkError | string | Error,
+): string => {
   try {
     const json = typeof err === "string" ? JSON.parse(err) : err;
     const first = (json as ClerkError)?.errors?.[0];
     return first?.message || "Something went wrong";
   } catch {
-    return "Something went wrong";cvf4jwf
+    return "Something went wrong";
   }
 };
 
