@@ -33,6 +33,7 @@
     "@react-navigation/elements": "^2.6.3",
     "@react-navigation/native": "^7.1.8",
     "@stomp/stompjs": "^7.2.1",
+    "@stripe/stripe-react-native": "0.50.3",
     "@tanstack/react-query": "^5.90.16",
     "axios": "^1.13.1",
     "expo": "~54.0.31",

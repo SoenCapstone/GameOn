@@ -16,13 +16,26 @@ import { FeatureFlagsProvider } from "@/components/feature-flags/feature-flags-c
 import { KeyboardProvider } from "react-native-keyboard-controller";
 import { ActionSheetProvider } from "@expo/react-native-action-sheet";
 
+import { StripeProvider } from "@stripe/stripe-react-native";
+
 const queryClient = new QueryClient();
 
 export default function RootLayout() {
   const colorScheme = useColorScheme();
   SystemUI.setBackgroundColorAsync("black");
 
+  const stripeKey = process.env.EXPO_PUBLIC_STRIPE_PUBLISHABLE_KEY;
+
+  if (!stripeKey) {
+    throw new Error("Missing EXPO_PUBLIC_STRIPE_PUBLISHABLE_KEY");
+  }
+
   return (
+    <StripeProvider
+      publishableKey={stripeKey}
+      merchantIdentifier="merchant.com.gameon"
+      urlScheme="gameon"
+    >
     <KeyboardProvider>
       <ClerkProvider
         tokenCache={tokenCache}
@@ -59,5 +72,6 @@ export default function RootLayout() {
         </QueryClientProvider>
       </ClerkProvider>
     </KeyboardProvider>
+    </StripeProvider>
   );
 }
