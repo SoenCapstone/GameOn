@@ -1,12 +1,8 @@
+spring:
+  application:
+    name: go-discovery-service
+
 eureka:
-  instance:
-    hostname: localhost
   client:
     register-with-eureka: false
     fetch-registry: false
-    service-url:
-    #  default-zone: http://${eureka.instance.hostname}/${server.port}/eureka/
-      default-zone: http://go-discovery-service:8761/eureka/
-
-server:
-  port: 8761

@@ -1,57 +1,52 @@
-server:
-  port: 8222
-
 spring:
   application:
     name: go-api-gateway
+
   cloud:
     gateway:
-      server:
-        webflux:
-          discovery:
-            locator:
-              enabled: false
-          # Must create a route for each microservice.
-          # The API Gateway will use Eureka + Spring Cloud LoadBalancer to resolve the service ID (lb://SERVICE-ID) to
-          # the correct instance(s) & then forward the request.
-          routes:
-            - id: go-user-service
-              uri: lb://GO-USER-SERVICE
-              predicates:
-                - Path=/api/v1/user/**
-            - id: go-league-invite-service
-              uri: lb://GO-LEAGUE-SERVICE
-              predicates:
-                - Path=/api/v1/teams/*/league-invites,/api/v1/league-invites/**
-            - id: go-team-service
-              uri: lb://GO-TEAM-SERVICE
-              predicates:
-                - Path=/api/v1/teams/**,/api/v1/invites/**
-            - id: go-league-service
-              uri: lb://GO-LEAGUE-SERVICE
-              predicates:
-                - Path=/api/v1/leagues/**,/api/v1/payments/**
-            - id: go-messaging-service-ws
-              uri: lb:ws://GO-MESSAGING-SERVICE
-              predicates:
-                - Path=/api/v1/messaging/ws
-              filters:
-                - SetPath=/ws
-            - id: go-messaging-service
-              uri: lb://GO-MESSAGING-SERVICE
-              predicates:
-                - Path=/api/v1/messaging/**
+      discovery:
+        locator:
+          enabled: false
+      routes:
+        - id: go-user-service
+          uri: lb://go-user-service
+          predicates:
+            - Path=/api/v1/user/**
+        - id: go-league-invite-service
+          uri: lb://go-league-service
+          predicates:
+            - Path=/api/v1/teams/*/league-invites,/api/v1/league-invites/**
+        - id: go-team-service
+          uri: lb://go-team-service
+          predicates:
+            - Path=/api/v1/teams/**,/api/v1/invites/**
+        - id: go-league-service
+          uri: lb://go-league-service
+          predicates:
+            - Path=/api/v1/leagues/**,/api/v1/payments/**
+        - id: go-messaging-service-ws
+          uri: lb:ws://go-messaging-service
+          predicates:
+            - Path=/api/v1/messaging/ws
+          filters:
+            - SetPath=/ws
+        - id: go-messaging-service
+          uri: lb://go-messaging-service
+          predicates:
+            - Path=/api/v1/messaging/**
+
   security:
     oauth2:
       resourceserver:
         jwt:
-          issuer-uri: https://one-magpie-92.clerk.accounts.dev
+          issuer-uri: ${CLERK_ISSUER_URI}
+
 eureka:
   client:
     register-with-eureka: false
     fetch-registry: true
     service-url:
-      default-zone: http://go-discovery-service:8761/eureka/
+      defaultZone: ${EUREKA_URL}
 
 management:
   endpoints:

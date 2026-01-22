@@ -1,0 +1,30 @@
+spring:
+  config:
+    activate:
+      on-profile: dev
+
+  datasource:
+    url: jdbc:postgresql://localhost:5432/gameon_db
+    username: username
+    password: password
+    driver-class-name: org.postgresql.Driver
+
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          # dev issuer (can hardcode, or also use CLERK_ISSUER_URI if same)
+          issuer-uri: https://one-magpie-92.clerk.accounts.dev
+
+  kafka:
+    bootstrap-servers: ${KAFKA_BOOTSTRAP:localhost:9092}
+    # if you ever want to test remote Kafka from dev, you can override here instead
+
+server:
+  port: 8093
+
+eureka:
+  client:
+    service-url:
+      defaultZone: http://localhost:8761/eureka/
+      # or http://go-discovery-service:8761/eureka/ if you use docker-compose network

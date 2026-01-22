@@ -1,9 +1,7 @@
 spring:
-  datasource:
-    url: jdbc:postgresql://localhost:5432/gameon_db
-    username: username
-    password: password
-    driver-class-name: org.postgresql.Driver
+  application:
+    name: go-league-service
+
   jpa:
     database: postgresql
     hibernate:
@@ -13,6 +11,7 @@ spring:
         dialect: org.hibernate.dialect.PostgreSQLDialect
         format_sql: true
     open-in-view: false
+
   flyway:
     enabled: true
     baseline-on-migrate: true
@@ -24,13 +23,10 @@ spring:
     oauth2:
       resourceserver:
         jwt:
-          issuer-uri: https://one-magpie-92.clerk.accounts.dev
+          issuer-uri: ${CLERK_ISSUER_URI}
 
   kafka:
-    # Config to run Docker Kafka from local
-    bootstrap-servers: ${KAFKA_BOOTSTRAP:localhost:9092}
-    # Config to run deployed kafka from local (keep commented out if running Docker Kafka)
-#    bootstrap-servers: ${KAFKA_BOOTSTRAP:kafka-1f7f0718-game-on.d.aivencloud.com:25817}
+    # Only the generic Kafka config here; bootstrap server is env/profile specific
     producer:
       key-serializer: org.apache.kafka.common.serialization.StringSerializer
       value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
@@ -39,21 +35,10 @@ spring:
       spring.json.value.default.type: com.game.on.common.dto.PaymentDTO
       spring.json.use.type.headers: false
 
-      # Config to test deployed Kafka from local (keep commented out if running Docker Kafka)
-#      security.protocol: SSL
-#      ssl.keystore.type: PKCS12
-#      ssl.keystore.location: ${KAFKA_KEYSTORE_PATH}
-#      ssl.keystore.password: ${KAFKA_KEYSTORE_PASSWORD}
-#      ssl.truststore.type: JKS
-#      ssl.truststore.location: ${KAFKA_TRUSTSTORE_PATH}
-#      ssl.truststore.password: ${KAFKA_TRUSTSTORE_PASSWORD}
-server:
-  port: 8093
-
 eureka:
   client:
     service-url:
-      defaultZone: http://localhost:8761/eureka/
+      defaultZone: ${EUREKA_URL}
 
 stripe:
   secret-key: ${STRIPE_SECRET_KEY}

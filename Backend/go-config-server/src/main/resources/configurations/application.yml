@@ -1,12 +1,10 @@
 eureka:
-  instance:
-    hostname: localhost
   client:
-  service-url:
-    default-zone: http://localhost:8761/eureka
+    service-url:
+      # default to localhost so dev "just works" even if EUREKA_URL is not set
+      defaultZone: ${EUREKA_URL:http://localhost:8761/eureka}
 
-# Disable Eureka from overriding system properties
 spring:
   cloud:
     config:
-      override.system-properties: false
+      override-system-properties: false
