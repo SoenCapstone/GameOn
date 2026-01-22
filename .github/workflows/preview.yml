@@ -85,6 +85,6 @@ jobs:
         uses: expo/expo-github-action/preview@v8
         with:
           working-directory: Frontend
-          command: eas update --auto --branch=pr-${{ github.event.pull_request.number }} --platform=ios
+          command: eas update --auto --branch=pr-${{ github.event.pull_request.number }} --platform=all
 
           
