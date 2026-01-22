@@ -2,6 +2,7 @@ import React, { useCallback, useMemo, useState } from "react";
 import { Alert, Modal, Pressable, Text, View, ActivityIndicator } from "react-native";
 import { useStripe } from "@stripe/stripe-react-native";
 import type { AxiosInstance } from "axios";
+import { errorToString } from "@/utils/error";
 
 type Props = Readonly<{
   visible: boolean;
@@ -31,9 +32,7 @@ function pickClientSecret(respData: object): string | null {
   );
 }
 
-function errorMessage(e: Error | string): string {
-  return typeof e === "string" ? e : e.message;
-}
+
 
 export default function LeaguePaymentModal({
   visible,
@@ -92,7 +91,7 @@ export default function LeaguePaymentModal({
       onClose();
     } catch (e) {
       if (e instanceof Error) {
-        Alert.alert("Payment failed", errorMessage(e));
+        Alert.alert("Payment failed", errorToString(e));
       } else {
         Alert.alert("Payment failed", "Unknown error");
       }
