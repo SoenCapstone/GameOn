@@ -90,11 +90,7 @@ export default function LeaguePaymentModal({
       Alert.alert("Payment successful", "You have joined the league.");
       onClose();
     } catch (e) {
-      if (e instanceof Error) {
         Alert.alert("Payment failed", errorToString(e));
-      } else {
-        Alert.alert("Payment failed", "Unknown error");
-      }
     } finally {
       setIsPaying(false);
     }

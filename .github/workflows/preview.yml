@@ -13,7 +13,6 @@ concurrency:
 
 jobs:
   preview:
-    if: ${{ secrets.EXPO_TOKEN != '' }}
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -50,12 +49,14 @@ jobs:
           restore-keys: |
             expo-${{ runner.os }}-
 
-      - name: Setup EAS
-        uses: expo/expo-github-action@v8
-        with:
-          eas-version: latest
-          packager: npm
-          token: ${{ secrets.EXPO_TOKEN }}
+            - name: Setup EAS
+            if: ${{ secrets.EXPO_TOKEN != '' }}
+            uses: expo/expo-github-action@v8
+            with:
+              eas-version: latest
+              packager: npm
+              token: ${{ secrets.EXPO_TOKEN }}
+
 
       - name: Install dependencies
         run: npm ci
@@ -82,8 +83,9 @@ jobs:
               console.log(`Deleted old preview comment: ${comment.id}`);
             }
 
-      - name: Create preview
-        uses: expo/expo-github-action/preview@v8
-        with:
-          working-directory: Frontend
-          command: eas update --auto --branch=pr-${{ github.event.pull_request.number }}
+            - name: Create preview
+            if: ${{ secrets.EXPO_TOKEN != '' }}
+            uses: expo/expo-github-action/preview@v8
+            with:
+              working-directory: Frontend
+              command: eas update --auto --branch=pr-${{ github.event.pull_request.number }}
