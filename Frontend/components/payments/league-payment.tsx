@@ -3,19 +3,16 @@ import { Alert, Modal, Pressable, Text, View, ActivityIndicator } from "react-na
 import { useStripe } from "@stripe/stripe-react-native";
 import type { AxiosInstance } from "axios";
 
-type Props = {
+type Props = Readonly<{
   visible: boolean;
   onClose: () => void;
-
   api: AxiosInstance;
-
   leagueId: string;
   amount: number; // cents
   currency?: string; // default "cad"
   description?: string;
-
   onPaidSuccess: () => Promise<void>;
-};
+}>;
 
 type PaymentIntentResponse = Record<string, string | undefined>;
 
@@ -68,8 +65,6 @@ export default function LeaguePaymentModal({
         currency,
         description: description ?? `League payment (${leagueId})`,
       });
-
-      const dataObj: object = (resp.data ?? {}) as object;
 
       const clientSecret = pickClientSecret(resp.data);
       if (!clientSecret) {
