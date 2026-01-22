@@ -12,6 +12,17 @@ export type LeagueInviteResponse = {
   status?: string | null;
 };
 
+export enum LeaguePrivacy {
+  PUBLIC = "PUBLIC",
+  PRIVATE = "PRIVATE",
+}
+
+function parseLeaguePrivacy(value: unknown): LeaguePrivacy | null {
+  return value === LeaguePrivacy.PUBLIC || value === LeaguePrivacy.PRIVATE
+    ? value
+    : null;
+}
+
 export type LeagueInviteCard = {
   kind: "league";
   id: string;
@@ -19,6 +30,7 @@ export type LeagueInviteCard = {
   leagueName: string;
   teamId: string;
   teamName: string;
+  leaguePrivacy: LeaguePrivacy;
 };
 
 export async function fetchPendingLeagueInvites(
@@ -28,7 +40,9 @@ export async function fetchPendingLeagueInvites(
   const resp = await api.get(GO_LEAGUE_SERVICE_ROUTES.INVITES(leagueId), {
     params: { status: "PENDING" },
   });
-  return (resp.data ?? []).filter((invite: LeagueInviteResponse) => invite.status === "PENDING");
+
+  const invites = (resp.data ?? []) as LeagueInviteResponse[];
+  return invites.filter((invite) => invite.status === "PENDING");
 }
 
 export async function fetchLeagueInvitesWithDetails(
@@ -45,9 +59,11 @@ export async function fetchLeagueInvitesWithDetails(
         const resp = await api.get<LeagueInviteResponse[]>(
           GO_LEAGUE_INVITE_ROUTES.TEAM_INVITES(team.id),
         );
+
         const pending = (resp.data ?? []).filter(
           (invite) => invite.status === "PENDING",
         );
+
         return pending.map((invite) => ({
           ...invite,
           teamName: team.name ?? "Team",
@@ -61,8 +77,12 @@ export async function fetchLeagueInvitesWithDetails(
   const flatInvites = leagueInvitesNested.flat();
   if (flatInvites.length === 0) return [];
 
-  const leagueIds = Array.from(new Set(flatInvites.map((invite) => invite.leagueId)));
-  const leagueMap = await fetchLeagueNameMap(api, leagueIds);
+  const leagueIds = Array.from(new Set(flatInvites.map((i) => i.leagueId)));
+
+  const [leagueMap, privacyMap] = await Promise.all([
+    fetchLeagueNameMap(api, leagueIds),
+    fetchLeaguePrivacyMap(api, leagueIds),
+  ]);
 
   return flatInvites.map((invite) => ({
     kind: "league" as const,
@@ -71,13 +91,11 @@ export async function fetchLeagueInvitesWithDetails(
     leagueName: leagueMap[invite.leagueId] ?? "League",
     teamId: invite.teamId,
     teamName: invite.teamName ?? "Team",
+    leaguePrivacy: privacyMap[invite.leagueId] ?? LeaguePrivacy.PRIVATE, 
   }));
 }
 
-async function fetchLeagueNameMap(
-  api: AxiosInstance,
-  leagueIds: string[],
-) {
+async function fetchLeagueNameMap(api: AxiosInstance, leagueIds: string[]) {
   const entries = await Promise.all(
     leagueIds.map(async (leagueId) => {
       try {
@@ -88,5 +106,25 @@ async function fetchLeagueNameMap(
       }
     }),
   );
+
+  return Object.fromEntries(entries);
+}
+
+async function fetchLeaguePrivacyMap(
+  api: AxiosInstance,
+  leagueIds: string[],
+): Promise<Record<string, LeaguePrivacy>> {
+  const entries = await Promise.all(
+    leagueIds.map(async (leagueId) => {
+      try {
+        const resp = await api.get(GO_LEAGUE_SERVICE_ROUTES.GET(leagueId));
+        const privacy = parseLeaguePrivacy(resp.data?.privacy);
+        return [leagueId, privacy ?? LeaguePrivacy.PRIVATE] as const;
+      } catch {
+        return [leagueId, LeaguePrivacy.PRIVATE] as const;
+      }
+    }),
+  );
+
   return Object.fromEntries(entries);
 }

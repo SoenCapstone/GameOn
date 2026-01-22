@@ -8,6 +8,7 @@ import com.game.on.go_league_service.payment.mapper.PaymentMapper;
 import com.game.on.go_league_service.payment.model.Payment;
 import com.game.on.go_league_service.payment.model.PaymentStatus;
 import com.game.on.go_league_service.payment.repository.PaymentRepository;
+import com.stripe.Stripe;
 import com.stripe.exception.StripeException;
 import com.stripe.model.PaymentIntent;
 import com.stripe.param.PaymentIntentCreateParams;
@@ -17,6 +18,9 @@ import org.springframework.stereotype.Service;
 import java.util.HashMap;
 import java.util.Map;
 
+import lombok.extern.slf4j.Slf4j;
+
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class StripePaymentService {
@@ -50,6 +54,11 @@ public class StripePaymentService {
                                     .build()
                     );
 
+            log.info(
+                    "Stripe.apiKey present right before create? {}",
+                    (Stripe.apiKey != null && !Stripe.apiKey.isBlank())
+            );
+
             if (req.description() != null && !req.description().isBlank()) {
                 paramsBuilder.setDescription(req.description());
             }
@@ -64,6 +73,13 @@ public class StripePaymentService {
         } catch (StripeException e) {
             savedPayment.setStatus(PaymentStatus.FAILED);
             paymentRepository.save(savedPayment);
+            log.error(
+                    "Stripe PaymentIntent.create failed: status={} code={} message={}",
+                    e.getStatusCode(),
+                    e.getCode(),
+                    e.getMessage(),
+                    e
+            );
             throw new BadRequestException("Stripe error: " + e.getMessage());
         }
     }

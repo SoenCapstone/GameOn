@@ -19,7 +19,11 @@ import { errorToString } from "@/utils/error";
 import {
   fetchLeagueInvitesWithDetails,
   LeagueInviteCard,
+  LeaguePrivacy,
 } from "@/components/leagues/league-invite-utils";
+
+import LeaguePaymentModal from "@/components/payments/league-payment";
+
 
 type TeamInviteCard = {
   kind: "team";
@@ -30,6 +34,12 @@ type TeamInviteCard = {
 };
 
 type InviteCard = TeamInviteCard | LeagueInviteCard;
+
+
+
+function isLeagueInviteCard(invite: InviteCard): invite is LeagueInviteCard {
+  return invite.kind === "league";
+}
 
 type TeamInviteResponse = {
   id: string;
@@ -43,6 +53,16 @@ export default function Home() {
   const api = useAxiosWithClerk();
   const queryClient = useQueryClient();
   const { userId } = useAuth();
+
+  const [paymentVisible, setPaymentVisible] = React.useState(false);
+  const [pendingLeagueInvite, setPendingLeagueInvite] = React.useState<{
+    invitationId: string;
+    leagueId: string;
+    leagueName?: string;
+  } | null>(null);
+
+  const LEAGUE_JOIN_FEE_CENTS = 1500; // $15.00 
+
 
   const { data: invites = [], isFetching, refetch } = useQuery<InviteCard[]>({
     queryKey: ["user-updates", userId],
@@ -116,10 +136,32 @@ export default function Home() {
 
   const handleAcceptLeague = useCallback(
     (inviteId: string) => {
-      respondLeagueInviteMutation.mutate({ invitationId: inviteId, isAccepted: true });
+      const maybe = invites.find((i) => i.id === inviteId);
+      if (!maybe || !isLeagueInviteCard(maybe)) {
+        Alert.alert("Missing league invite", "Could not find that league invite.");
+        return;
+      }
+
+      if (!maybe.leagueId) {
+        Alert.alert("Missing league info", "Could not find leagueId for this invite.");
+        return;
+      }
+
+      if (maybe.leaguePrivacy === LeaguePrivacy.PRIVATE) {
+        respondLeagueInviteMutation.mutate({ invitationId: inviteId, isAccepted: true });
+        return;
+      }
+
+      setPendingLeagueInvite({
+        invitationId: inviteId,
+        leagueId: maybe.leagueId,
+        leagueName: maybe.leagueName,
+      });
+      setPaymentVisible(true);
     },
-    [respondLeagueInviteMutation],
+    [invites, respondLeagueInviteMutation],
   );
+
 
   const handleDenyLeague = useCallback(
     (inviteId: string) => {
@@ -208,6 +250,32 @@ export default function Home() {
           <View />
         )}
       </View>
+      <LeaguePaymentModal
+        visible={paymentVisible}
+        onClose={() => {
+          setPaymentVisible(false);
+          setPendingLeagueInvite(null);
+        }}
+        api={api}
+        leagueId={pendingLeagueInvite?.leagueId ?? ""}
+        amount={LEAGUE_JOIN_FEE_CENTS}
+        currency="cad"
+        description={
+          pendingLeagueInvite?.leagueName
+            ? `Join league: ${pendingLeagueInvite.leagueName}`
+            : "Join league"
+        }
+        onPaidSuccess={async () => {
+          if (!pendingLeagueInvite) return;
+
+          await new Promise<void>((resolve, reject) => {
+            respondLeagueInviteMutation.mutate(
+              { invitationId: pendingLeagueInvite.invitationId, isAccepted: true },
+              { onSuccess: () => resolve(), onError: (e) => reject(e) }
+            );
+          });
+        }}
+      />
     </ContentArea>
   );
 }
