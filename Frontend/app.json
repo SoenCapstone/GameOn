@@ -41,7 +41,15 @@
           }
         }
       ],
-      "expo-secure-store"
+      [
+        "@stripe/stripe-react-native",
+        {
+          "merchantIdentifier": "merchant.com.gameon",
+          "enableGooglePay": true
+        }
+      ],
+      "expo-secure-store",
+      "@stripe/stripe-react-native"
     ],
     "experiments": {
       "typedRoutes": true,

@@ -26,6 +26,7 @@ jobs:
       EXPO_PUBLIC_LOG_LEVEL: info
       EXPO_PUBLIC_DEV_LOGIN_EMAIL: ${{ secrets.EXPO_PUBLIC_DEV_LOGIN_EMAIL }}
       EXPO_PUBLIC_DEV_LOGIN_PASSWORD: ${{ secrets.EXPO_PUBLIC_DEV_LOGIN_PASSWORD }}
+      EXPO_PUBLIC_STRIPE_PUBLISHABLE_KEY: ${{ secrets.EXPO_PUBLIC_STRIPE_PUBLISHABLE_KEY }}
 
     steps:
       - name: Setup repo
@@ -85,4 +86,7 @@ jobs:
         uses: expo/expo-github-action/preview@v8
         with:
           working-directory: Frontend
-          command: eas update --auto --branch=pr-${{ github.event.pull_request.number }}
+          command: eas update --auto --branch=pr-${{ github.event.pull_request.number }} --platform=ios
+
+
+          
