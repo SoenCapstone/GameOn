@@ -50,6 +50,7 @@ jobs:
             expo-${{ runner.os }}-
 
       - name: Setup EAS
+        if: ${{ secrets.EXPO_TOKEN != '' }}
         uses: expo/expo-github-action@v8
         with:
           eas-version: latest
@@ -82,9 +83,12 @@ jobs:
             }
 
       - name: Create preview
+        if: ${{ secrets.EXPO_TOKEN != '' }}
         uses: expo/expo-github-action/preview@v8
         with:
           working-directory: Frontend
-          command: eas update --auto --branch=pr-${{ github.event.pull_request.number }} --platform=ios,android 
-
-          
+          command: eas update --auto --branch=pr-${{ github.event.pull_request.number }} --platform ios,android
+      
+      - name: Preview skipped (missing EXPO_TOKEN)
+        if: ${{ secrets.EXPO_TOKEN == '' }}
+        run: echo "Skipping Expo preview because EXPO_TOKEN is not available."
