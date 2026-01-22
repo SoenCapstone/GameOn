@@ -21,6 +21,7 @@ jobs:
       contents: read
       pull-requests: write
     env:
+      HAS_EXPO_TOKEN: ${{ secrets.EXPO_TOKEN != '' }}
       EXPO_PUBLIC_API_BASE_URL: ${{ secrets.EXPO_PUBLIC_API_BASE_URL }}
       EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY: ${{ secrets.EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY }}
       EXPO_PUBLIC_LOG_LEVEL: info
@@ -50,7 +51,7 @@ jobs:
             expo-${{ runner.os }}-
 
       - name: Setup EAS
-        if: ${{ secrets.EXPO_TOKEN != '' }}
+        if: ${{ env.HAS_EXPO_TOKEN == 'true' }}
         uses: expo/expo-github-action@v8
         with:
           eas-version: latest
@@ -58,9 +59,11 @@ jobs:
           token: ${{ secrets.EXPO_TOKEN }}
 
       - name: Install dependencies
+        if: ${{ env.HAS_EXPO_TOKEN == 'true' }}
         run: npm ci
 
       - name: Delete old preview comment
+        if: ${{ env.HAS_EXPO_TOKEN == 'true' }}
         uses: actions/github-script@v8
         with:
           script: |
@@ -69,8 +72,8 @@ jobs:
               repo: context.repo.repo,
               issue_number: context.issue.number,
             });
-            const expoComments = comments.filter(c => 
-              c.user.login === 'github-actions[bot]' && 
+            const expoComments = comments.filter(c =>
+              c.user.login === 'github-actions[bot]' &&
               (c.body.includes('expo.dev') || c.body.includes('Expo Update') || c.body.includes('qr.expo.dev'))
             );
             for (const comment of expoComments) {
@@ -83,12 +86,12 @@ jobs:
             }
 
       - name: Create preview
-        if: ${{ secrets.EXPO_TOKEN != '' }}
+        if: ${{ env.HAS_EXPO_TOKEN == 'true' }}
         uses: expo/expo-github-action/preview@v8
         with:
           working-directory: Frontend
           command: eas update --auto --branch=pr-${{ github.event.pull_request.number }} --platform ios,android
-      
+
       - name: Preview skipped (missing EXPO_TOKEN)
-        if: ${{ secrets.EXPO_TOKEN == '' }}
+        if: ${{ env.HAS_EXPO_TOKEN != 'true' }}
         run: echo "Skipping Expo preview because EXPO_TOKEN is not available."
