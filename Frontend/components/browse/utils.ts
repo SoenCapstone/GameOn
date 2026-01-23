@@ -151,6 +151,7 @@ export function useTeamResults(query: string, onlyMine?: boolean) {
     logo: t.logoUrl || mapSportToEmoji(t.sport),
     league: "",
     location: t.location,
+    privacy: t.privacy,
   }));
 
   return {
@@ -194,6 +195,7 @@ export function useLeagueResults(query: string, onlyMine?: boolean) {
       logo: mapSportToEmoji(league.sport),
       league: "",
       location: league.region ?? "",
+      privacy: league.privacy,
     };
   });
 
