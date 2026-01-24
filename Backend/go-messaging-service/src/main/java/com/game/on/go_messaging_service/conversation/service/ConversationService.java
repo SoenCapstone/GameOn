@@ -150,12 +150,41 @@ public class ConversationService {
         var conversations = conversationRepository.findByIdIn(conversationIds);
         Map<UUID, Conversation> conversationMap = conversations.stream()
                 .collect(Collectors.toMap(Conversation::getId, c -> c));
-        var participants = participantRepository.findByConversationIdIn(conversationIds);
+
+        Map<UUID, TeamSnapshot> teamSnapshots = new HashMap<>();
+        var filteredIds = new ArrayList<UUID>();
+        for (var conversationId : conversationIds) {
+            var conversation = conversationMap.get(conversationId);
+            if (conversation == null) {
+                continue;
+            }
+            if (conversation.isGroup() && conversation.getTeamId() != null) {
+                try {
+                    var snapshot = teamSnapshots.computeIfAbsent(
+                            conversation.getTeamId(),
+                            teamDirectoryService::fetchSnapshot
+                    );
+                    ensureParticipantForTeamConversation(conversation, callerId, snapshot);
+                    filteredIds.add(conversationId);
+                } catch (ForbiddenException ex) {
+                    log.debug("conversation_access_revoked conversationId={} userId={}",
+                            conversationId, callerId);
+                }
+            } else {
+                filteredIds.add(conversationId);
+            }
+        }
+
+        if (filteredIds.isEmpty()) {
+            return new ConversationListResponse(List.of());
+        }
+
+        var participants = participantRepository.findByConversationIdIn(filteredIds);
         Map<UUID, List<ConversationParticipant>> participantMap = participants.stream()
                 .collect(Collectors.groupingBy(participant -> participant.getConversation().getId()));
 
         List<ConversationResponse> responses = new ArrayList<>();
-        for (UUID conversationId : conversationIds) {
+        for (UUID conversationId : filteredIds) {
             var conversation = conversationMap.get(conversationId);
             if (conversation == null) {
                 continue;

@@ -115,10 +115,11 @@ export const MessagingProvider = ({ children }: PropsWithChildren) => {
   }, []);
 
   useEffect(() => {
-    conversations
-      ?.filter((c) => c.type === "GROUP")
-      .forEach((c) => ensureTopicSubscription(c.id));
-  }, [conversations, ensureTopicSubscription]);
+    const conversationIds = (conversations ?? [])
+      .filter((c) => c.type === "GROUP")
+      .map((c) => c.id);
+    socketRef.current?.syncConversationSubscriptions(conversationIds);
+  }, [conversations]);
 
   const sendMessage = useCallback(
     async (conversationId: string, content: string) => {
