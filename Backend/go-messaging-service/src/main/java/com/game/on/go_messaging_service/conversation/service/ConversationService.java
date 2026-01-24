@@ -114,12 +114,39 @@ public class ConversationService {
         return buildResponse(saved, participants, null);
     }
 
-    @Transactional(readOnly = true)
+    @Transactional
     public ConversationListResponse listConversations(String callerId) {
-        var conversationIds = conversationRepository.findConversationIdsForUser(callerId);
+        var conversationIds = new ArrayList<>(conversationRepository.findConversationIdsForUser(callerId));
+        var conversationIdSet = new HashSet<>(conversationIds);
+
+        var teamIds = teamDirectoryService.fetchActiveTeamIdsForUser();
+        if (!teamIds.isEmpty()) {
+            var teamConversations = conversationRepository.findByTeamIdInAndEventFalse(teamIds);
+            if (!teamConversations.isEmpty()) {
+                Map<UUID, TeamSnapshot> teamSnapshots = new HashMap<>();
+                for (var conversation : teamConversations) {
+                    if (!conversationIdSet.add(conversation.getId())) {
+                        continue;
+                    }
+                    try {
+                        var snapshot = teamSnapshots.computeIfAbsent(
+                                conversation.getTeamId(),
+                                teamDirectoryService::fetchSnapshot
+                        );
+                        ensureParticipantForTeamConversation(conversation, callerId, snapshot);
+                        conversationIds.add(conversation.getId());
+                    } catch (ForbiddenException ex) {
+                        log.debug("conversation_access_denied conversationId={} userId={}",
+                                conversation.getId(), callerId);
+                    }
+                }
+            }
+        }
+
         if (conversationIds.isEmpty()) {
             return new ConversationListResponse(List.of());
         }
+
         var conversations = conversationRepository.findByIdIn(conversationIds);
         Map<UUID, Conversation> conversationMap = conversations.stream()
                 .collect(Collectors.toMap(Conversation::getId, c -> c));
@@ -174,6 +201,21 @@ public class ConversationService {
             throw new ForbiddenException("Conversation is not associated with a team");
         }
         TeamSnapshot snapshot = teamDirectoryService.fetchSnapshot(conversation.getTeamId());
+        return ensureParticipantForTeamConversation(conversation, userId, snapshot, participant);
+    }
+
+    private ConversationParticipant ensureParticipantForTeamConversation(Conversation conversation,
+                                                                         String userId,
+                                                                         TeamSnapshot snapshot) {
+        var participant = participantRepository.findByConversationIdAndUserId(conversation.getId(), userId)
+                .orElse(null);
+        return ensureParticipantForTeamConversation(conversation, userId, snapshot, participant);
+    }
+
+    private ConversationParticipant ensureParticipantForTeamConversation(Conversation conversation,
+                                                                         String userId,
+                                                                         TeamSnapshot snapshot,
+                                                                         ConversationParticipant participant) {
         if (!snapshot.isActiveMember(userId)) {
             if (participant != null) {
                 participantRepository.delete(participant);
