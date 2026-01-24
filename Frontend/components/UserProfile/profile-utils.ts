@@ -1,9 +1,9 @@
 import { Alert } from "react-native";
 import { createScopedLog } from "@/utils/logger";
 import * as ImagePicker from "expo-image-picker";
+import { errorToString } from "@/utils/error";
 
 const log = createScopedLog("Profile");
-
 
 interface HandleSaveParams {
   user: any;
@@ -22,43 +22,51 @@ export const handleSaveProfile = async ({
   profilePic,
   router,
 }: HandleSaveParams) => {
+  if (!firstName?.trim()) {
+    Alert.alert(
+      "First Name must not be empty",
+      "Please enter a valid First Name",
+    );
+    return;
+  }
 
-    if (!firstName?.trim()) {
-      Alert.alert("First Name must not be empty", "Please enter a valid First Name");
-      return;
+  if (!lastName?.trim()) {
+    Alert.alert(
+      "Last Name must not be empty",
+      "Please enter a valid Last Name",
+    );
+    return;
+  }
+
+  try {
+    if (user) {
+      await user.update({
+        firstName,
+        lastName,
+      });
     }
 
-    if (!lastName?.trim()) {
-      Alert.alert("Last Name must not be empty", "Please enter a valid Last Name");
-      return;
-    }
+    Alert.alert("Success", "Profile updated");
+  } catch (err) {
+    console.error("Fetch error:", errorToString(err));
+    Alert.alert("Error", "Failed to update profile: " + errorToString(err));
+  }
 
-    try {
-      if (user) {
-        await user.update({
-          firstName,
-          lastName,
-        });
-      }
+  log.info("Updated Profile:", { firstName, lastName, email, profilePic });
 
-      Alert.alert("Success", "Profile updated");
-
-    } catch (err: any) {
-      console.error("Fetch error:", err.message);
-      Alert.alert("Error", "Failed to update profile: " + err.message);
-    }
-
-    log.info("Updated Profile:", { firstName, lastName, email, profilePic });
-
-    router.back();
+  router.back();
 };
 
-
-export const pickImage = async (setProfilePic: (uri: { uri: string }) => void) => {
+export const pickImage = async (
+  setProfilePic: (uri: { uri: string }) => void,
+) => {
   try {
     const { granted } = await ImagePicker.requestMediaLibraryPermissionsAsync();
     if (!granted) {
-      Alert.alert("Permission denied", "You need to allow access to your media library.");
+      Alert.alert(
+        "Permission denied",
+        "You need to allow access to your media library.",
+      );
       return;
     }
 
@@ -70,13 +78,11 @@ export const pickImage = async (setProfilePic: (uri: { uri: string }) => void) =
     if (!result.canceled && result.assets.length > 0) {
       setProfilePic({ uri: result.assets[0].uri });
     }
-  } catch (err: any) {
-    console.error("Image picker error:", err.message);
-    Alert.alert("Error", "Failed to pick image: " + err.message);
+  } catch (err) {
+    console.error("Image picker error:", errorToString(err));
+    Alert.alert("Error", "Failed to pick image: " + errorToString(err));
   }
 };
-
-
 
 export const confirmLogout = (signOut: () => void, log: any) => {
   return () => {
@@ -94,7 +100,7 @@ export const confirmLogout = (signOut: () => void, log: any) => {
           },
         },
       ],
-      { cancelable: true }
+      { cancelable: true },
     );
   };
 };
