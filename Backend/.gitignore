@@ -20,7 +20,7 @@ logs/
 Thumbs.db
 
 ### Env files & secrets ###
-.env
+go-league-service/.env
 *.env
 *.local
 

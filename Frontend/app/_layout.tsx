@@ -15,8 +15,12 @@ import { SearchProvider } from "@/contexts/search-context";
 import { FeatureFlagsProvider } from "@/components/feature-flags/feature-flags-context";
 import { KeyboardProvider } from "react-native-keyboard-controller";
 import { ActionSheetProvider } from "@expo/react-native-action-sheet";
+//import * as Clarity from "@microsoft/react-native-clarity";
+
 
 import { StripeProvider } from "@stripe/stripe-react-native";
+//Clarity.initialize("v55c1jb3f3", {
+//});
 
 const queryClient = new QueryClient();
 
