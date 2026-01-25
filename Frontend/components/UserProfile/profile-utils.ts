@@ -2,11 +2,12 @@ import { Alert } from "react-native";
 import { createScopedLog } from "@/utils/logger";
 import * as ImagePicker from "expo-image-picker";
 import { errorToString } from "@/utils/error";
+import type { UserResource } from "@clerk/types";
 
 const log = createScopedLog("Profile");
 
 interface HandleSaveParams {
-  user: any;
+  user: UserResource | null;
   firstName: string;
   lastName: string;
   email: string;
@@ -84,7 +85,10 @@ export const pickImage = async (
   }
 };
 
-export const confirmLogout = (signOut: () => void, log: any) => {
+export const confirmLogout = (
+  signOut: () => void,
+  log: { info: (message: string) => void },
+) => {
   return () => {
     Alert.alert(
       "Logout",
