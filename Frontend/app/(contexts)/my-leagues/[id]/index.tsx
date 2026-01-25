@@ -1,5 +1,6 @@
 import React, { useMemo, useState } from "react";
-import { ActivityIndicator, FlatList, Pressable, RefreshControl, Text, View } from "react-native";
+import { ActivityIndicator, Pressable, Text, View } from "react-native";
+
 import { useLocalSearchParams } from "expo-router";
 import { ContentArea } from "@/components/ui/content-area";
 import { useLeagueHeader } from "@/hooks/use-team-league-header";
@@ -12,9 +13,6 @@ import { GlassView } from "expo-glass-effect";
 
 type Tab = "Overview" | "Games" | "Teams";
 
-const PLACEHOLDER_ROWS = Array.from({ length: 14 }).map((_, i) => ({
-  id: `placeholder-${i}`,
-}));
 
 export default function MyLeagueScreen() {
   const params = useLocalSearchParams<{ id?: string | string[] }>();
@@ -29,8 +27,9 @@ export default function MyLeagueScreen() {
 }
 
 function MyLeagueContent() {
-  const { id, isLoading, refreshing, onRefresh, handleFollow, title, isOwner } =
+  const { id, isLoading, handleFollow, title, isOwner } =
     useLeagueDetailContext();
+
 
   const [tab, setTab] = useState<Tab>("Overview");
   
@@ -69,71 +68,12 @@ function MyLeagueContent() {
       
               {/* Content switches below */}
               {tab === "Overview" && (
-                <FlatList
-                  ListHeaderComponent={
-                    <GlassView glassEffectStyle="regular" style={styles.tableHeaderGlass}>
-                      <Text style={styles.hRank}>#</Text>
-                      <Text style={styles.hTeam}>Team</Text>
-                      <Text style={styles.hStat}>P</Text>
-                      <Text style={styles.hStat}>W</Text>
-                      <Text style={styles.hStat}>D</Text>
-                      <Text style={styles.hStat}>L</Text>
-                      <Text style={styles.hGD}>GD</Text>
-                      <Text style={styles.hPts}>Pts</Text>
-                    </GlassView>
-                  }
-                  data={PLACEHOLDER_ROWS}
-                  keyExtractor={(x) => x.id}
-                  showsVerticalScrollIndicator={false}
-                  contentContainerStyle={styles.listContent}
-                  refreshControl={
-                    <RefreshControl
-                      refreshing={refreshing}
-                      onRefresh={onRefresh}
-                      tintColor="#fff"
-                    />
-                  }
-                  renderItem={({ index }) => (
-                    <View style={styles.row}>
-                      <View style={styles.rankPill}>
-                        <Text style={styles.rankText}>{index + 1}</Text>
-                      </View>
-
-                      <View style={styles.teamCell}>
-                        <View style={styles.teamBadge}>
-                          <Text style={styles.teamBadgeText}>--</Text>
-                        </View>
-
-                        <View style={styles.teamNameWrap}>
-                          <View style={styles.skelName} />
-                        </View>
-                      </View>
-
-                      <View style={styles.statsCell}>
-                        <View style={styles.skelNum} />
-                      </View>
-                      <View style={styles.statsCell}>
-                        <View style={styles.skelNum} />
-                      </View>
-                      <View style={styles.statsCell}>
-                        <View style={styles.skelNum} />
-                      </View>
-                      <View style={styles.statsCell}>
-                        <View style={styles.skelNum} />
-                      </View>
-
-                      <View style={styles.gdCell}>
-                        <View style={styles.skelNumSmall} />
-                      </View>
-
-                      <View style={styles.ptsCell}>
-                        <View style={styles.skelNumSmall} />
-                      </View>
-                    </View>
-                  )}
-                />
+                <View style={styles.emptyWrap}>
+                  <Text style={styles.emptyTitle}>Overview</Text>
+                  <Text style={styles.emptySubtitle}>Coming soon</Text>
+                </View>
               )}
-      
+
               {tab === "Games" && (
                 <View style={styles.emptyWrap}>
                   <Text style={styles.emptyTitle}>Games</Text>
