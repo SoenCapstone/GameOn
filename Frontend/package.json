@@ -24,6 +24,7 @@
     "@expo/ui": "^0.2.0-beta.9",
     "@expo/vector-icons": "^15.0.3",
     "@legendapp/list": "^2.0.12",
+    "@microsoft/react-native-clarity": "^4.5.3",
     "@radix-ui/react-dialog": "^1.1.15",
     "@react-native-async-storage/async-storage": "^2.2.0",
     "@react-native-community/datetimepicker": "8.4.4",

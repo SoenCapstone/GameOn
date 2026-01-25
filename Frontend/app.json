@@ -9,7 +9,7 @@
     "userInterfaceStyle": "dark",
     "newArchEnabled": true,
     "ios": {
-      "icon": "./assets/icons/icon-black.icon",
+      "icon": "./assets/icons/icon-black.png",
       "supportsTablet": true,
       "bundleIdentifier": "com.anonymous.GameOn"
     },
