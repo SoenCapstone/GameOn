@@ -7,7 +7,7 @@ import type { UserResource } from "@clerk/types";
 const log = createScopedLog("Profile");
 
 interface HandleSaveParams {
-  user: UserResource | null;
+  user: UserResource | null | undefined;
   firstName: string;
   lastName: string;
   email: string;
