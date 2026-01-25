@@ -19,29 +19,16 @@ import {
   User,
 } from "@/components/sign-up/models";
 import type { FormikErrors, FormikTouched } from "formik";
-import type { SignUpResource } from "@clerk/types";
 import * as Yup from "yup";
-import type { UpsertUserPayload } from "@/components/sign-up/hooks/useInsertClerkToBe";
-
-type ClerkError = {
-  errors?: {
-    message: string;
-    longMessage?: string;
-    code?: string;
-  }[];
-};
-
-type UpsertUserMutation = {
-  mutateAsync: (payload: UpsertUserPayload) => Promise<void>;
-};
 
 export const displayFormikError = (
-  touched: FormikTouched<User>,
-  errors: FormikErrors<User>,
+  touched: FormikTouched<any>,
+  errors: FormikErrors<any>,
   inputLabel: SignUpInputLabel,
 ) => {
-  const field = inputLabel.field as keyof User;
-  return touched?.[field] && errors?.[field] ? errors?.[field] : undefined;
+  return touched?.[inputLabel.field] && errors?.[inputLabel.field]
+    ? errors?.[inputLabel.field]
+    : undefined;
 };
 
 export const SignUpSchema = Yup.object({
@@ -70,12 +57,10 @@ export const SignUpSchema = Yup.object({
     }),
 });
 
-export const humanizeClerkError = (
-  err: ClerkError | string | Error,
-): string => {
+export const humanizeClerkError = (err: any) => {
   try {
     const json = typeof err === "string" ? JSON.parse(err) : err;
-    const first = (json as ClerkError)?.errors?.[0];
+    const first = json?.errors?.[0];
     return first?.message || "Something went wrong";
   } catch {
     return "Something went wrong";
@@ -90,7 +75,7 @@ export const toast = (msg: string) => {
 export const startClerkSignUp = async (
   values: User,
   isLoaded: boolean,
-  signUp: SignUpResource,
+  signUp: any,
   setPendingVerification: React.Dispatch<React.SetStateAction<boolean>>,
 ) => {
   if (!isLoaded) {
@@ -104,7 +89,7 @@ export const startClerkSignUp = async (
     });
     await signUp.prepareEmailAddressVerification({ strategy: "email_code" });
     setPendingVerification(true);
-  } catch (e: Error) {
+  } catch (e: any) {
     Alert.alert("Sign up failed", humanizeClerkError(e));
   }
 };
@@ -113,9 +98,9 @@ export const completeVerificationAndUpsert = async (
   values: User,
   isLoaded: boolean,
   otpCode: string,
-  signUp: SignUpResource,
+  signUp: any,
   setActive: SetActiveFn,
-  upsertUser: UpsertUserMutation,
+  upsertUser: any,
 ) => {
   if (!isLoaded) {
     return;
@@ -140,7 +125,7 @@ export const completeVerificationAndUpsert = async (
         "Please complete the required steps.",
       );
     }
-  } catch (e: Error) {
+  } catch (e: any) {
     Alert.alert("Verification failed", humanizeClerkError(e));
   }
 };

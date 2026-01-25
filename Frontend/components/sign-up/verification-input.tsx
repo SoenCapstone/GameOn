@@ -11,7 +11,6 @@ import { useUpsertUser } from "@/components/sign-up/hooks/useInsertClerkToBe";
 import { User, SetActiveFn } from "@/components/sign-up/models";
 import { LabeledInput } from "@/components/auth/labeled-input";
 import { WelcomeAuthButton } from "@/components/auth/welcome-auth-button";
-import type { SignUpResource } from "@clerk/types";
 
 export const VerificationInput: React.FC<{
   otpCode: string;
@@ -19,7 +18,7 @@ export const VerificationInput: React.FC<{
   setActive: SetActiveFn;
   values: User;
   isLoaded: boolean;
-  signUp: SignUpResource | undefined;
+  signUp: any;
 }> = ({ otpCode, setOtpCode, setActive, values, isLoaded, signUp }) => {
   const upsertUser = useUpsertUser();
   return (
