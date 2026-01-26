@@ -36,4 +36,4 @@ export type SignUpInputLabel = {
   rightIcon?: React.ReactNode;
 };
 
-export type SetActiveFn = (params: { session: string }) => Promise<void>;
+export type SetActiveFn = (params: { session: string | null }) => Promise<void>;
