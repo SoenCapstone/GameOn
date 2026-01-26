@@ -16,13 +16,22 @@ import { LeagueDetailsCard } from "@/components/leagues/league-details-card";
 import { LeagueVisibilitySection } from "@/components/leagues/league-visibility";
 import { useLeagueForm } from "@/hooks/use-league-form";
 import { getLeaguePickerConfig } from "@/components/leagues/league-form-constants";
+import PublicPaymentModal from "@/components/payments/public-payment-modal";
 
 const log = createScopedLog("Create League Page");
+
+const PUBLICATION_FEE_CENTS = 1500;
 
 export default function CreateLeagueScreen() {
   const router = useRouter();
   const api = useAxiosWithClerk();
   const queryClient = useQueryClient();
+
+  const [paymentVisible, setPaymentVisible] = React.useState(false);
+  const [createdLeague, setCreatedLeague] = React.useState<{
+    leagueId: string;
+    updatePayload: any;
+  } | null>(null);
 
   const {
     leagueName,
@@ -58,15 +67,25 @@ export default function CreateLeagueScreen() {
         region: region.trim() || undefined,
         location: location.trim() || undefined,
         level: selectedLevel?.id ?? undefined,
-        privacy: isPublic ? "PUBLIC" : "PRIVATE",
+        privacy: "PRIVATE",
       };
+
       log.info("Sending league creation payload:", payload);
       const resp = await api.post(GO_LEAGUE_SERVICE_ROUTES.CREATE, payload);
       return resp.data as { id: string; slug: string };
     },
     onSuccess: async (data) => {
-      log.info("League created:", data);
       await queryClient.invalidateQueries({ queryKey: ["leagues"] });
+
+      if (isPublic) {
+        setCreatedLeague({
+          leagueId: data.id,
+          updatePayload: { privacy: "PUBLIC" },
+        });
+        setPaymentVisible(true);
+        return;
+      }
+
       Alert.alert("League created", "Your league has been created successfully.");
       router.back();
     },
@@ -86,6 +105,7 @@ export default function CreateLeagueScreen() {
       Alert.alert("League creation failed", "Sport is required");
       return;
     }
+
     createLeagueMutation.mutate();
   };
 
@@ -130,6 +150,30 @@ export default function CreateLeagueScreen() {
           if (!openPicker) return;
           pickerConfig[openPicker].setter(option);
           setOpenPicker(null);
+        }}
+      />
+      <PublicPaymentModal
+        visible={paymentVisible}
+        onClose={() => {
+          setPaymentVisible(false);
+          setCreatedLeague(null);
+        }}
+        api={api}
+        entityType="LEAGUE"
+        entityId={createdLeague?.leagueId ?? ""}
+        amount={PUBLICATION_FEE_CENTS}
+        onPaidSuccess={async () => {
+          if (!createdLeague) return;
+
+          await api.patch(
+            `${GO_LEAGUE_SERVICE_ROUTES.ALL}/${createdLeague.leagueId}`,
+            createdLeague.updatePayload
+          );
+
+          await queryClient.invalidateQueries({ queryKey: ["leagues"] });
+          setCreatedLeague(null);
+          setPaymentVisible(false);
+          router.back();
         }}
       />
     </ContentArea>

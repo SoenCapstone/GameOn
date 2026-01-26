@@ -27,8 +27,11 @@ import {
   useTeamDetailContext,
 } from "@/contexts/team-detail-context";
 import { settingsStyles } from "@/constants/settings-styles";
+import PublicPaymentModal from "@/components/payments/public-payment-modal";
+import { useAxiosWithClerk } from "@/hooks/use-axios-clerk";
 
 const log = createScopedLog("Team Settings");
+const PUBLICATION_FEE_CENTS = 1500;
 
 function SettingsHeader({
   onSave,
@@ -79,7 +82,11 @@ export default function TeamSettingsScreen() {
 function TeamSettingsContent() {
   const navigation = useNavigation();
   const router = useRouter();
+  const api = useAxiosWithClerk();
   const { id, team, isLoading: teamLoading, isOwner } = useTeamDetailContext();
+
+  const [paymentVisible, setPaymentVisible] = React.useState(false);
+  const [pendingPayload, setPendingPayload] = React.useState<any | null>(null);
 
   const {
     teamName,
@@ -107,6 +114,7 @@ function TeamSettingsContent() {
     },
     onError: (err) => {
       log.error("Update team failed", errorToString(err));
+      Alert.alert("Update failed", errorToString(err));
     },
   });
 
@@ -175,6 +183,15 @@ function TeamSettingsContent() {
           privacy: isPublic ? "PUBLIC" : "PRIVATE",
         } as const;
 
+        const wasPublic = (team?.privacy ?? "PRIVATE") === "PUBLIC";
+        const wantsPublic = payload.privacy === "PUBLIC";
+
+        if (!wasPublic && wantsPublic) {
+          setPendingPayload(payload);
+          setPaymentVisible(true);
+          return;
+        }
+
         updateTeamMutation.mutate(payload);
       };
 
@@ -205,16 +222,16 @@ function TeamSettingsContent() {
   ]);
 
   if (!isOwner) {
-      return (
-        <ContentArea backgroundProps={{ preset: "red" }}>
-          <View style={settingsStyles.container}>
-            <Text style={settingsStyles.errorText}>
-              You don&apos;t have permission to edit this team
-            </Text>
-          </View>
-        </ContentArea>
-      );
-    }
+    return (
+      <ContentArea backgroundProps={{ preset: "red" }}>
+        <View style={settingsStyles.container}>
+          <Text style={settingsStyles.errorText}>
+            You don&apos;t have permission to edit this team
+          </Text>
+        </View>
+      </ContentArea>
+    );
+  }
 
   if (!team) {
     return (
@@ -269,6 +286,24 @@ function TeamSettingsContent() {
           if (!openPicker) return;
           pickerConfig[openPicker].setter(option);
           setOpenPicker(null);
+        }}
+      />
+
+      <PublicPaymentModal
+        visible={paymentVisible}
+        onClose={() => {
+          setPaymentVisible(false);
+          setPendingPayload(null);
+        }}
+        api={api}
+        entityType="TEAM"
+        entityId={id}
+        amount={PUBLICATION_FEE_CENTS}
+        onPaidSuccess={async () => {
+          if (!pendingPayload) return;
+          updateTeamMutation.mutate(pendingPayload);
+          setPendingPayload(null);
+          setPaymentVisible(false);
         }}
       />
     </ContentArea>
