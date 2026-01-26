@@ -26,8 +26,11 @@ import {
   useLeagueDetailContext,
 } from "@/contexts/league-detail-context";
 import { settingsStyles } from "@/constants/settings-styles";
+import PublicPaymentModal from "@/components/payments/public-payment-modal";
+import { useAxiosWithClerk } from "@/hooks/use-axios-clerk";
 
 const log = createScopedLog("League Settings");
+const PUBLICATION_FEE_CENTS = 1500;
 
 function SettingsHeader({
   onSave,
@@ -78,7 +81,11 @@ export default function LeagueSettingsScreen() {
 function LeagueSettingsContent() {
   const navigation = useNavigation();
   const router = useRouter();
+  const api = useAxiosWithClerk();
   const { id, league, isLoading: leagueLoading, isOwner } = useLeagueDetailContext();
+
+  const [paymentVisible, setPaymentVisible] = React.useState(false);
+  const [pendingPayload, setPendingPayload] = React.useState<any | null>(null);
 
   const {
     leagueName,
@@ -134,11 +141,7 @@ function LeagueSettingsContent() {
       isPublic !== (league.privacy === "PUBLIC")
     : false;
 
-  const pickerConfig = getLeaguePickerConfig(
-    setSelectedSport,
-    setSelectedLevel,
-  );
-
+  const pickerConfig = getLeaguePickerConfig(setSelectedSport, setSelectedLevel);
   const currentConfig = openPicker ? pickerConfig[openPicker] : undefined;
 
   useLayoutEffect(() => {
@@ -157,6 +160,16 @@ function LeagueSettingsContent() {
           location: location.trim() || "",
           privacy: isPublic ? "PUBLIC" : "PRIVATE",
         } as const;
+
+        const wasPublic = (league?.privacy ?? "PRIVATE") === "PUBLIC";
+        const wantsPublic = payload.privacy === "PUBLIC";
+
+        // 💳 Gate PRIVATE -> PUBLIC behind payment
+        if (!wasPublic && wantsPublic) {
+          setPendingPayload(payload);
+          setPaymentVisible(true);
+          return;
+        }
 
         updateLeagueMutation.mutate(payload);
       };
@@ -217,10 +230,7 @@ function LeagueSettingsContent() {
         </View>
       )}
 
-      <LeagueNameField
-        leagueName={leagueName}
-        onChangeLeagueName={setLeagueName}
-      />
+      <LeagueNameField leagueName={leagueName} onChangeLeagueName={setLeagueName} />
 
       <LeagueDetailsCard
         sportLabel={sportLabel}
@@ -232,10 +242,7 @@ function LeagueSettingsContent() {
         onOpenPicker={setOpenPicker}
       />
 
-      <LeagueVisibilitySection
-        isPublic={isPublic}
-        onChangePublic={setIsPublic}
-      />
+      <LeagueVisibilitySection isPublic={isPublic} onChangePublic={setIsPublic} />
 
       <Pressable
         style={[
@@ -274,7 +281,25 @@ function LeagueSettingsContent() {
           setOpenPicker(null);
         }}
       />
+
+      {/* 💳 PAYMENT MODAL */}
+      <PublicPaymentModal
+        visible={paymentVisible}
+        onClose={() => {
+          setPaymentVisible(false);
+          setPendingPayload(null);
+        }}
+        api={api as any}
+        entityType="LEAGUE"
+        entityId={id}
+        amount={PUBLICATION_FEE_CENTS}
+        onPaidSuccess={async () => {
+          if (!pendingPayload) return;
+          updateLeagueMutation.mutate(pendingPayload);
+          setPendingPayload(null);
+          setPaymentVisible(false);
+        }}
+      />
     </ContentArea>
   );
 }
-
