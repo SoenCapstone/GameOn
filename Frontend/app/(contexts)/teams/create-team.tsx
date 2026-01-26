@@ -19,8 +19,10 @@ import { useTeamForm } from "@/hooks/use-team-form";
 import { getPickerConfig } from "@/components/teams/team-form-constants";
 import PublicPaymentModal from "@/components/payments/public-payment-modal";
 
-const log = createScopedLog("Create Team Page");
+//DO NOT delete any of the commented lines and unused variables here they are for team payments just waiting for back end implementation
 
+
+const log = createScopedLog("Create Team Page");
 const PUBLICATION_FEE_CENTS = 1500;
 
 export default function CreateTeamScreen() {
@@ -71,7 +73,7 @@ export default function CreateTeamScreen() {
         scope: selectedScope?.id ?? "",
         logoUrl: logoUri ?? "",
         location: selectedCity?.label ?? "",
-        privacy: "PRIVATE",
+        privacy: isPublic ? "PUBLIC" : "PRIVATE",
       };
 
       log.info("Sending team creation payload:", payload);
@@ -81,14 +83,16 @@ export default function CreateTeamScreen() {
     onSuccess: async (data) => {
       await queryClient.invalidateQueries({ queryKey: ["teams"] });
 
-      if (isPublic) {
-        setCreatedTeam({
-          teamId: data.id,
-          updatePayload: { privacy: "PUBLIC" },
-        });
-        setPaymentVisible(true);
-        return;
-      }
+      // Payment flow disabled until back end implementation
+      // ============================
+      // if (isPublic) {
+      //   setCreatedTeam({
+      //     teamId: data.id,
+      //     updatePayload: { privacy: "PUBLIC" },
+      //   });
+      //   setPaymentVisible(true);
+      //   return;
+      // }
 
       Alert.alert("Team created", "Your team has been created.");
       router.back();
@@ -121,20 +125,13 @@ export default function CreateTeamScreen() {
     <ContentArea scrollable backgroundProps={{ preset: "purple" }}>
       <TeamLogoSection value={logoUri} onChange={setLogoUri} />
 
-      <TeamNameField
-        teamName={teamName}
-        onChangeTeamName={(name) => {
-          setTeamName(name);
-        }}
-      />
+      <TeamNameField teamName={teamName} onChangeTeamName={setTeamName} />
 
       <TeamDetailsCard
         sportLabel={sportLabel}
         scopeLabel={scopeLabel}
         cityLabel={cityLabel}
-        onOpenPicker={(type) => {
-          setOpenPicker(type);
-        }}
+        onOpenPicker={setOpenPicker}
       />
 
       <TeamVisibilitySection
@@ -163,6 +160,9 @@ export default function CreateTeamScreen() {
           setOpenPicker(null);
         }}
       />
+
+      {/* Payment disabled until back end implementation*/}
+      {/* 
       <PublicPaymentModal
         visible={paymentVisible}
         onClose={() => {
@@ -175,18 +175,17 @@ export default function CreateTeamScreen() {
         amount={PUBLICATION_FEE_CENTS}
         onPaidSuccess={async () => {
           if (!createdTeam) return;
-
           await api.patch(
             `${GO_TEAM_SERVICE_ROUTES.ALL}/${createdTeam.teamId}`,
             createdTeam.updatePayload
           );
-
           await queryClient.invalidateQueries({ queryKey: ["teams"] });
           setCreatedTeam(null);
           setPaymentVisible(false);
           router.back();
         }}
       />
+      */}
     </ContentArea>
   );
 }
