@@ -30,6 +30,8 @@ import { settingsStyles } from "@/constants/settings-styles";
 import PublicPaymentModal from "@/components/payments/public-payment-modal";
 import { useAxiosWithClerk } from "@/hooks/use-axios-clerk";
 
+//DO NOT delete any of the commented lines and unused variables here they are for team payments just waiting for back end implementation
+
 const log = createScopedLog("Team Settings");
 const PUBLICATION_FEE_CENTS = 1500;
 
@@ -183,14 +185,16 @@ function TeamSettingsContent() {
           privacy: isPublic ? "PUBLIC" : "PRIVATE",
         } as const;
 
-        const wasPublic = (team?.privacy ?? "PRIVATE") === "PUBLIC";
-        const wantsPublic = payload.privacy === "PUBLIC";
-
-        if (!wasPublic && wantsPublic) {
-          setPendingPayload(payload);
-          setPaymentVisible(true);
-          return;
-        }
+        // Payment disabled until back end implementation
+        // ===============================
+        // const wasPublic = (team?.privacy ?? "PRIVATE") === "PUBLIC";
+        // const wantsPublic = payload.privacy === "PUBLIC";
+        //
+        // if (!wasPublic && wantsPublic) {
+        //   setPendingPayload(payload);
+        //   setPaymentVisible(true);
+        //   return;
+        // }
 
         updateTeamMutation.mutate(payload);
       };
@@ -289,6 +293,8 @@ function TeamSettingsContent() {
         }}
       />
 
+      {/* Payment disabled until backend implementation */}
+      {/*
       <PublicPaymentModal
         visible={paymentVisible}
         onClose={() => {
@@ -306,6 +312,7 @@ function TeamSettingsContent() {
           setPaymentVisible(false);
         }}
       />
+      */}
     </ContentArea>
   );
 }
