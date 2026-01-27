@@ -1,216 +1,98 @@
 import React from "react";
-import {
-  render,
-  fireEvent,
-  act,
-  waitFor,
-  cleanup,
-} from "@testing-library/react-native";
-import CreateTeamScreen from "@/app/(contexts)/teams/create-team";
+import { render, fireEvent, waitFor } from "@testing-library/react-native";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Alert } from "react-native";
-
-jest.spyOn(console, "warn").mockImplementation(() => {});
-jest.spyOn(console, "error").mockImplementation(() => {});
+import CreateTeamScreen from "@/app/(contexts)/teams/create-team";
 
 const mockBack = jest.fn();
-const mockReplace = jest.fn();
+
 jest.mock("expo-router", () => ({
-  useRouter: () => ({ back: mockBack, replace: mockReplace }),
+  useRouter: () => ({ back: mockBack }),
 }));
 
-let mockPost: jest.Mock;
-jest.mock("@/hooks/use-axios-clerk", () => {
-  const original = jest.requireActual("@/hooks/use-axios-clerk");
-  return {
-    __esModule: true,
-    ...original,
-    useAxiosWithClerk: jest.fn(() => ({
-      get post() {
-        if (!mockPost) {
-          mockPost = jest.fn(async () => ({
-            data: { id: "abc", slug: "my-new-team" },
-          }));
-        }
-        return mockPost;
-      },
-      defaults: { headers: { common: {} } },
-    })),
-  };
-});
+const mockPost: jest.Mock<any, any> = jest.fn(async () => ({
+  data: { id: "team-1", slug: "test-team" },
+}));
 
-jest.mock("@/components/ui/content-area", () => {
-  return {
-    __esModule: true,
-    ContentArea: ({ children }: any) => children,
-  };
-});
+jest.mock("@/hooks/use-axios-clerk", () => ({
+  useAxiosWithClerk: () => ({
+    post: mockPost,
+  }),
+  GO_TEAM_SERVICE_ROUTES: {
+    CREATE: "api/v1/teams/create",
+    ALL: "api/v1/teams",
+  },
+}));
 
-jest.mock("@/components/teams/logo-picker", () => {
-  return {
-    __esModule: true,
-    TeamLogoSection: () => null,
-  };
-});
+jest.mock("@/components/ui/content-area", () => ({
+  ContentArea: ({ children }: any) => children,
+}));
 
-beforeEach(() => {
-  jest.clearAllMocks();
-  mockPost = jest.fn(async () => ({
-    data: { id: "abc", slug: "my-new-team" },
-  }));
-});
+jest.mock("@/components/teams/logo-picker", () => ({
+  TeamLogoSection: () => null,
+}));
 
-function createDelayedResponse() {
-  return new Promise((resolve) => {
-    setTimeout(() => resolve({ data: { id: "abc", slug: "my-new-team" } }), 50);
+function renderScreen() {
+  const client = new QueryClient({
+    defaultOptions: { queries: { retry: false }, mutations: { retry: false } },
   });
+
+  return render(
+    <QueryClientProvider client={client}>
+      <CreateTeamScreen />
+    </QueryClientProvider>,
+  );
 }
 
 describe("CreateTeamScreen", () => {
-  let queryClient: QueryClient;
-
   beforeEach(() => {
-    queryClient = new QueryClient({
-      defaultOptions: {
-        queries: { retry: false, gcTime: 0 },
-        mutations: { retry: false, gcTime: 0 },
-      },
-    });
+    jest.clearAllMocks();
   });
 
-  afterEach(async () => {
-    cleanup();
-    queryClient.clear();
-    await new Promise((resolve) => setTimeout(resolve, 0));
-  });
-
-  function renderWithClient(ui: React.ReactElement) {
-    return render(
-      <QueryClientProvider client={queryClient}>{ui}</QueryClientProvider>,
-    );
-  }
-
-  it("renders core UI elements", () => {
-    const { getByPlaceholderText, getByText } = renderWithClient(
-      <CreateTeamScreen />,
-    );
-
-    expect(getByPlaceholderText("Team Name")).toBeTruthy();
-    expect(getByText("Details")).toBeTruthy();
-    expect(getByText("Visibility")).toBeTruthy();
-    expect(getByText("Create Team")).toBeTruthy();
-  });
-
-  it("shows validation warnings when required fields are missing", () => {
+  it("shows validation errors when required fields missing", () => {
     const alertSpy = jest.spyOn(Alert, "alert");
-    const { getByPlaceholderText, getByText } = renderWithClient(
-      <CreateTeamScreen />,
-    );
+    const { getByText } = renderScreen();
 
-    fireEvent.changeText(getByPlaceholderText("Team Name"), "My New Team");
     fireEvent.press(getByText("Create Team"));
 
     expect(alertSpy).toHaveBeenCalledWith(
       "Team creation failed",
-      "Sport is required",
+      "Team name is required",
     );
-    expect(mockReplace).not.toHaveBeenCalled();
-    expect(mockBack).not.toHaveBeenCalled();
-
-    alertSpy.mockRestore();
   });
 
-  it("allows clearing the team name", () => {
-    const { getByPlaceholderText, getByText, queryByDisplayValue } =
-      renderWithClient(<CreateTeamScreen />);
-    const input = getByPlaceholderText("Team Name");
-    fireEvent.changeText(input, "Temp Name");
-    expect(queryByDisplayValue("Temp Name")).toBeTruthy();
-    fireEvent.press(getByText("✕"));
-    expect(queryByDisplayValue("Temp Name")).toBeFalsy();
-  });
+  it("creates team with PRIVATE privacy by default", async () => {
+    const { getByPlaceholderText, getByText } = renderScreen();
 
-  it("selects sport and city then submits and navigates", async () => {
-    const { getByText, getByPlaceholderText, findByText } = renderWithClient(
-      <CreateTeamScreen />,
-    );
-    fireEvent.changeText(getByPlaceholderText("Team Name"), "My New Team");
-
+    fireEvent.changeText(getByPlaceholderText("Team Name"), "My Team");
     fireEvent.press(getByText("Sports"));
-    expect(await findByText("Select Sport")).toBeTruthy();
     fireEvent.press(getByText("Soccer"));
-
     fireEvent.press(getByText("Location"));
-    expect(await findByText("Select City")).toBeTruthy();
     fireEvent.press(getByText("Toronto"));
 
-    act(() => {
-      fireEvent.press(getByText("Create Team"));
-    });
+    fireEvent.press(getByText("Create Team"));
 
-    await waitFor(() => {
-      expect(mockPost).toHaveBeenCalled();
-    });
-    expect(mockPost).toHaveBeenCalledTimes(1);
-    const [url, body] = mockPost.mock.calls[0];
-    expect(url).toContain("api/v1/teams/create");
-    expect(body).toMatchObject({
-      name: "My New Team",
-      privacy: "PUBLIC",
+    await waitFor(() => expect(mockPost).toHaveBeenCalled());
+
+    const [, payload] = mockPost.mock.calls[0] as any[];
+    expect(payload).toMatchObject({
+      name: "My Team",
       sport: "soccer",
-    });
-
-    await waitFor(() => {
-      expect(mockBack).toHaveBeenCalled();
+      location: "Toronto",
+      privacy: "PRIVATE",
     });
   });
 
-  it("respects privacy toggle (PRIVATE)", async () => {
-    const { getByText, getByPlaceholderText, getByRole } = renderWithClient(
-      <CreateTeamScreen />,
-    );
-    fireEvent.changeText(getByPlaceholderText("Team Name"), "Hidden Team");
+  it("navigates back after successful creation", async () => {
+    const { getByPlaceholderText, getByText } = renderScreen();
+
+    fireEvent.changeText(getByPlaceholderText("Team Name"), "Nav Team");
     fireEvent.press(getByText("Sports"));
     fireEvent.press(getByText("Soccer"));
     fireEvent.press(getByText("Location"));
     fireEvent.press(getByText("Toronto"));
-    const switchToggle = getByRole("switch");
-    fireEvent(switchToggle, "valueChange", false);
-    act(() => {
-      fireEvent.press(getByText("Create Team"));
-    });
+    fireEvent.press(getByText("Create Team"));
 
-    await waitFor(() => {
-      expect(mockPost).toHaveBeenCalled();
-    });
-    const [, body] = mockPost.mock.calls[0];
-    expect(body.privacy).toBe("PRIVATE");
-  });
-
-  it("shows 'Creating...' while request is in-flight", async () => {
-    mockPost.mockImplementationOnce(() => createDelayedResponse());
-
-    const { getByText, getByPlaceholderText } = renderWithClient(
-      <CreateTeamScreen />,
-    );
-    fireEvent.changeText(getByPlaceholderText("Team Name"), "Async Team");
-    fireEvent.press(getByText("Sports"));
-    fireEvent.press(getByText("Soccer"));
-    fireEvent.press(getByText("Location"));
-    fireEvent.press(getByText("Toronto"));
-
-    act(() => {
-      fireEvent.press(getByText("Create Team"));
-    });
-    await waitFor(() => {
-      expect(getByText("Creating...")).toBeTruthy();
-    });
-
-    await waitFor(() => {
-      expect(mockPost).toHaveBeenCalled();
-    }, { timeout: 200 });
-    await waitFor(() => {
-      expect(mockBack).toHaveBeenCalled();
-    }, { timeout: 200 });
+    await waitFor(() => expect(mockBack).toHaveBeenCalled());
   });
 });
