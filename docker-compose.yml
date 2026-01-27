@@ -161,6 +161,32 @@ services:
     networks:
       - backend
 
+  go-messaging-service:
+    build:
+      context: ./Backend
+      dockerfile: go-messaging-service/Dockerfile
+    container_name: go-messaging-service
+    restart: unless-stopped
+    environment:
+      HOSTNAME: go-messaging-service
+      CONFIG_SERVER_URL: http://go-config-server:8889
+      EUREKA_SERVER_URL: http://go-discovery-service:8761/eureka
+      DB_HOST: postgres_db
+      DB_PORT: 5432
+      DB_NAME: gameon_db
+      DB_USER: username
+      DB_PASSWORD: password
+    ports:
+      - "8095:8095"
+    depends_on:
+      go-team-service:
+        condition: service_healthy
+      db:
+        condition: service_started
+    command: sh -c "sleep 20 && java -jar app.jar"
+    networks:
+      - backend
+
 volumes:
   db_data:
 
