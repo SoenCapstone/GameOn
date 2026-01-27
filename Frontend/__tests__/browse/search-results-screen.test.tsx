@@ -394,6 +394,103 @@ describe("SearchResultsScreen", () => {
     expect(queryByText(/Failed to load teams/)).toBeNull();
   });
 
+  it("shows both error messages when search is active", () => {
+    mockedUseSearch.mockReturnValue({
+      ...defaultSearchContext,
+      searchActive: true,
+      query: "test",
+      teamError: "Failed to fetch teams",
+      leagueError: "Failed to fetch leagues",
+    });
+
+    const onResultPress = jest.fn();
+    const { getByText } = render(
+      <SearchResultsScreen
+        logScope="Test"
+        backgroundPreset="blue"
+        modes={defaultModes}
+        onResultPress={onResultPress}
+      />,
+    );
+
+    expect(getByText(/Failed to load teams/)).toBeTruthy();
+    expect(getByText(/Failed to load leagues/)).toBeTruthy();
+  });
+
+  it("shows both error messages when search is active regardless of selected mode", () => {
+    mockedUseSearch.mockReturnValue({
+      ...defaultSearchContext,
+      searchActive: true,
+      query: "test",
+      activeMode: "teams",
+      teamError: "Failed to fetch teams",
+      leagueError: "Failed to fetch leagues",
+    });
+
+    const onResultPress = jest.fn();
+    const { getByText, queryByTestId } = render(
+      <SearchResultsScreen
+        logScope="Test"
+        backgroundPreset="blue"
+        modes={defaultModes}
+        onResultPress={onResultPress}
+      />,
+    );
+
+    // Both errors should be visible when search is active
+    expect(getByText(/Failed to load teams/)).toBeTruthy();
+    expect(getByText(/Failed to load leagues/)).toBeTruthy();
+
+    // Segmented control should not be visible when search is active
+    expect(queryByTestId("segmented-control")).toBeNull();
+  });
+
+  it("shows only team error when search is active with only team error", () => {
+    mockedUseSearch.mockReturnValue({
+      ...defaultSearchContext,
+      searchActive: true,
+      query: "test",
+      teamError: "Failed to fetch teams",
+      leagueError: null,
+    });
+
+    const onResultPress = jest.fn();
+    const { getByText, queryByText } = render(
+      <SearchResultsScreen
+        logScope="Test"
+        backgroundPreset="blue"
+        modes={defaultModes}
+        onResultPress={onResultPress}
+      />,
+    );
+
+    expect(getByText(/Failed to load teams/)).toBeTruthy();
+    expect(queryByText(/Failed to load leagues/)).toBeNull();
+  });
+
+  it("shows only league error when search is active with only league error", () => {
+    mockedUseSearch.mockReturnValue({
+      ...defaultSearchContext,
+      searchActive: true,
+      query: "test",
+      teamError: null,
+      leagueError: "Failed to fetch leagues",
+    });
+
+    const onResultPress = jest.fn();
+    const { getByText, queryByText } = render(
+      <SearchResultsScreen
+        logScope="Test"
+        backgroundPreset="blue"
+        modes={defaultModes}
+        onResultPress={onResultPress}
+      />,
+    );
+
+    expect(queryByText(/Failed to load teams/)).toBeNull();
+    expect(getByText(/Failed to load leagues/)).toBeTruthy();
+  });
+
   it("handles refresh control", async () => {
     const mockRefetch = jest.fn().mockResolvedValue(undefined);
     mockedUseSearch.mockReturnValue({

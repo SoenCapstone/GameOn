@@ -157,11 +157,11 @@ export function SearchResultsScreen({
       searchActive && q
         ? results
         : results.filter((r) => r.type === selectedMode.type);
-    
+
     if (resultFilter) {
       base = base.filter(resultFilter);
     }
-    
+
     return base.filter((r) => r.name.toLowerCase().includes(q));
   }, [results, selectedMode, q, searchActive, resultFilter]);
 
@@ -202,14 +202,33 @@ export function SearchResultsScreen({
           <ActivityIndicator size="small" color="#FFFFFF" />
         </View>
       ) : null}
-      {selectedMode.key === "teams" && teamError ? (
+
+      {searchActive && teamError ? (
         <View style={styles.errorContainer}>
-          <Text style={styles.errorText}>Failed to load teams: {teamError}</Text>
+          <Text style={styles.errorText}>
+            Failed to load teams: {teamError}
+          </Text>
         </View>
       ) : null}
-      {selectedMode.key === "leagues" && leagueError ? (
+      {searchActive && leagueError ? (
         <View style={styles.errorContainer}>
-          <Text style={styles.errorText}>Failed to load leagues: {leagueError}</Text>
+          <Text style={styles.errorText}>
+            Failed to load leagues: {leagueError}
+          </Text>
+        </View>
+      ) : null}
+      {!searchActive && selectedMode.key === "teams" && teamError ? (
+        <View style={styles.errorContainer}>
+          <Text style={styles.errorText}>
+            Failed to load teams: {teamError}
+          </Text>
+        </View>
+      ) : null}
+      {!searchActive && selectedMode.key === "leagues" && leagueError ? (
+        <View style={styles.errorContainer}>
+          <Text style={styles.errorText}>
+            Failed to load leagues: {leagueError}
+          </Text>
         </View>
       ) : null}
       {refreshing && <ActivityIndicator size="small" color="#fff" />}
