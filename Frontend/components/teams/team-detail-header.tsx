@@ -1,7 +1,7 @@
 import React from "react";
 import { View, StyleSheet } from "react-native";
 import { Header } from "@/components/header/header";
-import { HeaderButton } from "@/components/header/header-button";
+import { Button } from "@/components/ui/button";
 import { PageTitle } from "@/components/header/page-title";
 
 interface TeamDetailHeaderProps {
@@ -19,20 +19,20 @@ export function TeamDetailHeader({
 }: TeamDetailHeaderProps) {
   return (
     <Header
-      left={<HeaderButton type="back" />}
+      left={<Button type="back" />}
       center={<PageTitle title={title} />}
       right={
         isOwner ? (
           <View style={styles.ownerActions}>
             <View style={styles.ownerActionButton}>
-              <HeaderButton
+              <Button
                 type="custom"
                 route={`/teams/${id}/manage-roles`}
                 icon="person.2.fill"
               />
             </View>
             <View style={styles.ownerActionButton}>
-              <HeaderButton
+              <Button
                 type="custom"
                 route={`/teams/${id}/settings`}
                 icon="gear"
@@ -40,7 +40,7 @@ export function TeamDetailHeader({
             </View>
           </View>
         ) : (
-          <HeaderButton type="custom" label="Follow" onPress={onFollow} />
+          <Button type="custom" label="Follow" onPress={onFollow} />
         )
       }
     />

@@ -3,15 +3,13 @@ import React from "react";
 import { Header } from "@/components/header/header";
 import { Logo } from "@/components/header/logo";
 import { PageTitle } from "@/components/header/page-title";
-import { HeaderButton } from "@/components/header/header-button";
+import { Button } from "@/components/ui/button";
 
 const profileHeader = () => (
   <Header
     left={<Logo />}
     center={<PageTitle title="Profile" />}
-    right={
-      <HeaderButton type="custom" icon="gear" route="/(contexts)/settings" />
-    }
+    right={<Button type="custom" icon="gear" route="/(contexts)/settings" />}
   />
 );
 
