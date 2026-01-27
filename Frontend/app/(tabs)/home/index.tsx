@@ -134,7 +134,6 @@ export default function Home() {
 
       if (maybe.leaguePrivacy === LeaguePrivacy.PRIVATE) {
         respondLeagueInviteMutation.mutate({ invitationId: inviteId, isAccepted: true });
-        return;
       }
     },
     [invites, respondLeagueInviteMutation],

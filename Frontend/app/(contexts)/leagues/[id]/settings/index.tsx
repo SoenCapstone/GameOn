@@ -78,6 +78,15 @@ export default function LeagueSettingsScreen() {
   );
 }
 
+type LeagueUpdatePayload = {
+  name: string;
+  sport: string;
+  level: string;
+  region: string;
+  location: string;
+  privacy: "PUBLIC" | "PRIVATE";
+};
+
 function LeagueSettingsContent() {
   const navigation = useNavigation();
   const router = useRouter();
@@ -86,7 +95,8 @@ function LeagueSettingsContent() {
     useLeagueDetailContext();
 
   const [paymentVisible, setPaymentVisible] = React.useState(false);
-  const [pendingPayload, setPendingPayload] = React.useState<any | null>(null);
+  const [pendingPayload, setPendingPayload] = React.useState<LeagueUpdatePayload | null>(null);
+
 
   const [hasPublicAccessLocal, setHasPublicAccessLocal] = React.useState(false);
 

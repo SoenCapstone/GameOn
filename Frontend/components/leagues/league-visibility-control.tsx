@@ -2,12 +2,12 @@ import React from "react";
 import { View, Text, Pressable, Switch } from "react-native";
 import { createTeamStyles as styles } from "@/components/teams/teams-styles";
 
-type Props = {
+type Props = Readonly<{
   isPublic: boolean;
   hasPublicAccess: boolean;
   onRequestPurchase: () => void;
   onChangePublic: (value: boolean) => void;
-};
+}>;
 
 export function LeagueVisibilityControl({
   isPublic,

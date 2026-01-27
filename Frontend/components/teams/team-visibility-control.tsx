@@ -2,12 +2,12 @@ import React from "react";
 import { View, Text, Pressable, Switch } from "react-native";
 import { createTeamStyles as styles } from "@/components/teams/teams-styles";
 
-type Props = {
+type Props = Readonly<{
   isPublic: boolean;
   hasPublicAccess: boolean;
   onRequestPurchase: () => void;
   onChangePublic: (value: boolean) => void;
-};
+}>;
 
 export function TeamVisibilityControl({
   isPublic,
@@ -15,7 +15,6 @@ export function TeamVisibilityControl({
   onRequestPurchase,
   onChangePublic,
 }: Props) {
-  // 🔒 Not purchased yet → show BUY button
   if (!hasPublicAccess) {
     return (
       <View style={styles.fieldGroup}>
@@ -56,7 +55,6 @@ export function TeamVisibilityControl({
     );
   }
 
-  // ✅ Purchased → show toggle + confirmation
   return (
     <View style={styles.fieldGroup}>
       <View style={styles.chip}>
