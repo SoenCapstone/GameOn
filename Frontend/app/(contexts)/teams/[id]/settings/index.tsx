@@ -5,6 +5,7 @@ import {
   Pressable,
   Text,
   Alert,
+  Switch,
 } from "react-native";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useNavigation, StackActions } from "@react-navigation/native";
@@ -15,7 +16,6 @@ import { PageTitle } from "@/components/header/page-title";
 import { TeamLogoSection } from "@/components/teams/logo-picker";
 import { TeamNameField } from "@/components/teams/name-field";
 import { TeamDetailsCard } from "@/components/teams/details-card";
-import { TeamVisibilitySection } from "@/components/teams/visibility";
 import PickerModal from "@/components/ui/pickerModal";
 import { useUpdateTeam, useDeleteTeam } from "@/hooks/use-team-league-settings";
 import { createScopedLog } from "@/utils/logger";
@@ -27,10 +27,9 @@ import {
   useTeamDetailContext,
 } from "@/contexts/team-detail-context";
 import { settingsStyles } from "@/constants/settings-styles";
+import { TeamVisibilityControl } from "@/components/teams/team-visibility-control";
 import PublicPaymentModal from "@/components/payments/public-payment-modal";
 import { useAxiosWithClerk } from "@/hooks/use-axios-clerk";
-
-//DO NOT delete any of the commented lines and unused variables here they are for team payments just waiting for back end implementation
 
 const log = createScopedLog("Team Settings");
 const PUBLICATION_FEE_CENTS = 1500;
@@ -89,6 +88,13 @@ function TeamSettingsContent() {
 
   const [paymentVisible, setPaymentVisible] = React.useState(false);
   const [pendingPayload, setPendingPayload] = React.useState<any | null>(null);
+
+  const [hasPublicAccessLocal, setHasPublicAccessLocal] = React.useState(false);
+
+  React.useEffect(() => {
+    const purchased = (team?.privacy ?? "PRIVATE") === "PUBLIC";
+    setHasPublicAccessLocal(purchased);
+  }, [team?.privacy]);
 
   const {
     teamName,
@@ -165,7 +171,6 @@ function TeamSettingsContent() {
     setSelectedScope,
     setSelectedCity,
   );
-
   const currentConfig = openPicker ? pickerConfig[openPicker] : undefined;
 
   useLayoutEffect(() => {
@@ -185,16 +190,14 @@ function TeamSettingsContent() {
           privacy: isPublic ? "PUBLIC" : "PRIVATE",
         } as const;
 
-        // Payment disabled until back end implementation
-        // ===============================
-        // const wasPublic = (team?.privacy ?? "PRIVATE") === "PUBLIC";
-        // const wantsPublic = payload.privacy === "PUBLIC";
-        //
-        // if (!wasPublic && wantsPublic) {
-        //   setPendingPayload(payload);
-        //   setPaymentVisible(true);
-        //   return;
-        // }
+        const wasPublic = (team?.privacy ?? "PRIVATE") === "PUBLIC";
+        const wantsPublic = payload.privacy === "PUBLIC";
+
+        if (!wasPublic && wantsPublic) {
+          setPendingPayload(payload);
+          setPaymentVisible(true);
+          return;
+        }
 
         updateTeamMutation.mutate(payload);
       };
@@ -266,7 +269,29 @@ function TeamSettingsContent() {
         onOpenPicker={setOpenPicker}
       />
 
-      <TeamVisibilitySection isPublic={isPublic} onChangePublic={setIsPublic} />
+      <TeamVisibilityControl
+        isPublic={isPublic}
+        hasPublicAccess={hasPublicAccessLocal}
+        onRequestPurchase={() => {
+          if (!teamName.trim()) {
+            Alert.alert("Team update failed", "Team name is required");
+            return;
+          }
+
+          const payload = {
+            name: teamName.trim(),
+            sport: selectedSport?.id ?? "",
+            scope: selectedScope?.id ?? "",
+            logoUrl: logoUri ?? "",
+            location: selectedCity?.label ?? "",
+            privacy: "PUBLIC",
+          } as const;
+
+          setPendingPayload(payload);
+          setPaymentVisible(true);
+        }}
+        onChangePublic={setIsPublic}
+      />
 
       <Pressable
         style={[
@@ -293,7 +318,9 @@ function TeamSettingsContent() {
         }}
       />
 
-      {/* Payment disabled until backend implementation */}
+      {/* TEAM PAYMENT NOT IMPLEMENTED IN BACKEND YET
+          Leave this block commented until /payments/intent accepts teamId.
+      */}
       {/*
       <PublicPaymentModal
         visible={paymentVisible}
@@ -307,7 +334,12 @@ function TeamSettingsContent() {
         amount={PUBLICATION_FEE_CENTS}
         onPaidSuccess={async () => {
           if (!pendingPayload) return;
+
           updateTeamMutation.mutate(pendingPayload);
+
+          setHasPublicAccessLocal(true);
+          setIsPublic(true);
+
           setPendingPayload(null);
           setPaymentVisible(false);
         }}

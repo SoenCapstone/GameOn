@@ -7,7 +7,6 @@ import { ContentArea } from "@/components/ui/content-area";
 import { TeamLogoSection } from "@/components/teams/logo-picker";
 import { TeamNameField } from "@/components/teams/name-field";
 import { TeamDetailsCard } from "@/components/teams/details-card";
-import { TeamVisibilitySection } from "@/components/teams/visibility";
 import { createScopedLog } from "@/utils/logger";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import {
@@ -17,24 +16,13 @@ import {
 import { errorToString } from "@/utils/error";
 import { useTeamForm } from "@/hooks/use-team-form";
 import { getPickerConfig } from "@/components/teams/team-form-constants";
-import PublicPaymentModal from "@/components/payments/public-payment-modal";
-
-//DO NOT delete any of the commented lines and unused variables here they are for team payments just waiting for back end implementation
-
 
 const log = createScopedLog("Create Team Page");
-const PUBLICATION_FEE_CENTS = 1500;
 
 export default function CreateTeamScreen() {
   const router = useRouter();
   const api = useAxiosWithClerk();
   const queryClient = useQueryClient();
-
-  const [paymentVisible, setPaymentVisible] = React.useState(false);
-  const [createdTeam, setCreatedTeam] = React.useState<{
-    teamId: string;
-    updatePayload: any;
-  } | null>(null);
 
   const {
     teamName,
@@ -47,8 +35,6 @@ export default function CreateTeamScreen() {
     setSelectedCity,
     logoUri,
     setLogoUri,
-    isPublic,
-    setIsPublic,
     openPicker,
     setOpenPicker,
   } = useTeamForm();
@@ -62,7 +48,6 @@ export default function CreateTeamScreen() {
     setSelectedScope,
     setSelectedCity,
   );
-
   const currentConfig = openPicker ? pickerConfig[openPicker] : undefined;
 
   const createTeamMutation = useMutation({
@@ -73,27 +58,15 @@ export default function CreateTeamScreen() {
         scope: selectedScope?.id ?? "",
         logoUrl: logoUri ?? "",
         location: selectedCity?.label ?? "",
-        privacy: isPublic ? "PUBLIC" : "PRIVATE",
+        privacy: "PRIVATE", // ✅ always private on create
       };
 
       log.info("Sending team creation payload:", payload);
       const resp = await api.post(GO_TEAM_SERVICE_ROUTES.CREATE, payload);
       return resp.data as { id: string; slug: string };
     },
-    onSuccess: async (data) => {
+    onSuccess: async () => {
       await queryClient.invalidateQueries({ queryKey: ["teams"] });
-
-      // Payment flow disabled until back end implementation
-      // ============================
-      // if (isPublic) {
-      //   setCreatedTeam({
-      //     teamId: data.id,
-      //     updatePayload: { privacy: "PUBLIC" },
-      //   });
-      //   setPaymentVisible(true);
-      //   return;
-      // }
-
       Alert.alert("Team created", "Your team has been created.");
       router.back();
     },
@@ -117,7 +90,6 @@ export default function CreateTeamScreen() {
       Alert.alert("Team creation failed", "City is required");
       return;
     }
-
     createTeamMutation.mutate();
   };
 
@@ -132,11 +104,6 @@ export default function CreateTeamScreen() {
         scopeLabel={scopeLabel}
         cityLabel={cityLabel}
         onOpenPicker={setOpenPicker}
-      />
-
-      <TeamVisibilitySection
-        isPublic={isPublic}
-        onChangePublic={setIsPublic}
       />
 
       <Pressable
@@ -160,32 +127,6 @@ export default function CreateTeamScreen() {
           setOpenPicker(null);
         }}
       />
-
-      {/* Payment disabled until back end implementation*/}
-      {/* 
-      <PublicPaymentModal
-        visible={paymentVisible}
-        onClose={() => {
-          setPaymentVisible(false);
-          setCreatedTeam(null);
-        }}
-        api={api}
-        entityType="TEAM"
-        entityId={createdTeam?.teamId ?? ""}
-        amount={PUBLICATION_FEE_CENTS}
-        onPaidSuccess={async () => {
-          if (!createdTeam) return;
-          await api.patch(
-            `${GO_TEAM_SERVICE_ROUTES.ALL}/${createdTeam.teamId}`,
-            createdTeam.updatePayload
-          );
-          await queryClient.invalidateQueries({ queryKey: ["teams"] });
-          setCreatedTeam(null);
-          setPaymentVisible(false);
-          router.back();
-        }}
-      />
-      */}
     </ContentArea>
   );
 }
