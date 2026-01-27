@@ -13,7 +13,7 @@ import {
   pickImage,
 } from "@/components/UserProfile/profile-utils";
 
-function EditProfileHeader({ onSave }: { onSave: () => void }) {
+function EditProfileHeader({ onSave }: Readonly<{ onSave: () => void }>) {
   return (
     <Header
       left={<Button type="back" />}
@@ -46,11 +46,16 @@ export default function EditProfile() {
     });
   }, [user, firstName, lastName, email, image, router]);
 
+  const headerTitle = useCallback(
+    () => <EditProfileHeader onSave={handleSave} />,
+    [handleSave]
+  );
+
   useLayoutEffect(() => {
     navigation.setOptions({
-      headerTitle: () => <EditProfileHeader onSave={handleSave} />,
+      headerTitle,
     });
-  }, [navigation, handleSave]);
+  }, [navigation, headerTitle]);
 
   if (!isLoaded || !isSignedIn) return null;
 
