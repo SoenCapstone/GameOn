@@ -32,8 +32,6 @@ jest.mock("@/components/teams/logo-picker", () => ({
   TeamLogoSection: () => null,
 }));
 
-jest.mock("@/components/payments/public-payment-modal", () => () => null);
-
 function renderScreen() {
   const client = new QueryClient({
     defaultOptions: { queries: { retry: false }, mutations: { retry: false } },
@@ -63,7 +61,7 @@ describe("CreateTeamScreen", () => {
     );
   });
 
-  it("creates team with PUBLIC privacy when toggle is on", async () => {
+  it("creates team with PRIVATE privacy by default", async () => {
     const { getByPlaceholderText, getByText } = renderScreen();
 
     fireEvent.changeText(getByPlaceholderText("Team Name"), "My Team");
@@ -76,32 +74,13 @@ describe("CreateTeamScreen", () => {
 
     await waitFor(() => expect(mockPost).toHaveBeenCalled());
 
-    const [, payload] = mockPost.mock.calls[0];
+    const [, payload] = mockPost.mock.calls[0] as any[];
     expect(payload).toMatchObject({
       name: "My Team",
       sport: "soccer",
       location: "Toronto",
-      privacy: "PUBLIC",
+      privacy: "PRIVATE",
     });
-  });
-
-  it("creates team with PRIVATE privacy when toggle off", async () => {
-    const { getByPlaceholderText, getByText, getByRole } = renderScreen();
-
-    fireEvent.changeText(getByPlaceholderText("Team Name"), "Hidden Team");
-    fireEvent.press(getByText("Sports"));
-    fireEvent.press(getByText("Soccer"));
-    fireEvent.press(getByText("Location"));
-    fireEvent.press(getByText("Toronto"));
-
-    fireEvent(getByRole("switch"), "valueChange", false);
-
-    fireEvent.press(getByText("Create Team"));
-
-    await waitFor(() => expect(mockPost).toHaveBeenCalled());
-
-    const [, payload] = mockPost.mock.calls[0];
-    expect(payload.privacy).toBe("PRIVATE");
   });
 
   it("navigates back after successful creation", async () => {
