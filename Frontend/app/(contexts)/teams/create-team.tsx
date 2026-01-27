@@ -7,7 +7,6 @@ import { ContentArea } from "@/components/ui/content-area";
 import { TeamLogoSection } from "@/components/teams/logo-picker";
 import { TeamNameField } from "@/components/teams/name-field";
 import { TeamDetailsCard } from "@/components/teams/details-card";
-import { TeamVisibilitySection } from "@/components/teams/visibility";
 import { createScopedLog } from "@/utils/logger";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import {
@@ -36,8 +35,6 @@ export default function CreateTeamScreen() {
     setSelectedCity,
     logoUri,
     setLogoUri,
-    isPublic,
-    setIsPublic,
     openPicker,
     setOpenPicker,
   } = useTeamForm();
@@ -51,7 +48,6 @@ export default function CreateTeamScreen() {
     setSelectedScope,
     setSelectedCity,
   );
-
   const currentConfig = openPicker ? pickerConfig[openPicker] : undefined;
 
   const createTeamMutation = useMutation({
@@ -61,21 +57,23 @@ export default function CreateTeamScreen() {
         sport: selectedSport?.id ?? "",
         scope: selectedScope?.id ?? "",
         logoUrl: logoUri ?? "",
-        privacy: isPublic ? "PUBLIC" : "PRIVATE",
         location: selectedCity?.label ?? "",
+        privacy: "PRIVATE", // ✅ always private on create
       };
+
       log.info("Sending team creation payload:", payload);
       const resp = await api.post(GO_TEAM_SERVICE_ROUTES.CREATE, payload);
       return resp.data as { id: string; slug: string };
     },
-    onSuccess: async (data) => {
-      log.info("Team created:", data);
+    onSuccess: async () => {
       await queryClient.invalidateQueries({ queryKey: ["teams"] });
       Alert.alert("Team created", "Your team has been created.");
       router.back();
     },
     onError: (err) => {
-      log.error("Create team failed", errorToString(err));
+      const message = errorToString(err);
+      log.error("Create team failed", message);
+      Alert.alert("Team creation failed", message);
     },
   });
 
@@ -99,23 +97,14 @@ export default function CreateTeamScreen() {
     <ContentArea scrollable backgroundProps={{ preset: "purple" }}>
       <TeamLogoSection value={logoUri} onChange={setLogoUri} />
 
-      <TeamNameField
-        teamName={teamName}
-        onChangeTeamName={(name) => {
-          setTeamName(name);
-        }}
-      />
+      <TeamNameField teamName={teamName} onChangeTeamName={setTeamName} />
 
       <TeamDetailsCard
         sportLabel={sportLabel}
         scopeLabel={scopeLabel}
         cityLabel={cityLabel}
-        onOpenPicker={(type) => {
-          setOpenPicker(type);
-        }}
+        onOpenPicker={setOpenPicker}
       />
-
-      <TeamVisibilitySection isPublic={isPublic} onChangePublic={setIsPublic} />
 
       <Pressable
         style={styles.createButton}
