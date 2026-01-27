@@ -52,3 +52,9 @@ eureka:
     fetch-registry: false            # user-service only needs to register
     service-url:
       defaultZone: ${EUREKA_SERVER_URL:http://localhost:8761/eureka/}
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,refresh

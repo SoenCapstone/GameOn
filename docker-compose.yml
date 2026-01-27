@@ -1,5 +1,3 @@
-version: "3.9"
-
 services:
   db:
     image: postgres:15
@@ -123,6 +121,40 @@ services:
     depends_on:
       go-user-service:
         condition: service_started
+      db:
+        condition: service_started
+    command: sh -c "sleep 20 && java -jar app.jar"
+    networks:
+      - backend
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8092/actuator/health"]
+      interval: 10s       # how often to check
+      timeout: 3s         # give the endpoint 3s to respond
+      retries: 5          # mark as unhealthy after 5 failures
+      start_period: 20s   # grace period for startup
+
+  go-league-service:
+    build:
+      context: ./Backend
+      dockerfile: go-league-service/Dockerfile
+    container_name: go-league-service
+    restart: unless-stopped
+    environment:
+      HOSTNAME: go-league-service
+      CONFIG_SERVER_URL: http://go-config-server:8889
+      EUREKA_SERVER_URL: http://go-discovery-service:8761/eureka
+      DB_HOST: postgres_db
+      DB_PORT: 5432
+      DB_NAME: gameon_db
+      DB_USER: username
+      DB_PASSWORD: password
+      STRIPE_SECRET_KEY: sk_test_51SpYePDQOghxRyHHCVtXIkJLZXe2QK0iiZgaijwL7wbqWTSJYeUbNmU2qQl68IWBixSNKUG27WE3h2p6Xfo9Pz5B00ugGaIIKZ
+      STRIPE_WEBHOOK_SECRET: whsec_57591386a466f227bcbfa488cb93f4ea22a1097c6adcb8d7e644a45b709754c3
+    ports:
+      - "8093:8093"
+    depends_on:
+      go-team-service:
+        condition: service_healthy
       db:
         condition: service_started
     command: sh -c "sleep 20 && java -jar app.jar"

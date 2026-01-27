@@ -16,6 +16,7 @@ RUN mvn -f common/pom.xml clean install -DskipTests -q \
 
 # Runtime Stage
 FROM eclipse-temurin:21-jre-alpine
+RUN apk add --no-cache curl
 RUN addgroup -S app && adduser -S app -G app
 WORKDIR /app
 
