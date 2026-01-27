@@ -2,7 +2,7 @@ spring:
   application:
     name: go-user-service
   config:
-    import: optional:configserver:http://localhost:8889
+    import: optional:configserver:${CONFIG_SERVER_URL:http://localhost:8889}
 
 management:
   endpoints:
