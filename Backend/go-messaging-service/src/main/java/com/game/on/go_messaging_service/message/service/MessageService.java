@@ -5,6 +5,7 @@ import com.game.on.go_messaging_service.conversation.repository.ConversationPart
 import com.game.on.go_messaging_service.conversation.repository.ConversationRepository;
 import com.game.on.go_messaging_service.conversation.service.ConversationMapper;
 import com.game.on.go_messaging_service.conversation.service.ConversationService;
+import com.game.on.go_messaging_service.client.TeamDirectoryService;
 import com.game.on.go_messaging_service.exception.BadRequestException;
 import com.game.on.go_messaging_service.message.dto.MessageHistoryResponse;
 import com.game.on.go_messaging_service.message.dto.MessageResponse;
@@ -35,6 +36,7 @@ public class MessageService {
     private final ConversationMapper conversationMapper;
     private final MessageRepository messageRepository;
     private final MessageBroadcastGateway broadcastGateway;
+    private final TeamDirectoryService teamDirectoryService;
 
     @Transactional
     public MessageResponse sendMessage(UUID conversationId, String senderId, String content) {
@@ -77,8 +79,21 @@ public class MessageService {
         if (conversation.isDirect()) {
             var participantIds = participantRepository.findParticipantIds(conversation.getId());
             broadcastGateway.publishToUsers(participantIds, saved);
-        } else {
-            broadcastGateway.publishToConversation(conversation.getId(), saved);
+        } else if (conversation.getTeamId() != null) {
+            var snapshot = teamDirectoryService.fetchSnapshot(conversation.getTeamId());
+            var activeMemberIds = snapshot.activeMemberIds();
+            if (activeMemberIds.isEmpty()) {
+                return;
+            }
+            if (conversation.isEvent()) {
+                var participantIds = participantRepository.findParticipantIds(conversation.getId());
+                var eligible = participantIds.stream()
+                        .filter(activeMemberIds::contains)
+                        .toList();
+                broadcastGateway.publishToUsers(eligible, saved);
+            } else {
+                broadcastGateway.publishToUsers(activeMemberIds, saved);
+            }
         }
     }
 

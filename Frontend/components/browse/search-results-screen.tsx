@@ -32,6 +32,7 @@ type Props = {
     | undefined;
   readonly modes: SearchModeConfig[];
   readonly onResultPress: (result: SearchResult) => void;
+  readonly resultFilter?: (result: SearchResult) => boolean;
 };
 
 function Separator() {
@@ -43,6 +44,7 @@ export function SearchResultsScreen({
   backgroundPreset,
   modes,
   onResultPress,
+  resultFilter,
 }: Props) {
   const log = createScopedLog(logScope);
   const {
@@ -150,12 +152,17 @@ export function SearchResultsScreen({
     if (!selectedMode) return [] as SearchResult[];
 
     if (!q && searchActive) return [];
-    const base =
+    let base =
       searchActive && q
         ? results
         : results.filter((r) => r.type === selectedMode.type);
+    
+    if (resultFilter) {
+      base = base.filter(resultFilter);
+    }
+    
     return base.filter((r) => r.name.toLowerCase().includes(q));
-  }, [results, selectedMode, q, searchActive]);
+  }, [results, selectedMode, q, searchActive, resultFilter]);
 
   if (!selectedMode) return null;
 

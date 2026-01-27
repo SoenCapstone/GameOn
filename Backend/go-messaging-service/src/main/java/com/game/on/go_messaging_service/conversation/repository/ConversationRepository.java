@@ -22,6 +22,12 @@ public interface ConversationRepository extends JpaRepository<Conversation, UUID
                                             @Param("eventOnly") boolean event);
 
     @Query("""
+            select c from Conversation c
+            where c.teamId in :teamIds and c.event = false
+            """)
+    List<Conversation> findByTeamIdInAndEventFalse(@Param("teamIds") Collection<UUID> teamIds);
+
+    @Query("""
             select cp.conversation.id from ConversationParticipant cp
             join cp.conversation c
             where cp.userId = :userId

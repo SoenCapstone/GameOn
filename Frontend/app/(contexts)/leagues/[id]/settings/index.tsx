@@ -1,16 +1,10 @@
 import React, { useLayoutEffect } from "react";
-import {
-  View,
-  ActivityIndicator,
-  Pressable,
-  Text,
-  Alert,
-} from "react-native";
+import { View, ActivityIndicator, Pressable, Text, Alert } from "react-native";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useNavigation, StackActions } from "@react-navigation/native";
 import { ContentArea } from "@/components/ui/content-area";
 import { Header } from "@/components/header/header";
-import { HeaderButton } from "@/components/header/header-button";
+import { Button } from "@/components/ui/button";
 import { PageTitle } from "@/components/header/page-title";
 import PickerModal from "@/components/ui/pickerModal";
 import { createScopedLog } from "@/utils/logger";
@@ -19,7 +13,10 @@ import { useLeagueForm } from "@/hooks/use-league-form";
 import { getLeaguePickerConfig } from "@/components/leagues/league-form-constants";
 import { LeagueNameField } from "@/components/leagues/league-name-field";
 import { LeagueDetailsCard } from "@/components/leagues/league-details-card";
-import { useUpdateLeague, useDeleteLeague } from "@/hooks/use-team-league-settings";
+import {
+  useUpdateLeague,
+  useDeleteLeague,
+} from "@/hooks/use-team-league-settings";
 import {
   LeagueDetailProvider,
   useLeagueDetailContext,
@@ -45,7 +42,7 @@ function SettingsHeader({
 
   return (
     <Header
-      left={<HeaderButton type="back" />}
+      left={<Button type="back" />}
       center={<PageTitle title="League Settings" />}
       right={
         <Pressable

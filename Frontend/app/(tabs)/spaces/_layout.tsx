@@ -4,7 +4,7 @@ import { Alert } from "react-native";
 import { Header } from "@/components/header/header";
 import { Logo } from "@/components/header/logo";
 import { PageTitle } from "@/components/header/page-title";
-import { HeaderButton } from "@/components/header/header-button";
+import { Button } from "@/components/ui/button";
 import { useSearch, SearchProvider } from "@/contexts/search-context";
 
 function SpacesHeader() {
@@ -17,14 +17,20 @@ function SpacesHeader() {
 
   const right =
     mode === "leagues" ? (
-      <HeaderButton type="custom" route="/leagues/create-league" icon="plus" />
+      <Button type="custom" route="/leagues/create-league" icon="plus" />
     ) : mode === "tournaments" ? (
-      <HeaderButton type="custom" icon="plus" onPress={handleComingSoon} />
+      <Button type="custom" icon="plus" onPress={handleComingSoon} />
     ) : (
-      <HeaderButton type="custom" route="/teams/create-team" icon="plus" />
+      <Button type="custom" route="/teams/create-team" icon="plus" />
     );
 
-  return <Header left={<Logo />} center={<PageTitle title="Spaces" />} right={right} />;
+  return (
+    <Header
+      left={<Logo />}
+      center={<PageTitle title="Spaces" />}
+      right={right}
+    />
+  );
 }
 
 export default function SpacesLayout() {

@@ -2,11 +2,11 @@ import { Stack } from "expo-router";
 import React from "react";
 import { Header } from "@/components/header/header";
 import { PageTitle } from "@/components/header/page-title";
-import { HeaderButton } from "@/components/header/header-button";
+import { Button } from "@/components/ui/button";
 
 const featureFlagsHeader = () => (
   <Header
-    left={<HeaderButton type="back" />}
+    left={<Button type="back" />}
     center={<PageTitle title="Feature Flags" />}
   />
 );

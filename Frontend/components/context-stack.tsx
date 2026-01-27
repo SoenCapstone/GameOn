@@ -3,7 +3,7 @@ import { Stack } from "expo-router";
 import type { NativeStackNavigationOptions } from "@react-navigation/native-stack";
 import { Header } from "@/components/header/header";
 import { PageTitle } from "@/components/header/page-title";
-import { HeaderButton } from "@/components/header/header-button";
+import { Button } from "@/components/ui/button";
 import { useSearch } from "@/contexts/search-context";
 
 interface ContextStackConfig {
@@ -25,7 +25,7 @@ const backlessOptions = {
 function buildCreateHeader(title: string) {
   return (
     <Header
-      left={<HeaderButton type="back" />}
+      left={<Button type="back" />}
       center={<PageTitle title={title} />}
     />
   );
@@ -38,16 +38,17 @@ export function useContextStackScreens({
 }: Readonly<ContextStackConfig>) {
   const { setQuery, setSearchActive } = useSearch();
 
-  const searchBarOptions: NativeStackNavigationOptions["headerSearchBarOptions"] = {
-    hideNavigationBar: false,
-    placement: "automatic",
-    onChangeText: (event: any) => {
-      const text = event?.nativeEvent?.text ?? "";
-      setQuery(text);
-    },
-    onFocus: () => setSearchActive(true),
-    onBlur: () => setSearchActive(false),
-  };
+  const searchBarOptions: NativeStackNavigationOptions["headerSearchBarOptions"] =
+    {
+      hideNavigationBar: false,
+      placement: "automatic",
+      onChangeText: (event: any) => {
+        const text = event?.nativeEvent?.text ?? "";
+        setQuery(text);
+      },
+      onFocus: () => setSearchActive(true),
+      onBlur: () => setSearchActive(false),
+    };
 
   const screens = [
     create && (
