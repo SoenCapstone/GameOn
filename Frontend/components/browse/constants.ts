@@ -7,6 +7,7 @@ export interface SearchResult {
   league?: string;
   sport: string;
   location: string;
+  privacy?: string;
 }
 
 export type SearchContextValue = {

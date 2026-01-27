@@ -194,6 +194,18 @@ export class MessagingSocket {
     this.subscribeConversation(conversationId);
   }
 
+  syncConversationSubscriptions(conversationIds: string[]) {
+    const nextIds = new Set(conversationIds);
+    this.desiredConversationIds = nextIds;
+    this.conversationSubscriptions.forEach((sub, id) => {
+      if (!nextIds.has(id)) {
+        sub.unsubscribe();
+        this.conversationSubscriptions.delete(id);
+      }
+    });
+    nextIds.forEach((id) => this.subscribeConversation(id));
+  }
+
   private subscribeConversation(conversationId: string) {
     if (!this.client || !this.client.connected) {
       return;
