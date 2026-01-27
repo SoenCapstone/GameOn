@@ -16,29 +16,29 @@ spring:
           # the correct instance(s) & then forward the request.
           routes:
             - id: go-user-service
-              uri: lb://GO-USER-SERVICE
+              uri: lb://go-user-service
               predicates:
                 - Path=/api/v1/user/**
             - id: go-league-invite-service
-              uri: lb://GO-LEAGUE-SERVICE
+              uri: lb://go-league-invite-service
               predicates:
                 - Path=/api/v1/teams/*/league-invites,/api/v1/league-invites/**
             - id: go-team-service
-              uri: lb://GO-TEAM-SERVICE
+              uri: lb://go-team-service
               predicates:
                 - Path=/api/v1/teams/**,/api/v1/invites/**
             - id: go-league-service
-              uri: lb://GO-LEAGUE-SERVICE
+              uri: lb://go-league-service
               predicates:
                 - Path=/api/v1/leagues/**,/api/v1/payments/**
             - id: go-messaging-service-ws
-              uri: lb:ws://GO-MESSAGING-SERVICE
+              uri: lb:ws://go-messaging-service-ws
               predicates:
                 - Path=/api/v1/messaging/ws
               filters:
                 - SetPath=/ws
             - id: go-messaging-service
-              uri: lb://GO-MESSAGING-SERVICE
+              uri: lb://go-messaging-service
               predicates:
                 - Path=/api/v1/messaging/**
   security:
@@ -51,7 +51,7 @@ eureka:
     register-with-eureka: false
     fetch-registry: true
     service-url:
-      default-zone: http://go-discovery-service:8761/eureka/
+      defaultZone: ${EUREKA_SERVER_URL:http://localhost:8761/eureka/}
 
 management:
   endpoints:

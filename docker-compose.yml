@@ -1,42 +1,6 @@
+version: "3.9"
+
 services:
-  kafka-ui:
-    image: provectuslabs/kafka-ui:latest
-    container_name: kafka-ui
-    ports:
-      - "8085:8080"
-    environment:
-      KAFKA_CLUSTERS_0_NAME: local
-      KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: kafka:29092
-    depends_on:
-      - kafka
-
-  kafka:
-    image: apache/kafka:3.9.1
-    container_name: kafka
-    ports:
-      - "9092:9092" 
-    environment:
-      CLUSTER_ID: "abcdefghijklmnopqrstuv"
-
-      KAFKA_NODE_ID: 1
-      KAFKA_PROCESS_ROLES: "broker,controller"
-      KAFKA_CONTROLLER_QUORUM_VOTERS: "1@kafka:9093"
-      KAFKA_CONTROLLER_LISTENER_NAMES: "CONTROLLER"
-
-      KAFKA_LISTENERS: "INTERNAL://0.0.0.0:29092,EXTERNAL://0.0.0.0:9092,CONTROLLER://0.0.0.0:9093"
-      KAFKA_ADVERTISED_LISTENERS: "INTERNAL://kafka:29092,EXTERNAL://host.docker.internal:9092"
-      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: "INTERNAL:PLAINTEXT,EXTERNAL:PLAINTEXT,CONTROLLER:PLAINTEXT"
-      KAFKA_INTER_BROKER_LISTENER_NAME: "INTERNAL"
-
-      #  Single node in dev
-      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
-      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
-      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
-      KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0
-
-    volumes:
-      - kafka_data:/var/lib/kafka/data
-
   db:
     image: postgres:15
     container_name: postgres_db
@@ -49,7 +13,124 @@ services:
       - "5432:5432"
     volumes:
       - db_data:/var/lib/postgresql/data
+    networks:
+      - backend
+
+  go-config-server:
+    build:
+      context: ./Backend
+      dockerfile: go-config-server/Dockerfile
+    container_name: go-config-server
+    restart: unless-stopped
+    environment:
+      HOSTNAME: go-config-server
+      SPRING_PROFILES_ACTIVE: native
+    ports:
+      - "8889:8889"
+    networks:
+      - backend
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8889/actuator/health"]
+      interval: 10s       # how often to check
+      timeout: 3s         # give the endpoint 3s to respond
+      retries: 5          # mark as unhealthy after 5 failures
+      start_period: 20s   # grace period for startup
+
+  go-discovery-service:
+    build:
+      context: ./Backend
+      dockerfile: go-discovery-service/Dockerfile
+    container_name: go-discovery-service
+    restart: unless-stopped
+    environment:
+      HOSTNAME: go-discovery-service
+      EUREKA_URL: http://go-discovery-service:8761/eureka
+      CONFIG_SERVER_URL: http://go-config-server:8889
+    ports:
+      - "8761:8761"
+    depends_on:
+      go-config-server:
+        condition: service_healthy
+    command: sh -c "sleep 60 && java -jar app.jar"
+    networks:
+      - backend
+
+  go-api-gateway:
+    build:
+      context: ./Backend
+      dockerfile: go-api-gateway/Dockerfile
+    container_name: go-api-gateway
+    restart: unless-stopped
+    environment:
+      HOSTNAME: go-api-gateway
+      CONFIG_SERVER_URL: http://go-config-server:8889
+      EUREKA_SERVER_URL: http://go-discovery-service:8761/eureka
+    ports:
+      - "8222:8222"
+    depends_on:
+      go-config-server:
+        condition: service_healthy
+      go-discovery-service:
+        condition: service_started
+    networks:
+      - backend
+
+  go-user-service:
+    build:
+      context: ./Backend
+      dockerfile: go-user-service/Dockerfile
+    container_name: go-user-service
+    restart: unless-stopped
+    environment:
+      HOSTNAME: go-user-service
+      CONFIG_SERVER_URL: http://go-config-server:8889
+      EUREKA_SERVER_URL: http://go-discovery-service:8761/eureka
+      DB_HOST: postgres_db
+      DB_PORT: 5432
+      DB_NAME: gameon_db
+      DB_USER: username
+      DB_PASSWORD: password
+    ports:
+      - "8090:8090"
+    depends_on:
+      go-config-server:
+        condition: service_healthy
+      go-discovery-service:
+        condition: service_started
+      db:
+        condition: service_started
+    command: sh -c "sleep 20 && java -jar app.jar"
+    networks:
+      - backend
+
+  go-team-service:
+    build:
+      context: ./Backend
+      dockerfile: go-team-service/Dockerfile
+    container_name: go-team-service
+    restart: unless-stopped
+    environment:
+      HOSTNAME: go-team-service
+      CONFIG_SERVER_URL: http://go-config-server:8889
+      EUREKA_SERVER_URL: http://go-discovery-service:8761/eureka
+      DB_HOST: postgres_db
+      DB_PORT: 5432
+      DB_NAME: gameon_db
+      DB_USER: username
+      DB_PASSWORD: password
+    ports:
+      - "8092:8092"
+    depends_on:
+      go-user-service:
+        condition: service_started
+      db:
+        condition: service_started
+    command: sh -c "sleep 20 && java -jar app.jar"
+    networks:
+      - backend
 
 volumes:
-  kafka_data:
   db_data:
+
+networks:
+  backend:
