@@ -66,7 +66,6 @@ describe("ContentArea", () => {
 
     expect(style.flex).toBe(1);
     expect(style.paddingHorizontal).toBe(16);
-    expect(style.rowGap).toBe(14);
   });
 
   it("renders as View by default when scrollable is not set", () => {

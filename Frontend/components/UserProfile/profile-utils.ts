@@ -1,16 +1,16 @@
 import { Alert } from "react-native";
 import { createScopedLog } from "@/utils/logger";
 import * as ImagePicker from "expo-image-picker";
+import { File } from "expo-file-system";
 
 const log = createScopedLog("Profile");
-
 
 interface HandleSaveParams {
   user: any;
   firstName: string;
   lastName: string;
   email: string;
-  profilePic: string;
+  image: { uri: string; mimeType?: string } | number | null;
   router: { back: () => void };
 }
 
@@ -19,56 +19,89 @@ export const handleSaveProfile = async ({
   firstName,
   lastName,
   email,
-  profilePic,
+  image,
   router,
 }: HandleSaveParams) => {
+  if (!firstName?.trim()) {
+    Alert.alert(
+      "First Name must not be empty",
+      "Please enter a valid First Name",
+    );
+    return;
+  }
 
-    if (!firstName?.trim()) {
-      Alert.alert("First Name must not be empty", "Please enter a valid First Name");
-      return;
-    }
+  if (!lastName?.trim()) {
+    Alert.alert(
+      "Last Name must not be empty",
+      "Please enter a valid Last Name",
+    );
+    return;
+  }
 
-    if (!lastName?.trim()) {
-      Alert.alert("Last Name must not be empty", "Please enter a valid Last Name");
-      return;
-    }
+  try {
+    if (user) {
+      await user.update({
+        firstName,
+        lastName,
+      });
 
-    try {
-      if (user) {
-        await user.update({
-          firstName,
-          lastName,
+      if (image === null && user.hasImage) {
+        await user.setProfileImage({ file: null });
+        log.info("Profile image deleted successfully");
+      } else if (
+        image !== null &&
+        typeof image === "object" &&
+        image.uri &&
+        !image.uri.startsWith("https://")
+      ) {
+        const mimeType = image.mimeType || "image/jpeg";
+        const file = new File(image.uri);
+        const base64 = await file.base64();
+        await user.setProfileImage({
+          file: `data:${mimeType};base64,${base64}`,
         });
+        log.info("Profile image updated successfully");
       }
-
-      Alert.alert("Success", "Profile updated");
-
-    } catch (err: any) {
-      console.error("Fetch error:", err.message);
-      Alert.alert("Error", "Failed to update profile: " + err.message);
     }
 
-    log.info("Updated Profile:", { firstName, lastName, email, profilePic });
+    Alert.alert("Success", "Profile updated");
+  } catch (err: any) {
+    console.error("Fetch error:", err.message);
+    Alert.alert("Error", "Failed to update profile: " + err.message);
+  }
 
-    router.back();
+  log.info("Updated Profile:", { firstName, lastName, email, image });
+
+  router.back();
 };
 
-
-export const pickImage = async (setProfilePic: (uri: { uri: string }) => void) => {
+export const pickImage = async (
+  setImage: (img: { uri: string; mimeType?: string }) => void,
+) => {
   try {
     const { granted } = await ImagePicker.requestMediaLibraryPermissionsAsync();
     if (!granted) {
-      Alert.alert("Permission denied", "You need to allow access to your media library.");
+      Alert.alert(
+        "Permission denied",
+        "You need to allow access to your media library.",
+      );
       return;
     }
 
     const result = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: ["images"],
-      quality: 1,
+      quality: 0.8,
+      allowsEditing: true,
+      aspect: [1, 1],
+      exif: false,
     });
 
     if (!result.canceled && result.assets.length > 0) {
-      setProfilePic({ uri: result.assets[0].uri });
+      const asset = result.assets[0];
+      setImage({
+        uri: asset.uri,
+        mimeType: asset.mimeType || "image/jpeg",
+      });
     }
   } catch (err: any) {
     console.error("Image picker error:", err.message);
@@ -76,25 +109,23 @@ export const pickImage = async (setProfilePic: (uri: { uri: string }) => void) =
   }
 };
 
-
-
 export const confirmLogout = (signOut: () => void, log: any) => {
   return () => {
     Alert.alert(
-      "Logout",
-      "Are you sure you want to log out?",
+      "Sign Out",
+      "Are you sure you want to sign out?",
       [
         { text: "Cancel", style: "cancel" },
         {
-          text: "Logout",
+          text: "Sign Out",
           style: "destructive",
           onPress: () => {
-            log.info("User confirmed logout");
+            log.info("User confirmed sign out");
             signOut();
           },
         },
       ],
-      { cancelable: true }
+      { cancelable: true },
     );
   };
 };
