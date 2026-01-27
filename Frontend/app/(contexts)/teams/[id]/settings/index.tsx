@@ -1,16 +1,10 @@
 import React, { useLayoutEffect } from "react";
-import {
-  View,
-  ActivityIndicator,
-  Pressable,
-  Text,
-  Alert,
-} from "react-native";
+import { View, ActivityIndicator, Pressable, Text, Alert } from "react-native";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useNavigation, StackActions } from "@react-navigation/native";
 import { ContentArea } from "@/components/ui/content-area";
 import { Header } from "@/components/header/header";
-import { HeaderButton } from "@/components/header/header-button";
+import { Button } from "@/components/ui/button";
 import { PageTitle } from "@/components/header/page-title";
 import { TeamLogoSection } from "@/components/teams/logo-picker";
 import { TeamNameField } from "@/components/teams/name-field";
@@ -43,7 +37,7 @@ function SettingsHeader({
 
   return (
     <Header
-      left={<HeaderButton type="back" />}
+      left={<Button type="back" />}
       center={<PageTitle title="Team Settings" />}
       right={
         <Pressable
@@ -205,16 +199,16 @@ function TeamSettingsContent() {
   ]);
 
   if (!isOwner) {
-      return (
-        <ContentArea backgroundProps={{ preset: "red" }}>
-          <View style={settingsStyles.container}>
-            <Text style={settingsStyles.errorText}>
-              You don&apos;t have permission to edit this team
-            </Text>
-          </View>
-        </ContentArea>
-      );
-    }
+    return (
+      <ContentArea backgroundProps={{ preset: "red" }}>
+        <View style={settingsStyles.container}>
+          <Text style={settingsStyles.errorText}>
+            You don&apos;t have permission to edit this team
+          </Text>
+        </View>
+      </ContentArea>
+    );
+  }
 
   if (!team) {
     return (
