@@ -1,5 +1,5 @@
 import React, { useMemo, useState } from "react";
-import { messagesIndexStyles as styles } from "./styles";
+import { messagesIndexStyles as styles } from "@/constants/messaging-styles";
 
 import { ContentArea } from "@/components/ui/content-area";
 import {
