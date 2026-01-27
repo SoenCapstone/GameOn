@@ -218,7 +218,9 @@ public class TeamService {
                             user.email(),
                             user.firstname(),
                             user.lastname(),
-                            member.getRole()
+                            member.getRole(),
+                            member.getStatus(),
+                            member.getJoinedAt()
                     );
                 })
                 .toList();

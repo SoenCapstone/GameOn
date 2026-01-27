@@ -18,12 +18,20 @@ export default function Browse() {
     [router],
   );
 
+  const filterPublicOnly = React.useCallback(
+    (result: SearchResult) => {
+      return result.privacy?.toLowerCase() === "public";
+    },
+    [],
+  );
+
   return (
     <SearchResultsScreen
       logScope="Browse Page"
       backgroundPreset="blue"
       modes={BROWSE_MODES}
       onResultPress={handleResultPress}
+      resultFilter={filterPublicOnly}
     />
   );
 }
