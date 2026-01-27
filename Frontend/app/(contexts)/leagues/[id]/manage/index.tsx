@@ -12,7 +12,7 @@ import { useNavigation } from "@react-navigation/native";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { ContentArea } from "@/components/ui/content-area";
 import { Header } from "@/components/header/header";
-import { HeaderButton } from "@/components/header/header-button";
+import { Button } from "@/components/ui/button";
 import { PageTitle } from "@/components/header/page-title";
 import { Card } from "@/components/ui/card";
 import { MemberRow } from "@/components/teams/member-row";
@@ -30,7 +30,6 @@ type LeagueTeamResponse = {
   teamId: string;
   joinedAt: string;
 };
-
 
 type TeamDetailResponse = {
   id: string;
@@ -104,11 +103,11 @@ export default function ManageLeagueScreen() {
   useLayoutEffect(() => {
     const renderHeader = () => (
       <Header
-        left={<HeaderButton type="back" />}
+        left={<Button type="back" />}
         center={<PageTitle title="Manage League" />}
         right={
           isOwner ? (
-            <HeaderButton
+            <Button
               type="custom"
               icon="plus"
               route={`/leagues/${leagueId}/invite`}

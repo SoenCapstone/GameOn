@@ -1,10 +1,12 @@
 package com.game.on.go_messaging_service.client;
 
 import com.game.on.go_messaging_service.client.dto.RemoteTeamDetail;
+import com.game.on.go_messaging_service.client.dto.RemoteTeamListResponse;
 import com.game.on.go_messaging_service.client.dto.RemoteTeamMember;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestParam;
 
 import java.util.List;
 import java.util.UUID;
@@ -17,4 +19,9 @@ public interface TeamDirectoryClient {
 
     @GetMapping("/{teamId}/members")
     List<RemoteTeamMember> fetchMembers(@PathVariable("teamId") UUID teamId);
+
+    @GetMapping
+    RemoteTeamListResponse listTeams(@RequestParam("my") boolean onlyMine,
+                                     @RequestParam("page") int page,
+                                     @RequestParam("size") int size);
 }

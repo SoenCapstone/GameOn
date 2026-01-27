@@ -11,7 +11,7 @@ import { useLocalSearchParams, useRouter } from "expo-router";
 import { useNavigation, StackActions } from "@react-navigation/native";
 import { ContentArea } from "@/components/ui/content-area";
 import { Header } from "@/components/header/header";
-import { HeaderButton } from "@/components/header/header-button";
+import { Button } from "@/components/ui/button";
 import { PageTitle } from "@/components/header/page-title";
 import { TeamLogoSection } from "@/components/teams/logo-picker";
 import { TeamNameField } from "@/components/teams/name-field";
@@ -47,7 +47,7 @@ function SettingsHeader({
 
   return (
     <Header
-      left={<HeaderButton type="back" />}
+      left={<Button type="back" />}
       center={<PageTitle title="Team Settings" />}
       right={
         <Pressable

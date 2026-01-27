@@ -1,4 +1,5 @@
 import { useAxiosWithClerk } from "@/hooks/use-axios-clerk";
+import { useAuth } from "@clerk/clerk-expo";
 import { useInfiniteQuery, useQuery } from "@tanstack/react-query";
 import {
   fetchConversations,
@@ -16,11 +17,13 @@ export const MESSAGES_PAGE_SIZE = 40;
 
 export function useConversationsQuery() {
   const api = useAxiosWithClerk();
+  const { userId } = useAuth();
   return useQuery<ConversationResponse[]>({
-    queryKey: messagingKeys.conversations(),
+    queryKey: messagingKeys.conversations(userId),
     queryFn: () => fetchConversations(api),
     staleTime: 15_000,
     select: (data) => sortConversations(data ?? []),
+    enabled: Boolean(userId),
   });
 }
 
@@ -45,18 +48,22 @@ export function useMessagesQuery(conversationId: string) {
 
 export function useUserDirectory() {
   const api = useAxiosWithClerk();
+  const { userId } = useAuth();
   return useQuery<UserDirectoryEntry[]>({
-    queryKey: messagingKeys.userDirectory(),
+    queryKey: messagingKeys.userDirectory(userId),
     queryFn: () => fetchUserDirectory(api),
     staleTime: 60_000,
+    enabled: Boolean(userId),
   });
 }
 
 export function useMyTeams() {
   const api = useAxiosWithClerk();
+  const { userId } = useAuth();
   return useQuery<TeamSummaryResponse[]>({
-    queryKey: messagingKeys.myTeams(),
+    queryKey: messagingKeys.myTeams(userId),
     queryFn: () => fetchMyTeams(api),
     staleTime: 60_000,
+    enabled: Boolean(userId),
   });
 }
