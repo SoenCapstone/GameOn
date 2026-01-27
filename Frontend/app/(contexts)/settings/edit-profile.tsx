@@ -13,6 +13,16 @@ import {
   pickImage,
 } from "@/components/UserProfile/profile-utils";
 
+function EditProfileHeader({ onSave }: { onSave: () => void }) {
+  return (
+    <Header
+      left={<Button type="back" />}
+      center={<PageTitle title="Edit Profile" />}
+      right={<Button type="custom" label="Save" onPress={onSave} />}
+    />
+  );
+}
+
 export default function EditProfile() {
   const { isLoaded, isSignedIn, user } = useUser();
   const router = useRouter();
@@ -38,13 +48,7 @@ export default function EditProfile() {
 
   useLayoutEffect(() => {
     navigation.setOptions({
-      headerTitle: () => (
-        <Header
-          left={<Button type="back" />}
-          center={<PageTitle title="Edit Profile" />}
-          right={<Button type="custom" label="Save" onPress={handleSave} />}
-        />
-      ),
+      headerTitle: () => <EditProfileHeader onSave={handleSave} />,
     });
   }, [navigation, handleSave]);
 
