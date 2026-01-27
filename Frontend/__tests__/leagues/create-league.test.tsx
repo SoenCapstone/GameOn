@@ -13,7 +13,6 @@ const mockPost: jest.Mock<any, any> = jest.fn(async () => ({
   data: { id: "league-1", slug: "test-league" },
 }));
 
-
 jest.mock("@/hooks/use-axios-clerk", () => ({
   useAxiosWithClerk: () => ({
     post: mockPost,
@@ -27,8 +26,6 @@ jest.mock("@/hooks/use-axios-clerk", () => ({
 jest.mock("@/components/ui/content-area", () => ({
   ContentArea: ({ children }: any) => children,
 }));
-
-jest.mock("@/components/payments/public-payment-modal", () => () => null);
 
 function renderScreen() {
   const client = new QueryClient({
@@ -65,12 +62,11 @@ describe("CreateLeagueScreen", () => {
     fireEvent.changeText(getByPlaceholderText("League Name"), "My League");
     fireEvent.press(getByText("Sport"));
     fireEvent.press(getByText("Soccer"));
-
     fireEvent.press(getByText("Create League"));
 
     await waitFor(() => expect(mockPost).toHaveBeenCalled());
 
-    const [, payload] = mockPost.mock.calls[0];
+    const [, payload] = mockPost.mock.calls[0] as any[];
     expect(payload).toMatchObject({
       name: "My League",
       sport: "soccer",
@@ -78,17 +74,14 @@ describe("CreateLeagueScreen", () => {
     });
   });
 
-  it("navigates back after successful creation when not public", async () => {
-  const { getByPlaceholderText, getByText, getByRole } = renderScreen();
+  it("navigates back after successful creation", async () => {
+    const { getByPlaceholderText, getByText } = renderScreen();
 
-  fireEvent.changeText(getByPlaceholderText("League Name"), "My League");
-  fireEvent.press(getByText("Sport"));
-  fireEvent.press(getByText("Soccer"));
+    fireEvent.changeText(getByPlaceholderText("League Name"), "My League");
+    fireEvent.press(getByText("Sport"));
+    fireEvent.press(getByText("Soccer"));
+    fireEvent.press(getByText("Create League"));
 
-  fireEvent(getByRole("switch"), "valueChange", false);
-
-  fireEvent.press(getByText("Create League"));
-
-  await waitFor(() => expect(mockBack).toHaveBeenCalled());
-});
+    await waitFor(() => expect(mockBack).toHaveBeenCalled());
+  });
 });

@@ -19,7 +19,6 @@ import { useLeagueForm } from "@/hooks/use-league-form";
 import { getLeaguePickerConfig } from "@/components/leagues/league-form-constants";
 import { LeagueNameField } from "@/components/leagues/league-name-field";
 import { LeagueDetailsCard } from "@/components/leagues/league-details-card";
-import { LeagueVisibilitySection } from "@/components/leagues/league-visibility";
 import { useUpdateLeague, useDeleteLeague } from "@/hooks/use-team-league-settings";
 import {
   LeagueDetailProvider,
@@ -28,6 +27,7 @@ import {
 import { settingsStyles } from "@/constants/settings-styles";
 import PublicPaymentModal from "@/components/payments/public-payment-modal";
 import { useAxiosWithClerk } from "@/hooks/use-axios-clerk";
+import { LeagueVisibilityControl } from "@/components/leagues/league-visibility-control";
 
 const log = createScopedLog("League Settings");
 const PUBLICATION_FEE_CENTS = 1500;
@@ -82,10 +82,18 @@ function LeagueSettingsContent() {
   const navigation = useNavigation();
   const router = useRouter();
   const api = useAxiosWithClerk();
-  const { id, league, isLoading: leagueLoading, isOwner } = useLeagueDetailContext();
+  const { id, league, isLoading: leagueLoading, isOwner } =
+    useLeagueDetailContext();
 
   const [paymentVisible, setPaymentVisible] = React.useState(false);
   const [pendingPayload, setPendingPayload] = React.useState<any | null>(null);
+
+  const [hasPublicAccessLocal, setHasPublicAccessLocal] = React.useState(false);
+
+  React.useEffect(() => {
+    const purchased = (league?.privacy ?? "PRIVATE") === "PUBLIC";
+    setHasPublicAccessLocal(purchased);
+  }, [league?.privacy]);
 
   const {
     leagueName,
@@ -164,7 +172,6 @@ function LeagueSettingsContent() {
         const wasPublic = (league?.privacy ?? "PRIVATE") === "PUBLIC";
         const wantsPublic = payload.privacy === "PUBLIC";
 
-        // 💳 Gate PRIVATE -> PUBLIC behind payment
         if (!wasPublic && wantsPublic) {
           setPendingPayload(payload);
           setPaymentVisible(true);
@@ -230,7 +237,10 @@ function LeagueSettingsContent() {
         </View>
       )}
 
-      <LeagueNameField leagueName={leagueName} onChangeLeagueName={setLeagueName} />
+      <LeagueNameField
+        leagueName={leagueName}
+        onChangeLeagueName={setLeagueName}
+      />
 
       <LeagueDetailsCard
         sportLabel={sportLabel}
@@ -242,7 +252,29 @@ function LeagueSettingsContent() {
         onOpenPicker={setOpenPicker}
       />
 
-      <LeagueVisibilitySection isPublic={isPublic} onChangePublic={setIsPublic} />
+      <LeagueVisibilityControl
+        isPublic={isPublic}
+        hasPublicAccess={hasPublicAccessLocal}
+        onRequestPurchase={() => {
+          if (!leagueName.trim()) {
+            Alert.alert("League update failed", "League name is required");
+            return;
+          }
+
+          const payload = {
+            name: leagueName.trim(),
+            sport: selectedSport?.id ?? "",
+            level: selectedLevel?.id ?? "",
+            region: region.trim() || "",
+            location: location.trim() || "",
+            privacy: "PUBLIC",
+          } as const;
+
+          setPendingPayload(payload);
+          setPaymentVisible(true);
+        }}
+        onChangePublic={setIsPublic}
+      />
 
       <Pressable
         style={[
@@ -282,7 +314,6 @@ function LeagueSettingsContent() {
         }}
       />
 
-      {/* 💳 PAYMENT MODAL */}
       <PublicPaymentModal
         visible={paymentVisible}
         onClose={() => {
@@ -295,7 +326,12 @@ function LeagueSettingsContent() {
         amount={PUBLICATION_FEE_CENTS}
         onPaidSuccess={async () => {
           if (!pendingPayload) return;
+
           updateLeagueMutation.mutate(pendingPayload);
+
+          setHasPublicAccessLocal(true);
+          setIsPublic(true);
+
           setPendingPayload(null);
           setPaymentVisible(false);
         }}
