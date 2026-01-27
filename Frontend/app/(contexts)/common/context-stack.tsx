@@ -5,6 +5,7 @@ import { Header } from "@/components/header/header";
 import { PageTitle } from "@/components/header/page-title";
 import { HeaderButton } from "@/components/header/header-button";
 import { useSearch } from "@/contexts/search-context";
+import type { NativeSyntheticEvent } from "react-native";
 
 interface ContextStackConfig {
   readonly create?: { name: string; title: string };
@@ -41,7 +42,7 @@ export function useContextStackScreens({
   const searchBarOptions: NativeStackNavigationOptions["headerSearchBarOptions"] = {
     hideNavigationBar: false,
     placement: "automatic",
-    onChangeText: (event: any) => {
+    onChangeText: (event: NativeSyntheticEvent<{ text: string }>) => {
       const text = event?.nativeEvent?.text ?? "";
       setQuery(text);
     },
