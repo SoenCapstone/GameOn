@@ -33,7 +33,7 @@ const styles = StyleSheet.create({
   },
   input: {
     flex: 1,
-    color: "white",
+    color: "#CCCCCC",
     fontSize: 17,
     paddingLeft: 10,
     textAlign: "right",
