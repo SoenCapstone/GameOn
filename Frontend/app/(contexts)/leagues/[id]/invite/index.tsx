@@ -5,7 +5,7 @@ import { useNavigation } from "@react-navigation/native";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { ContentArea } from "@/components/ui/content-area";
 import { Header } from "@/components/header/header";
-import { HeaderButton } from "@/components/header/header-button";
+import { Button } from "@/components/ui/button";
 import { PageTitle } from "@/components/header/page-title";
 import { Card } from "@/components/ui/card";
 import { MemberRow } from "@/components/teams/member-row";
@@ -94,7 +94,7 @@ export default function InviteTeamsScreen() {
   useLayoutEffect(() => {
     const renderHeader = () => (
       <Header
-        left={<HeaderButton type="back" />}
+        left={<Button type="back" />}
         center={<PageTitle title="Invite Teams" />}
       />
     );
@@ -158,7 +158,8 @@ export default function InviteTeamsScreen() {
                   <Pressable
                     style={[
                       styles.inviteButton,
-                      inviteTeamMutation.isPending && styles.inviteButtonDisabled,
+                      inviteTeamMutation.isPending &&
+                        styles.inviteButtonDisabled,
                     ]}
                     onPress={() => inviteTeamMutation.mutate(team.id)}
                     disabled={inviteTeamMutation.isPending}

@@ -1,11 +1,18 @@
 import React, { useLayoutEffect } from "react";
-import { ActivityIndicator, Alert, Pressable, StyleSheet, Text, View } from "react-native";
+import {
+  ActivityIndicator,
+  Alert,
+  Pressable,
+  StyleSheet,
+  Text,
+  View,
+} from "react-native";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useNavigation } from "@react-navigation/native";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { ContentArea } from "@/components/ui/content-area";
 import { Header } from "@/components/header/header";
-import { HeaderButton } from "@/components/header/header-button";
+import { Button } from "@/components/ui/button";
 import { PageTitle } from "@/components/header/page-title";
 import { Card } from "@/components/ui/card";
 import { MemberRow } from "@/components/teams/member-row";
@@ -53,11 +60,11 @@ export default function ManageRolesScreen() {
   useLayoutEffect(() => {
     const renderHeader = () => (
       <Header
-        left={<HeaderButton type="back" />}
+        left={<Button type="back" />}
         center={<PageTitle title="Manage Roles" />}
         right={
           isOwner && teamId ? (
-            <HeaderButton
+            <Button
               type="custom"
               icon="plus"
               onPress={() => router.push(`/teams/${teamId}/invite`)}

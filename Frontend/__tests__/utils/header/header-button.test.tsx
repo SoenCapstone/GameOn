@@ -1,7 +1,7 @@
 import React from "react";
 import { render, fireEvent } from "@testing-library/react-native";
 import { router } from "expo-router";
-import { HeaderButton } from "@/components/header/header-button";
+import { Button } from "@/components/ui/button";
 import { IconSymbol } from "@/components/ui/icon-symbol";
 import { GlassView } from "expo-glass-effect";
 
@@ -27,7 +27,7 @@ describe("HeaderButton", () => {
 
   describe("back button", () => {
     it("renders with chevron.left icon", () => {
-      render(<HeaderButton type="back" />);
+      render(<Button type="back" />);
 
       const call = (IconSymbol as jest.Mock).mock.calls[0][0];
       expect(call.name).toBe("chevron.left");
@@ -36,7 +36,7 @@ describe("HeaderButton", () => {
     });
 
     it("calls router.back when pressed", () => {
-      const { UNSAFE_getByProps } = render(<HeaderButton type="back" />);
+      const { UNSAFE_getByProps } = render(<Button type="back" />);
       const pressable = UNSAFE_getByProps({ accessible: true });
 
       fireEvent.press(pressable);
@@ -48,7 +48,7 @@ describe("HeaderButton", () => {
 
   describe("custom button", () => {
     it("renders with custom icon", () => {
-      render(<HeaderButton type="custom" icon="house.fill" route="/home" />);
+      render(<Button type="custom" icon="house.fill" route="/home" />);
 
       const call = (IconSymbol as jest.Mock).mock.calls[0][0];
       expect(call.name).toBe("house.fill");
@@ -58,7 +58,7 @@ describe("HeaderButton", () => {
 
     it("calls router.push with route when pressed", () => {
       const { UNSAFE_getByProps } = render(
-        <HeaderButton type="custom" icon="house.fill" route="/home" />,
+        <Button type="custom" icon="house.fill" route="/home" />,
       );
       const pressable = UNSAFE_getByProps({ accessible: true });
 
@@ -71,7 +71,7 @@ describe("HeaderButton", () => {
 
   describe("common behavior", () => {
     it("renders GlassView with correct props", () => {
-      render(<HeaderButton type="back" />);
+      render(<Button type="back" />);
 
       const call = (GlassView as jest.Mock).mock.calls[0][0];
       expect(call.glassEffectStyle).toBe("regular");
@@ -81,7 +81,7 @@ describe("HeaderButton", () => {
     });
 
     it("renders IconSymbol with correct styling props", () => {
-      render(<HeaderButton type="back" />);
+      render(<Button type="back" />);
 
       const call = (IconSymbol as jest.Mock).mock.calls[0][0];
       expect(call.color).toBe("white");
