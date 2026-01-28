@@ -5,17 +5,17 @@ import {
   Pressable,
   Text,
   Alert,
+  Switch,
 } from "react-native";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useNavigation, StackActions } from "@react-navigation/native";
 import { ContentArea } from "@/components/ui/content-area";
 import { Header } from "@/components/header/header";
-import { HeaderButton } from "@/components/header/header-button";
+import { Button } from "@/components/ui/button";
 import { PageTitle } from "@/components/header/page-title";
 import { TeamLogoSection } from "@/components/teams/logo-picker";
 import { TeamNameField } from "@/components/teams/name-field";
 import { TeamDetailsCard } from "@/components/teams/details-card";
-import { TeamVisibilitySection } from "@/components/teams/visibility";
 import PickerModal from "@/components/ui/pickerModal";
 import { useUpdateTeam, useDeleteTeam } from "@/hooks/use-team-league-settings";
 import { createScopedLog } from "@/utils/logger";
@@ -27,8 +27,12 @@ import {
   useTeamDetailContext,
 } from "@/contexts/team-detail-context";
 import { settingsStyles } from "@/constants/settings-styles";
+import { TeamVisibilityControl } from "@/components/teams/team-visibility-control";
+import PublicPaymentModal from "@/components/payments/public-payment-modal";
+import { useAxiosWithClerk } from "@/hooks/use-axios-clerk";
 
 const log = createScopedLog("Team Settings");
+const PUBLICATION_FEE_CENTS = 1500;
 
 function SettingsHeader({
   onSave,
@@ -43,7 +47,7 @@ function SettingsHeader({
 
   return (
     <Header
-      left={<HeaderButton type="back" />}
+      left={<Button type="back" />}
       center={<PageTitle title="Team Settings" />}
       right={
         <Pressable
@@ -79,7 +83,18 @@ export default function TeamSettingsScreen() {
 function TeamSettingsContent() {
   const navigation = useNavigation();
   const router = useRouter();
+  const api = useAxiosWithClerk();
   const { id, team, isLoading: teamLoading, isOwner } = useTeamDetailContext();
+
+  const [paymentVisible, setPaymentVisible] = React.useState(false);
+  const [pendingPayload, setPendingPayload] = React.useState<any | null>(null);
+
+  const [hasPublicAccessLocal, setHasPublicAccessLocal] = React.useState(false);
+
+  React.useEffect(() => {
+    const purchased = (team?.privacy ?? "PRIVATE") === "PUBLIC";
+    setHasPublicAccessLocal(purchased);
+  }, [team?.privacy]);
 
   const {
     teamName,
@@ -107,6 +122,7 @@ function TeamSettingsContent() {
     },
     onError: (err) => {
       log.error("Update team failed", errorToString(err));
+      Alert.alert("Update failed", errorToString(err));
     },
   });
 
@@ -155,7 +171,6 @@ function TeamSettingsContent() {
     setSelectedScope,
     setSelectedCity,
   );
-
   const currentConfig = openPicker ? pickerConfig[openPicker] : undefined;
 
   useLayoutEffect(() => {
@@ -174,6 +189,15 @@ function TeamSettingsContent() {
           location: selectedCity?.label ?? "",
           privacy: isPublic ? "PUBLIC" : "PRIVATE",
         } as const;
+
+        const wasPublic = (team?.privacy ?? "PRIVATE") === "PUBLIC";
+        const wantsPublic = payload.privacy === "PUBLIC";
+
+        if (!wasPublic && wantsPublic) {
+          setPendingPayload(payload);
+          setPaymentVisible(true);
+          return;
+        }
 
         updateTeamMutation.mutate(payload);
       };
@@ -205,16 +229,16 @@ function TeamSettingsContent() {
   ]);
 
   if (!isOwner) {
-      return (
-        <ContentArea backgroundProps={{ preset: "red" }}>
-          <View style={settingsStyles.container}>
-            <Text style={settingsStyles.errorText}>
-              You don&apos;t have permission to edit this team
-            </Text>
-          </View>
-        </ContentArea>
-      );
-    }
+    return (
+      <ContentArea backgroundProps={{ preset: "red" }}>
+        <View style={settingsStyles.container}>
+          <Text style={settingsStyles.errorText}>
+            You don&apos;t have permission to edit this team
+          </Text>
+        </View>
+      </ContentArea>
+    );
+  }
 
   if (!team) {
     return (
@@ -245,7 +269,29 @@ function TeamSettingsContent() {
         onOpenPicker={setOpenPicker}
       />
 
-      <TeamVisibilitySection isPublic={isPublic} onChangePublic={setIsPublic} />
+      <TeamVisibilityControl
+        isPublic={isPublic}
+        hasPublicAccess={hasPublicAccessLocal}
+        onRequestPurchase={() => {
+          if (!teamName.trim()) {
+            Alert.alert("Team update failed", "Team name is required");
+            return;
+          }
+
+          const payload = {
+            name: teamName.trim(),
+            sport: selectedSport?.id ?? "",
+            scope: selectedScope?.id ?? "",
+            logoUrl: logoUri ?? "",
+            location: selectedCity?.label ?? "",
+            privacy: "PUBLIC",
+          } as const;
+
+          setPendingPayload(payload);
+          setPaymentVisible(true);
+        }}
+        onChangePublic={setIsPublic}
+      />
 
       <Pressable
         style={[
@@ -271,6 +317,34 @@ function TeamSettingsContent() {
           setOpenPicker(null);
         }}
       />
+
+      {/* TEAM PAYMENT NOT IMPLEMENTED IN BACKEND YET
+          Leave this block commented until /payments/intent accepts teamId.
+      */}
+      {/*
+      <PublicPaymentModal
+        visible={paymentVisible}
+        onClose={() => {
+          setPaymentVisible(false);
+          setPendingPayload(null);
+        }}
+        api={api}
+        entityType="TEAM"
+        entityId={id}
+        amount={PUBLICATION_FEE_CENTS}
+        onPaidSuccess={async () => {
+          if (!pendingPayload) return;
+
+          updateTeamMutation.mutate(pendingPayload);
+
+          setHasPublicAccessLocal(true);
+          setIsPublic(true);
+
+          setPendingPayload(null);
+          setPaymentVisible(false);
+        }}
+      />
+      */}
     </ContentArea>
   );
 }

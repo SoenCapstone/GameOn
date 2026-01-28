@@ -1,5 +1,5 @@
 import React from "react";
-import { ActivityIndicator, RefreshControl } from "react-native";
+import { ActivityIndicator, RefreshControl, StyleSheet } from "react-native";
 import { useLocalSearchParams } from "expo-router";
 import { ContentArea } from "@/components/ui/content-area";
 import { useTeamHeader } from "@/hooks/use-team-league-header";
@@ -7,8 +7,7 @@ import {
   TeamDetailProvider,
   useTeamDetailContext,
 } from "@/contexts/team-detail-context";
-// import { StyleSheet } from "react-native";
-// import { PlayMakerArea } from "@/components/play-maker/play-maker-area";
+import { PlayMakerArea } from "@/components/play-maker/play-maker-area";
 
 export default function MyTeamScreen() {
   const params = useLocalSearchParams<{ id?: string | string[] }>();
@@ -30,7 +29,7 @@ function MyTeamContent() {
 
   return (
     <ContentArea
-      scrollable
+      // scrollable
       paddingBottom={60}
       backgroundProps={{ preset: "red" }}
       refreshControl={
@@ -41,7 +40,7 @@ function MyTeamContent() {
         />
       }
     >
-      {/* <PlayMakerArea styles={styles} /> */}
+      <PlayMakerArea styles={styles} />
       {isLoading ? <ActivityIndicator size="small" color="#fff" /> : null}
     </ContentArea>
   );
@@ -49,20 +48,20 @@ function MyTeamContent() {
 
 /* Example of how to use the PlayMakerArea component */
 
-// const styles = StyleSheet.create({
-//   container: { flex: 1 },
-//   hint: {
-//     color: "white",
-//     opacity: 0.85,
-//     paddingTop: 10,
-//     paddingBottom: 8,
-//   },
-//   boardWrapper: { height: "50%" },
-//   shapeArea: {
-//     height: "7%",
-//     flexDirection: "row",
-//     justifyContent: "center",
-//     alignItems: "center",
-//   },
-//   panelArea: { height: "34%" },
-// });
+const styles = StyleSheet.create({
+  container: { flex: 1 },
+  hint: {
+    color: "white",
+    opacity: 0.85,
+    paddingTop: 10,
+    paddingBottom: 8,
+  },
+  boardWrapper: { height: "50%" },
+  shapeArea: {
+    height: "7%",
+    flexDirection: "row",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  panelArea: { height: "43%" },
+});

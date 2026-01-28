@@ -1,5 +1,5 @@
 import React, { useMemo, useState } from "react";
-import { messagesChatStyles as styles } from "./styles";
+import { messagesChatStyles as styles } from "@/constants/messaging-styles";
 
 import { ContentArea } from "@/components/ui/content-area";
 import {
@@ -185,7 +185,7 @@ export default function ChatScreen() {
             <Text style={styles.emptyTitle}>Unable to load messages</Text>
             <Text style={styles.emptySubtitle}>{errorToString(error)}</Text>
           </View>
-        ) : status === "loading" ? (
+        ) : status === "pending" ? (
           <ActivityIndicator color="white" style={{ marginTop: 40 }} />
         ) : (
           <FlatList

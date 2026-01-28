@@ -108,6 +108,23 @@ export const createTeamStyles = StyleSheet.create({
     paddingVertical: 12,
     justifyContent: "space-between",
   },
+  button: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingVertical: 12,
+    justifyContent: "space-between",
+    backgroundColor: "#1d055aab",
+    borderRadius: 12 
+  },
+  disclaimerText: {
+    fontSize: 12,
+    color: "#8E8E93",
+    textAlign: "center",
+    marginTop: 4,
+  },
+  disclaimerContainer: {
+    marginTop: 6,
+  },
   detailLabel: {
     color: "rgba(255,255,255,0.92)",
     fontSize: 14,

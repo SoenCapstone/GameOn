@@ -3,18 +3,14 @@ import React from "react";
 import { Header } from "@/components/header/header";
 import { Logo } from "@/components/header/logo";
 import { PageTitle } from "@/components/header/page-title";
-import { HeaderButton } from "@/components/header/header-button";
+import { Button } from "@/components/ui/button";
 
 const homeHeader = () => (
   <Header
     left={<Logo />}
     center={<PageTitle title="Home" />}
     right={
-      <HeaderButton
-        type="custom"
-        route="/browse"
-        icon="globe.europe.africa.fill"
-      />
+      <Button type="custom" route="/browse" icon="globe.europe.africa.fill" />
     }
   />
 );

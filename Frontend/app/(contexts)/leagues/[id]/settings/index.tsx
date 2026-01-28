@@ -1,16 +1,10 @@
 import React, { useLayoutEffect } from "react";
-import {
-  View,
-  ActivityIndicator,
-  Pressable,
-  Text,
-  Alert,
-} from "react-native";
+import { View, ActivityIndicator, Pressable, Text, Alert } from "react-native";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useNavigation, StackActions } from "@react-navigation/native";
 import { ContentArea } from "@/components/ui/content-area";
 import { Header } from "@/components/header/header";
-import { HeaderButton } from "@/components/header/header-button";
+import { Button } from "@/components/ui/button";
 import { PageTitle } from "@/components/header/page-title";
 import PickerModal from "@/components/ui/pickerModal";
 import { createScopedLog } from "@/utils/logger";
@@ -19,15 +13,21 @@ import { useLeagueForm } from "@/hooks/use-league-form";
 import { getLeaguePickerConfig } from "@/components/leagues/league-form-constants";
 import { LeagueNameField } from "@/components/leagues/league-name-field";
 import { LeagueDetailsCard } from "@/components/leagues/league-details-card";
-import { LeagueVisibilitySection } from "@/components/leagues/league-visibility";
-import { useUpdateLeague, useDeleteLeague } from "@/hooks/use-team-league-settings";
+import {
+  useUpdateLeague,
+  useDeleteLeague,
+} from "@/hooks/use-team-league-settings";
 import {
   LeagueDetailProvider,
   useLeagueDetailContext,
 } from "@/contexts/league-detail-context";
 import { settingsStyles } from "@/constants/settings-styles";
+import PublicPaymentModal from "@/components/payments/public-payment-modal";
+import { useAxiosWithClerk } from "@/hooks/use-axios-clerk";
+import { LeagueVisibilityControl } from "@/components/leagues/league-visibility-control";
 
 const log = createScopedLog("League Settings");
+const PUBLICATION_FEE_CENTS = 1500;
 
 function SettingsHeader({
   onSave,
@@ -42,7 +42,7 @@ function SettingsHeader({
 
   return (
     <Header
-      left={<HeaderButton type="back" />}
+      left={<Button type="back" />}
       center={<PageTitle title="League Settings" />}
       right={
         <Pressable
@@ -75,10 +75,32 @@ export default function LeagueSettingsScreen() {
   );
 }
 
+type LeagueUpdatePayload = {
+  name: string;
+  sport: string;
+  level: string;
+  region: string;
+  location: string;
+  privacy: "PUBLIC" | "PRIVATE";
+};
+
 function LeagueSettingsContent() {
   const navigation = useNavigation();
   const router = useRouter();
-  const { id, league, isLoading: leagueLoading, isOwner } = useLeagueDetailContext();
+  const api = useAxiosWithClerk();
+  const { id, league, isLoading: leagueLoading, isOwner } =
+    useLeagueDetailContext();
+
+  const [paymentVisible, setPaymentVisible] = React.useState(false);
+  const [pendingPayload, setPendingPayload] = React.useState<LeagueUpdatePayload | null>(null);
+
+
+  const [hasPublicAccessLocal, setHasPublicAccessLocal] = React.useState(false);
+
+  React.useEffect(() => {
+    const purchased = (league?.privacy ?? "PRIVATE") === "PUBLIC";
+    setHasPublicAccessLocal(purchased);
+  }, [league?.privacy]);
 
   const {
     leagueName,
@@ -134,11 +156,7 @@ function LeagueSettingsContent() {
       isPublic !== (league.privacy === "PUBLIC")
     : false;
 
-  const pickerConfig = getLeaguePickerConfig(
-    setSelectedSport,
-    setSelectedLevel,
-  );
-
+  const pickerConfig = getLeaguePickerConfig(setSelectedSport, setSelectedLevel);
   const currentConfig = openPicker ? pickerConfig[openPicker] : undefined;
 
   useLayoutEffect(() => {
@@ -157,6 +175,15 @@ function LeagueSettingsContent() {
           location: location.trim() || "",
           privacy: isPublic ? "PUBLIC" : "PRIVATE",
         } as const;
+
+        const wasPublic = (league?.privacy ?? "PRIVATE") === "PUBLIC";
+        const wantsPublic = payload.privacy === "PUBLIC";
+
+        if (!wasPublic && wantsPublic) {
+          setPendingPayload(payload);
+          setPaymentVisible(true);
+          return;
+        }
 
         updateLeagueMutation.mutate(payload);
       };
@@ -232,8 +259,27 @@ function LeagueSettingsContent() {
         onOpenPicker={setOpenPicker}
       />
 
-      <LeagueVisibilitySection
+      <LeagueVisibilityControl
         isPublic={isPublic}
+        hasPublicAccess={hasPublicAccessLocal}
+        onRequestPurchase={() => {
+          if (!leagueName.trim()) {
+            Alert.alert("League update failed", "League name is required");
+            return;
+          }
+
+          const payload = {
+            name: leagueName.trim(),
+            sport: selectedSport?.id ?? "",
+            level: selectedLevel?.id ?? "",
+            region: region.trim() || "",
+            location: location.trim() || "",
+            privacy: "PUBLIC",
+          } as const;
+
+          setPendingPayload(payload);
+          setPaymentVisible(true);
+        }}
         onChangePublic={setIsPublic}
       />
 
@@ -274,7 +320,29 @@ function LeagueSettingsContent() {
           setOpenPicker(null);
         }}
       />
+
+      <PublicPaymentModal
+        visible={paymentVisible}
+        onClose={() => {
+          setPaymentVisible(false);
+          setPendingPayload(null);
+        }}
+        api={api as any}
+        entityType="LEAGUE"
+        entityId={id}
+        amount={PUBLICATION_FEE_CENTS}
+        onPaidSuccess={async () => {
+          if (!pendingPayload) return;
+
+          updateLeagueMutation.mutate(pendingPayload);
+
+          setHasPublicAccessLocal(true);
+          setIsPublic(true);
+
+          setPendingPayload(null);
+          setPaymentVisible(false);
+        }}
+      />
     </ContentArea>
   );
 }
-
