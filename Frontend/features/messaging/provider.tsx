@@ -53,7 +53,7 @@ const MessagingContext = createContext<MessagingContextValue | null>(null);
 
 export const MessagingProvider = ({ children }: PropsWithChildren) => {
   const api = useAxiosWithClerk();
-  const { getToken } = useAuth();
+  const { getToken, userId } = useAuth();
   const queryClient = useQueryClient();
   const getTokenRef = useRef(getToken);
   const { data: conversations } = useConversationsQuery();
@@ -91,7 +91,7 @@ export const MessagingProvider = ({ children }: PropsWithChildren) => {
         (existing) => appendMessageToPages(existing, message),
       );
       queryClient.setQueryData(
-        messagingKeys.conversations(),
+        messagingKeys.conversations(userId),
         (existing: ConversationResponse[] | undefined) =>
           updateConversationsWithMessage(existing, message),
       );
@@ -115,10 +115,11 @@ export const MessagingProvider = ({ children }: PropsWithChildren) => {
   }, []);
 
   useEffect(() => {
-    conversations
-      ?.filter((c) => c.type === "GROUP")
-      .forEach((c) => ensureTopicSubscription(c.id));
-  }, [conversations, ensureTopicSubscription]);
+    const conversationIds = (conversations ?? [])
+      .filter((c) => c.type === "GROUP")
+      .map((c) => c.id);
+    socketRef.current?.syncConversationSubscriptions(conversationIds);
+  }, [conversations]);
 
   const sendMessage = useCallback(
     async (conversationId: string, content: string) => {
@@ -147,7 +148,7 @@ export const MessagingProvider = ({ children }: PropsWithChildren) => {
   const upsertConversation = useCallback(
     (response: ConversationResponse) => {
       queryClient.setQueryData(
-        messagingKeys.conversations(),
+        messagingKeys.conversations(userId),
         (existing: ConversationResponse[] | undefined) => {
           const filtered = (existing ?? []).filter((c) => c.id !== response.id);
           return sortConversations([...filtered, response]);

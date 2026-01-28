@@ -22,9 +22,6 @@ import {
   LeaguePrivacy,
 } from "@/components/leagues/league-invite-utils";
 
-import LeaguePaymentModal from "@/components/payments/league-payment";
-
-
 type TeamInviteCard = {
   kind: "team";
   id: string;
@@ -34,8 +31,6 @@ type TeamInviteCard = {
 };
 
 type InviteCard = TeamInviteCard | LeagueInviteCard;
-
-
 
 function isLeagueInviteCard(invite: InviteCard): invite is LeagueInviteCard {
   return invite.kind === "league";
@@ -53,16 +48,6 @@ export default function Home() {
   const api = useAxiosWithClerk();
   const queryClient = useQueryClient();
   const { userId } = useAuth();
-
-  const [paymentVisible, setPaymentVisible] = React.useState(false);
-  const [pendingLeagueInvite, setPendingLeagueInvite] = React.useState<{
-    invitationId: string;
-    leagueId: string;
-    leagueName?: string;
-  } | null>(null);
-
-  const LEAGUE_JOIN_FEE_CENTS = 1500; // $15.00 
-
 
   const { data: invites = [], isFetching, refetch } = useQuery<InviteCard[]>({
     queryKey: ["user-updates", userId],
@@ -149,15 +134,7 @@ export default function Home() {
 
       if (maybe.leaguePrivacy === LeaguePrivacy.PRIVATE) {
         respondLeagueInviteMutation.mutate({ invitationId: inviteId, isAccepted: true });
-        return;
       }
-
-      setPendingLeagueInvite({
-        invitationId: inviteId,
-        leagueId: maybe.leagueId,
-        leagueName: maybe.leagueName,
-      });
-      setPaymentVisible(true);
     },
     [invites, respondLeagueInviteMutation],
   );
@@ -250,32 +227,6 @@ export default function Home() {
           <View />
         )}
       </View>
-      <LeaguePaymentModal
-        visible={paymentVisible}
-        onClose={() => {
-          setPaymentVisible(false);
-          setPendingLeagueInvite(null);
-        }}
-        api={api}
-        leagueId={pendingLeagueInvite?.leagueId ?? ""}
-        amount={LEAGUE_JOIN_FEE_CENTS}
-        currency="cad"
-        description={
-          pendingLeagueInvite?.leagueName
-            ? `Join league: ${pendingLeagueInvite.leagueName}`
-            : "Join league"
-        }
-        onPaidSuccess={async () => {
-          if (!pendingLeagueInvite) return;
-
-          await new Promise<void>((resolve, reject) => {
-            respondLeagueInviteMutation.mutate(
-              { invitationId: pendingLeagueInvite.invitationId, isAccepted: true },
-              { onSuccess: () => resolve(), onError: (e) => reject(e) }
-            );
-          });
-        }}
-      />
     </ContentArea>
   );
 }

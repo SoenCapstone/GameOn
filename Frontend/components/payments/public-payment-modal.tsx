@@ -1,47 +1,81 @@
 import React, { useCallback, useMemo, useState } from "react";
-import { Alert, Modal, Pressable, Text, View, ActivityIndicator } from "react-native";
+import {
+  ActivityIndicator,
+  Alert,
+  Modal,
+  Pressable,
+  Text,
+  View,
+} from "react-native";
 import { useStripe } from "@stripe/stripe-react-native";
 import type { AxiosInstance } from "axios";
 import { errorToString } from "@/utils/error";
+
+export type PaymentEntityType = "LEAGUE" | "TEAM";
 
 type Props = Readonly<{
   visible: boolean;
   onClose: () => void;
   api: AxiosInstance;
-  leagueId: string;
+  entityType: PaymentEntityType;
+  entityId: string;
   amount: number; // cents
   currency?: string; // default "cad"
   description?: string;
+  confirmButtonLabel?: string;
+  successTitle?: string;
+  successMessage?: string;
   onPaidSuccess: () => Promise<void>;
 }>;
 
 type PaymentIntentResponse = Record<string, string | undefined>;
 
-function isPaymentIntentResponse(value: object): value is PaymentIntentResponse {
-  return value !== null;
-}
-
-function pickClientSecret(respData: object): string | null {
-  if (!isPaymentIntentResponse(respData)) return null;
+function pickClientSecret(respData: unknown): string | null {
+  if (!respData || typeof respData !== "object") return null;
+  const data = respData as PaymentIntentResponse;
 
   return (
-    respData.clientSecret ??
-    respData.paymentIntentClientSecret ??
-    respData.payment_intent_client_secret ??
+    data.clientSecret ??
+    data.paymentIntentClientSecret ??
+    data.payment_intent_client_secret ??
     null
   );
 }
 
+function buildIntentPayload(args: {
+  entityType: PaymentEntityType;
+  entityId: string;
+  amount: number;
+  currency: string;
+  description: string;
+}) {
+  const base = {
+    amount: args.amount,
+    currency: args.currency,
+    description: args.description,
+  } as Record<string, unknown>;
 
+  if (args.entityType === "LEAGUE") {
+    base.leagueId = args.entityId;
+  } else {
+    base.teamId = args.entityId;
+  }
 
-export default function LeaguePaymentModal({
+  return base;
+}
+
+export default function PublicPaymentModal({
   visible,
   onClose,
   api,
-  leagueId,
+  entityType,
+  entityId,
   amount,
   currency = "cad",
   description,
+  confirmButtonLabel = "Pay & Continue",
+  successTitle = "Payment successful",
+  successMessage = "Your changes have been applied.",
   onPaidSuccess,
 }: Props) {
   const { initPaymentSheet, presentPaymentSheet } = useStripe();
@@ -58,12 +92,20 @@ export default function LeaguePaymentModal({
     try {
       setIsPaying(true);
 
-      const resp = await api.post("/api/v1/payments/intent", {
-        leagueId,
-        amount,
-        currency,
-        description: description ?? `League payment (${leagueId})`,
-      });
+      const resp = await api.post(
+        "/api/v1/payments/intent",
+        buildIntentPayload({
+          entityType,
+          entityId,
+          amount,
+          currency,
+          description:
+            description ??
+            (entityType === "LEAGUE"
+              ? `Publish league (${entityId})`
+              : `Publish team (${entityId})`),
+        }),
+      );
 
       const clientSecret = pickClientSecret(resp.data);
       if (!clientSecret) {
@@ -87,28 +129,36 @@ export default function LeaguePaymentModal({
 
       await onPaidSuccess();
 
-      Alert.alert("Payment successful", "You have joined the league.");
+      Alert.alert(successTitle, successMessage);
       onClose();
     } catch (e) {
-        Alert.alert("Payment failed", errorToString(e));
+      Alert.alert("Payment failed", errorToString(e));
     } finally {
       setIsPaying(false);
     }
   }, [
-    api,
     amount,
+    api,
     currency,
     description,
+    entityId,
+    entityType,
     initPaymentSheet,
     isPaying,
-    leagueId,
     onClose,
     onPaidSuccess,
     presentPaymentSheet,
+    successMessage,
+    successTitle,
   ]);
 
   return (
-    <Modal visible={visible} transparent animationType="fade" onRequestClose={onClose}>
+    <Modal
+      visible={visible}
+      transparent
+      animationType="fade"
+      onRequestClose={onClose}
+    >
       <View
         style={{
           flex: 1,
@@ -125,7 +175,7 @@ export default function LeaguePaymentModal({
           }}
         >
           <Text style={{ color: "white", fontSize: 18, fontWeight: "600" }}>
-            League payment
+            {entityType === "LEAGUE" ? "League" : "Team"} publication payment
           </Text>
 
           <Text style={{ color: "rgba(255,255,255,0.8)", marginTop: 8 }}>
@@ -161,7 +211,9 @@ export default function LeaguePaymentModal({
               {isPaying ? (
                 <ActivityIndicator />
               ) : (
-                <Text style={{ color: "white", fontWeight: "600" }}>Pay & Accept</Text>
+                <Text style={{ color: "white", fontWeight: "600" }}>
+                  {confirmButtonLabel}
+                </Text>
               )}
             </Pressable>
           </View>

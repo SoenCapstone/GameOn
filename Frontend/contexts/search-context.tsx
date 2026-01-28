@@ -124,7 +124,8 @@ export const SearchProvider: React.FC<{
       markRendered,
       notifyModeChange: logModeChange,
       isLoading: teamLeague.isLoading,
-      error: teamLeague.error ? errorToString(teamLeague.error) : null,
+      teamError: teamLeague.teamError ? errorToString(teamLeague.teamError) : null,
+      leagueError: teamLeague.leagueError ? errorToString(teamLeague.leagueError) : null,
       refetch: teamLeague.refetch,
     }),
     [
@@ -134,7 +135,8 @@ export const SearchProvider: React.FC<{
       activeMode,
       logModeChange,
       teamLeague.isLoading,
-      teamLeague.error,
+      teamLeague.teamError,
+      teamLeague.leagueError,
       teamLeague.refetch,
     ],
   );

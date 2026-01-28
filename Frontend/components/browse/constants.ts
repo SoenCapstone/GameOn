@@ -7,6 +7,7 @@ export interface SearchResult {
   league?: string;
   sport: string;
   location: string;
+  privacy?: string;
 }
 
 export type SearchContextValue = {
@@ -18,7 +19,8 @@ export type SearchContextValue = {
   activeMode?: Modes;
   setActiveMode: (mode: Modes) => void;
   isLoading?: boolean;
-  error?: string | null;
+  teamError?: string | null;
+  leagueError?: string | null;
   markRendered: (
     renderTookMs: number,
     opts?: {

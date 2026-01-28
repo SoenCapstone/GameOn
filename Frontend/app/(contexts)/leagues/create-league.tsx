@@ -13,7 +13,6 @@ import {
 import { createTeamStyles as styles } from "@/components/teams/teams-styles";
 import { LeagueNameField } from "@/components/leagues/league-name-field";
 import { LeagueDetailsCard } from "@/components/leagues/league-details-card";
-import { LeagueVisibilitySection } from "@/components/leagues/league-visibility";
 import { useLeagueForm } from "@/hooks/use-league-form";
 import { getLeaguePickerConfig } from "@/components/leagues/league-form-constants";
 
@@ -35,8 +34,6 @@ export default function CreateLeagueScreen() {
     setRegion,
     location,
     setLocation,
-    isPublic,
-    setIsPublic,
     openPicker,
     setOpenPicker,
   } = useLeagueForm();
@@ -44,10 +41,7 @@ export default function CreateLeagueScreen() {
   const sportLabel = selectedSport?.label ?? "None";
   const levelLabel = selectedLevel?.label ?? "Optional";
 
-  const pickerConfig = getLeaguePickerConfig(
-    setSelectedSport,
-    setSelectedLevel,
-  );
+  const pickerConfig = getLeaguePickerConfig(setSelectedSport, setSelectedLevel);
   const currentConfig = openPicker ? pickerConfig[openPicker] : undefined;
 
   const createLeagueMutation = useMutation({
@@ -58,16 +52,19 @@ export default function CreateLeagueScreen() {
         region: region.trim() || undefined,
         location: location.trim() || undefined,
         level: selectedLevel?.id ?? undefined,
-        privacy: isPublic ? "PUBLIC" : "PRIVATE",
+        privacy: "PRIVATE", // ✅ always private on create
       };
+
       log.info("Sending league creation payload:", payload);
       const resp = await api.post(GO_LEAGUE_SERVICE_ROUTES.CREATE, payload);
       return resp.data as { id: string; slug: string };
     },
-    onSuccess: async (data) => {
-      log.info("League created:", data);
+    onSuccess: async () => {
       await queryClient.invalidateQueries({ queryKey: ["leagues"] });
-      Alert.alert("League created", "Your league has been created successfully.");
+      Alert.alert(
+        "League created",
+        "Your league has been created successfully.",
+      );
       router.back();
     },
     onError: (err) => {
@@ -86,15 +83,13 @@ export default function CreateLeagueScreen() {
       Alert.alert("League creation failed", "Sport is required");
       return;
     }
+
     createLeagueMutation.mutate();
   };
 
   return (
     <ContentArea scrollable backgroundProps={{ preset: "purple" }}>
-      <LeagueNameField
-        leagueName={leagueName}
-        onChangeLeagueName={setLeagueName}
-      />
+      <LeagueNameField leagueName={leagueName} onChangeLeagueName={setLeagueName} />
 
       <LeagueDetailsCard
         sportLabel={sportLabel}
@@ -104,11 +99,6 @@ export default function CreateLeagueScreen() {
         onChangeRegion={setRegion}
         onChangeLocation={setLocation}
         onOpenPicker={(type) => setOpenPicker(type)}
-      />
-
-      <LeagueVisibilitySection
-        isPublic={isPublic}
-        onChangePublic={setIsPublic}
       />
 
       <Pressable

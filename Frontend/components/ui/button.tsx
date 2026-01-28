@@ -5,7 +5,7 @@ import { SFSymbols6_0 } from "sf-symbols-typescript";
 import { GlassView } from "expo-glass-effect";
 import { IconSymbol } from "@/components/ui/icon-symbol";
 
-type HeaderButtonProps =
+type ButtonProps =
   | { type: "back" }
   | {
       type: "custom";
@@ -15,7 +15,7 @@ type HeaderButtonProps =
       label?: string;
     };
 
-export function HeaderButton(props: HeaderButtonProps) {
+export function Button(props: ButtonProps) {
   const isLabel = props.type === "custom" && !!props.label;
   const iconName = props.type === "back" ? "chevron.left" : props.icon;
 
@@ -67,10 +67,9 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   glassLabel: {
-    minWidth: 96,
-    height: 40,
-    paddingHorizontal: 16,
-    borderRadius: 20,
+    height: 44,
+    paddingHorizontal: 20,
+    borderRadius: 100,
     backgroundColor: "transparent",
     alignSelf: "center",
     justifyContent: "center",
@@ -80,8 +79,8 @@ const styles = StyleSheet.create({
   },
   labelText: {
     color: "white",
-    fontSize: 16,
-    fontWeight: "600",
+    fontSize: 17,
+    fontWeight: "500",
     textAlign: "center",
   },
 });

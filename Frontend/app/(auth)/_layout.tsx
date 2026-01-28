@@ -5,19 +5,19 @@ import { ClerkLoaded, SignedIn, SignedOut } from "@clerk/clerk-expo";
 
 import { Header } from "@/components/header/header";
 import { PageTitle } from "@/components/header/page-title";
-import { HeaderButton } from "@/components/header/header-button";
+import { Button } from "@/components/ui/button";
 import { HOME_PATH } from "@/constants/navigation";
 
 const signInHeader = () => (
   <Header
-    left={<HeaderButton type="back" />}
+    left={<Button type="back" />}
     center={<PageTitle title="Sign In" />}
   />
 );
 
 const signUpHeader = () => (
   <Header
-    left={<HeaderButton type="back" />}
+    left={<Button type="back" />}
     center={<PageTitle title="Create Account" />}
   />
 );

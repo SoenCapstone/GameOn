@@ -6,7 +6,7 @@ import { useAuth } from "@clerk/clerk-expo";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { ContentArea } from "@/components/ui/content-area";
 import { Header } from "@/components/header/header";
-import { HeaderButton } from "@/components/header/header-button";
+import { Button } from "@/components/ui/button";
 import { PageTitle } from "@/components/header/page-title";
 import { Card } from "@/components/ui/card";
 import { MemberRow } from "@/components/teams/member-row";
@@ -18,7 +18,10 @@ import {
 import { useTeamDetail } from "@/hooks/use-team-detail";
 import { useGetTeamMembers } from "@/hooks/use-get-team-members/use-get-team-members";
 import { fetchUserDirectory } from "@/features/messaging/api";
-import { GO_TEAM_SERVICE_ROUTES, useAxiosWithClerk } from "@/hooks/use-axios-clerk";
+import {
+  GO_TEAM_SERVICE_ROUTES,
+  useAxiosWithClerk,
+} from "@/hooks/use-axios-clerk";
 import { errorToString } from "@/utils/error";
 
 type TeamInviteResponse = {
@@ -70,11 +73,16 @@ export default function InvitePlayersScreen() {
 
   const createInviteMutation = useMutation({
     mutationFn: async (payload: InvitePayload) => {
-      const resp = await api.post(GO_TEAM_SERVICE_ROUTES.CREATE_INVITE, payload);
+      const resp = await api.post(
+        GO_TEAM_SERVICE_ROUTES.CREATE_INVITE,
+        payload,
+      );
       return resp.data;
     },
     onSuccess: async () => {
-      await queryClient.invalidateQueries({ queryKey: ["team-invites", teamId] });
+      await queryClient.invalidateQueries({
+        queryKey: ["team-invites", teamId],
+      });
       Alert.alert("Invite sent", "The invitation was sent successfully.");
     },
     onError: (err) => {
@@ -99,7 +107,7 @@ export default function InvitePlayersScreen() {
   useLayoutEffect(() => {
     const renderHeader = () => (
       <Header
-        left={<HeaderButton type="back" />}
+        left={<Button type="back" />}
         center={<PageTitle title="Invite Players" />}
       />
     );

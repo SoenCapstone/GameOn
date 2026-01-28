@@ -17,13 +17,13 @@ jest.mock("@/components/header/header", () => {
   };
 });
 
-jest.mock("@/components/header/header-button", () => {
+jest.mock("@/components/ui/button", () => {
   const mockReact = jest.requireActual("react");
   const mockTouchableOpacity =
     jest.requireActual("react-native").TouchableOpacity;
   const mockText = jest.requireActual("react-native").Text;
   return {
-    HeaderButton: (props: any) => {
+    Button: (props: any) => {
       const testID = `header-button-${props.type}-${props.label || props.route || props.icon}`;
       return mockReact.createElement(
         mockTouchableOpacity,
