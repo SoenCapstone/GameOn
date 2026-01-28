@@ -20,14 +20,16 @@ export function useTeamLeagueResults(query: string, onlyMine?: boolean) {
   return {
     data: combined,
     isLoading: teamQuery.isLoading || leagueQuery.isLoading,
-    error: teamQuery.error ?? leagueQuery.error ?? null,
+    teamError: teamQuery.error ?? null,
+    leagueError: leagueQuery.error ?? null,
     refetch: async () => {
       await Promise.all([teamQuery.refetch(), leagueQuery.refetch()]);
     },
   } as {
     data: SearchResult[];
     isLoading: boolean;
-    error: Error | null;
+    teamError: Error | null;
+    leagueError: Error | null;
     refetch: () => Promise<void>;
   };
 }

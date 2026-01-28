@@ -19,7 +19,8 @@ export type SearchContextValue = {
   activeMode?: Modes;
   setActiveMode: (mode: Modes) => void;
   isLoading?: boolean;
-  error?: string | null;
+  teamError?: string | null;
+  leagueError?: string | null;
   markRendered: (
     renderTookMs: number,
     opts?: {

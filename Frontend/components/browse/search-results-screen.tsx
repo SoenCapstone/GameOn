@@ -55,7 +55,8 @@ export function SearchResultsScreen({
     setActiveMode,
     searchActive,
     isLoading,
-    error,
+    teamError,
+    leagueError,
     refetch,
   } = useSearch();
 
@@ -156,11 +157,11 @@ export function SearchResultsScreen({
       searchActive && q
         ? results
         : results.filter((r) => r.type === selectedMode.type);
-    
+
     if (resultFilter) {
       base = base.filter(resultFilter);
     }
-    
+
     return base.filter((r) => r.name.toLowerCase().includes(q));
   }, [results, selectedMode, q, searchActive, resultFilter]);
 
@@ -201,9 +202,33 @@ export function SearchResultsScreen({
           <ActivityIndicator size="small" color="#FFFFFF" />
         </View>
       ) : null}
-      {error ? (
+
+      {searchActive && teamError ? (
         <View style={styles.errorContainer}>
-          <Text style={styles.errorText}>Failed to load results: {error}</Text>
+          <Text style={styles.errorText}>
+            Failed to load teams: {teamError}
+          </Text>
+        </View>
+      ) : null}
+      {searchActive && leagueError ? (
+        <View style={styles.errorContainer}>
+          <Text style={styles.errorText}>
+            Failed to load leagues: {leagueError}
+          </Text>
+        </View>
+      ) : null}
+      {!searchActive && selectedMode.key === "teams" && teamError ? (
+        <View style={styles.errorContainer}>
+          <Text style={styles.errorText}>
+            Failed to load teams: {teamError}
+          </Text>
+        </View>
+      ) : null}
+      {!searchActive && selectedMode.key === "leagues" && leagueError ? (
+        <View style={styles.errorContainer}>
+          <Text style={styles.errorText}>
+            Failed to load leagues: {leagueError}
+          </Text>
         </View>
       ) : null}
       {refreshing && <ActivityIndicator size="small" color="#fff" />}

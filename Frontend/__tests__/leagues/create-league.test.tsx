@@ -27,13 +27,25 @@ jest.mock("@/components/ui/content-area", () => ({
   ContentArea: ({ children }: any) => children,
 }));
 
+let queryClient: QueryClient;
+
 function renderScreen() {
-  const client = new QueryClient({
-    defaultOptions: { queries: { retry: false }, mutations: { retry: false } },
+  queryClient = new QueryClient({
+    defaultOptions: {
+      queries: {
+        retry: false,
+        gcTime: Infinity,
+        staleTime: Infinity,
+      },
+      mutations: {
+        retry: false,
+        gcTime: Infinity,
+      },
+    },
   });
 
   return render(
-    <QueryClientProvider client={client}>
+    <QueryClientProvider client={queryClient}>
       <CreateLeagueScreen />
     </QueryClientProvider>,
   );
@@ -42,6 +54,10 @@ function renderScreen() {
 describe("CreateLeagueScreen", () => {
   beforeEach(() => {
     jest.clearAllMocks();
+  });
+
+  afterEach(() => {
+    queryClient?.clear();
   });
 
   it("shows validation errors when required fields missing", () => {

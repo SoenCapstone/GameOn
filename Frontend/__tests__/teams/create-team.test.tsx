@@ -32,13 +32,25 @@ jest.mock("@/components/teams/logo-picker", () => ({
   TeamLogoSection: () => null,
 }));
 
+let queryClient: QueryClient;
+
 function renderScreen() {
-  const client = new QueryClient({
-    defaultOptions: { queries: { retry: false }, mutations: { retry: false } },
+  queryClient = new QueryClient({
+    defaultOptions: {
+      queries: {
+        retry: false,
+        gcTime: Infinity,
+        staleTime: Infinity,
+      },
+      mutations: {
+        retry: false,
+        gcTime: Infinity,
+      },
+    },
   });
 
   return render(
-    <QueryClientProvider client={client}>
+    <QueryClientProvider client={queryClient}>
       <CreateTeamScreen />
     </QueryClientProvider>,
   );
@@ -47,6 +59,10 @@ function renderScreen() {
 describe("CreateTeamScreen", () => {
   beforeEach(() => {
     jest.clearAllMocks();
+  });
+
+  afterEach(() => {
+    queryClient?.clear();
   });
 
   it("shows validation errors when required fields missing", () => {
