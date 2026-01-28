@@ -26,7 +26,7 @@ export const SignInSchema = Yup.object({
 
 export const login = async (
   values: UserSignIn,
-  signIn:  SignInResource,
+  signIn: SignInResource,
   setActive: SetActiveFn,
   isLoaded: boolean,
 ) => {
@@ -46,6 +46,6 @@ export const login = async (
       log.info("Additional verification required:", result);
     }
   } catch (err) {
-    toast(humanizeClerkError(err));
+    toast(humanizeClerkError(err as Error | string));
   }
 };
