@@ -20,7 +20,7 @@ spring:
               predicates:
                 - Path=/api/v1/user/**
             - id: go-league-invite-service
-              uri: lb://go-league-invite
+              uri: lb://go-league-service
               predicates:
                 - Path=/api/v1/teams/*/league-invites,/api/v1/league-invites/**
             - id: go-team-service
