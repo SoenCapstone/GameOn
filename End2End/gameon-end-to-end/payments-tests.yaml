@@ -1,0 +1,45 @@
+appId: host.exp.Exponent
+---
+- launchApp: host.exp.Exponent
+
+- tapOn: GameOn
+
+- runFlow: "leagues/create-league-flow.yaml"
+
+- tapOn: 🏐, End2EndLeague, Quebec, Forward
+- tapOn: settings
+- tapOn: Buy Public League
+- assertVisible: League publication payment
+- assertVisible: "Amount: $15.00"
+- tapOn: Pay & Continue
+
+- tapOn: Card number
+- inputText: "4242424242424242"
+
+- tapOn: expiration date
+
+- inputText: "0129"
+
+- tapOn: CVC
+- inputText: "555"
+
+- tapOn: Postal code
+
+- inputText: "A1A 2B2"
+
+- pressKey: Enter
+
+- tapOn: Pay $15.00
+
+- assertVisible: Payment successful
+- assertVisible: Your changes have been applied.
+
+- tapOn: OK
+
+- tapOn: settings
+
+- assertNotVisible: Buy Public League
+
+- tapOn: Delete League
+
+- tapOn: Delete

@@ -6,55 +6,7 @@ appId: host.exp.Exponent
 
 - runFlow: "teams/create-team-flow.yaml"
 
-- tapOn: Spaces
-
-- tapOn: Leagues
-
-- tapOn: Add
-
-- assertVisible: Create League
-
-- tapOn: League Name
-
-- inputText: End2EndLeague
-
-- doubleTapOn: Sport, None ⌵
-
-- tapOn: Volleyball
-
-- assertVisible: Sport, Volleyball ⌵
-
-- tapOn: Level, Optional ⌵
-
-- tapOn: Amateur
-
-- assertVisible: Level, Amateur ⌵
-
-- tapOn: Optional
-
-- inputText: Quebec
-
-- doubleTapOn:
-    text: Optional
-    index: 1
-
-- inputText: Montreal
-
-- doubleTapOn:
-    text: Create League
-    index: 1
-
-- assertVisible: League created
-
-- assertVisible: Your league has been created successfully.
-
-- tapOn: OK
-
-- tapOn: Home
-
-- tapOn: Spaces
-
-- assertVisible: 🏐, End2EndLeague, Quebec, Forward
+- runFlow: "leagues/create-league-flow.yaml"
 
 - tapOn: 🏐, End2EndLeague, Quebec, Forward
 
