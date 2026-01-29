@@ -260,6 +260,8 @@ describe("startClerkSignUp", () => {
     expect(mockSignUp.create).toHaveBeenCalledWith({
       emailAddress: "john@example.com",
       password: "password123",
+      firstName: "John",
+      lastName: "Doe",
     });
     expect(mockSignUp.prepareEmailAddressVerification).toHaveBeenCalledWith({
       strategy: "email_code",

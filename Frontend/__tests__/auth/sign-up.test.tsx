@@ -87,6 +87,8 @@ describe("SignUpScreen", () => {
       expect(mockCreate).toHaveBeenCalledWith({
         emailAddress: "jane@example.com",
         password: "testtest",
+        firstName: "Jane",
+        lastName: "Doe",
       });
     });
 
