@@ -11,7 +11,7 @@ import { PageTitle } from "@/components/header/page-title";
 import {
   handleSaveProfile,
   pickImage,
-} from "@/components/UserProfile/profile-utils";
+} from "@/components/user-profile/profile-utils";
 
 function EditProfileHeader({ onSave }: Readonly<{ onSave: () => void }>) {
   return (
@@ -48,7 +48,7 @@ export default function EditProfile() {
 
   const headerTitle = useCallback(
     () => <EditProfileHeader onSave={handleSave} />,
-    [handleSave]
+    [handleSave],
   );
 
   useLayoutEffect(() => {
