@@ -7,3 +7,5 @@ appId: "host.exp.Exponent"
 - runFlow: "messaging-services-tests.yaml"
 
 - runFlow: "payments-tests.yaml"
+
+- runFlow: "playmaker-tests.yaml"

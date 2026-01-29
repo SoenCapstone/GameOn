@@ -10,7 +10,9 @@ appId: host.exp.Exponent
 
 - tapOn: person.2.fill
 
-- assertVisible: No members found.
+- assertVisible: Luca Gir
+- assertVisible: Owner
+
 - tapOn: Back
 
 - tapOn: settings
