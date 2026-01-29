@@ -1,0 +1,43 @@
+appId: host.exp.Exponent
+---
+- launchApp: host.exp.Exponent
+
+- tapOn: GameOn
+
+- tapOn: Spaces
+
+- runFlow: "teams/create-team-flow.yaml"
+
+- tapOn: 🏐, End2EndRunners, volleyball, Forward
+
+- tapOn:
+    id: shape-tool-person
+
+- tapOn:
+    point: 30%, 30%
+
+- tapOn:
+    point: 35%, 40%
+
+- tapOn:
+    id: shape-tool-select
+
+- tapOn:
+    point: 30%, 30%
+
+- tapOn:
+    id: shape-tool-arrow
+
+- tapOn:
+    point: 35%, 40%
+
+- tapOn:
+    id: clear-shapes-Delete
+
+- tapOn:
+    id: clear-shapes-Reset
+
+- tapOn: settings
+- tapOn: Delete Team
+
+- tapOn: Delete

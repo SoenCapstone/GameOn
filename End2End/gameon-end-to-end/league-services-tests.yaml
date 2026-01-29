@@ -33,7 +33,9 @@ appId: host.exp.Exponent
 
 - assertVisible: End2EndRunners
 
-- tapOn: Invite
+- tapOn:
+    text: Invite
+    rightOf: End2EndRunners
 
 - assertVisible: Invite sent
 - assertVisible: The invitation was sent successfully.
@@ -84,3 +86,13 @@ appId: host.exp.Exponent
 - tapOn: Delete
 
 - assertVisible: Spaces
+
+- tapOn: Teams
+
+- tapOn: 🏐, End2EndRunners, volleyball, Forward
+
+- tapOn: settings
+
+- tapOn: Delete team
+
+- tapOn: Delete
