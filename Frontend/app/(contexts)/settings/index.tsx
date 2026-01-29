@@ -4,7 +4,7 @@ import { Form } from "@/components/form/form";
 import { useAuth, useUser } from "@clerk/clerk-expo";
 import { router } from "expo-router";
 import { useFeatureFlags } from "@/components/feature-flags/feature-flags-context";
-import { confirmLogout } from "@/components/UserProfile/profile-utils";
+import { confirmLogout } from "@/components/user-profile/profile-utils";
 import { log } from "@/utils/logger";
 import { openPolicy } from "@/components/privacy-disclaimer/utils";
 import { images } from "@/constants/images";
