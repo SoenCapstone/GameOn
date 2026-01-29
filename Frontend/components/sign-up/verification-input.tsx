@@ -5,6 +5,7 @@ import {
   TouchableWithoutFeedback,
   Keyboard,
 } from "react-native";
+import { useClerk } from "@clerk/clerk-expo";
 import { styles } from "@/components/sign-up/styles";
 import { completeVerificationAndUpsert } from "@/components/sign-up/utils";
 import { useUpsertUser } from "@/components/sign-up/hooks/use-insert-clerk-to-be";
@@ -21,6 +22,12 @@ export const VerificationInput: React.FC<{
   signUp: any;
 }> = ({ otpCode, setOtpCode, setActive, values, isLoaded, signUp }) => {
   const upsertUser = useUpsertUser();
+  const clerk = useClerk();
+
+  const deleteUserOnError = async () => {
+    await clerk.user?.delete();
+  };
+
   return (
     <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
       <View style={{ flex: 1, justifyContent: "space-between" }}>
@@ -47,6 +54,7 @@ export const VerificationInput: React.FC<{
               signUp,
               setActive,
               upsertUser,
+              deleteUserOnError,
             )
           }
         />
