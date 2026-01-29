@@ -3,6 +3,7 @@ import { render } from "@testing-library/react-native";
 import { PlayMakerArea } from "../../components/play-maker/play-maker-area";
 import { useGetTeamMembers } from "@/hooks/use-get-team-members/use-get-team-members";
 import { useRenderPlayMakerShapes } from "@/hooks/use-render-play-maker-shapes";
+import { TeamDetailContext } from "@/contexts/team-detail-context";
 
 jest.mock("@/hooks/use-get-team-members/use-get-team-members", () => ({
   useGetTeamMembers: jest.fn(),
@@ -52,6 +53,14 @@ const makeProps = () =>
     boardConfig: {} as any,
   }) as any;
 
+const renderWithTeam = (ui: React.ReactElement, teamId = "team-123") => {
+  return render(
+    <TeamDetailContext.Provider value={{ id: teamId } as any}>
+      {ui}
+    </TeamDetailContext.Provider>,
+  );
+};
+
 describe("PlayMakerArea", () => {
   beforeEach(() => {
     jest.clearAllMocks();
@@ -65,7 +74,7 @@ describe("PlayMakerArea", () => {
       isLoading: true,
     } as any);
 
-    const { getByTestId } = render(<PlayMakerArea {...makeProps()} />);
+    const { getByTestId } = renderWithTeam(<PlayMakerArea {...makeProps()} />);
 
     expect(getByTestId("team-loading")).toBeTruthy();
     expect(lastPanelProps).toBeUndefined();
@@ -79,7 +88,9 @@ describe("PlayMakerArea", () => {
       isLoading: false,
     } as any);
 
-    const { queryByTestId } = render(<PlayMakerArea {...makeProps()} />);
+    const { queryByTestId } = renderWithTeam(
+      <PlayMakerArea {...makeProps()} />,
+    );
 
     expect(queryByTestId("team-loading")).toBeNull();
     expect(lastPanelProps).toBeDefined();
