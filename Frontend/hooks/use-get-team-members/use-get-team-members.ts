@@ -8,6 +8,5 @@ export const useGetTeamMembers = (teamId: string) => {
     return useQuery<TeamMember[]>({
         queryKey: ["team-members", teamId],
         queryFn: async () => fetchTeamMembers(teamId, api),
-        enabled: Boolean(teamId),
     }); 
 }

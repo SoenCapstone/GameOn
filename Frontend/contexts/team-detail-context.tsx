@@ -3,7 +3,9 @@ import { useTeamDetail } from "@/hooks/use-team-detail";
 
 type TeamDetailContextValue = ReturnType<typeof useTeamDetail> & { id: string };
 
-const TeamDetailContext = createContext<TeamDetailContextValue | null>(null);
+export const TeamDetailContext = createContext<TeamDetailContextValue | null>(
+  null,
+);
 
 export function TeamDetailProvider({
   id,
