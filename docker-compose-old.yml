@@ -1,0 +1,112 @@
+# services:
+#   kafka-ui:
+#     image: provectuslabs/kafka-ui:latest
+#     container_name: kafka-ui
+#     ports:
+#       - "8085:8080"
+#     environment:
+#       KAFKA_CLUSTERS_0_NAME: local
+#       KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: kafka:29092
+#     depends_on:
+#       - kafka
+
+#   kafka:
+#     image: apache/kafka:3.9.1
+#     container_name: kafka
+#     ports:
+#       - "9092:9092" 
+#     environment:
+#       CLUSTER_ID: "abcdefghijklmnopqrstuv"
+
+#       KAFKA_NODE_ID: 1
+#       KAFKA_PROCESS_ROLES: "broker,controller"
+#       KAFKA_CONTROLLER_QUORUM_VOTERS: "1@kafka:9093"
+#       KAFKA_CONTROLLER_LISTENER_NAMES: "CONTROLLER"
+
+#       KAFKA_LISTENERS: "INTERNAL://0.0.0.0:29092,EXTERNAL://0.0.0.0:9092,CONTROLLER://0.0.0.0:9093"
+#       KAFKA_ADVERTISED_LISTENERS: "INTERNAL://kafka:29092,EXTERNAL://host.docker.internal:9092"
+#       KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: "INTERNAL:PLAINTEXT,EXTERNAL:PLAINTEXT,CONTROLLER:PLAINTEXT"
+#       KAFKA_INTER_BROKER_LISTENER_NAME: "INTERNAL"
+
+#       #  Single node in dev
+#       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+#       KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
+#       KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
+#       KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0
+
+#     volumes:
+#       - kafka_data:/var/lib/kafka/data
+
+#   db:
+#     image: postgres:15
+#     container_name: postgres_db
+#     restart: always
+#     environment:
+#       POSTGRES_USER: username
+#       POSTGRES_PASSWORD: password
+#       POSTGRES_DB: gameon_db
+#     ports:
+#       - "5432:5432"
+#     volumes:
+#       - db_data:/var/lib/postgresql/data
+
+# volumes:
+#   kafka_data:
+#   db_data:
+
+
+
+version: "3.9"
+
+services:
+  db:
+    image: postgres:15
+    container_name: postgres_db
+    restart: always
+    environment:
+      POSTGRES_USER: username
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: gameon_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - db_data:/var/lib/postgresql/data
+    networks:
+      - backend
+
+  go-config-server:
+    build:
+      context: ./Backend
+      dockerfile: go-config-server/Dockerfile
+    container_name: go-config-server
+    restart: unless-stopped 
+    environment:
+      HOSTNAME: go-config-server
+      EUREKA_SERVER_URL: http://go-discovery-service:8761/eureka
+      SPRING_PROFILES_ACTIVE: native
+    # ports:
+    #   - "8888:8888"                   # optional: only needed if we want to hit config directly
+    networks:
+      - backend
+
+  # go-discovery-service:
+  #   build:
+  #     context: ./Backend
+  #     dockerfile: go-discovery-service/Dockerfile
+  #   container_name: go-discovery-service
+  #   restart: unless-stopped
+  #   environment:
+  #     HOSTNAME: go-discovery-service
+  #     CONFIG_URI: http://go-config-server:8888
+  #   ports:
+  #     - "8761:8761"                     # optional: only needed if we want to hit config directly
+  #   depends_on:
+  #     - go-config-server
+  #   networks:
+  #     - backend
+
+volumes:
+  db_data:
+
+networks:
+  backend:
