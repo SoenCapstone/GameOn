@@ -12,7 +12,8 @@ import {
   VALIDATION_DOB_MESSAGE_PAST,
   EMAIL_VERIFICATION_STATUS,
   VALIDATION_PASSWORD_LENGTH,
-} from "./constants";
+  SIGN_UP_BACKEND_ERROR_MESSAGE,
+} from "@/components/sign-up/constants";
 import {
   SetActiveFn,
   SignUpInputLabel,
@@ -86,6 +87,8 @@ export const startClerkSignUp = async (
     await signUp.create({
       emailAddress: values.emailAddress,
       password: values.password,
+      firstName: values.firstname,
+      lastName: values.lastname,
     });
     await signUp.prepareEmailAddressVerification({ strategy: "email_code" });
     setPendingVerification(true);
@@ -101,6 +104,7 @@ export const completeVerificationAndUpsert = async (
   signUp: any,
   setActive: SetActiveFn,
   upsertUser: any,
+  deleteUserOnError: () => Promise<void>,
 ) => {
   if (!isLoaded) {
     return;
@@ -113,12 +117,18 @@ export const completeVerificationAndUpsert = async (
     if (attempt.status === EMAIL_VERIFICATION_STATUS) {
       await setActive({ session: attempt.createdSessionId });
 
-      await upsertUser.mutateAsync({
-        id: attempt?.createdUserId,
-        email: values.emailAddress,
-        firstname: values.firstname,
-        lastname: values.lastname,
-      });
+      try {
+        await upsertUser.mutateAsync({
+          id: attempt?.createdUserId,
+          email: values.emailAddress,
+          firstname: values.firstname,
+          lastname: values.lastname,
+        });
+      } catch {
+        await deleteUserOnError();
+        toast(SIGN_UP_BACKEND_ERROR_MESSAGE);
+        return;
+      }
     } else {
       Alert.alert(
         "Verification incomplete",
