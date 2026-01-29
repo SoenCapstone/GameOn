@@ -1,0 +1,7 @@
+appId: "host.exp.Exponent"
+---
+- launchApp: "host.exp.Exponent"
+
+- runFlow: "teams-tests.yaml"
+
+- runFlow: "league-services-tests.yaml"
