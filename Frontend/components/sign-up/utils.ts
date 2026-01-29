@@ -86,6 +86,8 @@ export const startClerkSignUp = async (
     await signUp.create({
       emailAddress: values.emailAddress,
       password: values.password,
+      firstName: values.firstname,
+      lastName: values.lastname,
     });
     await signUp.prepareEmailAddressVerification({ strategy: "email_code" });
     setPendingVerification(true);
