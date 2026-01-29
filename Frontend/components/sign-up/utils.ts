@@ -1,5 +1,5 @@
 import { Alert, ToastAndroid, Platform } from "react-native";
-import type { SignUpResource } from "@clerk/types";
+
 import {
   VALIDATION_FIRST_NAME_MESSAGE_LENGTH,
   VALIDATION_FIRST_NAME_MESSAGE_REQUIRED,
@@ -60,7 +60,7 @@ export const SignUpSchema = Yup.object({
     }),
 });
 
-export const humanizeClerkError = (err: Error | string) => {
+export const humanizeClerkError = (err: any) => {
   try {
     const json = typeof err === "string" ? JSON.parse(err) : err;
     const first = json?.errors?.[0];
@@ -78,7 +78,7 @@ export const toast = (msg: string) => {
 export const startClerkSignUp = async (
   values: User,
   isLoaded: boolean,
-  signUp: SignUpResource | undefined,
+  signUp: any,
   setPendingVerification: React.Dispatch<React.SetStateAction<boolean>>,
 ) => {
   if (!isLoaded || !signUp) {
@@ -92,8 +92,8 @@ export const startClerkSignUp = async (
     });
     await signUp.prepareEmailAddressVerification({ strategy: "email_code" });
     setPendingVerification(true);
-  } catch (e) {
-    Alert.alert("Sign up failed", humanizeClerkError(e as Error));
+  } catch (e: any) {
+    Alert.alert("Sign up failed", humanizeClerkError(e));
   }
 };
 
@@ -101,7 +101,7 @@ export const completeVerificationAndUpsert = async (
   values: User,
   isLoaded: boolean,
   otpCode: string,
-  signUp: SignUpResource | undefined,
+  signUp: any,
   setActive: SetActiveFn,
   upsertUser: any,
 ) => {
@@ -128,8 +128,8 @@ export const completeVerificationAndUpsert = async (
         "Please complete the required steps.",
       );
     }
-  } catch (e) {
-    Alert.alert("Verification failed", humanizeClerkError(e as Error));
+  } catch (e: any) {
+    Alert.alert("Verification failed", humanizeClerkError(e));
   }
 };
 
