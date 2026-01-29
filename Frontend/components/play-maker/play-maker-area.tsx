@@ -12,6 +12,7 @@ import { useRenderPlayMakerShapes } from "@/hooks/use-render-play-maker-shapes";
 import { ClearShapesButton } from "@/components/play-maker/clear-shapes-button";
 import { PlayerAssignmentPanel } from "./player-assignment-panel";
 import { useGetTeamMembers } from "@/hooks/use-get-team-members/use-get-team-members";
+import { useTeamDetailContext } from "@/contexts/team-detail-context";
 
 export const PlayMakerArea = ({
   styles,
@@ -21,14 +22,13 @@ export const PlayMakerArea = ({
   const [selectedShapeId, setSelectedShapeId] = useState<string | null>(null);
   const [shapes, setShapes] = useState<Shape[]>([]);
 
-  /* TODO: Use the team id extracted from a TeamContext when navigating into a Team */
-  const TEAM_TEST_ID = "c2662f38-141e-48ad-87b1-744af4b07da3";
+  const { id: teamId } = useTeamDetailContext();
+  const { data, isLoading } = useGetTeamMembers(teamId);
 
-  const { data, isLoading } = useGetTeamMembers(TEAM_TEST_ID);
   const renderedShapes = useRenderPlayMakerShapes(
     shapes,
     selectedShapeId,
-    (id) => setSelectedShapeId(id)
+    (id) => setSelectedShapeId(id),
   );
 
   return (
@@ -46,7 +46,7 @@ export const PlayMakerArea = ({
               selectedTool,
               setShapes,
               selectedShapeId,
-              setSelectedShapeId
+              setSelectedShapeId,
             )
           }
         >
