@@ -1,0 +1,29 @@
+appId: host.exp.Exponent
+---
+- launchApp: "host.exp.Exponent"
+
+- tapOn: GameOn
+
+- runFlow: "teams/create-team-flow.yaml"
+
+- tapOn: 🏐, End2EndRunners, volleyball, Forward
+
+- tapOn: person.2.fill
+
+- assertVisible: No members found.
+- tapOn: Back
+
+- tapOn: settings
+
+- assertVisible: End2EndRunners
+- assertVisible: Sports, Volleyball ⌵
+- assertVisible: Scope, Managed ⌵
+- assertVisible: Location, Montreal ⌵
+- assertVisible: Buy Public Team
+- tapOn: Delete Team
+
+- assertVisible: Are you sure you want to delete this team? This action cannot be undone.
+
+- tapOn: Delete
+
+- assertNotVisible: 🏐, End2EndRunners, volleyball, Forward
