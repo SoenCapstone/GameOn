@@ -1,4 +1,4 @@
-name: Expo Go Preview
+name: Pull Request Expo Preview
 
 on:
   pull_request:
