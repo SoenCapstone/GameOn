@@ -233,7 +233,6 @@ describe("useLeagueForm", () => {
     expect(result.current.leagueName).toBe(name1);
     expect(result.current.region).toBe(region1);
 
-    // Reset form
     act(() => {
       result.current.setLeagueName("");
       result.current.setRegion("");

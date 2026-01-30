@@ -223,10 +223,9 @@ describe("TeamDetailsCard", () => {
     const labels = getAllByText(/Sports|Scope|Location/);
     expect(labels.length).toBeGreaterThanOrEqual(3);
 
-    // Press using the label instead of value
     mockOnOpenPicker.mockClear();
     const sportsLabel = getByText("Sports");
-    fireEvent.press(sportsLabel.parent!);
+    fireEvent.press(sportsLabel.parent);
 
     expect(mockOnOpenPicker).toHaveBeenCalledWith("sport");
   });
@@ -241,7 +240,6 @@ describe("TeamDetailsCard", () => {
       />
     );
 
-    // Even with empty labels, dropdown indicator should be present
     getByText("Sports").parent?.parent?.children.find(
       (child: any) => child.props.style === undefined || Array.isArray(child.props.style)
     );
@@ -261,7 +259,6 @@ describe("TeamDetailsCard", () => {
       />
     );
 
-    // Dividers should not be pressable
     expect(mockOnOpenPicker).not.toHaveBeenCalled();
   });
 });
