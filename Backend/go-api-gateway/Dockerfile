@@ -22,7 +22,7 @@ WORKDIR /app
 COPY --from=build --chown=app:app /app/target/*.jar /app/app.jar
 
 # Remove write permissions
-RUN chmod 500 /app/app.jar
+RUN chmod 444 /app/app.jar
 
 USER app
 EXPOSE 8222
