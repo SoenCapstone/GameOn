@@ -19,7 +19,7 @@ RUN addgroup -S app && adduser -S app -G app
 WORKDIR /app
 
 # Copy the built JAR from the build stage
-COPY --from=build --chown=app:app --chmod=444 /app/go-messaging-service/target/*.jar /app/app.jar
+COPY --from=build --chown=root:root --chmod=444 /app/go-messaging-service/target/*.jar /app/app.jar
 
 USER app
 EXPOSE 8095
