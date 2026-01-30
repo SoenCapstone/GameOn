@@ -1,0 +1,11 @@
+appId: "host.exp.Exponent"
+---
+- runFlow: "teams-tests.yaml"
+
+- runFlow: "league-services-tests.yaml"
+
+- runFlow: "messaging-services-tests.yaml"
+
+- runFlow: "payments-tests.yaml"
+
+- runFlow: "playmaker-tests.yaml"

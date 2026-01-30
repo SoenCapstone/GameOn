@@ -1,0 +1,41 @@
+appId: host.exp.Exponent
+---
+- launchApp: "host.exp.Exponent"
+
+- tapOn: GameOn
+
+- tapOn: Messages
+
+- assertVisible: "Connection: Online"
+
+- assertVisible: Messages
+
+- tapOn: Start a new conversation
+
+- assertVisible: New conversation
+
+- tapOn:
+    point: 8%,26%
+
+- tapOn: Message
+
+- assertVisible: Direct message
+
+- tapOn: Message
+
+- inputText: Hello world!
+
+- tapOn: Send message
+
+- assertVisible: Hello world!
+- tapOn: Back
+
+- assertVisible: T, Test, No I didn’t, Team, 1:02 AM, ›
+
+- tapOn: Direct
+
+- assertNotVisible: T, Test, No I didn’t, Team, 1:02 AM, ›
+
+- tapOn: Groups
+
+- assertVisible: T, Test, No I didn’t, Team, 1:02 AM, ›

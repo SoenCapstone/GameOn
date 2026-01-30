@@ -1,0 +1,98 @@
+appId: host.exp.Exponent
+---
+- launchApp: "host.exp.Exponent"
+
+- tapOn: GameOn
+
+- runFlow: "teams/create-team-flow.yaml"
+
+- runFlow: "leagues/create-league-flow.yaml"
+
+- tapOn: 🏐, End2EndLeague, Quebec, Forward
+
+- tapOn: Games
+
+- assertVisible:
+    text: Games
+    index: 1
+- assertVisible: Coming soon
+
+- tapOn: Teams
+
+- assertVisible:
+    text: Teams
+    index: 1
+- assertVisible: Coming soon
+
+- tapOn: person.2.fill
+
+- assertVisible: Manage League
+- assertVisible: No teams in this league yet.
+
+- tapOn: add
+
+- assertVisible: End2EndRunners
+
+- tapOn:
+    text: Invite
+    rightOf: End2EndRunners
+
+- assertVisible: Invite sent
+- assertVisible: The invitation was sent successfully.
+
+- tapOn: OK
+
+- tapOn: Back
+- tapOn: Back
+- tapOn: Back
+
+- tapOn: Home
+
+- swipe:
+    direction: DOWN
+
+- tapOn: Accept
+- assertVisible: Invite accepted
+- assertVisible: The team has joined the league.
+
+- tapOn: OK
+
+- tapOn: Spaces
+
+- tapOn: 🏐, End2EndLeague, Quebec, Forward
+
+- tapOn: person.2.fill
+
+- assertVisible: End2EndRunners
+- assertVisible: Remove
+
+- tapOn: Back
+
+- tapOn: settings
+
+- assertVisible: League Settings
+- assertVisible: End2EndLeague
+- assertVisible: Sport, Volleyball ⌵
+- assertVisible: Level, Amateur ⌵
+- assertVisible: Quebec
+- assertVisible: Montreal
+- assertVisible: Buy Public League
+- assertVisible: Delete League
+
+- tapOn: Delete League
+
+- assertVisible: Delete League
+- assertVisible: Are you sure you want to delete this league? This action cannot be undone.
+- tapOn: Delete
+
+- assertVisible: Spaces
+
+- tapOn: Teams
+
+- tapOn: 🏐, End2EndRunners, volleyball, Forward
+
+- tapOn: settings
+
+- tapOn: Delete team
+
+- tapOn: Delete
