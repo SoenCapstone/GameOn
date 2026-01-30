@@ -1,12 +1,15 @@
 import {
   mapSportToEmoji,
   fetchTeamResults,
+  fetchLeagueResults,
   useTeamResults,
+  useLeagueResults,
 } from "@/components/browse/utils";
 
 import axios from "axios";
 import { useQuery } from "@tanstack/react-query";
 import { useAxiosWithClerk } from "@/hooks/use-axios-clerk";
+import { createScopedLog } from "@/utils/logger";
 
 jest.mock("axios");
 const mockedAxios = axios as jest.Mocked<typeof axios>;
@@ -23,25 +26,36 @@ jest.mock("@/hooks/use-axios-clerk", () => {
   };
 });
 
+jest.mock("@/utils/logger", () => ({
+  createScopedLog: jest.fn(() => ({
+    warn: jest.fn(),
+  })),
+}));
+
 
 
 describe("mapSportToEmoji", () => {
-  it("returns correct emoji for known sports", () => {
-    expect(mapSportToEmoji("soccer")).toBe("⚽");
-    expect(mapSportToEmoji("basketball")).toBe("🏀");
-    expect(mapSportToEmoji("baseball")).toBe("⚾");
-    expect(mapSportToEmoji("american football")).toBe("🏈");
-    expect(mapSportToEmoji("hockey")).toBe("🏒");
-    expect(mapSportToEmoji("tennis")).toBe("🎾");
-    expect(mapSportToEmoji("rugby")).toBe("🏉");
-    expect(mapSportToEmoji("volleyball")).toBe("🏐");
-    expect(mapSportToEmoji("cricket")).toBe("🏏");
-    expect(mapSportToEmoji("golf")).toBe("⛳️");
-  });
-  it("returns default emoji for unknown sport", () => {
-    expect(mapSportToEmoji("quidditch")).toBe("🏅");
-    expect(mapSportToEmoji("")).toBe("🏅");
-    expect(mapSportToEmoji()).toBe("🏅");
+  it("returns correct emoji for known sports and default for unknown", () => {
+    const known: [string, string][] = [
+      ["soccer", "⚽"],
+      ["basketball", "🏀"],
+      ["baseball", "⚾"],
+      ["american football", "🏈"],
+      ["hockey", "🏒"],
+      ["tennis", "🎾"],
+      ["rugby", "🏉"],
+      ["volleyball", "🏐"],
+      ["cricket", "🏏"],
+      ["golf", "⛳️"],
+    ];
+
+    known.forEach(([sport, emoji]) => {
+      expect(mapSportToEmoji(sport)).toBe(emoji);
+    });
+
+    ["quidditch", "", undefined].forEach((sport) => {
+      expect(mapSportToEmoji(sport as any)).toBe("🏅");
+    });
   });
  });
 
@@ -70,7 +84,7 @@ describe("fetchTeamResults", () => {
       },
     });
   });
-  it("maps backend teams to SearchResult[] with emoji fallback", async () => {
+  it("maps backend teams and sets query params", async () => {
     const fakeApi = {
       get: mockedAxios.get,
       defaults: { headers: { common: {} } },
@@ -82,43 +96,84 @@ describe("fetchTeamResults", () => {
       name: "Test Team",
       sport: "soccer",
     });
-  });
-  it("throws error if fetch fails", async () => {
-    mockedAxios.get.mockRejectedValueOnce(new Error("network error"));
-    const fakeApi = {
-      get: mockedAxios.get,
-      defaults: { headers: { common: {} } },
-    } as any;
-    await expect(fetchTeamResults(fakeApi, "fail")).rejects.toThrow(
-      "network error",
-    );
-  });
 
-  it("sends query param when query is provided", async () => {
+    const callArgs = mockedAxios.get.mock.calls[0];
+    expect(callArgs[1]!.params).toMatchObject({ size: "50", q: "Test" });
+  });
+  it("handles empty query and onlyMine params", async () => {
     mockedAxios.get.mockClear();
     const fakeApi = {
       get: mockedAxios.get,
       defaults: { headers: { common: {} } },
     } as any;
-    await fetchTeamResults(fakeApi, "SearchTerm");
-    expect(mockedAxios.get).toHaveBeenCalledTimes(1);
+    await fetchTeamResults(fakeApi, "", true);
     const callArgs = mockedAxios.get.mock.calls[0];
-    expect(callArgs[0]).toBeDefined(); // url
-    expect(callArgs[1]).toBeDefined(); // config
-    expect(callArgs[1]!.params).toMatchObject({ size: "50", q: "SearchTerm" });
-  });
-
-  it("does not send q param when query is empty", async () => {
-    mockedAxios.get.mockClear();
-    const fakeApi = {
-      get: mockedAxios.get,
-      defaults: { headers: { common: {} } },
-    } as any;
-    await fetchTeamResults(fakeApi, "");
-    expect(mockedAxios.get).toHaveBeenCalledTimes(1);
-    const callArgs = mockedAxios.get.mock.calls[0];
-    expect(callArgs[1]!.params).toMatchObject({ size: "50" });
+    expect(callArgs[1]!.params).toMatchObject({ size: "50", my: true });
     expect(callArgs[1]!.params.q).toBeUndefined();
+  });
+
+  it("logs and rethrows when fetchTeamResults fails", async () => {
+    mockedAxios.get.mockRejectedValueOnce(new Error("boom"));
+    const fakeApi = {
+      get: mockedAxios.get,
+      defaults: { headers: { common: {} } },
+    } as any;
+
+    await expect(fetchTeamResults(fakeApi, "fail")).rejects.toThrow("boom");
+    const logMock = createScopedLog as jest.MockedFunction<typeof createScopedLog>;
+    const log = logMock.mock.results[0].value;
+    expect(log.warn).toHaveBeenCalledWith("fetchTeamResults failed", expect.any(Error));
+  });
+});
+
+describe("fetchLeagueResults", () => {
+  beforeEach(() => {
+    mockedAxios.get.mockClear();
+    mockedAxios.get.mockResolvedValue({
+      data: {
+        items: [
+          {
+            id: "l1",
+            name: "Test League",
+            sport: "soccer",
+            slug: "test-league",
+            region: "Europe",
+            level: "Pro",
+            privacy: "PUBLIC",
+            seasonCount: 2,
+            createdAt: "2025-01-01T00:00:00Z",
+            updatedAt: "2025-01-01T00:00:00Z",
+          },
+        ],
+        totalElements: 1,
+        page: 0,
+        size: 20,
+        hasNext: false,
+      },
+    });
+  });
+
+  it("sends params for query and onlyMine", async () => {
+    const fakeApi = {
+      get: mockedAxios.get,
+      defaults: { headers: { common: {} } },
+    } as any;
+    await fetchLeagueResults(fakeApi, "League", true);
+    const callArgs = mockedAxios.get.mock.calls[0];
+    expect(callArgs[1]!.params).toMatchObject({ size: "50", q: "League", my: true });
+  });
+
+  it("logs and rethrows when fetchLeagueResults fails", async () => {
+    mockedAxios.get.mockRejectedValueOnce(new Error("league error"));
+    const fakeApi = {
+      get: mockedAxios.get,
+      defaults: { headers: { common: {} } },
+    } as any;
+
+    await expect(fetchLeagueResults(fakeApi, "fail")).rejects.toThrow("league error");
+    const logMock = createScopedLog as jest.MockedFunction<typeof createScopedLog>;
+    const log = logMock.mock.results[0].value;
+    expect(log.warn).toHaveBeenCalledWith("fetchLeagueResults failed", expect.any(Error));
   });
 });
 
@@ -217,5 +272,86 @@ describe("useTeamResults mapping", () => {
 
     expect(res.data[1].subtitle).toBe("tennis");
     expect(res.data[1].logo).toBe(mapSportToEmoji("tennis"));
+  });
+});
+
+describe("useLeagueResults mapping", () => {
+  beforeEach(() => {
+    (useQuery as jest.Mock).mockReset();
+    (useAxiosWithClerk as jest.Mock).mockReset();
+    (useAxiosWithClerk as jest.Mock).mockReturnValue({});
+  });
+
+  it("maps league results with region and sport fallbacks", () => {
+    const data = {
+      items: [
+        {
+          id: 99,
+          name: "Regional League",
+          sport: "soccer",
+          slug: "regional",
+          region: "Europe",
+          level: null,
+          privacy: "PUBLIC",
+          seasonCount: 1,
+          createdAt: "2025-01-01T00:00:00Z",
+          updatedAt: "2025-01-01T00:00:00Z",
+        },
+        {
+          id: "l2",
+          name: "Sport League",
+          sport: "tennis",
+          slug: "sport-league",
+          region: null,
+          level: null,
+          privacy: null,
+          seasonCount: 0,
+          createdAt: "2025-01-01T00:00:00Z",
+          updatedAt: "2025-01-01T00:00:00Z",
+        },
+        {
+          id: "l3",
+          name: "Fallback League",
+          sport: "",
+          slug: "fallback",
+          region: null,
+          level: null,
+          privacy: null,
+          seasonCount: 0,
+          createdAt: "2025-01-01T00:00:00Z",
+          updatedAt: "2025-01-01T00:00:00Z",
+        },
+      ],
+      totalElements: 3,
+      page: 0,
+      size: 3,
+      hasNext: false,
+    };
+
+    const refetch = jest.fn();
+    (useQuery as jest.Mock).mockReturnValue({
+      data,
+      isLoading: false,
+      isFetching: false,
+      error: null,
+      refetch,
+    });
+
+    const res = useLeagueResults("any");
+    expect(res.data).toHaveLength(3);
+    expect(res.data[0].id).toBe("99");
+    expect(res.data[0].subtitle).toBe("Europe");
+    expect(res.data[0].location).toBe("Europe");
+    expect(res.data[0].logo).toBe(mapSportToEmoji("soccer"));
+
+    expect(res.data[1].subtitle).toBe("tennis");
+    expect(res.data[1].logo).toBe(mapSportToEmoji("tennis"));
+
+    expect(res.data[2].subtitle).toBe("League");
+    expect(res.data[2].location).toBe("");
+
+    return res.refetch().then(() => {
+      expect(refetch).toHaveBeenCalled();
+    });
   });
 });
