@@ -1,0 +1,130 @@
+name: Deployment Expo Preview
+
+on:
+  push:
+    branches:
+      - main
+  release:
+    types: [published]
+
+concurrency:
+  group: deployment-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  preview:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: Frontend
+    permissions:
+      contents: write
+      pull-requests: write
+    env:
+      EXPO_PUBLIC_API_BASE_URL: ${{ secrets.EXPO_PUBLIC_API_BASE_URL }}
+      EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY: ${{ secrets.EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY }}
+      EXPO_PUBLIC_LOG_LEVEL: info
+      EXPO_PUBLIC_DEV_LOGIN_EMAIL: ${{ secrets.EXPO_PUBLIC_DEV_LOGIN_EMAIL }}
+      EXPO_PUBLIC_DEV_LOGIN_PASSWORD: ${{ secrets.EXPO_PUBLIC_DEV_LOGIN_PASSWORD }}
+      EXPO_PUBLIC_STRIPE_PUBLISHABLE_KEY: ${{ secrets.EXPO_PUBLIC_STRIPE_PUBLISHABLE_KEY }}
+
+    steps:
+      - name: Setup repo
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20.19.4"
+          cache: npm
+          cache-dependency-path: Frontend/package-lock.json
+
+      - name: Cache Expo/Metro
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.expo
+            ~/.cache/expo
+            ~/.cache/metro
+          key: expo-${{ runner.os }}-${{ hashFiles('Frontend/package-lock.json') }}
+          restore-keys: |
+            expo-${{ runner.os }}-
+
+      - name: Setup EAS
+        uses: expo/expo-github-action@v8
+        with:
+          eas-version: latest
+          packager: npm
+          token: ${{ secrets.EXPO_TOKEN }}
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Set branch name
+        id: branch
+        run: |
+          if [ "${{ github.event_name }}" == "release" ]; then
+            echo "name=release-${{ github.event.release.tag_name }}" >> $GITHUB_OUTPUT
+          else
+            echo "name=main" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Create Expo update
+        id: preview
+        uses: expo/expo-github-action/preview@v8
+        with:
+          working-directory: Frontend
+          command: eas update --auto --branch=${{ steps.branch.outputs.name }} --platform=ios
+          comment: false
+
+      - name: Add commit comment with QR code (on push to main)
+        if: github.event_name == 'push'
+        uses: actions/github-script@v8
+        with:
+          script: |
+            const qrUrl = '${{ steps.preview.outputs.qr }}';
+            const link = '${{ steps.preview.outputs.link }}';
+            const branchName = '${{ steps.branch.outputs.name }}';
+            
+            const body = `🚀 Expo preview is ready!
+
+            - Branch → \`${branchName}\`
+            - Commit → \`${context.sha.substring(0, 7)}\`
+
+            <a href="${link}"><img src="${qrUrl}" width="250px" /></a>`;
+            
+            await github.rest.repos.createCommitComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              commit_sha: context.sha,
+              body: body
+            });
+            
+            console.log(`Added Expo preview comment to commit ${context.sha}`);
+
+      - name: Append QR code to release notes (on release)
+        if: github.event_name == 'release'
+        uses: actions/github-script@v8
+        with:
+          script: |
+            const qrUrl = '${{ steps.preview.outputs.qr }}';
+            const link = '${{ steps.preview.outputs.link }}';
+            
+            const release = await github.rest.repos.getRelease({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              release_id: context.payload.release.id
+            });
+            
+            const existingBody = release.data.body || '';
+            
+            const expoSection = '\n\n---\n\n### Scan to Preview\n\n<a href="' + link + '"><img src="' + qrUrl + '" width="250px" /></a>';
+            
+            await github.rest.repos.updateRelease({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              release_id: context.payload.release.id,
+              body: existingBody + expoSection
+            });
+            
+            console.log(`Appended Expo preview to release ${context.payload.release.tag_name}`);
