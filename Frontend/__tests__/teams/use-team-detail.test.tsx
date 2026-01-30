@@ -77,7 +77,6 @@ describe("useTeamDetail", () => {
       wrapper: createWrapper(),
     });
 
-    // May not be loading initially due to query caching
     expect(result.current.refreshing).toBe(false);
 
     await waitFor(() => {
@@ -103,12 +102,10 @@ describe("useTeamDetail", () => {
       expect(result.current.isLoading).toBe(false);
     });
 
-    // Verify the API was called
     await waitFor(() => {
       expect(mockApi.get).toHaveBeenCalled();
     });
 
-    // Check that we got data back
     await waitFor(() => {
       expect(result.current.team).toBeTruthy();
     });
@@ -210,7 +207,6 @@ describe("useTeamDetail", () => {
     });
 
     result.current.handleFollow();
-    // handleFollow logs but doesn't throw
     expect(result.current.handleFollow).toBeDefined();
   });
 
@@ -233,7 +229,6 @@ describe("useTeamDetail", () => {
 
     expect(result.current.refreshing).toBe(false);
 
-    // Call refresh
     await act(async () => {
       await result.current.onRefresh();
     });
@@ -242,7 +237,6 @@ describe("useTeamDetail", () => {
       expect(result.current.refreshing).toBe(false);
     });
 
-    // API should be called at least once for initial load
     expect(mockApi.get).toHaveBeenCalled();
   });
 
@@ -259,7 +253,6 @@ describe("useTeamDetail", () => {
       expect(result.current.isLoading).toBe(false);
     });
 
-    // Team will be null or undefined after error
     expect(result.current.team).toBeFalsy();
 
     consoleSpy.mockRestore();
