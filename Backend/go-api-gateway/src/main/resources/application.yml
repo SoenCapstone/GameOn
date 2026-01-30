@@ -3,5 +3,5 @@ spring:
     name: go-api-gateway
 
   config:
-    import: optional:configserver:http://localhost:8889
+    import: optional:configserver:${CONFIG_SERVER_URL:http://localhost:8889}
 

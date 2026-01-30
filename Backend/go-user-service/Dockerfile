@@ -1,15 +1,30 @@
 # Build Stage
-FROM maven:3.9.8-eclipse-temurin-17 AS build
+FROM maven:3.9.8-eclipse-temurin-21 AS build
 WORKDIR /app
-COPY ../pom.xml ./
-RUN mvn -q -e dependency:go-offline
-COPY ../src ./src
-RUN mvn -q package
-#Run stage
-FROM eclipse-temurin:17-jre
-RUN addgroup --system app && adduser --system --ingroup app app
+
+# Copy the common module
+COPY common ./common
+
+# Copy the user service module
+COPY go-user-service ./go-user-service
+
+# 1) Build & install common into the local Maven repo
+# 2) Build the user service which now can resolve com.game.on:common
+RUN mvn -f common/pom.xml clean install -DskipTests -q \
+    && mvn -f go-user-service/pom.xml clean package -DskipTests -q
+
+# Runtime Stage
+FROM eclipse-temurin:21-jre-alpine
+
+RUN addgroup -S app && adduser -S app -G app
+
+RUN mkdir -p /app && chown -R app:app /app
+
 WORKDIR /app
-COPY --from=build --chown=root:root --chmod=0444 /app/target/*.jar /app/app.jar
+
+# Copy the built JAR from the build stage
+COPY --from=build --chown=root:root --chmod=444 /app/go-user-service/target/*.jar /app/app.jar
+
 USER app
-EXPOSE 7070
+EXPOSE 8090
 ENTRYPOINT ["java","-jar","/app/app.jar"]

@@ -1,8 +1,8 @@
 spring:
   datasource:
-    url: jdbc:postgresql://localhost:5432/gameon_db
-    username: username
-    password: password
+    url: jdbc:postgresql://${DB_HOST:postgres_db}:${DB_PORT:5432}/${DB_NAME:gameon_db}
+    username: ${DB_USER:username}
+    password: ${DB_PASSWORD:password}
     driver-class-name: org.postgresql.Driver
 
   jpa:
@@ -45,7 +45,16 @@ server:
   port: 8090
 
 eureka:
+  instance:
+    hostname: ${HOSTNAME:localhost}
   client:
+    register-with-eureka: true       # default, but explicit is fine
+    fetch-registry: false            # user-service only needs to register
     service-url:
-      defaultZone: http://localhost:8761/eureka/
+      defaultZone: ${EUREKA_SERVER_URL:http://localhost:8761/eureka/}
 
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,refresh

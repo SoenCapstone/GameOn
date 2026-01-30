@@ -1,16 +1,35 @@
+# ================================
 # Build Stage
-FROM maven:3.9.8-eclipse-temurin-17 AS build
+# ================================
+FROM maven:3.9.8-eclipse-temurin-21 AS build
 WORKDIR /app
-COPY ../pom.xml ./
-RUN mvn -q -e dependency:go-offline
-COPY ../src ./src
-# Skip tests during docker build because some tests run Flyway against H2/Postgres and can fail during image build
-RUN mvn -q -DskipTests package
-#Run stage
-FROM eclipse-temurin:17-jre
-RUN addgroup --system app && adduser --system --ingroup app app
+
+# Copy shared module (common)
+COPY common ./common
+
+# Copy league service module
+COPY go-league-service ./go-league-service
+
+# Install shared module & build league service
+# -DskipTests skips test execution
+# -Dmaven.test.skip=true skips test compilation too
+RUN mvn -f common/pom.xml clean install -Dmaven.test.skip=true -q \
+    && mvn -f go-league-service/pom.xml clean package -Dmaven.test.skip=true -q
+
+# ================================
+# Runtime Stage
+# ================================
+FROM eclipse-temurin:21-jre-alpine
+
+# Create non-root user
+RUN addgroup -S app && adduser -S app -G app
 WORKDIR /app
-COPY --from=build --chown=root:root --chmod=0444 /app/target/*.jar /app/app.jar
+
+# Copy final fat jar from build stage
+COPY --from=build --chown=root:root  --chmod=444 /app/go-league-service/target/*.jar /app/app.jar
+
 USER app
-EXPOSE 7070
-ENTRYPOINT ["java","-jar","/app/app.jar"]
+
+EXPOSE 8093
+
+ENTRYPOINT ["java", "-jar", "/app/app.jar"]
