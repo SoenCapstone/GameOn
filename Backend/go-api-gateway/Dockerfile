@@ -18,11 +18,8 @@ FROM eclipse-temurin:17-jre-alpine
 RUN addgroup -S app && adduser -S app -G app
 WORKDIR /app
 
-# Copy the built JAR from build stage
-COPY --from=build --chown=app:app /app/target/*.jar /app/app.jar
-
-# Remove write permissions
-RUN chmod 444 /app/app.jar
+# Copy the built JAR as root, read-only (no write perms)
+COPY --from=build --chown=root:root --chmod=444 /app/target/*.jar /app/app.jar
 
 USER app
 EXPOSE 8222
