@@ -8,10 +8,10 @@ import {
   fetchUserDirectory,
   TeamSummaryResponse,
   UserDirectoryEntry,
-} from "./api";
-import { messagingKeys } from "./query-keys";
+} from "@/features/messaging/api";
+import { messagingKeys } from "@/features/messaging/query-keys";
 import { ConversationResponse, MessageHistoryResponse } from "./types";
-import { sortConversations } from "./utils";
+import { sortConversations } from "@/features/messaging/utils";
 
 export const MESSAGES_PAGE_SIZE = 40;
 
@@ -36,7 +36,7 @@ export function useMessagesQuery(conversationId: string) {
       fetchMessages(api, {
         conversationId,
         limit: MESSAGES_PAGE_SIZE,
-        before: pageParam,
+        before: pageParam as string | null,
       }),
     getNextPageParam: (lastPage) => {
       if (!lastPage.hasMore || !lastPage.messages.length) return undefined;
