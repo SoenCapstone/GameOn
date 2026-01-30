@@ -56,7 +56,6 @@ describe("handleSaveProfile", () => {
   });
 
   it("validates firstName and lastName, showing appropriate alerts", async () => {
-    // Test empty firstName
     await handleSaveProfile({
       user: mockUser,
       firstName: "",
@@ -74,7 +73,6 @@ describe("handleSaveProfile", () => {
 
     mockAlert.mockClear();
 
-    // Test whitespace-only firstName
     await handleSaveProfile({
       user: mockUser,
       firstName: "   ",
@@ -92,7 +90,6 @@ describe("handleSaveProfile", () => {
 
     mockAlert.mockClear();
 
-    // Test empty lastName
     await handleSaveProfile({
       user: mockUser,
       firstName: "John",
@@ -110,7 +107,6 @@ describe("handleSaveProfile", () => {
 
     mockAlert.mockClear();
 
-    // Test whitespace-only lastName
     await handleSaveProfile({
       user: mockUser,
       firstName: "John",
@@ -128,7 +124,6 @@ describe("handleSaveProfile", () => {
   });
 
   it("manages profile image updates based on image state and user hasImage", async () => {
-    // Test successful update with basic data
     await handleSaveProfile({
       user: mockUser,
       firstName: "John",
@@ -147,7 +142,6 @@ describe("handleSaveProfile", () => {
 
     jest.clearAllMocks();
 
-    // Test delete profile image when user has image
     mockUser.hasImage = true;
     await handleSaveProfile({
       user: mockUser,
@@ -163,7 +157,6 @@ describe("handleSaveProfile", () => {
 
     jest.clearAllMocks();
 
-    // Test no delete when user has no image
     mockUser.hasImage = false;
     await handleSaveProfile({
       user: mockUser,
@@ -184,7 +177,6 @@ describe("handleSaveProfile", () => {
     };
     mockFile.mockImplementation(() => mockFileInstance as any);
 
-    // Test JPEG image
     await handleSaveProfile({
       user: mockUser,
       firstName: "John",
@@ -204,7 +196,6 @@ describe("handleSaveProfile", () => {
     jest.clearAllMocks();
     mockFile.mockImplementation(() => mockFileInstance as any);
 
-    // Test default mimeType
     mockFileInstance.base64.mockResolvedValue("base64string");
     await handleSaveProfile({
       user: mockUser,
@@ -222,7 +213,6 @@ describe("handleSaveProfile", () => {
     jest.clearAllMocks();
     mockFile.mockImplementation(() => mockFileInstance as any);
 
-    // Test PNG image
     mockFileInstance.base64.mockResolvedValue("pngbase64");
     await handleSaveProfile({
       user: mockUser,
@@ -239,7 +229,6 @@ describe("handleSaveProfile", () => {
 
     jest.clearAllMocks();
 
-    // Test HTTPS URL (should not upload)
     await handleSaveProfile({
       user: mockUser,
       firstName: "John",
@@ -254,7 +243,6 @@ describe("handleSaveProfile", () => {
 
     jest.clearAllMocks();
 
-    // Test numeric image value
     await handleSaveProfile({
       user: mockUser,
       firstName: "John",
@@ -271,7 +259,6 @@ describe("handleSaveProfile", () => {
   it("handles errors during profile or image update", async () => {
     let consoleSpy = jest.spyOn(console, "error").mockImplementation();
 
-    // Test user update failure
     const error = new Error("Network error");
     mockUser.update.mockRejectedValue(error);
 
@@ -294,7 +281,6 @@ describe("handleSaveProfile", () => {
     consoleSpy.mockRestore();
     jest.clearAllMocks();
 
-    // Test image update failure
     const imageError = new Error("Image upload failed");
     mockUser.setProfileImage.mockRejectedValue(imageError);
       mockUser.update.mockResolvedValue(undefined);
@@ -338,7 +324,6 @@ describe("pickImage", () => {
   });
 
   it("handles permission request and denied/granted responses", async () => {
-    // Test denied permission
     (ImagePicker.requestMediaLibraryPermissionsAsync as jest.Mock).mockResolvedValue({
       granted: false,
     });
@@ -354,7 +339,6 @@ describe("pickImage", () => {
 
     jest.clearAllMocks();
 
-    // Test granted permission - launches picker
     (ImagePicker.requestMediaLibraryPermissionsAsync as jest.Mock).mockResolvedValue({
       granted: true,
     });
@@ -379,7 +363,6 @@ describe("pickImage", () => {
       granted: true,
     });
 
-    // Test JPEG selection
     (ImagePicker.launchImageLibraryAsync as jest.Mock).mockResolvedValue({
       canceled: false,
       assets: [
@@ -402,7 +385,6 @@ describe("pickImage", () => {
       granted: true,
     });
 
-    // Test default mimeType
     (ImagePicker.launchImageLibraryAsync as jest.Mock).mockResolvedValue({
       canceled: false,
       assets: [
@@ -425,7 +407,6 @@ describe("pickImage", () => {
       granted: true,
     });
 
-    // Test PNG selection
     (ImagePicker.launchImageLibraryAsync as jest.Mock).mockResolvedValue({
       canceled: false,
       assets: [
@@ -448,7 +429,6 @@ describe("pickImage", () => {
       granted: true,
     });
 
-    // Test multiple assets (should use first)
     (ImagePicker.launchImageLibraryAsync as jest.Mock).mockResolvedValue({
       canceled: false,
       assets: [
@@ -469,7 +449,6 @@ describe("pickImage", () => {
       granted: true,
     });
 
-    // Test cancel
     (ImagePicker.launchImageLibraryAsync as jest.Mock).mockResolvedValue({
       canceled: true,
       assets: [],
@@ -484,7 +463,6 @@ describe("pickImage", () => {
       granted: true,
     });
 
-    // Test no assets returned
     (ImagePicker.launchImageLibraryAsync as jest.Mock).mockResolvedValue({
       canceled: false,
       assets: [],
@@ -498,7 +476,6 @@ describe("pickImage", () => {
   it("handles errors during permission or image picker operations", async () => {
     let consoleSpy = jest.spyOn(console, "error").mockImplementation();
 
-    // Test permission request error
     const permissionError = new Error("Permission error");
     (ImagePicker.requestMediaLibraryPermissionsAsync as jest.Mock).mockRejectedValue(permissionError);
 
@@ -577,7 +554,6 @@ describe("confirmLogout", () => {
     const logoutFn = confirmLogout(mockSignOut, mockLog);
     logoutFn();
 
-    // Get the onPress callback from the Sign Out button
     const alertCall = mockAlert.mock.calls[0];
     const buttons = alertCall[2];
     const signOutButton = buttons[1];
@@ -591,7 +567,6 @@ describe("confirmLogout", () => {
     const logoutFn = confirmLogout(mockSignOut, mockLog);
     logoutFn();
 
-    // Cancel button should not have onPress or should do nothing
     expect(mockSignOut).not.toHaveBeenCalled();
   });
 

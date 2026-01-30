@@ -192,10 +192,10 @@ describe("insertMessageOrdered", () => {
 });
 
 describe("appendMessageToPages", () => {
-  const createMessage = (id: string, createdAt: string): MessageResponse => ({
+  const createMessage = (id: string): MessageResponse => ({
     id,
     content: "test",
-    createdAt,
+    createdAt: "2024-01-01T10:00:00Z",
     conversationId: "conv-1",
     senderId: "user-1",
   });
@@ -206,21 +206,21 @@ describe("appendMessageToPages", () => {
   });
 
   it("returns undefined if data is undefined", () => {
-    const incoming = createMessage("msg-1", "2024-01-01");
+    const incoming = createMessage("msg-1");
     const result = appendMessageToPages(undefined, incoming);
     expect(result).toBeUndefined();
   });
 
   it("appends to last page and does not modify non-last pages", () => {
-    const msg1 = createMessage("msg-1", "2024-01-01");
+    const msg1 = createMessage("msg-1");
     const data: InfiniteData<MessageHistoryResponse> = {
       pages: [
         createPage([msg1]),
-        createPage([createMessage("msg-2", "2024-01-02")]),
+        createPage([createMessage("msg-2")]),
       ],
       pageParams: [undefined, null],
     };
-    const incoming = createMessage("msg-3", "2024-01-03");
+    const incoming = createMessage("msg-3");
     const result = appendMessageToPages(data, incoming);
 
     expect(result?.pages[0].messages?.[0].id).toBe("msg-1");
@@ -233,13 +233,13 @@ describe("appendMessageToPages", () => {
       pages: [createPage([]), createPage([])],
       pageParams: [undefined, null],
     };
-    const incoming = createMessage("msg-1", "2024-01-01");
+    const incoming = createMessage("msg-1");
     const result1 = appendMessageToPages(data1, incoming);
     expect(result1?.pages[1].messages).toHaveLength(1);
 
     const data2: InfiniteData<MessageHistoryResponse> = {
       pages: [
-        { messages: [createMessage("msg-1", "2024-01-01")], hasMore: false },
+        { messages: [createMessage("msg-1")], hasMore: false },
         { messages: [], hasMore: false },
       ],
       pageParams: [undefined, null],
@@ -363,7 +363,7 @@ describe("buildMessagesFromPages", () => {
 describe("formatMessageTimestamp", () => {
   it("returns empty string for null, undefined, invalid, or empty timestamps", () => {
     expect(formatMessageTimestamp(null)).toBe("");
-    expect(formatMessageTimestamp(undefined)).toBe("");
+    expect(formatMessageTimestamp()).toBe("");
     expect(formatMessageTimestamp("")).toBe("");
     expect(formatMessageTimestamp("invalid-date")).toBe("");
   });
