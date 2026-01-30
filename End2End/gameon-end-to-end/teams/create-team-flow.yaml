@@ -1,0 +1,48 @@
+appId: host.exp.Exponent
+---
+
+- tapOn: Spaces
+
+- tapOn: Teams
+
+- tapOn: Add
+
+- tapOn: Team Name
+
+- inputText: End2EndRunners
+
+- assertVisible: End2EndRunners
+
+- doubleTapOn: Sports, None ⌵
+
+- tapOn: Volleyball
+
+
+- assertVisible: Sports, Volleyball ⌵
+
+
+- tapOn: Scope, Casual ⌵
+
+- tapOn: Managed
+
+- assertVisible: Scope, Managed ⌵
+
+
+- tapOn: Location, City ⌵
+
+- tapOn: Montreal
+
+- assertVisible: Location, Montreal ⌵
+
+- tapOn:
+    text: Create Team
+    index: 1
+
+- assertVisible: Team created
+- assertVisible: Your team has been created.
+
+- tapOn: OK
+
+- tapOn: Home
+
+- tapOn: Spaces
