@@ -148,8 +148,8 @@ services:
       DB_NAME: gameon_db
       DB_USER: username
       DB_PASSWORD: password
-      STRIPE_SECRET_KEY: sk_test_51SpYePDQOghxRyHHCVtXIkJLZXe2QK0iiZgaijwL7wbqWTSJYeUbNmU2qQl68IWBixSNKUG27WE3h2p6Xfo9Pz5B00ugGaIIKZ
-      STRIPE_WEBHOOK_SECRET: whsec_57591386a466f227bcbfa488cb93f4ea22a1097c6adcb8d7e644a45b709754c3
+      STRIPE_SECRET_KEY: ${STRIPE_SECRET_KEY}
+      STRIPE_WEBHOOK_SECRET: ${STRIPE_WEBHOOK_SECRET}
     ports:
       - "8093:8093"
     depends_on:

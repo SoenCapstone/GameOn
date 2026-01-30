@@ -25,6 +25,8 @@ WORKDIR /app
 # Copy the built JAR from the build stage
 COPY --from=build --chown=app:app /app/go-user-service/target/*.jar /app/app.jar
 
+RUN chmod 500 /app/app.jar
+
 USER app
 EXPOSE 8090
 ENTRYPOINT ["java","-jar","/app/app.jar"]

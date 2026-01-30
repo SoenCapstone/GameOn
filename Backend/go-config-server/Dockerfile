@@ -22,6 +22,9 @@ WORKDIR /app
 # Copy the built JAR from build stage
 COPY --from=build --chown=app:app /app/target/*.jar /app/app.jar
 
+# Remove write permissions
+RUN chmod 500 /app/app.jar
+
 USER app
 EXPOSE 8889
 ENTRYPOINT ["java","-jar","/app/app.jar"]
