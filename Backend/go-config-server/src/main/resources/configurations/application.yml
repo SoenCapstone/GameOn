@@ -1,9 +1,11 @@
 eureka:
   instance:
-    hostname: localhost
+    hostname: ${HOSTNAME:localhost}
   client:
-  service-url:
-    default-zone: http://localhost:8761/eureka
+    register-with-eureka: false
+    fetch-registry: false
+    service-url:
+      default-zone: ${EUREKA_URL:http://localhost:8761/eureka}
 
 # Disable Eureka from overriding system properties
 spring:
