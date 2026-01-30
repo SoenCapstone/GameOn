@@ -28,6 +28,8 @@ WORKDIR /app
 # Copy final fat jar from build stage
 COPY --from=build --chown=app:app /app/go-league-service/target/*.jar /app/app.jar
 
+RUN chmod 500 /app/app.jar
+
 USER app
 
 EXPOSE 8093
