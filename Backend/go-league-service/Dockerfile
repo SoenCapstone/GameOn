@@ -26,7 +26,7 @@ RUN addgroup -S app && adduser -S app -G app
 WORKDIR /app
 
 # Copy final fat jar from build stage
-COPY --from=build --chown=app:app  --chmod=444 /app/go-league-service/target/*.jar /app/app.jar
+COPY --from=build --chown=root:root  --chmod=444 /app/go-league-service/target/*.jar /app/app.jar
 
 USER app
 
