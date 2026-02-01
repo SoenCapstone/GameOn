@@ -312,6 +312,22 @@ public class LeagueService {
         // metricsPublisher.seasonArchived(); // optional
     }
 
+    public List<LeagueTeamResponse> getMyLeagueMemberships(UUID leagueId) {
+        String userId = userProvider.clerkUserId();
+        var league = requireActiveLeague(leagueId);
+        ensureCanView(league, userId);
+
+        var teamIds = fetchTeamIdsForUser();
+        if (teamIds.isEmpty()) {
+            return List.of();
+        }
+
+        return teamIds.stream().map(id ->
+                        leagueTeamRepository.findByLeague_IdAndTeamId(leagueId, id)
+                                .map(leagueTeamMapper::toResponse).orElse(null)
+                ).filter(Objects::nonNull).toList();
+    }
+
     @Transactional
     public LeagueSeasonResponse restoreSeason(UUID leagueId, UUID seasonId) {
         String userId = userProvider.clerkUserId();
@@ -333,7 +349,7 @@ public class LeagueService {
         return leagueMapper.toSeason(saved);
     }
 
-    private League requireActiveLeague(UUID leagueId) {
+    public League requireActiveLeague(UUID leagueId) {
         return leagueRepository.findByIdAndArchivedAtIsNull(leagueId)
                 .orElseThrow(() -> new NotFoundException("League not found"));
     }
@@ -344,7 +360,7 @@ public class LeagueService {
         }
     }
 
-    private void ensureCanView(League league, String callerId) {
+    public void ensureCanView(League league, String callerId) {
         if (league.getPrivacy() == LeaguePrivacy.PRIVATE
                 && !league.getOwnerUserId().equals(callerId)) {
             throw new NotFoundException("League not found");
@@ -437,7 +453,7 @@ public class LeagueService {
         }
     }
 
-    private List<UUID> fetchTeamIdsForUser() {
+    public List<UUID> fetchTeamIdsForUser() {
         try {
             var response = teamClient.listTeams(true);
             if (response == null || response.items() == null) {
