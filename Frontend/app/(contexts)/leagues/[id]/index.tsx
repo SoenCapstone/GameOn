@@ -21,10 +21,10 @@ export default function LeagueScreen() {
 }
 
 function LeagueContent() {
-  const { id, isLoading, refreshing, onRefresh, handleFollow, title, isOwner } =
+  const { id, isLoading, refreshing, onRefresh, handleFollow, title, isOwner, isMember } =
     useLeagueDetailContext();
 
-  useLeagueHeader({ title, id, isOwner, onFollow: handleFollow });
+  useLeagueHeader({ title, id, isOwner, isMember, onFollow: handleFollow });
 
   return (
     <ContentArea

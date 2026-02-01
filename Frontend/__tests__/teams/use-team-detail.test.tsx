@@ -59,6 +59,13 @@ describe("useTeamDetail", () => {
     mockedUseAuth.mockReturnValue({
       userId: "user-123",
     } as any);
+    
+    mockApi.get.mockImplementation((url: string) => {
+      if (url.includes("memberships/me")) {
+        return Promise.resolve({ data: null });
+      }
+      return Promise.resolve({ data: null });
+    });
   });
 
   afterEach(async () => {
@@ -68,10 +75,17 @@ describe("useTeamDetail", () => {
     }
   });
 
-  it("returns initial loading state", async () => {
-    mockApi.get.mockResolvedValue({
-      data: { id: "team-1", name: "Test Team", ownerUserId: "user-123" },
+  function mockGetRequest(teamData: any, membershipData: any = null) {
+    mockApi.get.mockImplementation((url: string) => {
+      if (url.includes("memberships/me")) {
+        return Promise.resolve({ data: membershipData });
+      }
+      return Promise.resolve({ data: teamData });
     });
+  }
+
+  it("returns initial loading state", async () => {
+    mockGetRequest({ id: "team-1", name: "Test Team", ownerUserId: "user-123" });
 
     const { result } = renderHook(() => useTeamDetail("team-1"), {
       wrapper: createWrapper(),
@@ -362,5 +376,52 @@ describe("useTeamDetail", () => {
     const onRefresh2 = result.current.onRefresh;
 
     expect(onRefresh1).toBe(onRefresh2);
+  });
+
+  it("returns isMember as true when user is a team member", async () => {
+    const teamData = {
+      id: "team-1",
+      name: "Test Team",
+      ownerUserId: "user-456",
+    };
+
+    const membershipData = {
+      userId: "user-123",
+      role: "PLAYER",
+      status: "ACTIVE",
+      joinedAt: "2024-01-15T10:00:00Z",
+    };
+
+    mockGetRequest(teamData, membershipData);
+
+    const { result } = renderHook(() => useTeamDetail("team-1"), {
+      wrapper: createWrapper(),
+    });
+
+    await waitFor(() => {
+      expect(result.current.isLoading).toBe(false);
+    });
+
+    expect(result.current.isMember).toBe(true);
+  });
+
+  it("returns isMember as false when user is not a team member", async () => {
+    const teamData = {
+      id: "team-1",
+      name: "Test Team",
+      ownerUserId: "user-456",
+    };
+
+    mockGetRequest(teamData, null);
+
+    const { result } = renderHook(() => useTeamDetail("team-1"), {
+      wrapper: createWrapper(),
+    });
+
+    await waitFor(() => {
+      expect(result.current.isLoading).toBe(false);
+    });
+
+    expect(result.current.isMember).toBe(false);
   });
 });

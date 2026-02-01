@@ -28,11 +28,11 @@ export default function TeamScreen() {
 function TeamContent() {
   const [tab, setTab] = React.useState<"board" | "overview" | "games">("board");
   const { query } = useSearch();
-  const { id, isLoading, refreshing, onRefresh, handleFollow, title, isOwner } =
+  const { id, isLoading, refreshing, onRefresh, handleFollow, title, isOwner, isMember } =
     useTeamDetailContext();
   const { items, loading: boardLoading } = useMockTeamBoard(id, query);
 
-  useTeamHeader({ title, id, isOwner, onFollow: handleFollow });
+  useTeamHeader({ title, id, isOwner, isMember, onFollow: handleFollow });
 
   return (
     <ContentArea

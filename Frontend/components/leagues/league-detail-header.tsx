@@ -9,6 +9,7 @@ interface LeagueDetailHeaderProps {
   readonly title: string;
   readonly id: string;
   readonly isOwner: boolean;
+  readonly isMember: boolean;
   readonly onFollow: () => void;
 }
 
@@ -16,6 +17,7 @@ export function LeagueDetailHeader({
   title,
   id,
   isOwner,
+  isMember,
   onFollow,
 }: LeagueDetailHeaderProps) {
   return (
@@ -23,7 +25,7 @@ export function LeagueDetailHeader({
       left={<Button type="back" />}
       center={<PageTitle title={title} />}
       right={
-        isOwner ? (
+        (isOwner || isMember) ? (
           <View style={styles.ownerActions}>
             <View style={styles.ownerActionButton}>
               <Button

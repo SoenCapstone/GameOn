@@ -73,6 +73,13 @@ describe("useLeagueDetail", () => {
     mockedUseAuth.mockReturnValue({
       userId: "user-123",
     } as any);
+    
+    mockApi.get.mockImplementation((url: string) => {
+      if (url.includes("memberships/me")) {
+        return Promise.resolve({ data: [] });
+      }
+      return Promise.resolve({ data: null });
+    });
   });
 
   afterEach(async () => {
@@ -82,10 +89,17 @@ describe("useLeagueDetail", () => {
     }
   });
 
-  it("returns initial loading state", async () => {
-    mockApi.get.mockResolvedValue({
-      data: { id: "league-1", name: "Test League", ownerUserId: "user-123" },
+  function mockGetRequest(leagueData: any, teamsData: any = []) {
+    mockApi.get.mockImplementation((url: string) => {
+      if (url.includes("memberships/me")) {
+        return Promise.resolve({ data: teamsData });
+      }
+      return Promise.resolve({ data: leagueData });
     });
+  }
+
+  it("returns initial loading state", async () => {
+    mockGetRequest({ id: "league-1", name: "Test League", ownerUserId: "user-123" });
 
     const { result } = renderHook(() => useLeagueDetail("league-1"), {
       wrapper: createWrapper(),
@@ -107,7 +121,7 @@ describe("useLeagueDetail", () => {
       level: "intermediate",
     };
 
-    mockApi.get.mockResolvedValue({ data: leagueData });
+    mockGetRequest(leagueData);
 
     const { result } = renderHook(() => useLeagueDetail("league-1"), {
       wrapper: createWrapper(),
@@ -139,7 +153,7 @@ describe("useLeagueDetail", () => {
       ownerUserId: "user-123",
     };
 
-    mockApi.get.mockResolvedValue({ data: leagueData });
+    mockGetRequest(leagueData);
 
     const { result } = renderHook(() => useLeagueDetail("league-1"), {
       wrapper: createWrapper(),
@@ -163,7 +177,7 @@ describe("useLeagueDetail", () => {
       ownerUserId: "user-456",
     };
 
-    mockApi.get.mockResolvedValue({ data: leagueData });
+    mockGetRequest(leagueData);
 
     const { result } = renderHook(() => useLeagueDetail("league-1"), {
       wrapper: createWrapper(),
@@ -182,7 +196,7 @@ describe("useLeagueDetail", () => {
       ownerUserId: "user-123",
     };
 
-    mockApi.get.mockResolvedValue({ data: leagueData });
+    mockGetRequest(leagueData);
 
     const { result } = renderHook(() => useLeagueDetail("league-1"), {
       wrapper: createWrapper(),
@@ -232,7 +246,7 @@ describe("useLeagueDetail", () => {
       ownerUserId: "user-123",
     };
 
-    mockApi.get.mockResolvedValue({ data: leagueData });
+    mockGetRequest(leagueData);
 
     const { result } = renderHook(() => useLeagueDetail("league-1"), {
       wrapper: createWrapper(),
@@ -256,7 +270,9 @@ describe("useLeagueDetail", () => {
   });
 
   it("handles API errors gracefully", async () => {
-    mockApi.get.mockRejectedValue(new Error("Network error"));
+    mockApi.get.mockImplementation(() => {
+      return Promise.reject(new Error("Network error"));
+    });
 
     const consoleSpy = jest.spyOn(console, "log").mockImplementation();
 
@@ -312,7 +328,7 @@ describe("useLeagueDetail", () => {
       ownerUserId: "user-123",
     };
 
-    mockApi.get.mockResolvedValue({ data: leagueData });
+    mockGetRequest(leagueData);
 
     const { result } = renderHook(() => useLeagueDetail("league-1"), {
       wrapper: createWrapper(),
@@ -326,7 +342,12 @@ describe("useLeagueDetail", () => {
   });
 
   it("isOwner is false when league is null", async () => {
-    mockApi.get.mockResolvedValue({ data: null });
+    mockApi.get.mockImplementation((url: string) => {
+      if (url.includes("memberships/me")) {
+        return Promise.resolve({ data: [] });
+      }
+      return Promise.resolve({ data: null });
+    });
 
     const { result } = renderHook(() => useLeagueDetail("league-1"), {
       wrapper: createWrapper(),
@@ -340,8 +361,10 @@ describe("useLeagueDetail", () => {
   });
 
   it("maintains stable handleFollow callback", async () => {
-    mockApi.get.mockResolvedValue({
-      data: { id: "league-1", name: "Test League", ownerUserId: "user-123" },
+    mockGetRequest({
+      id: "league-1",
+      name: "Test League",
+      ownerUserId: "user-123",
     });
 
     const { result, rerender } = renderHook(() => useLeagueDetail("league-1"), {
@@ -360,8 +383,10 @@ describe("useLeagueDetail", () => {
   });
 
   it("maintains stable onRefresh callback", async () => {
-    mockApi.get.mockResolvedValue({
-      data: { id: "league-1", name: "Test League", ownerUserId: "user-123" },
+    mockGetRequest({
+      id: "league-1",
+      name: "Test League",
+      ownerUserId: "user-123",
     });
 
     const { result, rerender } = renderHook(() => useLeagueDetail("league-1"), {
@@ -380,8 +405,10 @@ describe("useLeagueDetail", () => {
   });
 
   it("calls correct API endpoint", async () => {
-    mockApi.get.mockResolvedValue({
-      data: { id: "league-1", name: "Test League", ownerUserId: "user-123" },
+    mockGetRequest({
+      id: "league-1",
+      name: "Test League",
+      ownerUserId: "user-123",
     });
 
     renderHook(() => useLeagueDetail("league-1"), {
@@ -459,8 +486,10 @@ describe("useLeagueDetail", () => {
   });
 
   it("returns correct title when data is loaded", async () => {
-    mockApi.get.mockResolvedValue({
-      data: { id: "league-3", name: "My League", ownerUserId: "user-123" },
+    mockGetRequest({
+      id: "league-3",
+      name: "My League",
+      ownerUserId: "user-123",
     });
 
     const { result } = renderHook(() => useLeagueDetail("league-3"), {
@@ -487,7 +516,7 @@ describe("useLeagueDetail", () => {
       description: "A complex league",
     };
 
-    mockApi.get.mockResolvedValue({ data: leagueData });
+    mockGetRequest(leagueData);
 
     const { result } = renderHook(() => useLeagueDetail("league-1"), {
       wrapper: createWrapper(),
@@ -537,5 +566,56 @@ describe("useLeagueDetail", () => {
     });
 
     expect(mockApi.get).toHaveBeenCalled();
+  });
+
+  it("returns isMember as true when user has teams in league", async () => {
+    const leagueData = {
+      id: "league-1",
+      name: "Test League",
+      ownerUserId: "user-456",
+    };
+
+    const myTeams = [
+      {
+        id: "lt-1",
+        leagueId: "league-1",
+        teamId: "team-1",
+        joinedAt: "2024-01-15T10:00:00Z",
+      },
+    ];
+
+    mockGetRequest(leagueData, myTeams);
+
+    const { result } = renderHook(() => useLeagueDetail("league-1"), {
+      wrapper: createWrapper(),
+    });
+
+    await waitFor(() => {
+      expect(result.current.isLoading).toBe(false);
+    });
+
+    expect(result.current.isMember).toBe(true);
+    expect(result.current.myTeams).toHaveLength(1);
+  });
+
+  it("returns isMember as false when user has no teams in league", async () => {
+    const leagueData = {
+      id: "league-1",
+      name: "Test League",
+      ownerUserId: "user-456",
+    };
+
+    mockGetRequest(leagueData, []);
+
+    const { result } = renderHook(() => useLeagueDetail("league-1"), {
+      wrapper: createWrapper(),
+    });
+
+    await waitFor(() => {
+      expect(result.current.isLoading).toBe(false);
+    });
+
+    expect(result.current.isMember).toBe(false);
+    expect(result.current.myTeams).toHaveLength(0);
   });
 });

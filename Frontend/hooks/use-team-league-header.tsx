@@ -7,6 +7,7 @@ interface UseTeamLeagueHeaderProps {
   title: string;
   id: string;
   isOwner: boolean;
+  isMember: boolean;
   onFollow: () => void;
 }
 
@@ -14,6 +15,7 @@ export function useTeamHeader({
   title,
   id,
   isOwner,
+  isMember,
   onFollow,
 }: UseTeamLeagueHeaderProps) {
   const navigation = useNavigation();
@@ -25,19 +27,21 @@ export function useTeamHeader({
           title={title}
           id={id}
           isOwner={isOwner}
+          isMember={isMember}
           onFollow={onFollow}
         />
       );
     }
 
     navigation.setOptions({ headerTitle: renderTeamHeader });
-  }, [navigation, title, id, isOwner, onFollow]);
+  }, [navigation, title, id, isOwner, isMember, onFollow]);
 }
 
 export function useLeagueHeader({
   title,
   id,
   isOwner,
+  isMember,
   onFollow,
 }: UseTeamLeagueHeaderProps) {
   const navigation = useNavigation();
@@ -49,11 +53,12 @@ export function useLeagueHeader({
           title={title}
           id={id}
           isOwner={isOwner}
+          isMember={isMember}
           onFollow={onFollow}
         />
       );
     }
 
     navigation.setOptions({ headerTitle: renderLeagueHeader });
-  }, [navigation, title, id, isOwner, onFollow]);
+  }, [navigation, title, id, isOwner, isMember, onFollow]);
 }

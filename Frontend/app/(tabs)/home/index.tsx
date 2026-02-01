@@ -85,7 +85,7 @@ export default function Home() {
       await api.post(GO_INVITE_ROUTES.RESPOND, payload);
     },
     onSuccess: handleInviteResponseSuccess(
-      [["teams"], ["team-members"]],
+      [["teams"], ["team-members"], ["team-membership"], ["leagues"], ["league-memberships"]],
       "You have joined the team.",
     ),
     onError: handleInviteResponseError,
@@ -99,7 +99,7 @@ export default function Home() {
       await api.post(endpoint);
     },
     onSuccess: handleInviteResponseSuccess(
-      [["leagues"], ["league-teams"]],
+      [["leagues"], ["league-teams"], ["league-memberships"]],
       "The team has joined the league.",
     ),
     onError: handleInviteResponseError,
