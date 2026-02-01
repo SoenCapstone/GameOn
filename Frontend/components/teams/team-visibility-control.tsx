@@ -11,9 +11,9 @@ type Props = Readonly<{
 
 export function TeamVisibilityControl({
   isPublic,
-  hasPublicAccess,
   onRequestPurchase,
   onChangePublic,
+  hasPublicAccess,
 }: Props) {
   if (!hasPublicAccess) {
     return (
