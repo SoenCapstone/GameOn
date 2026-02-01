@@ -32,7 +32,7 @@ export function useLeagueDetail(id: string) {
   });
 
   const {
-    data: myTeams = [],
+    data: myLeagueTeams = [],
   } = useQuery({
     queryKey: ["league-memberships", id, userId],
     queryFn: async () => {
@@ -62,12 +62,12 @@ export function useLeagueDetail(id: string) {
   }, [refetch]);
 
   const handleFollow = useCallback(() => {
-    log.info(`Owner with id ${userId} has followed league with id ${id}`);
+    log.info(`User with id ${userId} has followed league with id ${id}`);
   }, [userId, id]);
 
   const title = league?.name ?? (id ? `League ${id}` : "League");
   const isOwner = Boolean(userId && league && league.ownerUserId === userId);
-  const isMember = myTeams.length > 0;
+  const isMember = myLeagueTeams.length > 0;
 
   return {
     league,
@@ -77,7 +77,7 @@ export function useLeagueDetail(id: string) {
     handleFollow,
     title,
     isOwner,
-    myTeams,
+    myLeagueTeams,
     isMember,
   };
 }
