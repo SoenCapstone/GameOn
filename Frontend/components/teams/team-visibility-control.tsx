@@ -4,9 +4,9 @@ import { createTeamStyles as styles } from "@/components/teams/teams-styles";
 
 type Props = Readonly<{
   isPublic: boolean;
-  hasPublicAccess: boolean;
   onRequestPurchase: () => void;
   onChangePublic: (value: boolean) => void;
+  hasPublicAccess: boolean;
 }>;
 
 export function TeamVisibilityControl({
