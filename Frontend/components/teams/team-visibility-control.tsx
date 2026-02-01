@@ -27,7 +27,7 @@ export function TeamVisibilityControl({
             onPress={onRequestPurchase}
             hitSlop={10}
             style={({ pressed }) => [
-              styles.detailRow,
+              styles.button,
               { justifyContent: "center" },
               pressed && {
                 backgroundColor: "rgba(255,255,255,0.06)",
@@ -38,7 +38,7 @@ export function TeamVisibilityControl({
             <Text
               style={[
                 styles.detailLabel,
-                { color: "#0052ff", fontWeight: "600" },
+                { color: "#bdbdbdff", fontWeight: "600" },
               ]}
             >
               Buy Public Team

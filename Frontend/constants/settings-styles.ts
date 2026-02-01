@@ -22,7 +22,7 @@ export const settingsStyles = StyleSheet.create({
     zIndex: 999,
   },
   deleteButton: {
-    marginTop: 16,
+    marginTop: -16,
     borderRadius: 999,
     paddingVertical: 14,
     alignItems: "center",
