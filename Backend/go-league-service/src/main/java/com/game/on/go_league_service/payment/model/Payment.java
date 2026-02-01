@@ -28,8 +28,12 @@ public class Payment {
     @Column(name = "user_id", nullable = false)
     private String userId;
 
-    @Column(name = "league_id", nullable = false)
+    @Column(name = "league_id")
     private UUID leagueId;
+
+    @Column(name = "team_id")
+    private UUID teamId;
+
 
     // Amount in MINOR units (ex: cents for CAD/USD)
     @Column(nullable = false)

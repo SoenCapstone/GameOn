@@ -15,6 +15,7 @@ public class PaymentMapper {
         return Payment.builder()
                 .userId(userId)
                 .leagueId(req.leagueId())
+                .teamId(req.teamId())
                 .amount(req.amount())
                 .currency(req.currency().toLowerCase())
                 .status(PaymentStatus.CREATED)
@@ -36,6 +37,7 @@ public class PaymentMapper {
         return new PaymentResponse(
                 payment.getId(),
                 payment.getLeagueId(),
+                payment.getTeamId(),
                 payment.getAmount(),
                 payment.getCurrency(),
                 payment.getStatus(),

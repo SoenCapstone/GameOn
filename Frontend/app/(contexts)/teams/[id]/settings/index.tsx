@@ -318,10 +318,6 @@ function TeamSettingsContent() {
         }}
       />
 
-      {/* TEAM PAYMENT NOT IMPLEMENTED IN BACKEND YET
-          Leave this block commented until /payments/intent accepts teamId.
-      */}
-      {/*
       <PublicPaymentModal
         visible={paymentVisible}
         onClose={() => {
@@ -344,7 +340,6 @@ function TeamSettingsContent() {
           setPaymentVisible(false);
         }}
       />
-      */}
     </ContentArea>
   );
 }
