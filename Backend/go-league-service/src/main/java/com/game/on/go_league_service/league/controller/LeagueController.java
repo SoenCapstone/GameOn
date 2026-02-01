@@ -126,6 +126,11 @@ public class LeagueController {
         return ResponseEntity.ok(response);
     }
 
+    @GetMapping("/{leagueId}/memberships/me")
+    public ResponseEntity<List<LeagueTeamResponse>> getMyLeagueMemberships(@PathVariable UUID leagueId) {
+        return ResponseEntity.ok(leagueService.getMyLeagueMemberships(leagueId));
+    }
+
     /* Test endpoint... TO DO: remove once Payment/ stripe is implemented */
     @PostMapping("/payment-event")
     public void producePaymentEvent(@RequestBody PaymentDTO paymentDTO) {

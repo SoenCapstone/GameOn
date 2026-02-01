@@ -1,19 +1,23 @@
 package com.game.on.go_league_service.league;
 
+import com.game.on.go_league_service.client.TeamClient;
 import com.game.on.go_league_service.config.CurrentUserProvider;
 import com.game.on.go_league_service.exception.BadRequestException;
 import com.game.on.go_league_service.exception.ForbiddenException;
 import com.game.on.go_league_service.exception.NotFoundException;
 import com.game.on.go_league_service.league.dto.LeagueCreateRequest;
 import com.game.on.go_league_service.league.dto.LeagueSearchCriteria;
+import com.game.on.go_league_service.league.dto.LeagueTeamResponse;
 import com.game.on.go_league_service.league.dto.LeagueUpdateRequest;
 import com.game.on.go_league_service.league.mapper.LeagueMapper;
+import com.game.on.go_league_service.league.mapper.LeagueTeamMapper;
 import com.game.on.go_league_service.league.metrics.LeagueMetricsPublisher;
 import com.game.on.go_league_service.league.model.League;
 import com.game.on.go_league_service.league.model.LeagueLevel;
 import com.game.on.go_league_service.league.model.LeaguePrivacy;
 import com.game.on.go_league_service.league.repository.LeagueRepository;
 import com.game.on.go_league_service.league.repository.LeagueSeasonRepository;
+import com.game.on.go_league_service.league.repository.LeagueTeamRepository;
 import com.game.on.go_league_service.league.service.LeagueService;
 import com.game.on.go_league_service.league.util.SlugGenerator;
 import org.junit.jupiter.api.BeforeEach;
@@ -27,12 +31,15 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 
 import java.time.OffsetDateTime;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.hibernate.validator.internal.util.Contracts.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyCollection;
 import static org.mockito.Mockito.*;
@@ -50,10 +57,19 @@ class LeagueServiceTest {
     private LeagueMetricsPublisher metricsPublisher;
 
     @Mock
+    private LeagueTeamRepository leagueTeamRepository;
+
+    @Mock
     private CurrentUserProvider currentUserProvider;
 
     @Mock
+    private LeagueTeamMapper leagueTeamMapper;
+
+    @Mock
     private SlugGenerator slugGenerator;
+
+    @Mock
+    private TeamClient client;
 
     private LeagueService leagueService;
 
@@ -64,6 +80,9 @@ class LeagueServiceTest {
                 leagueRepository,
                 leagueSeasonRepository,
                 mapper,
+                leagueTeamRepository,
+                leagueTeamMapper,
+                client,
                 currentUserProvider,
                 metricsPublisher
         );
@@ -292,5 +311,28 @@ class LeagueServiceTest {
         assertThat(response.totalElements()).isEqualTo(1);
 
         verify(metricsPublisher).leagueListQuery();
+    }
+
+    @Test
+    void getMyLeagueMemberships_returnsEmpty_whenUserHasNoTeams() {
+        UUID leagueId = UUID.randomUUID();
+        String userId = "user_123";
+
+        League league = mock(League.class);
+        LeagueService service = spy(leagueService);
+
+        doReturn(userId).when(currentUserProvider).clerkUserId();
+        doReturn(league).when(service).requireActiveLeague(leagueId);
+        doNothing().when(service).ensureCanView(league, userId);
+
+        doReturn(Collections.emptyList()).when(service).fetchTeamIdsForUser();
+
+        List<LeagueTeamResponse> result = service.getMyLeagueMemberships(leagueId);
+
+        assertNotNull(result);
+        assertTrue(result.isEmpty());
+
+        verify(leagueTeamRepository, never()).findByLeague_IdAndTeamId(any(), any());
+        verify(leagueTeamMapper, never()).toResponse(any());
     }
 }
