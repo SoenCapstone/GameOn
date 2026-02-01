@@ -575,7 +575,7 @@ describe("useLeagueDetail", () => {
       ownerUserId: "user-456",
     };
 
-    const myTeams = [
+    const myLeagueTeams = [
       {
         id: "lt-1",
         leagueId: "league-1",
@@ -584,7 +584,7 @@ describe("useLeagueDetail", () => {
       },
     ];
 
-    mockGetRequest(leagueData, myTeams);
+    mockGetRequest(leagueData, myLeagueTeams);
 
     const { result } = renderHook(() => useLeagueDetail("league-1"), {
       wrapper: createWrapper(),
@@ -595,7 +595,7 @@ describe("useLeagueDetail", () => {
     });
 
     expect(result.current.isMember).toBe(true);
-    expect(result.current.myTeams).toHaveLength(1);
+    expect(result.current.myLeagueTeams).toHaveLength(1);
   });
 
   it("returns isMember as false when user has no teams in league", async () => {
@@ -616,6 +616,6 @@ describe("useLeagueDetail", () => {
     });
 
     expect(result.current.isMember).toBe(false);
-    expect(result.current.myTeams).toHaveLength(0);
+    expect(result.current.myLeagueTeams).toHaveLength(0);
   });
 });
