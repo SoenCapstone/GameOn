@@ -14,4 +14,7 @@ public interface PaymentRepository extends JpaRepository<Payment, UUID> {
     Optional<Payment> findTopByLeagueIdOrderByCreatedAtDesc(UUID leagueId);
 
     boolean existsByLeagueIdAndStatus(UUID leagueId, PaymentStatus status);
+
+    boolean existsByTeamIdAndStatus(UUID teamId, PaymentStatus status);
+
 }
