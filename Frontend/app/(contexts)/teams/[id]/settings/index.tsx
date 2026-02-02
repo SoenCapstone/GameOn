@@ -5,7 +5,6 @@ import {
   Pressable,
   Text,
   Alert,
-  Switch,
 } from "react-native";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useNavigation, StackActions } from "@react-navigation/native";
