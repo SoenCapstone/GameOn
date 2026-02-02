@@ -47,19 +47,19 @@ class StripePaymentServiceTest {
         UUID leagueId = UUID.randomUUID();
         UUID paymentId = UUID.randomUUID();
 
-        // ✅ FIX: new DTO signature includes teamId
+
         CreatePaymentIntentRequest req = new CreatePaymentIntentRequest(
                 500L,
                 "CAD",
                 leagueId,
-                null, // ✅ teamId (league payment)
+                null,
                 "League fee"
         );
 
         Payment mappedPayment = Payment.builder()
                 .userId(userId)
                 .leagueId(leagueId)
-                .teamId(null) // ✅ optional but clearer
+                .teamId(null)
                 .amount(req.amount())
                 .currency(req.currency().toLowerCase())
                 .status(PaymentStatus.CREATED)
@@ -69,7 +69,7 @@ class StripePaymentServiceTest {
                 .id(paymentId)
                 .userId(userId)
                 .leagueId(leagueId)
-                .teamId(null) // ✅ optional but clearer
+                .teamId(null)
                 .amount(req.amount())
                 .currency(req.currency().toLowerCase())
                 .status(PaymentStatus.CREATED)
@@ -79,7 +79,7 @@ class StripePaymentServiceTest {
                 .id(paymentId)
                 .userId(userId)
                 .leagueId(leagueId)
-                .teamId(null) // ✅ optional but clearer
+                .teamId(null)
                 .amount(req.amount())
                 .currency(req.currency().toLowerCase())
                 .status(PaymentStatus.CREATED)
@@ -141,19 +141,19 @@ class StripePaymentServiceTest {
         UUID leagueId = UUID.randomUUID();
         UUID paymentId = UUID.randomUUID();
 
-        // ✅ FIX: new DTO signature includes teamId
+
         CreatePaymentIntentRequest req = new CreatePaymentIntentRequest(
                 500L,
                 "CAD",
                 leagueId,
-                null, // ✅ teamId (league payment)
+                null,
                 "League fee"
         );
 
         Payment mappedPayment = Payment.builder()
                 .userId(userId)
                 .leagueId(leagueId)
-                .teamId(null) // ✅ optional but clearer
+                .teamId(null)
                 .amount(req.amount())
                 .currency(req.currency().toLowerCase())
                 .status(PaymentStatus.CREATED)
@@ -163,7 +163,7 @@ class StripePaymentServiceTest {
                 .id(paymentId)
                 .userId(userId)
                 .leagueId(leagueId)
-                .teamId(null) // ✅ optional but clearer
+                .teamId(null) 
                 .amount(req.amount())
                 .currency(req.currency().toLowerCase())
                 .status(PaymentStatus.CREATED)
