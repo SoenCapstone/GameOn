@@ -31,6 +31,26 @@ export function useLeagueDetail(id: string) {
     refetchOnWindowFocus: false,
   });
 
+  const {
+    data: myLeagueTeams = [],
+  } = useQuery({
+    queryKey: ["league-memberships", id, userId],
+    queryFn: async () => {
+      try {
+        const resp = await api.get(
+          `${GO_LEAGUE_SERVICE_ROUTES.GET(id)}/memberships/me`
+        );
+        return resp.data;
+      } catch (err) {
+        log.info("User is not part of any team in this league:", err);
+        return [];
+      }
+    },
+    enabled: Boolean(id) && Boolean(userId),
+    retry: false,
+    refetchOnWindowFocus: false,
+  });
+
   const onRefresh = useCallback(async () => {
     try {
       setRefreshing(true);
@@ -42,11 +62,12 @@ export function useLeagueDetail(id: string) {
   }, [refetch]);
 
   const handleFollow = useCallback(() => {
-    log.info(`Owner with id ${userId} has followed league with id ${id}`);
+    log.info(`User with id ${userId} has followed league with id ${id}`);
   }, [userId, id]);
 
   const title = league?.name ?? (id ? `League ${id}` : "League");
   const isOwner = Boolean(userId && league && league.ownerUserId === userId);
+  const isMember = myLeagueTeams.length > 0;
 
   return {
     league,
@@ -56,5 +77,7 @@ export function useLeagueDetail(id: string) {
     handleFollow,
     title,
     isOwner,
+    myLeagueTeams,
+    isMember,
   };
 }

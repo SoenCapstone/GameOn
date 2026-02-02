@@ -48,9 +48,11 @@ export default function ManageRolesScreen() {
       );
     },
     onSuccess: async () => {
-      await queryClient.invalidateQueries({
-        queryKey: ["team-members", teamId],
-      });
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: ["team-members", teamId] }),
+        queryClient.invalidateQueries({ queryKey: ["team-membership"] }),
+        queryClient.invalidateQueries({ queryKey: ["league-memberships"] }),
+      ]);
     },
     onError: (err) => {
       Alert.alert("Remove failed", errorToString(err));

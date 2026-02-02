@@ -34,8 +34,28 @@ export function useTeamDetail(id: string) {
     refetchOnWindowFocus: false,
   });
 
+  const {
+    data: membership,
+  } = useQuery({
+    queryKey: ["team-membership", id, userId],
+    queryFn: async () => {
+      try {
+        const resp = await api.get(
+          `${GO_TEAM_SERVICE_ROUTES.ALL}/${id}/memberships/me`
+        );
+        return resp.data;
+      } catch (err) {
+        log.info("User is not a member of this team:", err);
+        return null;
+      }
+    },
+    enabled: Boolean(id) && Boolean(userId),
+    retry: false,
+    refetchOnWindowFocus: false,
+  });
+
   const handleFollow = useCallback(() => {
-    log.info(`Owner with id ${userId} has followed team with id ${id}`);
+    log.info(`User with id ${userId} has followed team with id ${id}`);
   }, [userId, id]);
 
   const onRefresh = useCallback(async () => {
@@ -50,6 +70,10 @@ export function useTeamDetail(id: string) {
 
   const title = team?.name ?? (id ? `Team ${id}` : "Team");
   const isOwner = Boolean(userId && team && team.ownerUserId === userId);
+  const isMember = Boolean(membership);
+  const role = membership?.role;
+  const memStatus = membership?.status;
+  const joinedAt = membership?.joinedAt;
 
   return {
     team,
@@ -59,5 +83,9 @@ export function useTeamDetail(id: string) {
     handleFollow,
     title,
     isOwner,
+    isMember,
+    role,
+    memStatus,
+    joinedAt,
   };
 }

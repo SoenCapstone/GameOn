@@ -24,12 +24,12 @@ export default function MyLeagueScreen() {
 }
 
 function MyLeagueContent() {
-  const { id, isLoading, handleFollow, title, isOwner } =
+  const { id, isLoading, handleFollow, title, isMember } =
     useLeagueDetailContext();
 
   const [tab, setTab] = useState<"overview" | "games" | "teams">("overview");
 
-  useLeagueHeader({ title, id, isOwner, onFollow: handleFollow });
+  useLeagueHeader({ title, id, isMember, onFollow: handleFollow });
 
   return (
     <ContentArea paddingBottom={60} backgroundProps={{ preset: "red" }}>

@@ -106,7 +106,11 @@ export function useDeleteTeam(
       await api.delete(`${GO_TEAM_SERVICE_ROUTES.ALL}/${id}`);
     },
     onSuccess: async (...args) => {
-      await queryClient.invalidateQueries({ queryKey: ["teams"] });
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: ["teams"] }),
+        queryClient.invalidateQueries({ queryKey: ["team-membership"] }),
+        queryClient.invalidateQueries({ queryKey: ["league-memberships"] }),
+      ]);
       onSuccess?.(...args);
     },
     ...restOptions,
@@ -157,7 +161,10 @@ export function useDeleteLeague(
       await api.delete(`${GO_LEAGUE_SERVICE_ROUTES.ALL}/${id}`);
     },
     onSuccess: async (...args) => {
-      await queryClient.invalidateQueries({ queryKey: ["leagues"] });
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: ["leagues"] }),
+        queryClient.invalidateQueries({ queryKey: ["league-memberships"] }),
+      ]);
       onSuccess?.(...args);
     },
     ...restOptions,
