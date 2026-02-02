@@ -91,9 +91,10 @@ export default function ManageLeagueScreen() {
       await api.delete(GO_LEAGUE_SERVICE_ROUTES.REMOVE_TEAM(leagueId, teamId));
     },
     onSuccess: async () => {
-      await queryClient.invalidateQueries({
-        queryKey: ["league-teams", leagueId],
-      });
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: ["league-teams", leagueId] }),
+        queryClient.invalidateQueries({ queryKey: ["league-memberships"] }),
+      ]);
     },
     onError: (err) => {
       Alert.alert("Remove failed", errorToString(err));

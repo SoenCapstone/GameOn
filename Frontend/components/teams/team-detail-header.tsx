@@ -7,42 +7,46 @@ import { PageTitle } from "@/components/header/page-title";
 interface TeamDetailHeaderProps {
   readonly title: string;
   readonly id: string;
-  readonly isOwner: boolean;
+  readonly isMember: boolean;
   readonly onFollow: () => void;
 }
 
 export function TeamDetailHeader({
   title,
   id,
-  isOwner,
+  isMember,
   onFollow,
 }: TeamDetailHeaderProps) {
+  const renderRightButton = () => {
+    if (isMember) {
+      return (
+        <View style={styles.ownerActions}>
+          <View style={styles.ownerActionButton}>
+            <Button
+              type="custom"
+              route={`/teams/${id}/manage-roles`}
+              icon="person.2.fill"
+            />
+          </View>
+          <View style={styles.ownerActionButton}>
+            <Button type="custom" route={`/teams/${id}/settings`} icon="gear" />
+          </View>
+        </View>
+      );
+    }
+
+    if (!isMember) {
+      return <Button type="custom" label="Follow" onPress={onFollow} />;
+    }
+
+    return null;
+  };
+
   return (
     <Header
       left={<Button type="back" />}
       center={<PageTitle title={title} />}
-      right={
-        isOwner ? (
-          <View style={styles.ownerActions}>
-            <View style={styles.ownerActionButton}>
-              <Button
-                type="custom"
-                route={`/teams/${id}/manage-roles`}
-                icon="person.2.fill"
-              />
-            </View>
-            <View style={styles.ownerActionButton}>
-              <Button
-                type="custom"
-                route={`/teams/${id}/settings`}
-                icon="gear"
-              />
-            </View>
-          </View>
-        ) : (
-          <Button type="custom" label="Follow" onPress={onFollow} />
-        )
-      }
+      right={renderRightButton()}
     />
   );
 }
