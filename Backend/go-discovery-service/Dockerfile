@@ -14,9 +14,11 @@ COPY go-discovery-service/src ./src
 RUN mvn clean package -DskipTests -q
 
 # Runtime Stage
-FROM eclipse-temurin:17-jre-alpine
-RUN addgroup -S app && adduser -S app -G app
-WORKDIR /app
+FROM eclipse-temurin:17-jre-jammy
+RUN groupadd --system app \
+ && useradd  --system --gid app --create-home --home-dir /home/app app
+ 
+ WORKDIR /app
 
 # Copy the built JAR as root, read-only (no write perms)
 COPY --from=build --chown=root:root --chmod=444 /app/target/*.jar /app/app.jar

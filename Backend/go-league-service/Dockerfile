@@ -19,10 +19,12 @@ RUN mvn -f common/pom.xml clean install -Dmaven.test.skip=true -q \
 # ================================
 # Runtime Stage
 # ================================
-FROM eclipse-temurin:21-jre-alpine
+FROM eclipse-temurin:21-jre-jammy
 
 # Create non-root user
-RUN addgroup -S app && adduser -S app -G app
+RUN groupadd --system app \
+ && useradd  --system --gid app --create-home --home-dir /home/app app
+ 
 WORKDIR /app
 
 # Copy final fat jar from build stage

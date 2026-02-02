@@ -15,7 +15,7 @@ spring:
     oauth2:
       resourceserver:
         jwt:
-          issuer-uri: https://one-magpie-92.clerk.accounts.dev
+          issuer-uri: ${CLERK_URL:https://one-magpie-92.clerk.accounts.dev}
 
   kafka:
     # Config to run Docker Kafka from local
