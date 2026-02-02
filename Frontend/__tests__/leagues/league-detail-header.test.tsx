@@ -55,7 +55,7 @@ describe("LeagueDetailHeader", () => {
   const defaultProps = {
     title: "Test League",
     id: "league123",
-    isOwner: false,
+    isMember: false,
     onFollow: jest.fn(),
   };
 
@@ -79,7 +79,7 @@ describe("LeagueDetailHeader", () => {
     expect(getByTestId("header-button-back-undefined")).toBeTruthy();
   });
 
-  it("shows Follow button when user is not owner", () => {
+  it("shows Follow button when user is not member", () => {
     const { getByTestId } = render(<LeagueDetailHeader {...defaultProps} />);
     expect(getByTestId("header-button-custom-Follow")).toBeTruthy();
   });
@@ -96,23 +96,23 @@ describe("LeagueDetailHeader", () => {
     expect(onFollow).toHaveBeenCalledTimes(1);
   });
 
-  it("shows settings button when user is owner", () => {
+  it("shows settings button when user is member", () => {
     const { getByText } = render(
-      <LeagueDetailHeader {...defaultProps} isOwner={true} />,
+      <LeagueDetailHeader {...defaultProps} isMember={true} />,
     );
     expect(getByText("gear")).toBeTruthy();
   });
 
-  it("does not show Follow button when user is owner", () => {
+  it("does not show Follow button when user is member", () => {
     const { queryByTestId } = render(
-      <LeagueDetailHeader {...defaultProps} isOwner={true} />,
+      <LeagueDetailHeader {...defaultProps} isMember={true} />,
     );
     expect(queryByTestId("header-button-custom-Follow")).toBeNull();
   });
 
   it("settings button has correct route", () => {
     const { getByText } = render(
-      <LeagueDetailHeader {...defaultProps} id="league-456" isOwner={true} />,
+      <LeagueDetailHeader {...defaultProps} id="league-456" isMember={true} />,
     );
     const settingsButton = getByText("gear");
     expect(settingsButton).toBeTruthy();
@@ -130,12 +130,12 @@ describe("LeagueDetailHeader", () => {
 
   it("renders with different league IDs", () => {
     const { getByText, rerender } = render(
-      <LeagueDetailHeader {...defaultProps} id="league1" isOwner={true} />,
+      <LeagueDetailHeader {...defaultProps} id="league1" isMember={true} />,
     );
     expect(getByText("gear")).toBeTruthy();
 
     rerender(
-      <LeagueDetailHeader {...defaultProps} id="league2" isOwner={true} />,
+      <LeagueDetailHeader {...defaultProps} id="league2" isMember={true} />,
     );
     expect(getByText("gear")).toBeTruthy();
   });
@@ -159,15 +159,15 @@ describe("LeagueDetailHeader", () => {
     expect(onFollow2).toHaveBeenCalledTimes(1);
   });
 
-  it("toggles between owner and non-owner states", () => {
+  it("toggles between member and non-member states", () => {
     const { getByTestId, queryByTestId, getByText, rerender } = render(
-      <LeagueDetailHeader {...defaultProps} isOwner={false} />,
+      <LeagueDetailHeader {...defaultProps} isMember={false} />,
     );
 
     expect(getByTestId("header-button-custom-Follow")).toBeTruthy();
     expect(queryByTestId("header-button-custom-gear")).toBeNull();
 
-    rerender(<LeagueDetailHeader {...defaultProps} isOwner={true} />);
+    rerender(<LeagueDetailHeader {...defaultProps} isMember={true} />);
 
     expect(queryByTestId("header-button-custom-Follow")).toBeNull();
     expect(getByText("gear")).toBeTruthy();
@@ -223,7 +223,7 @@ describe("LeagueDetailHeader", () => {
 
   it("renders with numeric league ID", () => {
     const { getByText } = render(
-      <LeagueDetailHeader {...defaultProps} id="12345" isOwner={true} />,
+      <LeagueDetailHeader {...defaultProps} id="12345" isMember={true} />,
     );
     expect(getByText("gear")).toBeTruthy();
   });
@@ -233,29 +233,29 @@ describe("LeagueDetailHeader", () => {
       <LeagueDetailHeader
         {...defaultProps}
         id="550e8400-e29b-41d4-a716-446655440000"
-        isOwner={true}
+        isMember={true}
       />,
     );
     expect(getByText("gear")).toBeTruthy();
   });
 
-  it("back button is always present regardless of owner status", () => {
+  it("back button is always present regardless of member status", () => {
     const { getByTestId, rerender } = render(
-      <LeagueDetailHeader {...defaultProps} isOwner={false} />,
+      <LeagueDetailHeader {...defaultProps} isMember={false} />,
     );
     expect(getByTestId("header-button-back-undefined")).toBeTruthy();
 
-    rerender(<LeagueDetailHeader {...defaultProps} isOwner={true} />);
+    rerender(<LeagueDetailHeader {...defaultProps} isMember={true} />);
     expect(getByTestId("header-button-back-undefined")).toBeTruthy();
   });
 
-  it("title is always displayed regardless of owner status", () => {
+  it("title is always displayed regardless of member status", () => {
     const { getByTestId, rerender } = render(
-      <LeagueDetailHeader {...defaultProps} isOwner={false} />,
+      <LeagueDetailHeader {...defaultProps} isMember={false} />,
     );
     expect(getByTestId("page-title")).toBeTruthy();
 
-    rerender(<LeagueDetailHeader {...defaultProps} isOwner={true} />);
+    rerender(<LeagueDetailHeader {...defaultProps} isMember={true} />);
     expect(getByTestId("page-title")).toBeTruthy();
   });
 });

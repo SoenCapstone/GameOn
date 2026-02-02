@@ -22,10 +22,10 @@ export default function MyTeamScreen() {
 }
 
 function MyTeamContent() {
-  const { id, isLoading, refreshing, onRefresh, handleFollow, title, isOwner, isMember } =
+  const { id, isLoading, refreshing, onRefresh, handleFollow, title, isMember } =
     useTeamDetailContext();
 
-  useTeamHeader({ title, id, isOwner, isMember, onFollow: handleFollow });
+  useTeamHeader({ title, id, isMember, onFollow: handleFollow });
 
   return (
     <ContentArea

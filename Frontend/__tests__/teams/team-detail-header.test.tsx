@@ -55,7 +55,7 @@ describe("TeamDetailHeader", () => {
   const defaultProps = {
     title: "Test Team",
     id: "team123",
-    isOwner: false,
+    isMember: false,
     onFollow: jest.fn(),
   };
 
@@ -79,7 +79,7 @@ describe("TeamDetailHeader", () => {
     expect(getByTestId("header-button-back-undefined")).toBeTruthy();
   });
 
-  it("shows Follow button when user is not owner", () => {
+  it("shows Follow button when user is not member", () => {
     const { getByTestId } = render(<TeamDetailHeader {...defaultProps} />);
     expect(getByTestId("header-button-custom-Follow")).toBeTruthy();
   });
@@ -96,23 +96,23 @@ describe("TeamDetailHeader", () => {
     expect(onFollow).toHaveBeenCalledTimes(1);
   });
 
-  it("shows settings button when user is owner", () => {
+  it("shows settings button when user is member", () => {
     const { getByText } = render(
-      <TeamDetailHeader {...defaultProps} isOwner={true} />,
+      <TeamDetailHeader {...defaultProps} isMember={true} />,
     );
     expect(getByText("gear")).toBeTruthy();
   });
 
-  it("does not show Follow button when user is owner", () => {
+  it("does not show Follow button when user is member", () => {
     const { queryByTestId } = render(
-      <TeamDetailHeader {...defaultProps} isOwner={true} />,
+      <TeamDetailHeader {...defaultProps} isMember={true} />,
     );
     expect(queryByTestId("header-button-custom-Follow")).toBeNull();
   });
 
   it("settings button has correct route", () => {
     const { getByText } = render(
-      <TeamDetailHeader {...defaultProps} isOwner={true} />,
+      <TeamDetailHeader {...defaultProps} isMember={true} />,
     );
     const settingsButton = getByText("gear");
     expect(settingsButton).toBeTruthy();
@@ -130,11 +130,11 @@ describe("TeamDetailHeader", () => {
 
   it("renders with different team IDs", () => {
     const { getByText, rerender } = render(
-      <TeamDetailHeader {...defaultProps} id="team1" isOwner={true} />,
+      <TeamDetailHeader {...defaultProps} id="team1" isMember={true} />,
     );
     expect(getByText("gear")).toBeTruthy();
 
-    rerender(<TeamDetailHeader {...defaultProps} id="team2" isOwner={true} />);
+    rerender(<TeamDetailHeader {...defaultProps} id="team2" isMember={true} />);
     expect(getByText("gear")).toBeTruthy();
   });
 
@@ -157,15 +157,15 @@ describe("TeamDetailHeader", () => {
     expect(onFollow2).toHaveBeenCalledTimes(1);
   });
 
-  it("toggles between owner and non-owner states", () => {
+  it("toggles between member and non-member states", () => {
     const { getByTestId, queryByTestId, getByText, rerender } = render(
-      <TeamDetailHeader {...defaultProps} isOwner={false} />,
+      <TeamDetailHeader {...defaultProps} isMember={false} />,
     );
 
     expect(getByTestId("header-button-custom-Follow")).toBeTruthy();
     expect(queryByTestId("header-button-custom-gear")).toBeNull();
 
-    rerender(<TeamDetailHeader {...defaultProps} isOwner={true} />);
+    rerender(<TeamDetailHeader {...defaultProps} isMember={true} />);
 
     expect(queryByTestId("header-button-custom-Follow")).toBeNull();
     expect(getByText("gear")).toBeTruthy();
