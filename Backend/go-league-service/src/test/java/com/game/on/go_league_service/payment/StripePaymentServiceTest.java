@@ -163,7 +163,7 @@ class StripePaymentServiceTest {
                 .id(paymentId)
                 .userId(userId)
                 .leagueId(leagueId)
-                .teamId(null) 
+                .teamId(null)
                 .amount(req.amount())
                 .currency(req.currency().toLowerCase())
                 .status(PaymentStatus.CREATED)
