@@ -185,10 +185,14 @@ export const createTeamStyles = StyleSheet.create({
   boardCard: {
     width: "100%",
     gap: 10,
+    backgroundColor: "rgba(255,255,255,0.08)",
+    borderRadius: 14,
+    padding: 14,
+    marginBottom: 12,
   },
   boardCardHeaderRow: {
     flexDirection: "row",
-    alignItems: "center",
+    alignItems: "flex-start",
     justifyContent: "space-between",
     gap: 12,
   },
@@ -212,7 +216,25 @@ export const createTeamStyles = StyleSheet.create({
     color: "rgba(255,255,255,0.65)",
     fontSize: 12,
   },
-
+  boardDeleteButton: {
+    marginTop: 12,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 8,
+    backgroundColor: "rgba(255,0,0,0.15)",
+    alignItems: "center",
+  },
+  boardDeleteButtonText: {
+    color: "#ff6b6b",
+    fontSize: 12,
+    fontWeight: "600",
+  },
+  boardDeleteButtonDisabled: {
+    opacity: 0.5,
+  },
+  createButtonDisabled: {
+    opacity: 0.6,
+  },
   pill: {
     paddingHorizontal: 10,
     paddingVertical: 4,
