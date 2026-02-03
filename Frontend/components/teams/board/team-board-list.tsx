@@ -6,8 +6,8 @@ import {
   StyleSheet,
   TextInput,
 } from "react-native";
-import { BoardPost } from "@/components/teams/team-board-types";
-import { BoardPostCard } from "@/components/teams/board-post-card";
+import { BoardPost } from "@/components/teams/board/team-board-types";
+import { BoardPostCard } from "@/components/teams/board/board-post-card";
 import { LegendList } from "@legendapp/list";
 import { GlassView } from "expo-glass-effect";
 import Icon from "react-native-vector-icons/Ionicons";

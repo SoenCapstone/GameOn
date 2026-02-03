@@ -5,7 +5,7 @@ import {
   BoardPostScope,
   BoardPostType,
   CreateBoardPostRequest,
-} from "@/components/teams/team-board-types";
+} from "@/components/teams/board/team-board-types";
 
 const log = createScopedLog("Team Board");
 

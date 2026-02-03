@@ -10,10 +10,10 @@ import {
   useTeamDetailContext,
 } from "@/contexts/team-detail-context";
 import { useTeamBoardPosts, useCreateBoardPost, useDeleteBoardPost, useUpdateBoardPost } from "@/hooks/use-team-board";
-import { TeamBoardList } from "@/components/teams/team-board-list";
-import { BoardCreateModal } from "@/components/teams/board-create-modal";
+import { TeamBoardList } from "@/components/teams/board/team-board-list";
+import { BoardCreateModal } from "@/components/teams/board/board-create-modal";
 import { errorToString } from "@/utils/error";
-import { BoardPostType, BoardPostScope, BoardPost } from "@/components/teams/team-board-types";
+import { BoardPostType, BoardPostScope, BoardPost } from "@/components/teams/board/team-board-types";
 
 export default function TeamScreen() {
   const params = useLocalSearchParams<{ id?: string | string[] }>();

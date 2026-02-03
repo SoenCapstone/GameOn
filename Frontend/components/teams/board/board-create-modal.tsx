@@ -9,10 +9,10 @@ import {
 } from "react-native";
 import { Button } from "@/components/ui/button";
 import { Form } from "@/components/form/form";
-import { BoardPostType, BoardPostScope, BoardPost } from "@/components/teams/team-board-types";
+import { BoardPostType, BoardPostScope, BoardPost } from "@/components/teams/board/team-board-types";
 import { AccentColors } from "@/constants/colors";
 import { KeyboardAwareScrollView } from "react-native-keyboard-controller";
-import { Background } from "../ui/background";
+import { Background } from "../../ui/background";
 import { useHeaderHeight } from "@react-navigation/elements";
 
 interface BoardCreateModalProps {

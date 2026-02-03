@@ -3,7 +3,7 @@ import { View, Text, StyleSheet, ActivityIndicator } from "react-native";
 import { Card } from "@/components/ui/card";
 import { Menu, MenuOptions, MenuOption, MenuTrigger } from "react-native-popup-menu";
 import Icon from "react-native-vector-icons/MaterialIcons";
-import { BoardPost, BoardPostType, BoardPostScope } from "@/components/teams/team-board-types";
+import { BoardPost, BoardPostType, BoardPostScope } from "@/components/teams/board/team-board-types";
 
 interface BoardPostCardProps {
   post: BoardPost;
