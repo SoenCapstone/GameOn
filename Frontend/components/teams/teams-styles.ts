@@ -1,34 +1,6 @@
 import { StyleSheet } from "react-native";
 
 export const createTeamStyles = StyleSheet.create({
-  gradient: {
-    flex: 1,
-  },
-  content: {
-    flexGrow: 1,
-    paddingHorizontal: 24,
-    paddingBottom: 32,
-  },
-  backButton: {
-    width: 40,
-    height: 40,
-    borderRadius: 999,
-    backgroundColor: "rgba(0,0,0,0.35)",
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  backIcon: {
-    color: "#ffffff",
-    fontSize: 22,
-    marginTop: -2,
-  },
-  title: {
-    textAlign: "center",
-    fontSize: 20,
-    fontWeight: "600",
-    color: "#ffffff",
-    marginBottom: 28,
-  },
   logoSection: {
     alignItems: "center",
     marginBottom: 32,
@@ -167,118 +139,9 @@ export const createTeamStyles = StyleSheet.create({
     height: "100%",
     borderRadius: 999,
   },
-  boardList: {
-    width: "100%",
-    paddingHorizontal: 10,
-    gap: 16,
-    marginTop: 8,
-  },
-  cardSpacer: {
-    height: 10,
-    width: "100%",
-  },
   container: {
     width: "100%",
     alignItems: "center",
     paddingTop: 20,
-  },
-  boardCard: {
-    width: "100%",
-    gap: 10,
-    backgroundColor: "rgba(255,255,255,0.08)",
-    borderRadius: 14,
-    padding: 14,
-    marginBottom: 12,
-  },
-  boardCardHeaderRow: {
-    flexDirection: "row",
-    alignItems: "flex-start",
-    justifyContent: "space-between",
-    gap: 12,
-  },
-  boardCardTitle: {
-    flex: 1,
-    color: "#ffffff",
-    fontSize: 16,
-    fontWeight: "700",
-  },
-  boardCardDescription: {
-    color: "rgba(255,255,255,0.78)",
-    fontSize: 13,
-    lineHeight: 18,
-  },
-  boardMetaRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-  },
-  boardMetaText: {
-    color: "rgba(255,255,255,0.65)",
-    fontSize: 12,
-  },
-  boardDeleteButton: {
-    marginTop: 12,
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    borderRadius: 8,
-    backgroundColor: "rgba(255,0,0,0.15)",
-    alignItems: "center",
-  },
-  boardDeleteButtonText: {
-    color: "#ff6b6b",
-    fontSize: 12,
-    fontWeight: "600",
-  },
-  boardDeleteButtonDisabled: {
-    opacity: 0.5,
-  },
-  createButtonDisabled: {
-    opacity: 0.6,
-  },
-  pill: {
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: 999,
-    backgroundColor: "rgba(255,255,255,0.16)",
-  },
-  pillText: {
-    color: "#ffffff",
-    fontSize: 12,
-    fontWeight: "600",
-  },
-
-  unreadBadge: {
-    paddingHorizontal: 8,
-    paddingVertical: 3,
-    borderRadius: 999,
-    backgroundColor: "rgba(255,255,255,0.18)",
-  },
-  unreadBadgeText: {
-    color: "#ffffff",
-    fontSize: 12,
-    fontWeight: "700",
-  },
-
-  tagRow: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    gap: 8,
-  },
-  tag: {
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: 999,
-    backgroundColor: "rgba(0,0,0,0.28)",
-    borderWidth: 1,
-    borderColor: "rgba(255,255,255,0.10)",
-  },
-  tagText: {
-    color: "rgba(255,255,255,0.82)",
-    fontSize: 12,
-  },
-
-  dueText: {
-    color: "rgba(255,255,255,0.7)",
-    fontSize: 12,
   },
 });

@@ -122,11 +122,6 @@ export function TeamBoardList({
 }
 
 const styles = StyleSheet.create({
-  listContainer: {
-    flex: 1,
-    width: "100%",
-    alignSelf: "center",
-  },
   centerContainer: {
     flex: 1,
     width: "100%",

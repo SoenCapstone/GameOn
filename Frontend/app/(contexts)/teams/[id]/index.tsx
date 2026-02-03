@@ -4,7 +4,6 @@ import { useLocalSearchParams } from "expo-router";
 import { ContentArea } from "@/components/ui/content-area";
 import { Button } from "@/components/ui/button";
 import SegmentedControl from "@react-native-segmented-control/segmented-control";
-import { createTeamStyles } from "@/components/teams/teams-styles";
 import { useTeamHeader } from "@/hooks/use-team-league-header";
 import {
   TeamDetailProvider,
