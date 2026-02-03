@@ -1,5 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { createScopedLog } from "@/utils/logger";
+import * as Crypto from "expo-crypto";
 import {
   BoardPost,
   BoardPostScope,
@@ -77,7 +78,7 @@ const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 const createMockPost = (payload: CreateBoardPostRequest): BoardPost => {
   const now = new Date().toISOString();
   return {
-    id: `post_${Math.random().toString(36).slice(2, 10)}`,
+    id: `post_${Crypto.randomUUID()}`,
     teamId: payload.teamId,
     authorId: "mock-coach-id",
     authorName: "Coach",
