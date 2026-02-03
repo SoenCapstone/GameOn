@@ -8,6 +8,7 @@ import java.util.UUID;
 public record PaymentResponse(
         UUID id,
         UUID leagueId,
+        UUID teamId,
         Long amount,
         String currency,
         PaymentStatus status,

@@ -5,7 +5,6 @@ import {
   Pressable,
   Text,
   Alert,
-  Switch,
 } from "react-native";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useNavigation, StackActions } from "@react-navigation/native";
@@ -318,10 +317,6 @@ function TeamSettingsContent() {
         }}
       />
 
-      {/* TEAM PAYMENT NOT IMPLEMENTED IN BACKEND YET
-          Leave this block commented until /payments/intent accepts teamId.
-      */}
-      {/*
       <PublicPaymentModal
         visible={paymentVisible}
         onClose={() => {
@@ -344,7 +339,6 @@ function TeamSettingsContent() {
           setPaymentVisible(false);
         }}
       />
-      */}
     </ContentArea>
   );
 }

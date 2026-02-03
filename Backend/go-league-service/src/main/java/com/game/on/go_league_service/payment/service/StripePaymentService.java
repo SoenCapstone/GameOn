@@ -42,6 +42,10 @@ public class StripePaymentService {
             if (req.leagueId() != null) {
                 metadata.put("leagueId", req.leagueId().toString());
             }
+            if (req.teamId() != null) {
+                metadata.put("teamId", req.teamId().toString());
+            }
+
 
             PaymentIntentCreateParams.Builder paramsBuilder = PaymentIntentCreateParams.builder()
                     .setAmount(req.amount())
