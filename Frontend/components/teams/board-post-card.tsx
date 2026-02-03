@@ -160,11 +160,10 @@ const styles = StyleSheet.create({
     lineHeight: 18,
   },
   menuContainer: {
-    backgroundColor: "rgba(30,30,30,0.95)",
-    borderRadius: 12,
-    borderWidth: 1,
+    backgroundColor: "rgba(52, 42, 42, 0.8)",
+    borderRadius: 25,
+    borderWidth: 2,
     borderColor: "rgba(255,255,255,0.1)",
-    padding: 4,
   },
   menuItem: {
     flexDirection: "row",
