@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Modal,
   View,
@@ -9,7 +9,7 @@ import {
 } from "react-native";
 import { Button } from "@/components/ui/button";
 import { Form } from "@/components/form/form";
-import { BoardPostType, BoardPostScope } from "@/components/teams/team-board-types";
+import { BoardPostType, BoardPostScope, BoardPost } from "@/components/teams/team-board-types";
 import { AccentColors } from "@/constants/colors";
 import { KeyboardAwareScrollView } from "react-native-keyboard-controller";
 import { Background } from "../ui/background";
@@ -20,6 +20,7 @@ interface BoardCreateModalProps {
   onClose: () => void;
   onSubmit: (type: BoardPostType, scope: BoardPostScope, content: string) => Promise<void>;
   isLoading?: boolean;
+  editPost?: BoardPost | null;
 }
 
 const POST_TYPES: BoardPostType[] = ["general", "game", "training", "other"];
@@ -30,12 +31,21 @@ export function BoardCreateModal({
   onClose,
   onSubmit,
   isLoading,
+  editPost,
 }: Readonly<BoardCreateModalProps>) {
   const [type, setType] = useState<BoardPostType>("general");
   const [scope, setScope] = useState<BoardPostScope>("players");
   const [content, setContent] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const headerHeight = useHeaderHeight();
+
+  useEffect(() => {
+    if (editPost) {
+      setType(editPost.type);
+      setScope(editPost.scope);
+      setContent(editPost.content);
+    }
+  }, [editPost]);
 
   const handleSubmit = async () => {
     if (!content.trim()) {
@@ -79,7 +89,7 @@ export function BoardCreateModal({
           <View style={{ width: 44, height: 44 }}>
             <Button type="custom" icon="chevron.left" onPress={onClose} />
           </View>
-          <Text style={styles.headerTitle}>New Post</Text>
+          <Text style={styles.headerTitle}>{editPost ? "Edit Post" : "New Post"}</Text>
           <View style={{ width: 44 }} />
         </View>
 
@@ -119,7 +129,7 @@ export function BoardCreateModal({
 
         {/* Submit Button */}
         <Form.Button
-          label={submitting || isLoading ? "Posting..." : "Post"}
+          label={submitting || isLoading ? (editPost ? "Updating..." : "Posting...") : (editPost ? "Update" : "Post")}
           onPress={handleSubmit}
           color={AccentColors.blue}
         />

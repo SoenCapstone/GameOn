@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { View, ActivityIndicator, RefreshControl, Alert, Text, TextInput, StyleSheet } from "react-native";
+import { View, ActivityIndicator, RefreshControl, Alert, Text } from "react-native";
 import { useLocalSearchParams } from "expo-router";
 import { ContentArea } from "@/components/ui/content-area";
 import { Button } from "@/components/ui/button";
@@ -10,13 +10,11 @@ import {
   TeamDetailProvider,
   useTeamDetailContext,
 } from "@/contexts/team-detail-context";
-import { useTeamBoardPosts, useCreateBoardPost, useDeleteBoardPost } from "@/hooks/use-team-board";
+import { useTeamBoardPosts, useCreateBoardPost, useDeleteBoardPost, useUpdateBoardPost } from "@/hooks/use-team-board";
 import { TeamBoardList } from "@/components/teams/team-board-list";
 import { BoardCreateModal } from "@/components/teams/board-create-modal";
 import { errorToString } from "@/utils/error";
-import { BoardPostType, BoardPostScope } from "@/components/teams/team-board-types";
-import Icon from 'react-native-vector-icons/Ionicons';
-import { GlassView } from "expo-glass-effect";
+import { BoardPostType, BoardPostScope, BoardPost } from "@/components/teams/team-board-types";
 
 export default function TeamScreen() {
   const params = useLocalSearchParams<{ id?: string | string[] }>();
@@ -36,6 +34,7 @@ function TeamContent() {
   const { id, isLoading, refreshing, onRefresh, handleFollow, title, isMember, role } =
     useTeamDetailContext();
   const [showCreateModal, setShowCreateModal] = useState(false);
+  const [editingPost, setEditingPost] = useState<BoardPost | null>(null);
   const [deletingPostId, setDeletingPostId] = useState<string | null>(null);
 
   // TODO: change to role === "COACH" || role === "MANAGER" after testing since we cant change roles yet
@@ -52,22 +51,39 @@ function TeamContent() {
     : boardPosts.filter((post) => post.scope === "everyone");
 
   const createPostMutation = useCreateBoardPost(id);
+  const updatePostMutation = useUpdateBoardPost(id);
   const deletePostMutation = useDeleteBoardPost(id);
 
   useTeamHeader({ title, id, isMember, onFollow: handleFollow });
 
   const handleCreatePost = async (type: BoardPostType, scope: BoardPostScope, content: string) => {
     try {
-      await createPostMutation.mutateAsync({
-        teamId: id,
-        type,
-        scope,
-        content,
-      });
-      Alert.alert("Success", "Post created");
+      if (editingPost) {
+        await updatePostMutation.mutateAsync({
+          postId: editingPost.id,
+          type,
+          scope,
+          content,
+        });
+        Alert.alert("Success", "Post updated");
+        setEditingPost(null);
+      } else {
+        await createPostMutation.mutateAsync({
+          teamId: id,
+          type,
+          scope,
+          content,
+        });
+        Alert.alert("Success", "Post created");
+      }
     } catch (err) {
-      Alert.alert("Failed to post", errorToString(err));
+      Alert.alert(editingPost ? "Failed to update" : "Failed to post", errorToString(err));
     }
+  };
+
+  const handleEditPost = (post: BoardPost) => {
+    setEditingPost(post);
+    setShowCreateModal(true);
   };
 
   const handleDeletePost = (postId: string) => {
@@ -101,6 +117,7 @@ function TeamContent() {
   };
 
   return (
+    <View style={{flex: 1}}>
     <ContentArea
       scrollable
       paddingBottom={60}
@@ -126,29 +143,20 @@ function TeamContent() {
                 if (value === "Overview") setTab("overview");
                 if (value === "Games") setTab("games");
               }}
-              style={{ alignSelf: "center", width: "90%" }}
+              style={{ alignSelf: "center", width: "100%" }}
             />
 
             {tab === "board" && (
-              <View style={styles.boardSection}>
-                <GlassView isInteractive style={styles.searchContainer}>
-                  <Icon name="search" size={20} color="#888" style={styles.icon} />
-                  <TextInput
-                    value={searchQuery}
-                    onChangeText={setSearchQuery}
-                    placeholder="Search"
-                    placeholderTextColor="rgba(255,255,255,0.5)"
-                    style={styles.searchInput}
-                  />
-                </GlassView>
-                <TeamBoardList
-                  posts={visiblePosts}
-                  isLoading={postsLoading}
-                  canPost={canPost}
-                  onDeletePost={handleDeletePost}
-                  isDeletingId={deletingPostId ?? undefined}
-                />
-              </View>
+              <TeamBoardList
+                posts={visiblePosts}
+                isLoading={postsLoading}
+                canPost={canPost}
+                onEditPost={handleEditPost}
+                onDeletePost={handleDeletePost}
+                isDeletingId={deletingPostId ?? undefined}
+                searchQuery={searchQuery}
+                onSearchChange={setSearchQuery}
+              />
             )}
 
             {tab === "overview" && (
@@ -161,7 +169,21 @@ function TeamContent() {
           </>
         )}
 
-      {/* Create Post Button */}
+      
+
+      <BoardCreateModal
+        visible={showCreateModal}
+        onClose={() => {
+          setShowCreateModal(false);
+          setEditingPost(null);
+        }}
+        onSubmit={handleCreatePost}
+        isLoading={createPostMutation.isPending || updatePostMutation.isPending}
+        editPost={editingPost}
+      />
+    </ContentArea>
+
+    {/* Create Post Button */}
       {canPost && tab === "board" && (
         <View
           style={{
@@ -177,39 +199,6 @@ function TeamContent() {
           />
         </View>
       )}
-
-      <BoardCreateModal
-        visible={showCreateModal}
-        onClose={() => setShowCreateModal(false)}
-        onSubmit={handleCreatePost}
-        isLoading={createPostMutation.isPending}
-      />
-    </ContentArea>
+    </View>
   );
 }
-
-const styles = StyleSheet.create({
-  boardSection: {
-    width: "100%",
-    alignItems: "center",
-  },
-  searchContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    width: "90%",
-    alignSelf: "center",
-    borderRadius: 999,
-    backgroundColor: "rgba(255,255,255,0.15)",
-  },
-  searchInput: {
-    flex: 1,
-    width: "100%",
-    height: 40,
-    paddingHorizontal: 12,
-    color: "#fff",
-    fontSize: 14,
-  },
-   icon: {
-    marginLeft: 6,
-  },
-});

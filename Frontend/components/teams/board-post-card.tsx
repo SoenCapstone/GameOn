@@ -1,12 +1,15 @@
 import React from "react";
-import { View, Text, Pressable, StyleSheet, ActivityIndicator } from "react-native";
+import { View, Text, StyleSheet, ActivityIndicator } from "react-native";
 import { Card } from "@/components/ui/card";
+import { Menu, MenuOptions, MenuOption, MenuTrigger } from "react-native-popup-menu";
+import Icon from "react-native-vector-icons/MaterialIcons";
 import { BoardPost, BoardPostType, BoardPostScope } from "@/components/teams/team-board-types";
 
 interface BoardPostCardProps {
   post: BoardPost;
   canPost: boolean;
   onDelete?: (postId: string) => void;
+  onEdit?: (post: BoardPost) => void;
   isDeleting?: boolean;
 }
 
@@ -26,6 +29,7 @@ export function BoardPostCard({
   post,
   canPost,
   onDelete,
+  onEdit,
   isDeleting,
 }: Readonly<BoardPostCardProps>) {
   const formattedDate = new Date(post.createdAt).toLocaleDateString("en-US", {
@@ -35,7 +39,7 @@ export function BoardPostCard({
   });
 
   return (
-    <Card>
+    <Card isInteractive={false}>
       <View style={styles.container}>
         <View style={styles.headerRow}>
           <View style={styles.headerContent}>
@@ -59,30 +63,42 @@ export function BoardPostCard({
             </View>
             <Text style={styles.authorName}>{post.authorName}</Text>
           </View>
-          <Text style={styles.date}>{formattedDate}</Text>
+          <View style={styles.rightHeader}>
+            {canPost && (
+              isDeleting ? (
+                <ActivityIndicator size="small" color="#ff6b6b" />
+              ) : (
+                <Menu>
+                  <MenuTrigger>
+                    <Icon name="more-vert" size={20} color="rgba(255,255,255,0.6)" style={{ padding: 8 }} />
+                  </MenuTrigger>
+                  <MenuOptions customStyles={{
+                    optionsContainer: styles.menuContainer,
+                  }}>
+                    <MenuOption onSelect={() => onEdit?.(post)}>
+                      <View style={styles.menuItem}>
+                        <Icon name="edit" size={18} color="rgba(255,255,255,0.8)" />
+                        <Text style={styles.menuText}>Edit</Text>
+                      </View>
+                    </MenuOption>
+                    <View style={styles.menuDivider} />
+                    <MenuOption onSelect={() => onDelete?.(post.id)}>
+                      <View style={styles.menuItem}>
+                        <Icon name="delete" size={18} color="#ff3b30" />
+                        <Text style={[styles.menuText, styles.menuTextDelete]}>Delete</Text>
+                      </View>
+                    </MenuOption>
+                  </MenuOptions>
+                </Menu>
+              )
+            )}
+            <Text style={styles.date}>{formattedDate}</Text>
+          </View>
         </View>
 
         <Text style={styles.content} numberOfLines={4}>
           {post.content}
         </Text>
-
-        {canPost && (
-          <Pressable
-            style={({ pressed }) => [
-              styles.deleteButton,
-              pressed && styles.deleteButtonPressed,
-              isDeleting && styles.deleteButtonDisabled,
-            ]}
-            onPress={() => onDelete?.(post.id)}
-            disabled={isDeleting}
-          >
-            {isDeleting ? (
-              <ActivityIndicator size="small" color="#ff6b6b" />
-            ) : (
-              <Text style={styles.deleteButtonText}>Delete</Text>
-            )}
-          </Pressable>
-        )}
       </View>
     </Card>
   );
@@ -101,6 +117,10 @@ const styles = StyleSheet.create({
   headerContent: {
     flex: 1,
     gap: 6,
+  },
+  rightHeader: {
+    alignItems: "flex-end",
+    gap: 8,
   },
   tagRow: {
     flexDirection: "row",
@@ -139,24 +159,31 @@ const styles = StyleSheet.create({
     fontSize: 13,
     lineHeight: 18,
   },
-  deleteButton: {
-    marginTop: 8,
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    borderRadius: 8,
-    backgroundColor: "rgba(255,59,48,0.15)",
+  menuContainer: {
+    backgroundColor: "rgba(30,30,30,0.95)",
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: "rgba(255,255,255,0.1)",
+    padding: 4,
+  },
+  menuItem: {
+    flexDirection: "row",
     alignItems: "center",
-    justifyContent: "center",
+    gap: 12,
+    paddingVertical: 12,
+    paddingHorizontal: 12,
   },
-  deleteButtonPressed: {
-    opacity: 0.7,
+  menuText: {
+    color: "rgba(255,255,255,0.9)",
+    fontSize: 15,
+    fontWeight: "500",
   },
-  deleteButtonDisabled: {
-    opacity: 0.5,
-  },
-  deleteButtonText: {
+  menuTextDelete: {
     color: "#ff3b30",
-    fontSize: 12,
-    fontWeight: "600",
+  },
+  menuDivider: {
+    height: 1,
+    backgroundColor: "rgba(255,255,255,0.1)",
+    marginVertical: 4,
   },
 });

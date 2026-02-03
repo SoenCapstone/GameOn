@@ -15,6 +15,7 @@ import { SearchProvider } from "@/contexts/search-context";
 import { FeatureFlagsProvider } from "@/components/feature-flags/feature-flags-context";
 import { KeyboardProvider } from "react-native-keyboard-controller";
 import { ActionSheetProvider } from "@expo/react-native-action-sheet";
+import { MenuProvider } from "react-native-popup-menu";
 
 import { StripeProvider } from "@stripe/stripe-react-native";
 
@@ -47,25 +48,27 @@ export default function RootLayout() {
               value={colorScheme === "dark" ? DarkTheme : DefaultTheme}
             >
               <ActionSheetProvider>
-                <SearchProvider>
-                  <ClerkLoaded>
-                    <Stack>
-                      <Stack.Screen
-                        name="(auth)"
-                        options={{ headerShown: false }}
-                      />
-                      <Stack.Screen
-                        name="(tabs)"
-                        options={{ headerShown: false }}
-                      />
-                      <Stack.Screen
-                        name="(contexts)"
-                        options={{ headerShown: false }}
-                      />
-                    </Stack>
-                    <StatusBar style="auto" />
-                  </ClerkLoaded>
-                </SearchProvider>
+                <MenuProvider>
+                  <SearchProvider>
+                    <ClerkLoaded>
+                      <Stack>
+                        <Stack.Screen
+                          name="(auth)"
+                          options={{ headerShown: false }}
+                        />
+                        <Stack.Screen
+                          name="(tabs)"
+                          options={{ headerShown: false }}
+                        />
+                        <Stack.Screen
+                          name="(contexts)"
+                          options={{ headerShown: false }}
+                        />
+                      </Stack>
+                      <StatusBar style="auto" />
+                    </ClerkLoaded>
+                  </SearchProvider>
+                </MenuProvider>
               </ActionSheetProvider>
             </ThemeProvider>
           </FeatureFlagsProvider>
