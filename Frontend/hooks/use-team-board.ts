@@ -54,22 +54,12 @@ const BOARD_QUERY_KEY = (teamId: string) => ["team-board", teamId];
 // - BoardPostType = "general" | "game" | "training" | "other"
 // - BoardPostScope = "players" | "everyone"
 //   * "players" - visible only to team members (role: OWNER, MANAGER, COACH, PLAYER)
-//   * "everyone" - visible to everyone (including followers)
-//
-// ERROR RESPONSES:
-// - 400: Invalid request body or validation error
-// - 401: Unauthorized (not authenticated)
-// - 403: Forbidden (authenticated but lacks permission)
-// - 404: Team or post not found
-// - 500: Internal server error
+//   * "everyone" - visible to everyone
 //
 // NOTES:
 // - All timestamps should be ISO 8601 format (e.g., "2026-02-03T15:30:00Z")
 // - authorName should be formatted as "FirstName LastName"
 // - Consider implementing pagination for large teams
-// - Consider adding websocket support for real-time updates
-//
-// ==============================================================================
 
 const mockBoardStore: Record<string, BoardPost[]> = {};
 
