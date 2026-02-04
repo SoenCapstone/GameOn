@@ -35,7 +35,6 @@ const SearchHeader = React.memo(function SearchHeader({
   );
 });
 
-
 interface TeamBoardListProps {
   posts: BoardPost[];
   isLoading: boolean;
@@ -62,9 +61,10 @@ export function TeamBoardList({
   const filteredPosts = React.useMemo(() => {
     if (!searchQuery.trim()) return posts;
     const query = searchQuery.toLowerCase();
-    return posts.filter((post) =>
-      post.content.toLowerCase().includes(query) ||
-      post.authorName.toLowerCase().includes(query)
+    return posts.filter(
+      (post) =>
+        post.content.toLowerCase().includes(query) ||
+        post.authorName.toLowerCase().includes(query),
     );
   }, [posts, searchQuery]);
 
@@ -147,8 +147,8 @@ const styles = StyleSheet.create({
     alignSelf: "center",
   },
   searchContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     borderRadius: 999,
     backgroundColor: "rgba(255,255,255,0.15)",
     marginBottom: 12,

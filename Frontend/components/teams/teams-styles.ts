@@ -86,7 +86,7 @@ export const createTeamStyles = StyleSheet.create({
     paddingVertical: 12,
     justifyContent: "space-between",
     backgroundColor: "#1d055aab",
-    borderRadius: 12 
+    borderRadius: 12,
   },
   disclaimerText: {
     fontSize: 12,

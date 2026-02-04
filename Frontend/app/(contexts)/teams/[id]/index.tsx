@@ -1,5 +1,11 @@
 import React, { useState } from "react";
-import { View, ActivityIndicator, RefreshControl, Alert, Text } from "react-native";
+import {
+  View,
+  ActivityIndicator,
+  RefreshControl,
+  Alert,
+  Text,
+} from "react-native";
 import { useLocalSearchParams } from "expo-router";
 import { ContentArea } from "@/components/ui/content-area";
 import { Button } from "@/components/ui/button";
@@ -9,11 +15,20 @@ import {
   TeamDetailProvider,
   useTeamDetailContext,
 } from "@/contexts/team-detail-context";
-import { useTeamBoardPosts, useCreateBoardPost, useDeleteBoardPost, useUpdateBoardPost } from "@/hooks/use-team-board";
+import {
+  useTeamBoardPosts,
+  useCreateBoardPost,
+  useDeleteBoardPost,
+  useUpdateBoardPost,
+} from "@/hooks/use-team-board";
 import { TeamBoardList } from "@/components/teams/board/team-board-list";
 import { BoardCreateModal } from "@/components/teams/board/board-create-modal";
 import { errorToString } from "@/utils/error";
-import { BoardPostType, BoardPostScope, BoardPost } from "@/components/teams/board/team-board-types";
+import {
+  BoardPostType,
+  BoardPostScope,
+  BoardPost,
+} from "@/components/teams/board/team-board-types";
 
 export default function TeamScreen() {
   const params = useLocalSearchParams<{ id?: string | string[] }>();
@@ -30,8 +45,16 @@ export default function TeamScreen() {
 function TeamContent() {
   const [tab, setTab] = React.useState<"board" | "overview" | "games">("board");
   const [searchQuery, setSearchQuery] = useState("");
-  const { id, isLoading, refreshing, onRefresh, handleFollow, title, isMember, role } =
-    useTeamDetailContext();
+  const {
+    id,
+    isLoading,
+    refreshing,
+    onRefresh,
+    handleFollow,
+    title,
+    isMember,
+    role,
+  } = useTeamDetailContext();
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [editingPost, setEditingPost] = useState<BoardPost | null>(null);
   const [deletingPostId, setDeletingPostId] = useState<string | null>(null);
@@ -55,7 +78,11 @@ function TeamContent() {
 
   useTeamHeader({ title, id, isMember, onFollow: handleFollow });
 
-  const handleCreatePost = async (type: BoardPostType, scope: BoardPostScope, content: string) => {
+  const handleCreatePost = async (
+    type: BoardPostType,
+    scope: BoardPostScope,
+    content: string,
+  ) => {
     try {
       if (editingPost) {
         await updatePostMutation.mutateAsync({
@@ -76,7 +103,10 @@ function TeamContent() {
         Alert.alert("Success", "Post created");
       }
     } catch (err) {
-      Alert.alert(editingPost ? "Failed to update" : "Failed to post", errorToString(err));
+      Alert.alert(
+        editingPost ? "Failed to update" : "Failed to post",
+        errorToString(err),
+      );
     }
   };
 
@@ -86,28 +116,24 @@ function TeamContent() {
   };
 
   const handleDeletePost = (postId: string) => {
-    Alert.alert(
-      "Delete Post",
-      "Are you sure you want to delete this post?",
-      [
-        { text: "Cancel", onPress: () => {} },
-        {
-          text: "Delete",
-          onPress: async () => {
-            setDeletingPostId(postId);
-            try {
-              await deletePostMutation.mutateAsync(postId);
-              Alert.alert("Success", "Post deleted");
-            } catch (err) {
-              Alert.alert("Failed to delete", errorToString(err));
-            } finally {
-              setDeletingPostId(null);
-            }
-          },
-          style: "destructive",
+    Alert.alert("Delete Post", "Are you sure you want to delete this post?", [
+      { text: "Cancel", onPress: () => {} },
+      {
+        text: "Delete",
+        onPress: async () => {
+          setDeletingPostId(postId);
+          try {
+            await deletePostMutation.mutateAsync(postId);
+            Alert.alert("Success", "Post deleted");
+          } catch (err) {
+            Alert.alert("Failed to delete", errorToString(err));
+          } finally {
+            setDeletingPostId(null);
+          }
         },
-      ],
-    );
+        style: "destructive",
+      },
+    ]);
   };
 
   const handleRefresh = async () => {
@@ -116,19 +142,19 @@ function TeamContent() {
   };
 
   return (
-    <View style={{flex: 1}}>
-    <ContentArea
-      scrollable
-      paddingBottom={60}
-      backgroundProps={{ preset: "red" }}
-      refreshControl={
-        <RefreshControl
-          refreshing={refreshing}
-          onRefresh={handleRefresh}
-          tintColor="#fff"
-        />
-      }
-    >
+    <View style={{ flex: 1 }}>
+      <ContentArea
+        scrollable
+        paddingBottom={60}
+        backgroundProps={{ preset: "red" }}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={handleRefresh}
+            tintColor="#fff"
+          />
+        }
+      >
         {isLoading ? (
           <ActivityIndicator size="small" color="#fff" />
         ) : (
@@ -168,21 +194,21 @@ function TeamContent() {
           </>
         )}
 
-      
+        <BoardCreateModal
+          visible={showCreateModal}
+          onClose={() => {
+            setShowCreateModal(false);
+            setEditingPost(null);
+          }}
+          onSubmit={handleCreatePost}
+          isLoading={
+            createPostMutation.isPending || updatePostMutation.isPending
+          }
+          editPost={editingPost}
+        />
+      </ContentArea>
 
-      <BoardCreateModal
-        visible={showCreateModal}
-        onClose={() => {
-          setShowCreateModal(false);
-          setEditingPost(null);
-        }}
-        onSubmit={handleCreatePost}
-        isLoading={createPostMutation.isPending || updatePostMutation.isPending}
-        editPost={editingPost}
-      />
-    </ContentArea>
-
-    {/* Create Post Button */}
+      {/* Create Post Button */}
       {canPost && tab === "board" && (
         <View
           style={{

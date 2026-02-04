@@ -16,7 +16,7 @@ const BOARD_QUERY_KEY = (teamId: string) => ["team-board", teamId];
 // Replace these mock functions with actual API calls when backend is ready.
 //
 // ENDPOINTS:
-// 
+//
 // 1. GET /api/v1/teams/{teamId}/board
 //    - Fetch all board posts for a team
 //    - Query params (optional):
@@ -83,8 +83,8 @@ const createMockPost = (payload: CreateBoardPostRequest): BoardPost => {
     authorId: "mock-coach-id",
     authorName: "Coach",
     authorImage: null,
-    type: payload.type as BoardPostType,
-    scope: payload.scope as BoardPostScope,
+    type: payload.type,
+    scope: payload.scope,
     content: payload.content,
     createdAt: now,
     updatedAt: now,
@@ -113,7 +113,7 @@ const deleteMockPostForTeam = async (teamId: string, postId: string) => {
 const updateMockPostForTeam = async (
   teamId: string,
   postId: string,
-  updates: { type: BoardPostType; scope: BoardPostScope; content: string }
+  updates: { type: BoardPostType; scope: BoardPostScope; content: string },
 ) => {
   await sleep(300);
   const current = mockBoardStore[teamId] ?? [];
@@ -179,7 +179,11 @@ export function useUpdateBoardPost(teamId: string) {
       scope: BoardPostScope;
       content: string;
     }) => {
-      return await updateMockPostForTeam(teamId, postId, { type, scope, content });
+      return await updateMockPostForTeam(teamId, postId, {
+        type,
+        scope,
+        content,
+      });
     },
     onSuccess: async () => {
       await queryClient.invalidateQueries({

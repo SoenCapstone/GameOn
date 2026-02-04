@@ -1,9 +1,18 @@
 import React from "react";
 import { View, Text, StyleSheet, ActivityIndicator } from "react-native";
 import { Card } from "@/components/ui/card";
-import { Menu, MenuOptions, MenuOption, MenuTrigger } from "react-native-popup-menu";
+import {
+  Menu,
+  MenuOptions,
+  MenuOption,
+  MenuTrigger,
+} from "react-native-popup-menu";
 import Icon from "react-native-vector-icons/MaterialIcons";
-import { BoardPost, BoardPostType, BoardPostScope } from "@/components/teams/board/team-board-types";
+import {
+  BoardPost,
+  BoardPostType,
+  BoardPostScope,
+} from "@/components/teams/board/team-board-types";
 
 interface BoardPostCardProps {
   post: BoardPost;
@@ -64,20 +73,31 @@ export function BoardPostCard({
             <Text style={styles.authorName}>{post.authorName}</Text>
           </View>
           <View style={styles.rightHeader}>
-            {canPost && (
-              isDeleting ? (
+            {canPost &&
+              (isDeleting ? (
                 <ActivityIndicator size="small" color="#ff6b6b" />
               ) : (
                 <Menu>
                   <MenuTrigger>
-                    <Icon name="more-vert" size={20} color="rgba(255,255,255,0.6)" style={{ padding: 8 }} />
+                    <Icon
+                      name="more-vert"
+                      size={20}
+                      color="rgba(255,255,255,0.6)"
+                      style={{ padding: 8 }}
+                    />
                   </MenuTrigger>
-                  <MenuOptions customStyles={{
-                    optionsContainer: styles.menuContainer,
-                  }}>
+                  <MenuOptions
+                    customStyles={{
+                      optionsContainer: styles.menuContainer,
+                    }}
+                  >
                     <MenuOption onSelect={() => onEdit?.(post)}>
                       <View style={styles.menuItem}>
-                        <Icon name="edit" size={18} color="rgba(255,255,255,0.8)" />
+                        <Icon
+                          name="edit"
+                          size={18}
+                          color="rgba(255,255,255,0.8)"
+                        />
                         <Text style={styles.menuText}>Edit</Text>
                       </View>
                     </MenuOption>
@@ -85,13 +105,14 @@ export function BoardPostCard({
                     <MenuOption onSelect={() => onDelete?.(post.id)}>
                       <View style={styles.menuItem}>
                         <Icon name="delete" size={18} color="#ff3b30" />
-                        <Text style={[styles.menuText, styles.menuTextDelete]}>Delete</Text>
+                        <Text style={[styles.menuText, styles.menuTextDelete]}>
+                          Delete
+                        </Text>
                       </View>
                     </MenuOption>
                   </MenuOptions>
                 </Menu>
-              )
-            )}
+              ))}
             <Text style={styles.date}>{formattedDate}</Text>
           </View>
         </View>

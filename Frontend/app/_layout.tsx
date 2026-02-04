@@ -37,44 +37,44 @@ export default function RootLayout() {
       merchantIdentifier="merchant.com.gameon"
       urlScheme="gameon"
     >
-    <KeyboardProvider>
-      <ClerkProvider
-        tokenCache={tokenCache}
-        publishableKey={process.env.EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY!}
-      >
-        <QueryClientProvider client={queryClient}>
-          <FeatureFlagsProvider>
-            <ThemeProvider
-              value={colorScheme === "dark" ? DarkTheme : DefaultTheme}
-            >
-              <ActionSheetProvider>
-                <MenuProvider>
-                  <SearchProvider>
-                    <ClerkLoaded>
-                      <Stack>
-                        <Stack.Screen
-                          name="(auth)"
-                          options={{ headerShown: false }}
-                        />
-                        <Stack.Screen
-                          name="(tabs)"
-                          options={{ headerShown: false }}
-                        />
-                        <Stack.Screen
-                          name="(contexts)"
-                          options={{ headerShown: false }}
-                        />
-                      </Stack>
-                      <StatusBar style="auto" />
-                    </ClerkLoaded>
-                  </SearchProvider>
-                </MenuProvider>
-              </ActionSheetProvider>
-            </ThemeProvider>
-          </FeatureFlagsProvider>
-        </QueryClientProvider>
-      </ClerkProvider>
-    </KeyboardProvider>
+      <KeyboardProvider>
+        <ClerkProvider
+          tokenCache={tokenCache}
+          publishableKey={process.env.EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY!}
+        >
+          <QueryClientProvider client={queryClient}>
+            <FeatureFlagsProvider>
+              <ThemeProvider
+                value={colorScheme === "dark" ? DarkTheme : DefaultTheme}
+              >
+                <ActionSheetProvider>
+                  <MenuProvider>
+                    <SearchProvider>
+                      <ClerkLoaded>
+                        <Stack>
+                          <Stack.Screen
+                            name="(auth)"
+                            options={{ headerShown: false }}
+                          />
+                          <Stack.Screen
+                            name="(tabs)"
+                            options={{ headerShown: false }}
+                          />
+                          <Stack.Screen
+                            name="(contexts)"
+                            options={{ headerShown: false }}
+                          />
+                        </Stack>
+                        <StatusBar style="auto" />
+                      </ClerkLoaded>
+                    </SearchProvider>
+                  </MenuProvider>
+                </ActionSheetProvider>
+              </ThemeProvider>
+            </FeatureFlagsProvider>
+          </QueryClientProvider>
+        </ClerkProvider>
+      </KeyboardProvider>
     </StripeProvider>
   );
 }

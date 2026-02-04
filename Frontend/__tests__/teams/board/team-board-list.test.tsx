@@ -31,9 +31,7 @@ jest.mock("@legendapp/list", () => {
       onContentSizeChange,
     }: any) => {
       const items = data?.length
-        ? data.map((item: any, index: number) =>
-            renderItem({ item, index }),
-          )
+        ? data.map((item: any, index: number) => renderItem({ item, index }))
         : null;
 
       onContentSizeChange?.();

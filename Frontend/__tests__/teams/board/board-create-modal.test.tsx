@@ -48,7 +48,7 @@ jest.mock("@/components/ui/background", () => ({
 jest.mock("@/components/ui/button", () => {
   const ReactMock = jest.requireActual("react");
   return {
-    Button: (props: any) => (
+    Button: (props: any) =>
       ReactMock.createElement(
         "Text",
         {
@@ -56,8 +56,7 @@ jest.mock("@/components/ui/button", () => {
           onPress: props.onPress,
         },
         props.icon || props.label || props.type,
-      )
-    ),
+      ),
   };
 });
 
@@ -76,7 +75,7 @@ jest.mock("@/components/form/form", () => {
   const MenuItem = ({ label, options, value, onValueChange }: any) => (
     <MockView>
       <MockText>{`${label}: ${value}`}</MockText>
-      {options.map((opt: string) => (
+      {options.map((opt: string) =>
         ReactMock.createElement(
           "Text",
           {
@@ -85,19 +84,18 @@ jest.mock("@/components/form/form", () => {
             onPress: () => onValueChange(opt),
           },
           opt,
-        )
-      ))}
+        ),
+      )}
     </MockView>
   );
   MenuItem.displayName = "FormMenu";
 
-  const ButtonItem = ({ label, onPress }: any) => (
+  const ButtonItem = ({ label, onPress }: any) =>
     ReactMock.createElement(
       "Text",
       { testID: `form-button-${label}`, onPress },
       label,
-    )
-  );
+    );
   ButtonItem.displayName = "FormButton";
 
   Form.Menu = MenuItem;
@@ -163,11 +161,7 @@ describe("BoardCreateModal", () => {
     const onSubmit = jest.fn(async () => undefined);
 
     const { getByPlaceholderText, getByTestId, getByText } = render(
-      <BoardCreateModal
-        visible={true}
-        onClose={onClose}
-        onSubmit={onSubmit}
-      />,
+      <BoardCreateModal visible={true} onClose={onClose} onSubmit={onSubmit} />,
     );
 
     fireEvent.changeText(getByPlaceholderText("Enter text"), "  Hello  ");

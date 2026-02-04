@@ -21,9 +21,8 @@ jest.mock("react-native-popup-menu", () => {
     Menu: ({ children }: any) => children,
     MenuTrigger: ({ children }: any) => children,
     MenuOptions: ({ children }: any) => children,
-    MenuOption: ({ children, onSelect }: any) => (
-      ReactMock.createElement("Text", { onPress: onSelect }, children)
-    ),
+    MenuOption: ({ children, onSelect }: any) =>
+      ReactMock.createElement("Text", { onPress: onSelect }, children),
   };
 });
 

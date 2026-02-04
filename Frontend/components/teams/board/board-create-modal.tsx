@@ -1,15 +1,12 @@
 import React, { useState, useEffect } from "react";
-import {
-  Modal,
-  View,
-  Text,
-  TextInput,
-  Alert,
-  StyleSheet,
-} from "react-native";
+import { Modal, View, Text, TextInput, Alert, StyleSheet } from "react-native";
 import { Button } from "@/components/ui/button";
 import { Form } from "@/components/form/form";
-import { BoardPostType, BoardPostScope, BoardPost } from "@/components/teams/board/team-board-types";
+import {
+  BoardPostType,
+  BoardPostScope,
+  BoardPost,
+} from "@/components/teams/board/team-board-types";
 import { AccentColors } from "@/constants/colors";
 import { KeyboardAwareScrollView } from "react-native-keyboard-controller";
 import { Background } from "../../ui/background";
@@ -18,7 +15,11 @@ import { useHeaderHeight } from "@react-navigation/elements";
 interface BoardCreateModalProps {
   visible: boolean;
   onClose: () => void;
-  onSubmit: (type: BoardPostType, scope: BoardPostScope, content: string) => Promise<void>;
+  onSubmit: (
+    type: BoardPostType,
+    scope: BoardPostScope,
+    content: string,
+  ) => Promise<void>;
   isLoading?: boolean;
   editPost?: BoardPost | null;
 }
@@ -65,6 +66,13 @@ export function BoardCreateModal({
     }
   };
 
+  const getSubmitButtonLabel = () => {
+    if (submitting || isLoading) {
+      return editPost ? "Updating..." : "Posting...";
+    }
+    return editPost ? "Update" : "Post";
+  };
+
   return (
     <Modal
       visible={visible}
@@ -73,29 +81,31 @@ export function BoardCreateModal({
       backdropColor={"black"}
       onRequestClose={onClose}
     >
-    <Background preset="red" />
-    <KeyboardAwareScrollView
+      <Background preset="red" />
+      <KeyboardAwareScrollView
         bottomOffset={30}
         contentContainerStyle={{
-          paddingTop: headerHeight/2,
+          paddingTop: headerHeight / 2,
           gap: 14,
         }}
-        style={[
-          styles.content,
-        ]}
+        style={[styles.content]}
       >
         {/* Header */}
         <View style={styles.header}>
           <View style={{ width: 44, height: 44 }}>
             <Button type="custom" icon="chevron.left" onPress={onClose} />
           </View>
-          <Text style={styles.headerTitle}>{editPost ? "Edit Post" : "New Post"}</Text>
+          <Text style={styles.headerTitle}>
+            {editPost ? "Edit Post" : "New Post"}
+          </Text>
           <View style={{ width: 44 }} />
         </View>
 
         {/* Main Content Input */}
         <View style={styles.section}>
-          <Text style={styles.placeholder}>Tell the team about something...</Text>
+          <Text style={styles.placeholder}>
+            Tell the team about something...
+          </Text>
           <TextInput
             style={styles.textArea}
             placeholder="Enter text"
@@ -129,7 +139,7 @@ export function BoardCreateModal({
 
         {/* Submit Button */}
         <Form.Button
-          label={submitting || isLoading ? (editPost ? "Updating..." : "Posting...") : (editPost ? "Update" : "Post")}
+          label={getSubmitButtonLabel()}
           onPress={handleSubmit}
           color={AccentColors.blue}
         />
@@ -179,8 +189,8 @@ const styles = StyleSheet.create({
     fontSize: 12,
     marginTop: 8,
   },
- content: {
-   flex: 1,
-   paddingHorizontal: 16,
- },
+  content: {
+    flex: 1,
+    paddingHorizontal: 16,
+  },
 });
