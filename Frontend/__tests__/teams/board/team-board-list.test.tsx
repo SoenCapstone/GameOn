@@ -26,12 +26,16 @@ jest.mock("@legendapp/list", () => {
     LegendList: ({
       data,
       renderItem,
+      keyExtractor,
       ListHeaderComponent,
       ListEmptyComponent,
       onContentSizeChange,
     }: any) => {
       const items = data?.length
-        ? data.map((item: any, index: number) => renderItem({ item, index }))
+        ? data.map((item: any, index: number) => {
+            const key = keyExtractor ? keyExtractor(item, index) : index;
+            return ReactMock.cloneElement(renderItem({ item, index }), { key });
+          })
         : null;
 
       onContentSizeChange?.();
