@@ -7,7 +7,7 @@ import { TextAreaItem } from "@/components/form/text-area-item";
 import { Header } from "@/components/header/header";
 import { Button } from "@/components/ui/button";
 import { PageTitle } from "@/components/header/page-title";
-import { BoardPostScope } from "@/components/teams/board/team-board-types";
+import { BoardPostScope } from "@/components/board/board-types";
 import { AccentColors } from "@/constants/colors";
 import { useCreateBoardPost } from "@/hooks/use-team-board";
 import { errorToString } from "@/utils/error";
