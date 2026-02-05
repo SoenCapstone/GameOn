@@ -13,7 +13,6 @@ import {
   View,
 } from "react-native";
 import { useRouter } from "expo-router";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useAuth } from "@clerk/clerk-expo";
 import { useMessagingContext } from "@/features/messaging/provider";
 import {
@@ -26,7 +25,6 @@ type TabKey = "direct" | "team";
 
 export default function NewChat() {
   const router = useRouter();
-  const insets = useSafeAreaInsets();
   const [tab, setTab] = useState<TabKey>("direct");
   const [query, setQuery] = useState("");
   const [selectedTeam, setSelectedTeam] = useState<string | null>(null);
@@ -94,16 +92,6 @@ export default function NewChat() {
   return (
     <ContentArea backgroundProps={{ preset: "green" }}>
       <View style={styles.container}>
-        <View style={[styles.header, { paddingTop: insets.top + 8 }]}>
-          <Pressable onPress={() => router.back()} style={styles.circleBtn}>
-            <Text style={styles.circleIcon}>‹</Text>
-          </Pressable>
-
-          <Text style={styles.title}>New conversation</Text>
-
-          <View style={{ width: 44 }} />
-        </View>
-
         <View style={styles.tabs}>
           {(["direct", "team"] as TabKey[]).map((key) => (
             <Pressable
