@@ -25,6 +25,10 @@ interface PostCardProps {
   canDelete?: boolean;
 }
 
+function TimeAgoText(props: React.ComponentProps<typeof Text>) {
+  return <Text style={styles.timeAgo} {...props} />;
+}
+
 export function PostCard({
   post,
   sourceName,
@@ -100,7 +104,7 @@ export function PostCard({
             <TimeAgo
               date={post.createdAt}
               minPeriod={60}
-              component={(props) => <Text style={styles.timeAgo} {...props} />}
+              component={TimeAgoText}
             />
             <Text style={styles.separator}>•</Text>
             <IconSymbol

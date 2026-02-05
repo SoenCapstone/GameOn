@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React from "react";
 import {
   View,
   ActivityIndicator,
@@ -46,8 +46,6 @@ function TeamContent() {
     role,
     team,
   } = useTeamDetailContext();
-  const [, setDeletingPostId] = useState<string | null>(null);
-
   // TODO: change to role === "COACH" || role === "MANAGER" after testing since we cant change roles yet
   const canPost = role === "OWNER";
 
@@ -71,14 +69,11 @@ function TeamContent() {
       {
         text: "Delete",
         onPress: async () => {
-          setDeletingPostId(postId);
           try {
             await deletePostMutation.mutateAsync(postId);
             Alert.alert("Success", "Post deleted");
           } catch (err) {
             Alert.alert("Failed to delete", errorToString(err));
-          } finally {
-            setDeletingPostId(null);
           }
         },
         style: "destructive",
