@@ -11,7 +11,6 @@ import {
   View,
 } from "react-native";
 import { useRouter } from "expo-router";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useAuth } from "@clerk/clerk-expo";
 import { useMessagingContext } from "@/features/messaging/provider";
 import {
@@ -34,7 +33,6 @@ type ListRow = {
 
 export default function Messages() {
   const router = useRouter();
-  const insets = useSafeAreaInsets();
   const { userId } = useAuth();
   const { socketState } = useMessagingContext();
   const { data, isLoading, refetch, isRefetching } = useConversationsQuery();
@@ -85,18 +83,10 @@ export default function Messages() {
   }, [data, filter, userId, userMap]);
 
   const openConversation = (id: string) => router.push(`/messages/${id}`);
-  const openNewChat = () => router.push("/messages/new");
 
   return (
     <ContentArea backgroundProps={{ preset: "green" }}>
       <View style={styles.container}>
-        <View style={[styles.header, { paddingTop: insets.top + 8 }]}>
-          <Text style={styles.title}>Messages</Text>
-          <Pressable onPress={openNewChat} style={styles.plusBtn} accessibilityLabel="Start a new conversation">
-            <Text style={styles.plusText}>+</Text>
-          </Pressable>
-        </View>
-
         <View style={[styles.header, { paddingTop: 0 }]}> 
           <Pressable onPress={() => setFilter("all")} style={{ opacity: filter === "all" ? 1 : 0.6 }}>
             <Text style={styles.toggleText}>All</Text>
