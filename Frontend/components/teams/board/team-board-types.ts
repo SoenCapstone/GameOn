@@ -1,4 +1,3 @@
-export type BoardPostType = "general" | "game" | "training" | "other";
 export type BoardPostScope = "players" | "everyone";
 
 export type BoardPost = {
@@ -6,8 +5,9 @@ export type BoardPost = {
   teamId: string;
   authorId: string;
   authorName: string;
+  authorRole?: string | null;
   authorImage?: string | null;
-  type: BoardPostType;
+  title: string;
   scope: BoardPostScope;
   content: string;
   createdAt: string;
@@ -16,7 +16,7 @@ export type BoardPost = {
 
 export type CreateBoardPostRequest = {
   teamId: string;
-  type: BoardPostType;
+  title: string;
   scope: BoardPostScope;
   content: string;
 };

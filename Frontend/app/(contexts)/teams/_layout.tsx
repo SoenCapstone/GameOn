@@ -10,6 +10,7 @@ export default function TeamsLayout() {
       "[id]/settings/index",
       "[id]/manage-roles/index",
       "[id]/invite/index",
+      "[id]/post/index",
     ],
   });
 

@@ -6,29 +6,19 @@ import {
   Alert,
   Text,
 } from "react-native";
-import { useLocalSearchParams } from "expo-router";
+import { useLocalSearchParams, useRouter } from "expo-router";
 import { ContentArea } from "@/components/ui/content-area";
 import { Button } from "@/components/ui/button";
+import { mapSportToEmoji } from "@/components/browse/utils";
 import SegmentedControl from "@react-native-segmented-control/segmented-control";
 import { useTeamHeader } from "@/hooks/use-team-league-header";
 import {
   TeamDetailProvider,
   useTeamDetailContext,
 } from "@/contexts/team-detail-context";
-import {
-  useTeamBoardPosts,
-  useCreateBoardPost,
-  useDeleteBoardPost,
-  useUpdateBoardPost,
-} from "@/hooks/use-team-board";
+import { useTeamBoardPosts, useDeleteBoardPost } from "@/hooks/use-team-board";
 import { TeamBoardList } from "@/components/teams/board/team-board-list";
-import { BoardCreateModal } from "@/components/teams/board/board-create-modal";
 import { errorToString } from "@/utils/error";
-import {
-  BoardPostType,
-  BoardPostScope,
-  BoardPost,
-} from "@/components/teams/board/team-board-types";
 
 export default function TeamScreen() {
   const params = useLocalSearchParams<{ id?: string | string[] }>();
@@ -44,7 +34,7 @@ export default function TeamScreen() {
 
 function TeamContent() {
   const [tab, setTab] = React.useState<"board" | "overview" | "games">("board");
-  const [searchQuery, setSearchQuery] = useState("");
+  const router = useRouter();
   const {
     id,
     isLoading,
@@ -54,10 +44,9 @@ function TeamContent() {
     title,
     isMember,
     role,
+    team,
   } = useTeamDetailContext();
-  const [showCreateModal, setShowCreateModal] = useState(false);
-  const [editingPost, setEditingPost] = useState<BoardPost | null>(null);
-  const [deletingPostId, setDeletingPostId] = useState<string | null>(null);
+  const [, setDeletingPostId] = useState<string | null>(null);
 
   // TODO: change to role === "COACH" || role === "MANAGER" after testing since we cant change roles yet
   const canPost = role === "OWNER";
@@ -72,48 +61,9 @@ function TeamContent() {
     ? boardPosts
     : boardPosts.filter((post) => post.scope === "everyone");
 
-  const createPostMutation = useCreateBoardPost(id);
-  const updatePostMutation = useUpdateBoardPost(id);
   const deletePostMutation = useDeleteBoardPost(id);
 
   useTeamHeader({ title, id, isMember, onFollow: handleFollow });
-
-  const handleCreatePost = async (
-    type: BoardPostType,
-    scope: BoardPostScope,
-    content: string,
-  ) => {
-    try {
-      if (editingPost) {
-        await updatePostMutation.mutateAsync({
-          postId: editingPost.id,
-          type,
-          scope,
-          content,
-        });
-        Alert.alert("Success", "Post updated");
-        setEditingPost(null);
-      } else {
-        await createPostMutation.mutateAsync({
-          teamId: id,
-          type,
-          scope,
-          content,
-        });
-        Alert.alert("Success", "Post created");
-      }
-    } catch (err) {
-      Alert.alert(
-        editingPost ? "Failed to update" : "Failed to post",
-        errorToString(err),
-      );
-    }
-  };
-
-  const handleEditPost = (post: BoardPost) => {
-    setEditingPost(post);
-    setShowCreateModal(true);
-  };
 
   const handleDeletePost = (postId: string) => {
     Alert.alert("Delete Post", "Are you sure you want to delete this post?", [
@@ -168,19 +118,17 @@ function TeamContent() {
                 if (value === "Overview") setTab("overview");
                 if (value === "Games") setTab("games");
               }}
-              style={{ alignSelf: "center", width: "100%" }}
+              style={{ alignSelf: "center", width: "100%", height: 40 }}
             />
 
             {tab === "board" && (
               <TeamBoardList
                 posts={visiblePosts}
                 isLoading={postsLoading}
-                canPost={canPost}
-                onEditPost={handleEditPost}
+                sourceName={team?.name ?? title}
+                sourceLogo={team?.logoUrl ?? mapSportToEmoji(team?.sport)}
                 onDeletePost={handleDeletePost}
-                isDeletingId={deletingPostId ?? undefined}
-                searchQuery={searchQuery}
-                onSearchChange={setSearchQuery}
+                canDelete={canPost}
               />
             )}
 
@@ -193,19 +141,6 @@ function TeamContent() {
             )}
           </>
         )}
-
-        <BoardCreateModal
-          visible={showCreateModal}
-          onClose={() => {
-            setShowCreateModal(false);
-            setEditingPost(null);
-          }}
-          onSubmit={handleCreatePost}
-          isLoading={
-            createPostMutation.isPending || updatePostMutation.isPending
-          }
-          editPost={editingPost}
-        />
       </ContentArea>
 
       {/* Create Post Button */}
@@ -214,13 +149,13 @@ function TeamContent() {
           style={{
             position: "absolute",
             bottom: 20,
-            left: 20,
+            right: 20,
           }}
         >
           <Button
             type="custom"
             icon="plus"
-            onPress={() => setShowCreateModal(true)}
+            onPress={() => router.push(`/(contexts)/teams/${id}/post`)}
           />
         </View>
       )}

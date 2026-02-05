@@ -1,79 +1,28 @@
 import React from "react";
-import {
-  View,
-  Text,
-  ActivityIndicator,
-  StyleSheet,
-  TextInput,
-} from "react-native";
+import { View, Text, ActivityIndicator, StyleSheet } from "react-native";
 import { BoardPost } from "@/components/teams/board/team-board-types";
-import { BoardPostCard } from "@/components/teams/board/board-post-card";
+import { PostCard } from "@/components/posts/post-card";
 import { LegendList } from "@legendapp/list";
-import { GlassView } from "expo-glass-effect";
-import Icon from "react-native-vector-icons/Ionicons";
-
-type SearchHeaderProps = {
-  value: string;
-  onChangeText?: (query: string) => void;
-};
-
-const SearchHeader = React.memo(function SearchHeader({
-  value,
-  onChangeText,
-}: Readonly<SearchHeaderProps>) {
-  return (
-    <GlassView isInteractive style={styles.searchContainer}>
-      <Icon name="search" size={20} color="#888" style={styles.icon} />
-      <TextInput
-        value={value}
-        onChangeText={onChangeText}
-        placeholder="Search"
-        placeholderTextColor="rgba(255,255,255,0.5)"
-        style={styles.searchInput}
-      />
-    </GlassView>
-  );
-});
+import { Host } from "@expo/ui/swift-ui";
 
 interface TeamBoardListProps {
   posts: BoardPost[];
   isLoading: boolean;
-  canPost: boolean;
-  onEditPost?: (post: BoardPost) => void;
-  onDeletePost: (postId: string) => void;
-  isDeletingId?: string;
-  searchQuery?: string;
-  onSearchChange?: (query: string) => void;
+  sourceName: string;
+  sourceLogo?: string | null;
+  onDeletePost?: (postId: string) => void;
+  canDelete?: boolean;
 }
 
 export function TeamBoardList({
   posts,
   isLoading,
-  canPost,
-  onEditPost,
+  sourceName,
+  sourceLogo,
   onDeletePost,
-  isDeletingId,
-  searchQuery = "",
-  onSearchChange,
+  canDelete = false,
 }: Readonly<TeamBoardListProps>) {
   const listRef = React.useRef<any>(null);
-
-  const filteredPosts = React.useMemo(() => {
-    if (!searchQuery.trim()) return posts;
-    const query = searchQuery.toLowerCase();
-    return posts.filter(
-      (post) =>
-        post.content.toLowerCase().includes(query) ||
-        post.authorName.toLowerCase().includes(query),
-    );
-  }, [posts, searchQuery]);
-
-  const handleSearchChange = React.useCallback(
-    (value: string) => {
-      onSearchChange?.(value);
-    },
-    [onSearchChange],
-  );
 
   const handleContentSizeChange = React.useCallback(() => {
     listRef.current?.scrollToIndex({ index: 0, animated: true });
@@ -88,36 +37,31 @@ export function TeamBoardList({
   }
 
   return (
-    <LegendList
-      ref={listRef}
-      data={filteredPosts}
-      keyExtractor={(item) => item?.id}
-      contentContainerStyle={styles.list}
-      ListHeaderComponent={
-        <SearchHeader value={searchQuery} onChangeText={handleSearchChange} />
-      }
-      renderItem={({ item }) => (
-        <BoardPostCard
-          post={item}
-          canPost={canPost}
-          onEdit={onEditPost}
-          onDelete={onDeletePost}
-          isDeleting={isDeletingId === item.id}
-        />
-      )}
-      ListEmptyComponent={
-        <View style={styles.emptyContainer}>
-          <Text style={styles.emptyText}>
-            {searchQuery.trim()
-              ? "No matching announcements"
-              : "No announcements yet"}
-          </Text>
-        </View>
-      }
-      recycleItems={true}
-      keyboardShouldPersistTaps="handled"
-      onContentSizeChange={handleContentSizeChange}
-    />
+    <Host matchContents>
+      <LegendList
+        ref={listRef}
+        data={posts}
+        keyExtractor={(item) => item?.id}
+        contentContainerStyle={styles.list}
+        renderItem={({ item }) => (
+          <PostCard
+            post={item}
+            sourceName={sourceName}
+            sourceLogo={sourceLogo}
+            onDelete={onDeletePost}
+            canDelete={canDelete}
+          />
+        )}
+        ListEmptyComponent={
+          <View style={styles.emptyContainer}>
+            <Text style={styles.emptyText}>No announcements yet</Text>
+          </View>
+        }
+        recycleItems={true}
+        keyboardShouldPersistTaps="handled"
+        onContentSizeChange={handleContentSizeChange}
+      />
+    </Host>
   );
 }
 
@@ -142,26 +86,8 @@ const styles = StyleSheet.create({
   },
   list: {
     gap: 12,
-    paddingBottom: 80,
+    paddingBottom: 500,
     width: "100%",
     alignSelf: "center",
-  },
-  searchContainer: {
-    flexDirection: "row",
-    alignItems: "center",
-    borderRadius: 999,
-    backgroundColor: "rgba(255,255,255,0.15)",
-    marginBottom: 12,
-  },
-  searchInput: {
-    flex: 1,
-    width: "100%",
-    height: 40,
-    paddingHorizontal: 12,
-    color: "#fff",
-    fontSize: 14,
-  },
-  icon: {
-    marginLeft: 6,
   },
 });
