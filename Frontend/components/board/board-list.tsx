@@ -1,11 +1,11 @@
 import React from "react";
 import { View, Text, ActivityIndicator, StyleSheet } from "react-native";
-import { BoardPost } from "@/components/teams/board/team-board-types";
-import { PostCard } from "@/components/posts/post-card";
+import { BoardPost } from "@/components/board/board-types";
+import { PostCard } from "@/components/board/post-card";
 import { LegendList } from "@legendapp/list";
 import { Host } from "@expo/ui/swift-ui";
 
-interface TeamBoardListProps {
+interface BoardListProps {
   posts: BoardPost[];
   isLoading: boolean;
   sourceName: string;
@@ -14,14 +14,14 @@ interface TeamBoardListProps {
   canDelete?: boolean;
 }
 
-export function TeamBoardList({
+export function BoardList({
   posts,
   isLoading,
   sourceName,
   sourceLogo,
   onDeletePost,
   canDelete = false,
-}: Readonly<TeamBoardListProps>) {
+}: Readonly<BoardListProps>) {
   const listRef = React.useRef<any>(null);
 
   const handleContentSizeChange = React.useCallback(() => {

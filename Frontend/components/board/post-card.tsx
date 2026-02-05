@@ -13,7 +13,7 @@ import { Host, ContextMenu, Button } from "@expo/ui/swift-ui";
 import { Card } from "@/components/ui/card";
 import SvgImage from "@/components/svg-image";
 import { IconSymbol } from "@/components/ui/icon-symbol";
-import { BoardPost } from "@/components/teams/board/team-board-types";
+import { BoardPost } from "@/components/board/board-types";
 import { isRunningInExpoGo } from "@/utils/runtime";
 
 interface PostCardProps {

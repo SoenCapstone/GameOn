@@ -1,7 +1,7 @@
 import React from "react";
 import { render, fireEvent } from "@testing-library/react-native";
-import { PostCard } from "@/components/posts/post-card";
-import { BoardPost } from "@/components/teams/board/team-board-types";
+import { PostCard } from "@/components/board/post-card";
+import { BoardPost } from "@/components/board/board-types";
 import * as runtime from "@/utils/runtime";
 
 const runtimeAny = runtime as any;
@@ -113,7 +113,7 @@ jest.mock("@/utils/runtime", () => {
 describe("PostCard", () => {
   const basePost: BoardPost = {
     id: "post-1",
-    teamId: "team-1",
+    spaceId: "team-1",
     authorId: "coach-1",
     authorName: "Coach Amy",
     title: "Practice Update",

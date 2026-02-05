@@ -1,12 +1,27 @@
+/* eslint-disable @typescript-eslint/no-require-imports */
 import React from "react";
 import { render } from "@testing-library/react-native";
-import { TeamBoardList } from "@/components/teams/board/team-board-list";
-import { BoardPost } from "@/components/teams/board/team-board-types";
+import { BoardList } from "@/components/board/board-list";
+import { BoardPost } from "@/components/board/board-types";
+
+// Mock @expo/ui/swift-ui to suppress native component warnings
+jest.mock("@expo/ui/swift-ui", () => {
+  const mockReact = require("react");
+  const { View, Text, Pressable } = require("react-native");
+  
+  return {
+    Host: ({ children, ...props }: any) => mockReact.createElement(View, props, children),
+    ContextMenu: ({ children, ...props }: any) => mockReact.createElement(View, props, children),
+    Button: ({ children, onPress, ...props }: any) => 
+      mockReact.createElement(Pressable, { onPress, ...props }, 
+        mockReact.createElement(Text, null, children)
+      ),
+  };
+});
 
 const mockPostCard = jest.fn((props: any) => {
-  const ReactMock = jest.requireActual("react");
   const { post } = props;
-  return ReactMock.createElement(
+  return React.createElement(
     "Text",
     {
       testID: `post-${post.id}`,
@@ -15,12 +30,11 @@ const mockPostCard = jest.fn((props: any) => {
   );
 });
 
-jest.mock("@/components/posts/post-card", () => ({
+jest.mock("@/components/board/post-card", () => ({
   PostCard: (props: any) => mockPostCard(props),
 }));
 
 jest.mock("@legendapp/list", () => {
-  const ReactMock = jest.requireActual("react");
   return {
     LegendList: ({
       data,
@@ -29,17 +43,18 @@ jest.mock("@legendapp/list", () => {
       ListEmptyComponent,
       onContentSizeChange,
     }: any) => {
+      const mockReact = require("react");
       const items = data?.length
         ? data.map((item: any, index: number) => {
             const key = keyExtractor ? keyExtractor(item, index) : index;
-            return ReactMock.cloneElement(renderItem({ item, index }), { key });
+            return mockReact.cloneElement(renderItem({ item, index }), { key });
           })
         : null;
 
       onContentSizeChange?.();
 
-      return ReactMock.createElement(
-        ReactMock.Fragment,
+      return mockReact.createElement(
+        mockReact.Fragment,
         null,
         items,
         data?.length ? null : ListEmptyComponent,
@@ -49,10 +64,11 @@ jest.mock("@legendapp/list", () => {
 });
 
 jest.mock("expo-glass-effect", () => {
-  const ReactMock = jest.requireActual("react");
   return {
-    GlassView: ({ children }: any) =>
-      ReactMock.createElement("View", null, children),
+    GlassView: ({ children }: any) => {
+      const mockReact = require("react");
+      return mockReact.createElement("View", null, children);
+    },
   };
 });
 
@@ -66,7 +82,7 @@ describe("TeamBoardList", () => {
   const posts: BoardPost[] = [
     {
       id: "post-1",
-      teamId: "team-1",
+      spaceId: "team-1",
       authorId: "coach-1",
       authorName: "Coach Amy",
       title: "Practice Update",
@@ -77,7 +93,7 @@ describe("TeamBoardList", () => {
     },
     {
       id: "post-2",
-      teamId: "team-1",
+      spaceId: "team-1",
       authorId: "player-1",
       authorName: "Player Ben",
       title: "Game Announcement",
@@ -94,7 +110,7 @@ describe("TeamBoardList", () => {
 
   it("renders loading state without empty messaging", () => {
     const { queryByText } = render(
-      <TeamBoardList posts={posts} isLoading={true} sourceName="Team" />,
+      <BoardList posts={posts} isLoading={true} sourceName="Team" />,
     );
 
     expect(queryByText("No announcements yet")).toBeNull();
@@ -103,7 +119,7 @@ describe("TeamBoardList", () => {
 
   it("renders the empty state message", () => {
     const { getByText } = render(
-      <TeamBoardList posts={[]} isLoading={false} sourceName="Team" />,
+      <BoardList posts={[]} isLoading={false} sourceName="Team" />,
     );
 
     expect(getByText("No announcements yet")).toBeTruthy();
@@ -111,7 +127,7 @@ describe("TeamBoardList", () => {
 
   it("filters posts and displays them", () => {
     const { getByTestId } = render(
-      <TeamBoardList posts={posts} isLoading={false} sourceName="Team" />,
+      <BoardList posts={posts} isLoading={false} sourceName="Team" />,
     );
 
     expect(getByTestId("post-post-1")).toBeTruthy();
@@ -120,7 +136,7 @@ describe("TeamBoardList", () => {
 
   it("passes correct props to PostCard components", () => {
     render(
-      <TeamBoardList
+      <BoardList
         posts={posts}
         isLoading={false}
         sourceName="My Team"

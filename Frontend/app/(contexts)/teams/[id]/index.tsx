@@ -17,7 +17,7 @@ import {
   useTeamDetailContext,
 } from "@/contexts/team-detail-context";
 import { useTeamBoardPosts, useDeleteBoardPost } from "@/hooks/use-team-board";
-import { TeamBoardList } from "@/components/teams/board/team-board-list";
+import { BoardList } from "@/components/board/board-list";
 import { errorToString } from "@/utils/error";
 
 export default function TeamScreen() {
@@ -117,7 +117,7 @@ function TeamContent() {
             />
 
             {tab === "board" && (
-              <TeamBoardList
+              <BoardList
                 posts={visiblePosts}
                 isLoading={postsLoading}
                 sourceName={team?.name ?? title}

@@ -2,7 +2,7 @@ export type BoardPostScope = "players" | "everyone";
 
 export type BoardPost = {
   id: string;
-  teamId: string;
+  spaceId: string;
   authorId: string;
   authorName: string;
   authorRole?: string | null;
@@ -15,7 +15,7 @@ export type BoardPost = {
 };
 
 export type CreateBoardPostRequest = {
-  teamId: string;
+  spaceId: string;
   title: string;
   scope: BoardPostScope;
   content: string;
