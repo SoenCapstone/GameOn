@@ -14,10 +14,12 @@ RUN mvn -f common/pom.xml clean install -DskipTests -q \
     && mvn -f go-user-service/pom.xml clean package -DskipTests -q
 
 # Runtime Stage
-FROM eclipse-temurin:21-jre-alpine
+FROM eclipse-temurin:21-jre-jammy
 
-RUN addgroup -S app && adduser -S app -G app
+RUN groupadd --system app \
+ && useradd  --system --gid app --create-home --home-dir /home/app app
 
+ 
 RUN mkdir -p /app && chown -R app:app /app
 
 WORKDIR /app
