@@ -49,7 +49,7 @@ describe("getSportLogo", () => {
     expect(getSportLogo("volleyball")).toBe(images.volleyballLogo);
     expect(getSportLogo("quidditch")).toBe(images.defaultLogo);
     expect(getSportLogo("")).toBe(images.defaultLogo);
-    expect(getSportLogo(undefined)).toBe(images.defaultLogo);
+    expect(getSportLogo()).toBe(images.defaultLogo);
   });
 });
 
