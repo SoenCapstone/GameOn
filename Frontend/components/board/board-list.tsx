@@ -1,15 +1,22 @@
 import React from "react";
-import { View, Text, ActivityIndicator, StyleSheet } from "react-native";
+import {
+  View,
+  Text,
+  ActivityIndicator,
+  StyleSheet,
+  ImageSourcePropType,
+} from "react-native";
 import { BoardPost } from "@/components/board/board-types";
 import { PostCard } from "@/components/board/post-card";
 import { LegendList } from "@legendapp/list";
 import { Host } from "@expo/ui/swift-ui";
+import { isRunningInExpoGo } from "@/utils/runtime";
 
 interface BoardListProps {
   posts: BoardPost[];
   isLoading: boolean;
   sourceName: string;
-  sourceLogo?: string | null;
+  sourceLogo: ImageSourcePropType;
   onDeletePost?: (postId: string) => void;
   canDelete?: boolean;
 }
@@ -28,6 +35,21 @@ export function BoardList({
     listRef.current?.scrollToIndex({ index: 0, animated: true });
   }, []);
 
+  const renderItem = React.useCallback(
+    ({ item }: { item: BoardPost }) => {
+      return (
+        <PostCard
+          post={item}
+          sourceName={sourceName}
+          sourceLogo={sourceLogo}
+          onDelete={onDeletePost}
+          canDelete={canDelete}
+        />
+      );
+    },
+    [canDelete, onDeletePost, sourceLogo, sourceName],
+  );
+
   if (isLoading) {
     return (
       <View style={styles.centerContainer}>
@@ -36,32 +58,28 @@ export function BoardList({
     );
   }
 
-  return (
-    <Host matchContents>
-      <LegendList
-        ref={listRef}
-        data={posts}
-        keyExtractor={(item) => item?.id}
-        contentContainerStyle={styles.list}
-        renderItem={({ item }) => (
-          <PostCard
-            post={item}
-            sourceName={sourceName}
-            sourceLogo={sourceLogo}
-            onDelete={onDeletePost}
-            canDelete={canDelete}
-          />
-        )}
-        ListEmptyComponent={
-          <View style={styles.emptyContainer}>
-            <Text style={styles.emptyText}>No announcements yet</Text>
-          </View>
-        }
-        recycleItems={true}
-        keyboardShouldPersistTaps="handled"
-        onContentSizeChange={handleContentSizeChange}
-      />
-    </Host>
+  const legendList = (
+    <LegendList
+      ref={listRef}
+      data={posts}
+      keyExtractor={(item) => item?.id}
+      contentContainerStyle={styles.list}
+      renderItem={renderItem}
+      ListEmptyComponent={
+        <View style={styles.emptyContainer}>
+          <Text style={styles.emptyText}>No announcements yet</Text>
+        </View>
+      }
+      recycleItems={true}
+      keyboardShouldPersistTaps="handled"
+      onContentSizeChange={handleContentSizeChange}
+    />
+  );
+
+  return isRunningInExpoGo ? (
+    legendList
+  ) : (
+    <Host matchContents>{legendList}</Host>
   );
 }
 

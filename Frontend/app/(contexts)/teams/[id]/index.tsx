@@ -9,7 +9,7 @@ import {
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { ContentArea } from "@/components/ui/content-area";
 import { Button } from "@/components/ui/button";
-import { mapSportToEmoji } from "@/components/browse/utils";
+import { getSportLogo } from "@/components/browse/utils";
 import SegmentedControl from "@react-native-segmented-control/segmented-control";
 import { useTeamHeader } from "@/hooks/use-team-league-header";
 import {
@@ -121,7 +121,11 @@ function TeamContent() {
                 posts={visiblePosts}
                 isLoading={postsLoading}
                 sourceName={team?.name ?? title}
-                sourceLogo={team?.logoUrl ?? mapSportToEmoji(team?.sport)}
+                sourceLogo={
+                  team?.logoUrl
+                    ? { uri: team.logoUrl }
+                    : getSportLogo(team?.sport)
+                }
                 onDeletePost={handleDeletePost}
                 canDelete={canPost}
               />
@@ -150,7 +154,7 @@ function TeamContent() {
           <Button
             type="custom"
             icon="plus"
-            onPress={() => router.push(`/(contexts)/teams/${id}/post`)}
+            onPress={() => router.push(`/post?id=${id}`)}
           />
         </View>
       )}

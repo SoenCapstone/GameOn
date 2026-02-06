@@ -5,13 +5,13 @@ import {
   StyleSheet,
   ImageSourcePropType,
   Pressable,
+  findNodeHandle,
 } from "react-native";
 import { Image } from "expo-image";
-import TimeAgo from "react-timeago";
+import TimeAgo, { Unit, Suffix } from "react-timeago";
 import { useActionSheet } from "@expo/react-native-action-sheet";
 import { Host, ContextMenu, Button } from "@expo/ui/swift-ui";
 import { Card } from "@/components/ui/card";
-import SvgImage from "@/components/svg-image";
 import { IconSymbol } from "@/components/ui/icon-symbol";
 import { BoardPost } from "@/components/board/board-types";
 import { isRunningInExpoGo } from "@/utils/runtime";
@@ -19,7 +19,7 @@ import { isRunningInExpoGo } from "@/utils/runtime";
 interface PostCardProps {
   post: BoardPost;
   sourceName: string;
-  sourceLogo?: string | null;
+  sourceLogo: ImageSourcePropType;
   posterRole?: string | null;
   onDelete?: (postId: string) => void;
   canDelete?: boolean;
@@ -29,6 +29,29 @@ function TimeAgoText(props: React.ComponentProps<typeof Text>) {
   return <Text style={styles.timeAgo} {...props} />;
 }
 
+const weekCappedFormatter = (
+  value: number,
+  unit: Unit,
+  _suffix: Suffix,
+  date: number,
+): string => {
+  const unitMap: Record<string, string> = {
+    second: "s",
+    minute: "m",
+    hour: "h",
+    day: "d",
+    week: "w",
+  };
+
+  if (unit === "month" || unit === "year") {
+    const diffInMs = Math.abs(Date.now() - date);
+    const totalWeeks = Math.floor(diffInMs / (1000 * 60 * 60 * 24 * 7));
+    return `${totalWeeks}w`;
+  }
+
+  return `${value}${unitMap[unit] || unit}`;
+};
+
 export function PostCard({
   post,
   sourceName,
@@ -37,6 +60,7 @@ export function PostCard({
   canDelete = false,
 }: Readonly<PostCardProps>) {
   const { showActionSheetWithOptions } = useActionSheet();
+  const anchorRef = React.useRef<View>(null);
 
   const handleDelete = () => {
     if (!onDelete) return;
@@ -48,6 +72,7 @@ export function PostCard({
           destructiveButtonIndex: 1,
           cancelButtonIndex: 0,
           title: "Delete this post?",
+          anchor: findNodeHandle(anchorRef.current) ?? undefined,
         },
         (buttonIndex) => {
           if (buttonIndex === 1) {
@@ -60,37 +85,21 @@ export function PostCard({
     }
   };
 
-  const logo = sourceLogo ?? "";
-  const isRemoteUrl = logo.startsWith("http://") || logo.startsWith("https://");
-  const isFileUri = logo.startsWith("file://");
-  const isSvg = isRemoteUrl && logo.toLowerCase().endsWith(".svg");
-
-  const imageSource: ImageSourcePropType | undefined =
-    (isRemoteUrl || isFileUri) && !isSvg ? { uri: logo } : undefined;
-
-  let logoElement: React.ReactNode = null;
-  if (logo) {
-    if (isRemoteUrl && isSvg) {
-      logoElement = <SvgImage uri={logo} width={48} height={48} />;
-    } else if (isFileUri || imageSource) {
-      logoElement = (
-        <Image
-          source={imageSource}
-          style={StyleSheet.absoluteFillObject}
-          contentFit="contain"
-        />
-      );
-    } else {
-      logoElement = <Text style={styles.logoText}>{logo}</Text>;
-    }
-  }
+  let logo: React.ReactNode;
+  logo = (
+    <Image
+      source={sourceLogo}
+      style={StyleSheet.absoluteFillObject}
+      contentFit="contain"
+    />
+  );
 
   const cardContent = (
     <Card>
       <View style={styles.container}>
         <View style={styles.headerRow}>
           <View style={styles.headerLeft}>
-            <View style={styles.logoImage}>{logoElement}</View>
+            <View style={styles.logoImage}>{logo}</View>
             <Text style={styles.sourceName}>{sourceName}</Text>
           </View>
           <Text style={styles.messageFrom}>{post.title}</Text>
@@ -105,6 +114,7 @@ export function PostCard({
               date={post.createdAt}
               minPeriod={60}
               component={TimeAgoText}
+              formatter={weekCappedFormatter}
             />
             <Text style={styles.separator}>•</Text>
             <IconSymbol
@@ -127,7 +137,11 @@ export function PostCard({
   }
 
   if (isRunningInExpoGo) {
-    return <Pressable onLongPress={handleDelete}>{cardContent}</Pressable>;
+    return (
+      <Pressable ref={anchorRef} onLongPress={handleDelete}>
+        {cardContent}
+      </Pressable>
+    );
   }
 
   return (
@@ -161,13 +175,10 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   logoImage: {
-    width: 40,
-    height: 40,
+    width: 34,
+    height: 34,
     alignItems: "center",
     justifyContent: "center",
-  },
-  logoText: {
-    fontSize: 30,
   },
   sourceName: {
     color: "rgba(255,255,255,0.9)",

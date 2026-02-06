@@ -1,5 +1,5 @@
 import React, { useState, useCallback, useLayoutEffect } from "react";
-import { Text, Alert, StyleSheet } from "react-native";
+import { Alert } from "react-native";
 import { useLocalSearchParams, useRouter, useNavigation } from "expo-router";
 import { ContentArea } from "@/components/ui/content-area";
 import { Form } from "@/components/form/form";
@@ -59,7 +59,7 @@ export default function CreatePostScreen() {
 
     try {
       await createPostMutation.mutateAsync({
-        teamId: id,
+        spaceId: id,
         title: title.trim(),
         scope,
         content: content.trim(),
@@ -97,6 +97,7 @@ export default function CreatePostScreen() {
             value={title}
             onChangeText={setTitle}
             editable={!createPostMutation.isPending}
+            maxLength={200}
           />
           <TextAreaItem
             placeholder="Tell the team about something..."
@@ -106,7 +107,6 @@ export default function CreatePostScreen() {
             editable={!createPostMutation.isPending}
             maxLength={1000}
           />
-          <Text style={styles.counter}>{content.length}/1000</Text>
         </Form.Section>
 
         <Form.Section>
@@ -121,10 +121,3 @@ export default function CreatePostScreen() {
     </ContentArea>
   );
 }
-const styles = StyleSheet.create({
-  counter: {
-    color: "rgba(255,255,255,0.4)",
-    fontSize: 12,
-    marginTop: 8,
-  },
-});

@@ -21,12 +21,13 @@ jest.mock("react-native", () => {
       create: (styles: any) => styles,
       flatten: (style: any) => style,
     },
-    Pressable: ({ children, onLongPress }: any) =>
+    Pressable: ({ children, onLongPress, ref }: any) =>
       ReactMock.createElement(
         "View",
-        { testID: "pressable", onLongPress },
+        { testID: "pressable", onLongPress, ref },
         children,
       ),
+    findNodeHandle: (ref: any) => ref?.current ?? undefined,
   };
 });
 
@@ -85,15 +86,6 @@ jest.mock("@/components/ui/card", () => {
   };
 });
 
-jest.mock("@/components/svg-image", () => {
-  const ReactMock = jest.requireActual("react");
-  return {
-    __esModule: true,
-    default: (props: any) =>
-      ReactMock.createElement("View", { testID: "svg-image", ...props }),
-  };
-});
-
 jest.mock("@/components/ui/icon-symbol", () => ({
   IconSymbol: () => null,
 }));
@@ -113,14 +105,12 @@ jest.mock("@/utils/runtime", () => {
 describe("PostCard", () => {
   const basePost: BoardPost = {
     id: "post-1",
-    spaceId: "team-1",
     authorId: "coach-1",
     authorName: "Coach Amy",
     title: "Practice Update",
     scope: "players",
     content: "Practice moved to 6pm.",
     createdAt: "2024-01-01T00:00:00.000Z",
-    updatedAt: "2024-01-01T00:00:00.000Z",
   };
 
   beforeEach(() => {
@@ -128,35 +118,21 @@ describe("PostCard", () => {
     runtimeAny.__setExpoGo(false);
   });
 
-  it("renders text logo when logo is not a URL", () => {
-    const { getByText, queryByTestId } = render(
-      <PostCard post={basePost} sourceName="My Team" sourceLogo="MT" />,
+  it("renders Image for static/imported logos", () => {
+    const mockLogo = { testID: "mock-logo" };
+    const { getByTestId } = render(
+      <PostCard post={basePost} sourceName="My Team" sourceLogo={mockLogo} />,
     );
 
-    expect(getByText("My Team")).toBeTruthy();
-    expect(getByText("MT")).toBeTruthy();
-    expect(queryByTestId("svg-image")).toBeNull();
-    expect(queryByTestId("expo-image")).toBeNull();
+    expect(getByTestId("expo-image")).toBeTruthy();
   });
 
-  it("renders SvgImage for remote svg logos", () => {
+  it("renders Image for remote logos (URLs)", () => {
     const { getByTestId } = render(
       <PostCard
         post={basePost}
         sourceName="My Team"
-        sourceLogo="https://example.com/logo.svg"
-      />,
-    );
-
-    expect(getByTestId("svg-image")).toBeTruthy();
-  });
-
-  it("renders Image for remote non-svg logos", () => {
-    const { getByTestId } = render(
-      <PostCard
-        post={basePost}
-        sourceName="My Team"
-        sourceLogo="https://example.com/logo.png"
+        sourceLogo={{ uri: "https://example.com/logo.png" }}
       />,
     );
 
@@ -167,12 +143,13 @@ describe("PostCard", () => {
     runtimeAny.__setExpoGo(true);
     mockShowActionSheet.mockImplementation((_, callback) => callback(1));
     const onDelete = jest.fn();
+    const mockLogo = { testID: "mock-logo" };
 
     const { getByTestId } = render(
       <PostCard
         post={basePost}
         sourceName="My Team"
-        sourceLogo="MT"
+        sourceLogo={mockLogo}
         onDelete={onDelete}
         canDelete={true}
       />,
@@ -187,12 +164,13 @@ describe("PostCard", () => {
   it("deletes directly when not in Expo Go", () => {
     runtimeAny.__setExpoGo(false);
     const onDelete = jest.fn();
+    const mockLogo = { testID: "mock-logo" };
 
     const { getByTestId } = render(
       <PostCard
         post={basePost}
         sourceName="My Team"
-        sourceLogo="MT"
+        sourceLogo={mockLogo}
         onDelete={onDelete}
         canDelete={true}
       />,

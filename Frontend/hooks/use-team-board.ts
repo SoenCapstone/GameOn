@@ -4,7 +4,7 @@ import * as Crypto from "expo-crypto";
 import {
   BoardPost,
   CreateBoardPostRequest,
-} from "@/components/teams/board/team-board-types";
+} from "@/components/board/board-types";
 
 const log = createScopedLog("Team Board");
 
@@ -57,16 +57,13 @@ const createMockPost = (payload: CreateBoardPostRequest): BoardPost => {
   const now = new Date().toISOString();
   return {
     id: `post_${Crypto.randomUUID()}`,
-    teamId: payload.teamId,
     authorId: "mock-coach-id",
     authorName: "Author Name",
     authorRole: "Coach",
-    authorImage: null,
     title: payload.title,
     scope: payload.scope,
     content: payload.content,
     createdAt: now,
-    updatedAt: now,
   };
 };
 
@@ -78,8 +75,8 @@ const getMockPosts = async (teamId: string) => {
 const createMockPostForTeam = async (payload: CreateBoardPostRequest) => {
   await sleep(300);
   const post = createMockPost(payload);
-  const current = mockBoardStore[payload.teamId] ?? [];
-  mockBoardStore[payload.teamId] = [post, ...current];
+  const current = mockBoardStore[payload.spaceId] ?? [];
+  mockBoardStore[payload.spaceId] = [post, ...current];
   return post;
 };
 
@@ -105,16 +102,16 @@ export function useTeamBoardPosts(teamId: string) {
   });
 }
 
-export function useCreateBoardPost(teamId: string) {
+export function useCreateBoardPost(spaceId: string) {
   const queryClient = useQueryClient();
 
   return useMutation({
     mutationFn: async (payload: CreateBoardPostRequest) => {
-      return await createMockPostForTeam({ ...payload, teamId });
+      return await createMockPostForTeam({ ...payload, spaceId });
     },
     onSuccess: async () => {
       await queryClient.invalidateQueries({
-        queryKey: BOARD_QUERY_KEY(teamId),
+        queryKey: BOARD_QUERY_KEY(spaceId),
       });
     },
     onError: (err) => {
