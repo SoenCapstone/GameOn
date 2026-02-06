@@ -39,10 +39,11 @@ jest.mock("expo-image", () => {
   };
 });
 
-jest.mock("react-timeago", () => {
-  const ReactMock = jest.requireActual("react");
-  return function MockTimeAgo() {
-    return ReactMock.createElement("Text", { testID: "timeago" }, "time ago");
+jest.mock("javascript-time-ago", () => {
+  return class MockTimeAgo {
+    format() {
+      return "2h";
+    }
   };
 });
 
@@ -107,6 +108,7 @@ describe("PostCard", () => {
     id: "post-1",
     authorId: "coach-1",
     authorName: "Coach Amy",
+    authorRole: "Coach",
     title: "Practice Update",
     scope: "players",
     content: "Practice moved to 6pm.",
@@ -119,7 +121,7 @@ describe("PostCard", () => {
   });
 
   it("renders Image for static/imported logos", () => {
-    const mockLogo = { testID: "mock-logo" };
+    const mockLogo = require("@/assets/images/react-logo.png");
     const { getByTestId } = render(
       <PostCard post={basePost} sourceName="My Team" sourceLogo={mockLogo} />,
     );
@@ -143,7 +145,7 @@ describe("PostCard", () => {
     runtimeAny.__setExpoGo(true);
     mockShowActionSheet.mockImplementation((_, callback) => callback(1));
     const onDelete = jest.fn();
-    const mockLogo = { testID: "mock-logo" };
+    const mockLogo = require("@/assets/images/react-logo.png");
 
     const { getByTestId } = render(
       <PostCard
@@ -164,7 +166,7 @@ describe("PostCard", () => {
   it("deletes directly when not in Expo Go", () => {
     runtimeAny.__setExpoGo(false);
     const onDelete = jest.fn();
-    const mockLogo = { testID: "mock-logo" };
+    const mockLogo = require("@/assets/images/react-logo.png");
 
     const { getByTestId } = render(
       <PostCard

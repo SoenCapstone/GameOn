@@ -15,8 +15,11 @@ import { SearchProvider } from "@/contexts/search-context";
 import { FeatureFlagsProvider } from "@/components/feature-flags/feature-flags-context";
 import { KeyboardProvider } from "react-native-keyboard-controller";
 import { ActionSheetProvider } from "@expo/react-native-action-sheet";
-
+import TimeAgo from "javascript-time-ago";
+import en from "javascript-time-ago/locale/en.json";
 import { StripeProvider } from "@stripe/stripe-react-native";
+
+TimeAgo.addDefaultLocale(en);
 
 const queryClient = new QueryClient();
 

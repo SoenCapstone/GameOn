@@ -8,14 +8,13 @@ import {
   findNodeHandle,
 } from "react-native";
 import { Image } from "expo-image";
-import TimeAgo, { Unit, Suffix } from "react-timeago";
 import { useActionSheet } from "@expo/react-native-action-sheet";
 import { Host, ContextMenu, Button } from "@expo/ui/swift-ui";
 import { Card } from "@/components/ui/card";
 import { IconSymbol } from "@/components/ui/icon-symbol";
 import { BoardPost } from "@/components/board/board-types";
 import { isRunningInExpoGo } from "@/utils/runtime";
-
+import TimeAgo from "javascript-time-ago";
 interface PostCardProps {
   post: BoardPost;
   sourceName: string;
@@ -24,33 +23,6 @@ interface PostCardProps {
   onDelete?: (postId: string) => void;
   canDelete?: boolean;
 }
-
-function TimeAgoText(props: React.ComponentProps<typeof Text>) {
-  return <Text style={styles.timeAgo} {...props} />;
-}
-
-const weekCappedFormatter = (
-  value: number,
-  unit: Unit,
-  _suffix: Suffix,
-  date: number,
-): string => {
-  const unitMap: Record<string, string> = {
-    second: "s",
-    minute: "m",
-    hour: "h",
-    day: "d",
-    week: "w",
-  };
-
-  if (unit === "month" || unit === "year") {
-    const diffInMs = Math.abs(Date.now() - date);
-    const totalWeeks = Math.floor(diffInMs / (1000 * 60 * 60 * 24 * 7));
-    return `${totalWeeks}w`;
-  }
-
-  return `${value}${unitMap[unit] || unit}`;
-};
 
 export function PostCard({
   post,
@@ -61,6 +33,10 @@ export function PostCard({
 }: Readonly<PostCardProps>) {
   const { showActionSheetWithOptions } = useActionSheet();
   const anchorRef = React.useRef<View>(null);
+  const formattedTime = new TimeAgo("en-US").format(
+    new Date(post.createdAt),
+    "mini",
+  );
 
   const handleDelete = () => {
     if (!onDelete) return;
@@ -110,12 +86,7 @@ export function PostCard({
         <View style={styles.footerRow}>
           <Text style={styles.authorName}>{post.authorName}</Text>
           <View style={styles.timeContainer}>
-            <TimeAgo
-              date={post.createdAt}
-              minPeriod={60}
-              component={TimeAgoText}
-              formatter={weekCappedFormatter}
-            />
+            <Text style={styles.timeAgo}>{formattedTime}</Text>
             <Text style={styles.separator}>•</Text>
             <IconSymbol
               name={
