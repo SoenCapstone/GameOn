@@ -25,7 +25,7 @@ spring:
     oauth2:
       resourceserver:
         jwt:
-          issuer-uri: https://one-magpie-92.clerk.accounts.dev
+          issuer-uri: ${CLERK_URL:https://one-magpie-92.clerk.accounts.dev}
 
 server:
   port: 8092

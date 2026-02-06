@@ -63,6 +63,8 @@ services:
       HOSTNAME: go-api-gateway
       CONFIG_SERVER_URL: http://go-config-server:8889
       EUREKA_SERVER_URL: http://go-discovery-service:8761/eureka
+      CLERK_URL: ${CLERK_URL}
+
     ports:
       - "8222:8222"
     depends_on:
@@ -88,6 +90,7 @@ services:
       DB_NAME: gameon_db
       DB_USER: username
       DB_PASSWORD: password
+      CLERK_URL: ${CLERK_URL}
     ports:
       - "8090:8090"
     depends_on:
@@ -116,6 +119,7 @@ services:
       DB_NAME: gameon_db
       DB_USER: username
       DB_PASSWORD: password
+      CLERK_URL: ${CLERK_URL}
     ports:
       - "8092:8092"
     depends_on:
@@ -150,6 +154,8 @@ services:
       DB_PASSWORD: password
       STRIPE_SECRET_KEY: ${STRIPE_SECRET_KEY}
       STRIPE_WEBHOOK_SECRET: ${STRIPE_WEBHOOK_SECRET}
+      CLERK_URL: ${CLERK_URL}
+
     ports:
       - "8093:8093"
     depends_on:
@@ -176,6 +182,7 @@ services:
       DB_NAME: gameon_db
       DB_USER: username
       DB_PASSWORD: password
+      CLERK_URL: ${CLERK_URL}
     ports:
       - "8095:8095"
     depends_on:
