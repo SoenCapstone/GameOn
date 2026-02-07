@@ -87,7 +87,7 @@ const styles = StyleSheet.create({
     color: "rgba(255,255,255,0.6)",
     fontSize: 16,
   },
-  legendList: { overflow: "visible" },
+  legendList: { overflow: "visible", flex: 1 },
   list: {
     gap: 12,
   },
