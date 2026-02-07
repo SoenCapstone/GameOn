@@ -1,4 +1,4 @@
-export type BoardPostScope = "players" | "everyone";
+export type BoardPostScope = "Members" | "Everyone";
 
 export type BoardPost = {
   id: string;
