@@ -21,7 +21,7 @@ const mockPostCard = jest.fn((props: any) => {
     {
       testID: `post-${post.id}`,
     },
-    post.content,
+    post.body,
   );
 });
 
@@ -82,7 +82,7 @@ describe("TeamBoardList", () => {
       authorRole: "coach",
       title: "Practice Update",
       scope: "Members",
-      content: "Practice moved to 6pm.",
+      body: "Practice moved to 6pm.",
       createdAt: "2024-01-01T00:00:00.000Z",
     },
     {
@@ -92,7 +92,7 @@ describe("TeamBoardList", () => {
       authorRole: null,
       title: "Game Announcement",
       scope: "Everyone",
-      content: "Game day is Saturday.",
+      body: "Game day is Saturday.",
       createdAt: "2024-01-02T00:00:00.000Z",
     },
   ];

@@ -26,12 +26,12 @@ const BOARD_QUERY_KEY = (teamId: string) => ["team-board", teamId];
 //
 // 2. POST /api/v1/teams/{teamId}/board
 //    - Create a new board post
-//    - Request body: { title: string, scope: BoardPostScope, content: string }
+//    - Request body: { title: string, scope: BoardPostScope, body: string }
 //    - Response: BoardPost
 //    - Authorization: User must have role OWNER (??), MANAGER, or COACH
 //    - Validation:
 //      * title: required, max 100 characters
-//      * content: required, max 1000 characters
+//      * body: required, max 1000 characters
 //      * scope: one of "players" | "everyone"
 //    - Auto-populate: authorId, authorName from authenticated user
 //
@@ -62,7 +62,7 @@ const createMockPost = (payload: CreateBoardPostRequest): BoardPost => {
     authorRole: "Coach",
     title: payload.title,
     scope: payload.scope,
-    content: payload.content,
+    body: payload.body,
     createdAt: now,
   };
 };

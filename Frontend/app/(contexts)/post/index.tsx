@@ -46,7 +46,7 @@ export default function Post() {
 
   const [title, setTitle] = useState("");
   const [scope, setScope] = useState<BoardPostScope>("Members");
-  const [content, setContent] = useState("");
+  const [body, setBody] = useState("");
 
   const createPostMutation = useCreateBoardPost(id);
 
@@ -56,8 +56,8 @@ export default function Post() {
       return;
     }
 
-    if (!content.trim()) {
-      Alert.alert("Failed to Post", "Please enter content");
+    if (!body.trim()) {
+      Alert.alert("Failed to Post", "Please enter body");
       return;
     }
 
@@ -66,13 +66,13 @@ export default function Post() {
         spaceId: id,
         title: title.trim(),
         scope,
-        content: content.trim(),
+        body: body.trim(),
       });
       router.back();
     } catch (err) {
       Alert.alert("Failed to post", errorToString(err));
     }
-  }, [content, createPostMutation, id, router, scope, title]);
+  }, [body, createPostMutation, id, router, scope, title]);
 
   const headerTitle = useCallback(
     () => (
@@ -118,8 +118,8 @@ export default function Post() {
           <Form.TextArea
             placeholder="What's new?"
             placeholderTextColor="rgba(255,255,255,0.5)"
-            value={content}
-            onChangeText={setContent}
+            value={body}
+            onChangeText={setBody}
             editable={!createPostMutation.isPending}
             maxLength={1000}
           />

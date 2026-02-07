@@ -7,7 +7,7 @@ export type BoardPost = {
   authorRole: string | null;
   title: string;
   scope: BoardPostScope;
-  content: string;
+  body: string;
   createdAt: string;
 };
 
@@ -15,5 +15,5 @@ export type CreateBoardPostRequest = {
   spaceId: string;
   title: string;
   scope: BoardPostScope;
-  content: string;
+  body: string;
 };
