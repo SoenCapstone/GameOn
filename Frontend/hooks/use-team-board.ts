@@ -41,9 +41,9 @@ const BOARD_QUERY_KEY = (teamId: string) => ["team-board", teamId];
 //    - Authorization: User must be the post author OR have role OWNER/MANAGER (??)
 //
 // TYPES:
-// - BoardPostScope = "players" | "everyone"
-//   * "players" - visible only to team members
-//   * "everyone" - visible to everyone
+// - BoardPostScope = "Members" | "Everyone"
+//   * "Members" - visible only to team members
+//   * "Everyone" - visible to everyone
 //
 // NOTES:
 // - All timestamps should be ISO 8601 format (e.g., "2026-02-03T15:30:00Z")

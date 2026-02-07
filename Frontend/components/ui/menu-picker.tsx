@@ -56,30 +56,31 @@ export function MenuPicker({
         onPress={onPress}
         disabled={disabled}
       >
-        {({ pressed }) => (
-          <>
-            <Text
-              style={[
-                styles.value,
-                disabled && styles.valueDisabled,
-                pressed && { color: "rgba(235,235,245,0.7)" },
-              ]}
-            >
-              {value}
-            </Text>
-            <Ionicons
-              name="chevron-expand"
-              size={16}
-              color={
-                disabled
-                  ? "rgba(235,235,245,0.35)"
-                  : pressed
-                    ? "rgba(235,235,245,0.7)"
-                    : "rgba(235,235,245,0.6)"
-              }
-            />
-          </>
-        )}
+        {({ pressed }) => {
+          let iconColor: string;
+          if (disabled) {
+            iconColor = "rgba(235,235,245,0.35)";
+          } else if (pressed) {
+            iconColor = "rgba(235,235,245,0.7)";
+          } else {
+            iconColor = "rgba(235,235,245,0.6)";
+          }
+
+          return (
+            <>
+              <Text
+                style={[
+                  styles.value,
+                  disabled && styles.valueDisabled,
+                  pressed && { color: "rgba(235,235,245,0.7)" },
+                ]}
+              >
+                {value}
+              </Text>
+              <Ionicons name="chevron-expand" size={16} color={iconColor} />
+            </>
+          );
+        }}
       </Pressable>
     );
   }

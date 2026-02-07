@@ -23,7 +23,6 @@ const MAPPING = {
   "chevron.right": "chevron-right",
   "chevron.left": "chevron-left",
   "globe.europe.africa.fill": "public",
-  "person.3.fill": "group",
 } as IconMapping;
 
 /**

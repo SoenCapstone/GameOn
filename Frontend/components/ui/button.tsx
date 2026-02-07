@@ -8,19 +8,37 @@ import { IconSymbol } from "@/components/ui/icon-symbol";
 type ButtonProps =
   | { type: "back" }
   | {
-    type: "custom";
-    icon?: SFSymbols6_0;
-    route?: Href;
-    onPress?: () => void;
-    label?: string;
-    loading?: boolean;
-  };
+      type: "custom";
+      icon?: SFSymbols6_0;
+      route?: Href;
+      onPress?: () => void;
+      label?: string;
+      loading?: boolean;
+    };
 
 export function Button(props: ButtonProps) {
   const isLabel = props.type === "custom" && !!props.label;
   const iconName = props.type === "back" ? "chevron.left" : props.icon;
   const isLoading = props.type === "custom" && props.loading;
 
+  const renderLabel = () => {
+    if (isLoading) {
+      return (
+        <ActivityIndicator style={styles.symbol} color="white" size="small" />
+      );
+    }
+    if (isLabel) {
+      return <Text style={styles.labelText}>{props.label}</Text>;
+    }
+    return (
+      <IconSymbol
+        name={iconName as SFSymbols6_0}
+        size={26}
+        color="white"
+        style={styles.symbol}
+      />
+    );
+  };
 
   return (
     <Pressable
@@ -40,18 +58,7 @@ export function Button(props: ButtonProps) {
         isInteractive={true}
         style={styles.glass}
       >
-        {isLoading ? (
-          <ActivityIndicator style={styles.symbol} color="white" size="small" />
-        ) : isLabel ? (
-          <Text style={styles.labelText}>{props.label}</Text>
-        ) : (
-          <IconSymbol
-            name={iconName as SFSymbols6_0}
-            size={26}
-            color="white"
-            style={styles.symbol}
-          />
-        )}
+        {renderLabel()}
       </GlassView>
     </Pressable>
   );
@@ -87,6 +94,5 @@ const styles = StyleSheet.create({
     fontWeight: "500",
     textAlign: "center",
     paddingHorizontal: 20,
-
   },
 });
