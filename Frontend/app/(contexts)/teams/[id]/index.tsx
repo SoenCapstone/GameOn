@@ -1,10 +1,11 @@
-import React from "react";
+import { useState } from "react";
 import {
   View,
   ActivityIndicator,
   RefreshControl,
   Alert,
   Text,
+  StyleSheet,
 } from "react-native";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { ContentArea } from "@/components/ui/content-area";
@@ -20,7 +21,7 @@ import { useTeamBoardPosts, useDeleteBoardPost } from "@/hooks/use-team-board";
 import { BoardList } from "@/components/board/board-list";
 import { errorToString } from "@/utils/error";
 
-export default function TeamScreen() {
+export default function Team() {
   const params = useLocalSearchParams<{ id?: string | string[] }>();
   const rawId = params.id;
   const id = Array.isArray(rawId) ? rawId[0] : (rawId ?? "");
@@ -33,7 +34,7 @@ export default function TeamScreen() {
 }
 
 function TeamContent() {
-  const [tab, setTab] = React.useState<"board" | "overview" | "games">("board");
+  const [tab, setTab] = useState<"board" | "overview" | "games">("board");
   const router = useRouter();
   const {
     id,
@@ -57,7 +58,7 @@ function TeamContent() {
 
   const visiblePosts = isMember
     ? boardPosts
-    : boardPosts.filter((post) => post.scope === "everyone");
+    : boardPosts.filter((post) => post.scope === "Everyone");
 
   const deletePostMutation = useDeleteBoardPost(id);
 
@@ -71,7 +72,6 @@ function TeamContent() {
         onPress: async () => {
           try {
             await deletePostMutation.mutateAsync(postId);
-            Alert.alert("Success", "Post deleted");
           } catch (err) {
             Alert.alert("Failed to delete", errorToString(err));
           }
@@ -90,7 +90,8 @@ function TeamContent() {
     <View style={{ flex: 1 }}>
       <ContentArea
         scrollable
-        paddingBottom={60}
+        paddingBottom={20}
+        segmentedControl
         backgroundProps={{ preset: "red" }}
         refreshControl={
           <RefreshControl
@@ -100,28 +101,29 @@ function TeamContent() {
           />
         }
       >
-        {isLoading ? (
-          <ActivityIndicator size="small" color="#fff" />
+        <SegmentedControl
+          values={["Board", "Overview", "Games"]}
+          selectedIndex={tab === "board" ? 0 : tab === "overview" ? 1 : 2}
+          onValueChange={(value) => {
+            if (value === "Board") setTab("board");
+            if (value === "Overview") setTab("overview");
+            if (value === "Games") setTab("games");
+          }}
+          style={{ height: 40 }}
+        />
+
+        {isLoading || refreshing ? (
+          <View style={styles.container}>
+            <ActivityIndicator size="small" color="#fff" />
+          </View>
         ) : (
           <>
-            {refreshing && <ActivityIndicator size="small" color="#fff" />}
-            <SegmentedControl
-              values={["Board", "Overview", "Games"]}
-              selectedIndex={tab === "board" ? 0 : tab === "overview" ? 1 : 2}
-              onValueChange={(value) => {
-                if (value === "Board") setTab("board");
-                if (value === "Overview") setTab("overview");
-                if (value === "Games") setTab("games");
-              }}
-              style={{ alignSelf: "center", width: "100%", height: 40 }}
-            />
-
             {tab === "board" && (
               <BoardList
                 posts={visiblePosts}
                 isLoading={postsLoading}
-                sourceName={team?.name ?? title}
-                sourceLogo={
+                spaceName={team?.name ?? title}
+                spaceLogo={
                   team?.logoUrl
                     ? { uri: team.logoUrl }
                     : getSportLogo(team?.sport)
@@ -154,10 +156,27 @@ function TeamContent() {
           <Button
             type="custom"
             icon="plus"
-            onPress={() => router.push(`/post?id=${id}`)}
+            onPress={() =>
+              router.push({
+                pathname: "/post",
+                params: {
+                  id,
+                  privacy: team?.privacy,
+                },
+              })
+            }
           />
         </View>
       )}
     </View>
   );
 }
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    minHeight: 200,
+  },
+});
