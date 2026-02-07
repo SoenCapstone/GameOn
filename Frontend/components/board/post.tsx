@@ -16,7 +16,7 @@ import { BoardPost } from "@/components/board/board-types";
 import { isRunningInExpoGo } from "@/utils/runtime";
 import TimeAgo from "javascript-time-ago";
 
-interface PostCardProps {
+interface PostProps {
   post: BoardPost;
   spaceName: string;
   spaceLogo: ImageSourcePropType;
@@ -24,13 +24,13 @@ interface PostCardProps {
   canDelete?: boolean;
 }
 
-export function PostCard({
+export function Post({
   post,
   spaceName,
   spaceLogo,
   onDelete,
   canDelete = false,
-}: Readonly<PostCardProps>) {
+}: Readonly<PostProps>) {
   const { showActionSheetWithOptions } = useActionSheet();
   const anchorRef = useRef<View>(null);
   const formattedTime = new TimeAgo("en-US").format(

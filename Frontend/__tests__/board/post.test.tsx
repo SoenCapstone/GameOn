@@ -1,6 +1,6 @@
 import React from "react";
 import { render, fireEvent } from "@testing-library/react-native";
-import { PostCard } from "@/components/board/post-card";
+import { Post } from "@/components/board/post";
 import { BoardPost } from "@/components/board/board-types";
 import * as runtime from "@/utils/runtime";
 
@@ -94,7 +94,7 @@ jest.mock("@/utils/runtime", () => {
   };
 });
 
-describe("PostCard", () => {
+describe("Post", () => {
   const basePost: BoardPost = {
     id: "post-1",
     authorId: "coach-1",
@@ -114,7 +114,7 @@ describe("PostCard", () => {
   it("renders Image for static/imported logos", () => {
     const mockLogo = require("@/assets/images/react-logo.png");
     const { getByTestId } = render(
-      <PostCard post={basePost} spaceName="My Team" spaceLogo={mockLogo} />,
+      <Post post={basePost} spaceName="My Team" spaceLogo={mockLogo} />,
     );
 
     expect(getByTestId("expo-image")).toBeTruthy();
@@ -122,7 +122,7 @@ describe("PostCard", () => {
 
   it("renders Image for remote logos (URLs)", () => {
     const { getByTestId } = render(
-      <PostCard
+      <Post
         post={basePost}
         spaceName="My Team"
         spaceLogo={{ uri: "https://example.com/logo.png" }}
@@ -139,7 +139,7 @@ describe("PostCard", () => {
     const mockLogo = require("@/assets/images/react-logo.png");
 
     const { getByTestId } = render(
-      <PostCard
+      <Post
         post={basePost}
         spaceName="My Team"
         spaceLogo={mockLogo}
@@ -160,7 +160,7 @@ describe("PostCard", () => {
     const mockLogo = require("@/assets/images/react-logo.png");
 
     const { getByTestId } = render(
-      <PostCard
+      <Post
         post={basePost}
         spaceName="My Team"
         spaceLogo={mockLogo}

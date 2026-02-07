@@ -7,7 +7,7 @@ import {
   ImageSourcePropType,
 } from "react-native";
 import { BoardPost } from "@/components/board/board-types";
-import { PostCard } from "@/components/board/post-card";
+import { Post } from "@/components/board/post";
 import { LegendList } from "@legendapp/list";
 
 interface BoardListProps {
@@ -36,7 +36,7 @@ export function BoardList({
   const renderItem = React.useCallback(
     ({ item }: { item: BoardPost }) => {
       return (
-        <PostCard
+        <Post
           post={item}
           spaceName={spaceName}
           spaceLogo={spaceLogo}

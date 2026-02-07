@@ -14,7 +14,7 @@ jest.mock("react-native-context-menu-view", () => {
   };
 });
 
-const mockPostCard = jest.fn((props: any) => {
+const mockPost = jest.fn((props: any) => {
   const { post } = props;
   return React.createElement(
     "Text",
@@ -25,8 +25,8 @@ const mockPostCard = jest.fn((props: any) => {
   );
 });
 
-jest.mock("@/components/board/post-card", () => ({
-  PostCard: (props: any) => mockPostCard(props),
+jest.mock("@/components/board/post", () => ({
+  Post: (props: any) => mockPost(props),
 }));
 
 jest.mock("@legendapp/list", () => {
@@ -112,7 +112,7 @@ describe("TeamBoardList", () => {
     );
 
     expect(queryByText("No posts available")).toBeNull();
-    expect(mockPostCard).not.toHaveBeenCalled();
+    expect(mockPost).not.toHaveBeenCalled();
   });
 
   it("renders the empty state message", () => {
@@ -142,7 +142,7 @@ describe("TeamBoardList", () => {
     expect(getByTestId("post-post-2")).toBeTruthy();
   });
 
-  it("passes correct props to PostCard components", () => {
+  it("passes correct props to Post components", () => {
     render(
       <BoardList
         posts={posts}
@@ -152,15 +152,15 @@ describe("TeamBoardList", () => {
       />,
     );
 
-    expect(mockPostCard).toHaveBeenCalledTimes(2);
-    expect(mockPostCard).toHaveBeenNthCalledWith(
+    expect(mockPost).toHaveBeenCalledTimes(2);
+    expect(mockPost).toHaveBeenNthCalledWith(
       1,
       expect.objectContaining({
         spaceName: "My Team",
         spaceLogo: { uri: "https://example.com/logo.png" },
       }),
     );
-    expect(mockPostCard).toHaveBeenNthCalledWith(
+    expect(mockPost).toHaveBeenNthCalledWith(
       2,
       expect.objectContaining({
         spaceName: "My Team",
