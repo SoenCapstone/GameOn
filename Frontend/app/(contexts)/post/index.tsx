@@ -1,9 +1,8 @@
-import React, { useState, useCallback, useLayoutEffect } from "react";
+import { useState, useCallback, useLayoutEffect } from "react";
 import { Alert } from "react-native";
 import { useLocalSearchParams, useRouter, useNavigation } from "expo-router";
 import { ContentArea } from "@/components/ui/content-area";
 import { Form } from "@/components/form/form";
-import { TextAreaItem } from "@/components/form/text-area-item";
 import { Header } from "@/components/header/header";
 import { Button } from "@/components/ui/button";
 import { PageTitle } from "@/components/header/page-title";
@@ -12,7 +11,7 @@ import { AccentColors } from "@/constants/colors";
 import { useCreateBoardPost } from "@/hooks/use-team-board";
 import { errorToString } from "@/utils/error";
 
-const POST_SCOPES: BoardPostScope[] = ["players", "everyone"];
+const PostScope: BoardPostScope[] = ["Members", "Everyone"];
 
 function PostHeader({
   onPost,
@@ -25,7 +24,8 @@ function PostHeader({
       right={
         <Button
           type="custom"
-          label={isPosting ? "Posting..." : "Post"}
+          label="Post"
+          loading={isPosting}
           onPress={onPost}
         />
       }
@@ -33,15 +33,19 @@ function PostHeader({
   );
 }
 
-export default function CreatePostScreen() {
-  const params = useLocalSearchParams<{ id?: string | string[] }>();
+export default function Post() {
+  const params = useLocalSearchParams<{
+    id?: string | string[];
+    privacy?: string;
+  }>();
   const rawId = params.id;
   const id = Array.isArray(rawId) ? rawId[0] : (rawId ?? "");
+  const isPrivate = params.privacy === "PRIVATE";
   const router = useRouter();
   const navigation = useNavigation();
 
   const [title, setTitle] = useState("");
-  const [scope, setScope] = useState<BoardPostScope>("players");
+  const [scope, setScope] = useState<BoardPostScope>("Members");
   const [content, setContent] = useState("");
 
   const createPostMutation = useCreateBoardPost(id);
@@ -64,7 +68,6 @@ export default function CreatePostScreen() {
         scope,
         content: content.trim(),
       });
-      Alert.alert("Success", "Post created");
       router.back();
     } catch (err) {
       Alert.alert("Failed to post", errorToString(err));
@@ -90,7 +93,13 @@ export default function CreatePostScreen() {
   return (
     <ContentArea scrollable backgroundProps={{ preset: "red", mode: "form" }}>
       <Form accentColor={AccentColors.blue}>
-        <Form.Section>
+        <Form.Section
+          footer={
+            isPrivate
+              ? "Private teams can only share posts with their members."
+              : undefined
+          }
+        >
           <Form.Input
             label="Title"
             placeholder="Enter title"
@@ -99,22 +108,20 @@ export default function CreatePostScreen() {
             editable={!createPostMutation.isPending}
             maxLength={200}
           />
-          <TextAreaItem
-            placeholder="Tell the team about something..."
+          <Form.Menu
+            label="Scope"
+            options={PostScope}
+            value={scope}
+            onValueChange={(value) => setScope(value as BoardPostScope)}
+            disabled={isPrivate}
+          />
+          <Form.TextArea
+            placeholder="What's new?"
             placeholderTextColor="rgba(255,255,255,0.5)"
             value={content}
             onChangeText={setContent}
             editable={!createPostMutation.isPending}
             maxLength={1000}
-          />
-        </Form.Section>
-
-        <Form.Section>
-          <Form.Menu
-            label="Scope"
-            options={POST_SCOPES}
-            value={scope}
-            onValueChange={(value) => setScope(value as BoardPostScope)}
           />
         </Form.Section>
       </Form>
