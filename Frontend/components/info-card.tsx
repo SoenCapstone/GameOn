@@ -1,4 +1,3 @@
-import React from "react";
 import {
   Text,
   View,
@@ -23,21 +22,12 @@ export function InfoCard({
   image,
   onPress,
 }: Readonly<InfoCardProps>) {
-  let contentNode: React.ReactNode;
-  contentNode = (
-    <Image
-      source={image}
-      style={StyleSheet.absoluteFillObject}
-      contentFit="contain"
-    />
-  );
-
   return (
     <Pressable onPress={onPress}>
       <Card>
         <View style={styles.card}>
           <View style={styles.content}>
-            <View style={styles.image}>{contentNode}</View>
+            <Image source={image} style={styles.image} contentFit="contain" />
             <View style={styles.text}>
               <Text style={styles.title}>{title}</Text>
               <Text style={styles.subtitle}>{subtitle}</Text>
