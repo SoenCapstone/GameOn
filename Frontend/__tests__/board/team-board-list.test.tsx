@@ -1,21 +1,16 @@
-/* eslint-disable @typescript-eslint/no-require-imports */
 import React from "react";
 import { render } from "@testing-library/react-native";
 import { BoardList } from "@/components/board/board-list";
 import { BoardPost } from "@/components/board/board-types";
 
-// Mock @expo/ui/swift-ui to suppress native component warnings
-jest.mock("@expo/ui/swift-ui", () => {
+jest.mock("react-native-context-menu-view", () => {
   const mockReact = require("react");
-  const { View, Text, Pressable } = require("react-native");
-  
+  const { View } = require("react-native");
+
   return {
-    Host: ({ children, ...props }: any) => mockReact.createElement(View, props, children),
-    ContextMenu: ({ children, ...props }: any) => mockReact.createElement(View, props, children),
-    Button: ({ children, onPress, ...props }: any) => 
-      mockReact.createElement(Pressable, { onPress, ...props }, 
-        mockReact.createElement(Text, null, children)
-      ),
+    __esModule: true,
+    default: ({ children, ...props }: any) =>
+      mockReact.createElement(View, props, children),
   };
 });
 
@@ -82,25 +77,23 @@ describe("TeamBoardList", () => {
   const posts: BoardPost[] = [
     {
       id: "post-1",
-      spaceId: "team-1",
       authorId: "coach-1",
       authorName: "Coach Amy",
+      authorRole: "coach",
       title: "Practice Update",
-      scope: "players",
+      scope: "Members",
       content: "Practice moved to 6pm.",
       createdAt: "2024-01-01T00:00:00.000Z",
-      updatedAt: "2024-01-01T00:00:00.000Z",
     },
     {
       id: "post-2",
-      spaceId: "team-1",
       authorId: "player-1",
       authorName: "Player Ben",
+      authorRole: null,
       title: "Game Announcement",
-      scope: "everyone",
+      scope: "Everyone",
       content: "Game day is Saturday.",
       createdAt: "2024-01-02T00:00:00.000Z",
-      updatedAt: "2024-01-02T00:00:00.000Z",
     },
   ];
 
@@ -110,24 +103,39 @@ describe("TeamBoardList", () => {
 
   it("renders loading state without empty messaging", () => {
     const { queryByText } = render(
-      <BoardList posts={posts} isLoading={true} sourceName="Team" />,
+      <BoardList
+        posts={posts}
+        isLoading={true}
+        spaceName="Team"
+        spaceLogo={{ uri: "https://example.com/logo.png" }}
+      />,
     );
 
-    expect(queryByText("No announcements yet")).toBeNull();
+    expect(queryByText("No posts available")).toBeNull();
     expect(mockPostCard).not.toHaveBeenCalled();
   });
 
   it("renders the empty state message", () => {
     const { getByText } = render(
-      <BoardList posts={[]} isLoading={false} sourceName="Team" />,
+      <BoardList
+        posts={[]}
+        isLoading={false}
+        spaceName="Team"
+        spaceLogo={{ uri: "https://example.com/logo.png" }}
+      />,
     );
 
-    expect(getByText("No announcements yet")).toBeTruthy();
+    expect(getByText("No posts available")).toBeTruthy();
   });
 
   it("filters posts and displays them", () => {
     const { getByTestId } = render(
-      <BoardList posts={posts} isLoading={false} sourceName="Team" />,
+      <BoardList
+        posts={posts}
+        isLoading={false}
+        spaceName="Team"
+        spaceLogo={{ uri: "https://example.com/logo.png" }}
+      />,
     );
 
     expect(getByTestId("post-post-1")).toBeTruthy();
@@ -139,8 +147,8 @@ describe("TeamBoardList", () => {
       <BoardList
         posts={posts}
         isLoading={false}
-        sourceName="My Team"
-        sourceLogo="https://example.com/logo.png"
+        spaceName="My Team"
+        spaceLogo={{ uri: "https://example.com/logo.png" }}
       />,
     );
 
@@ -148,15 +156,15 @@ describe("TeamBoardList", () => {
     expect(mockPostCard).toHaveBeenNthCalledWith(
       1,
       expect.objectContaining({
-        sourceName: "My Team",
-        sourceLogo: "https://example.com/logo.png",
+        spaceName: "My Team",
+        spaceLogo: { uri: "https://example.com/logo.png" },
       }),
     );
     expect(mockPostCard).toHaveBeenNthCalledWith(
       2,
       expect.objectContaining({
-        sourceName: "My Team",
-        sourceLogo: "https://example.com/logo.png",
+        spaceName: "My Team",
+        spaceLogo: { uri: "https://example.com/logo.png" },
       }),
     );
   });
