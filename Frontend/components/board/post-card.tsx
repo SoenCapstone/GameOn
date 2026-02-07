@@ -1,4 +1,4 @@
-import React from "react";
+import { useRef } from "react";
 import {
   View,
   Text,
@@ -9,30 +9,30 @@ import {
 } from "react-native";
 import { Image } from "expo-image";
 import { useActionSheet } from "@expo/react-native-action-sheet";
-import { Host, ContextMenu, Button } from "@expo/ui/swift-ui";
+import ContextMenu from "react-native-context-menu-view";
 import { Card } from "@/components/ui/card";
 import { IconSymbol } from "@/components/ui/icon-symbol";
 import { BoardPost } from "@/components/board/board-types";
 import { isRunningInExpoGo } from "@/utils/runtime";
 import TimeAgo from "javascript-time-ago";
+
 interface PostCardProps {
   post: BoardPost;
-  sourceName: string;
-  sourceLogo: ImageSourcePropType;
-  posterRole?: string | null;
+  spaceName: string;
+  spaceLogo: ImageSourcePropType;
   onDelete?: (postId: string) => void;
   canDelete?: boolean;
 }
 
 export function PostCard({
   post,
-  sourceName,
-  sourceLogo,
+  spaceName,
+  spaceLogo,
   onDelete,
   canDelete = false,
 }: Readonly<PostCardProps>) {
   const { showActionSheetWithOptions } = useActionSheet();
-  const anchorRef = React.useRef<View>(null);
+  const anchorRef = useRef<View>(null);
   const formattedTime = new TimeAgo("en-US").format(
     new Date(post.createdAt),
     "mini",
@@ -61,40 +61,36 @@ export function PostCard({
     }
   };
 
-  let logo: React.ReactNode;
-  logo = (
-    <Image
-      source={sourceLogo}
-      style={StyleSheet.absoluteFillObject}
-      contentFit="contain"
-    />
-  );
-
   const cardContent = (
-    <Card>
+    <Card isInteractive={isRunningInExpoGo}>
       <View style={styles.container}>
-        <View style={styles.headerRow}>
-          <View style={styles.headerLeft}>
-            <View style={styles.logoImage}>{logo}</View>
-            <Text style={styles.sourceName}>{sourceName}</Text>
+        <View style={styles.content}>
+          <View style={styles.header}>
+            <View style={styles.space}>
+              <Image
+                source={spaceLogo}
+                style={styles.logo}
+                contentFit="contain"
+              />
+              <Text style={styles.name}>{spaceName}</Text>
+            </View>
+            <Text style={styles.title}>{post.title}</Text>
           </View>
-          <Text style={styles.messageFrom}>{post.title}</Text>
+          <Text style={styles.body}>{post.body}</Text>
         </View>
 
-        <Text style={styles.content}>{post.content}</Text>
-
-        <View style={styles.footerRow}>
-          <Text style={styles.authorName}>{post.authorName}</Text>
-          <View style={styles.timeContainer}>
-            <Text style={styles.timeAgo}>{formattedTime}</Text>
+        <View style={styles.footer}>
+          <Text style={styles.author}>{post.authorName}</Text>
+          <View style={styles.info}>
+            <Text style={styles.time}>{formattedTime}</Text>
             <Text style={styles.separator}>•</Text>
             <IconSymbol
               name={
-                post.scope === "everyone"
+                post.scope === "Everyone"
                   ? "globe.europe.africa.fill"
-                  : "person.3.fill"
+                  : "person.2.fill"
               }
-              size={20}
+              size={18}
               color="rgba(255,255,255,0.45)"
             />
           </View>
@@ -116,83 +112,90 @@ export function PostCard({
   }
 
   return (
-    <Host matchContents>
-      <ContextMenu activationMethod="longPress">
-        <ContextMenu.Items>
-          <Button role="destructive" systemImage="trash" onPress={handleDelete}>
-            Delete
-          </Button>
-        </ContextMenu.Items>
-        <ContextMenu.Trigger>{cardContent}</ContextMenu.Trigger>
-      </ContextMenu>
-    </Host>
+    <ContextMenu
+      actions={[
+        {
+          title: "Delete",
+          systemIcon: "trash",
+          destructive: true,
+        },
+      ]}
+      onPress={(e) => {
+        if (e.nativeEvent.name === "Delete") {
+          handleDelete();
+        }
+      }}
+      previewBackgroundColor="transparent"
+    >
+      {cardContent}
+    </ContextMenu>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
-    gap: 12,
+    gap: 14,
   },
-  headerRow: {
+  content: { gap: 12 },
+  header: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
     gap: 12,
+    paddingRight: 8,
   },
-  headerLeft: {
+  space: {
     flexDirection: "row",
     alignItems: "center",
     gap: 10,
-    flex: 1,
   },
-  logoImage: {
+  logo: {
     width: 34,
     height: 34,
     alignItems: "center",
     justifyContent: "center",
   },
-  sourceName: {
+  name: {
     color: "rgba(255,255,255,0.9)",
     fontSize: 16,
-    fontWeight: "600",
+    fontWeight: "500",
     flexShrink: 1,
   },
-  messageFrom: {
+  title: {
     color: "rgba(255,255,255,0.5)",
     fontSize: 12,
     fontWeight: "500",
   },
-  content: {
+  body: {
     color: "rgba(255,255,255,0.78)",
     fontSize: 15,
     lineHeight: 22,
   },
-  footerRow: {
+  footer: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    marginTop: 8,
   },
-  timeContainer: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 6,
-  },
-  separator: {
-    color: "rgba(255,255,255,0.45)",
-    fontSize: 20,
-    fontWeight: "500",
-  },
-  authorName: {
+  author: {
     color: "rgba(255,255,255,0.55)",
     fontSize: 12,
-    fontWeight: "600",
+    fontWeight: "500",
     letterSpacing: 0.6,
     textTransform: "uppercase",
   },
-  timeAgo: {
+  info: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 4,
+  },
+  time: {
     color: "rgba(255,255,255,0.55)",
     fontSize: 12,
+    fontWeight: "500",
+  },
+  separator: {
+    color: "rgba(255,255,255,0.45)",
+    fontSize: 14,
     fontWeight: "500",
   },
 });

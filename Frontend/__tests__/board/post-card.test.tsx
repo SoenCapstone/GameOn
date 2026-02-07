@@ -53,27 +53,18 @@ jest.mock("@expo/react-native-action-sheet", () => ({
   }),
 }));
 
-jest.mock("@expo/ui/swift-ui", () => {
+jest.mock("react-native-context-menu-view", () => {
   const ReactMock = jest.requireActual("react");
-  const ContextMenu = ({ children }: any) =>
-    ReactMock.createElement("View", { testID: "context-menu" }, children);
-  ContextMenu.Items = ({ children }: any) =>
-    ReactMock.createElement("View", { testID: "context-menu-items" }, children);
-  ContextMenu.Trigger = ({ children }: any) =>
-    ReactMock.createElement(
-      "View",
-      { testID: "context-menu-trigger" },
-      children,
-    );
-
   return {
-    Host: ({ children }: any) =>
-      ReactMock.createElement("View", { testID: "host" }, children),
-    ContextMenu,
-    Button: ({ children, onPress }: any) =>
+    __esModule: true,
+    default: ({ children, onPress, actions }: any) =>
       ReactMock.createElement(
-        "Text",
-        { testID: "context-button", onPress },
+        "View",
+        {
+          testID: "context-menu",
+          onPress: () =>
+            onPress?.({ nativeEvent: { name: actions?.[0]?.title } }),
+        },
         children,
       ),
   };
@@ -110,8 +101,8 @@ describe("PostCard", () => {
     authorName: "Coach Amy",
     authorRole: "Coach",
     title: "Practice Update",
-    scope: "players",
-    content: "Practice moved to 6pm.",
+    scope: "Members",
+    body: "Practice moved to 6pm.",
     createdAt: "2024-01-01T00:00:00.000Z",
   };
 
@@ -123,7 +114,7 @@ describe("PostCard", () => {
   it("renders Image for static/imported logos", () => {
     const mockLogo = require("@/assets/images/react-logo.png");
     const { getByTestId } = render(
-      <PostCard post={basePost} sourceName="My Team" sourceLogo={mockLogo} />,
+      <PostCard post={basePost} spaceName="My Team" spaceLogo={mockLogo} />,
     );
 
     expect(getByTestId("expo-image")).toBeTruthy();
@@ -133,8 +124,8 @@ describe("PostCard", () => {
     const { getByTestId } = render(
       <PostCard
         post={basePost}
-        sourceName="My Team"
-        sourceLogo={{ uri: "https://example.com/logo.png" }}
+        spaceName="My Team"
+        spaceLogo={{ uri: "https://example.com/logo.png" }}
       />,
     );
 
@@ -150,8 +141,8 @@ describe("PostCard", () => {
     const { getByTestId } = render(
       <PostCard
         post={basePost}
-        sourceName="My Team"
-        sourceLogo={mockLogo}
+        spaceName="My Team"
+        spaceLogo={mockLogo}
         onDelete={onDelete}
         canDelete={true}
       />,
@@ -171,14 +162,14 @@ describe("PostCard", () => {
     const { getByTestId } = render(
       <PostCard
         post={basePost}
-        sourceName="My Team"
-        sourceLogo={mockLogo}
+        spaceName="My Team"
+        spaceLogo={mockLogo}
         onDelete={onDelete}
         canDelete={true}
       />,
     );
 
-    fireEvent.press(getByTestId("context-button"));
+    fireEvent.press(getByTestId("context-menu"));
 
     expect(onDelete).toHaveBeenCalledWith("post-1");
   });
