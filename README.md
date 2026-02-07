@@ -32,7 +32,7 @@ GameOn targets last-minute player absences, complex scheduling, messy payments, 
   - The database only has a developer test account, you can either use that account or create new account/s to test the app's features.
 - **Frontend**
   - Deployed using Expo Application Services (EAS).
-  - A QR code is provided in the [Release Demos](#release-demos) table.
+  - A QR code is provided in the [Release Demos](#release-demos) table to preview the app using Expo Go.
 
 <a id="release-demos"></a>
 ## 🎬 Release Demos
