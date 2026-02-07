@@ -9,14 +9,12 @@ import {
 import { BoardPost } from "@/components/board/board-types";
 import { PostCard } from "@/components/board/post-card";
 import { LegendList } from "@legendapp/list";
-import { Host } from "@expo/ui/swift-ui";
-import { isRunningInExpoGo } from "@/utils/runtime";
 
 interface BoardListProps {
   posts: BoardPost[];
   isLoading: boolean;
-  sourceName: string;
-  sourceLogo: ImageSourcePropType;
+  spaceName: string;
+  spaceLogo: ImageSourcePropType;
   onDeletePost?: (postId: string) => void;
   canDelete?: boolean;
 }
@@ -24,8 +22,8 @@ interface BoardListProps {
 export function BoardList({
   posts,
   isLoading,
-  sourceName,
-  sourceLogo,
+  spaceName,
+  spaceLogo,
   onDeletePost,
   canDelete = false,
 }: Readonly<BoardListProps>) {
@@ -40,34 +38,35 @@ export function BoardList({
       return (
         <PostCard
           post={item}
-          sourceName={sourceName}
-          sourceLogo={sourceLogo}
+          spaceName={spaceName}
+          spaceLogo={spaceLogo}
           onDelete={onDeletePost}
           canDelete={canDelete}
         />
       );
     },
-    [canDelete, onDeletePost, sourceLogo, sourceName],
+    [canDelete, onDeletePost, spaceLogo, spaceName],
   );
 
   if (isLoading) {
     return (
-      <View style={styles.centerContainer}>
+      <View style={styles.container}>
         <ActivityIndicator size="large" color="#fff" />
       </View>
     );
   }
 
-  const legendList = (
+  return (
     <LegendList
       ref={listRef}
       data={posts}
       keyExtractor={(item) => item?.id}
+      style={styles.legendList}
       contentContainerStyle={styles.list}
       renderItem={renderItem}
       ListEmptyComponent={
-        <View style={styles.emptyContainer}>
-          <Text style={styles.emptyText}>No announcements yet</Text>
+        <View style={styles.container}>
+          <Text style={styles.emptyText}>No posts available</Text>
         </View>
       }
       recycleItems={true}
@@ -75,24 +74,10 @@ export function BoardList({
       onContentSizeChange={handleContentSizeChange}
     />
   );
-
-  return isRunningInExpoGo ? (
-    legendList
-  ) : (
-    <Host matchContents>{legendList}</Host>
-  );
 }
 
 const styles = StyleSheet.create({
-  centerContainer: {
-    flex: 1,
-    width: "100%",
-    justifyContent: "center",
-    alignItems: "center",
-    alignSelf: "center",
-    minHeight: 200,
-  },
-  emptyContainer: {
+  container: {
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
@@ -102,10 +87,8 @@ const styles = StyleSheet.create({
     color: "rgba(255,255,255,0.6)",
     fontSize: 16,
   },
+  legendList: { overflow: "visible" },
   list: {
     gap: 12,
-    paddingBottom: 500,
-    width: "100%",
-    alignSelf: "center",
   },
 });
