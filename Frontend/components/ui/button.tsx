@@ -1,4 +1,4 @@
-import { Pressable, StyleSheet, Text } from "react-native";
+import { ActivityIndicator, Pressable, StyleSheet, Text } from "react-native";
 import { Href, router } from "expo-router";
 import React from "react";
 import { SFSymbols6_0 } from "sf-symbols-typescript";
@@ -8,16 +8,19 @@ import { IconSymbol } from "@/components/ui/icon-symbol";
 type ButtonProps =
   | { type: "back" }
   | {
-      type: "custom";
-      icon?: SFSymbols6_0;
-      route?: Href;
-      onPress?: () => void;
-      label?: string;
-    };
+    type: "custom";
+    icon?: SFSymbols6_0;
+    route?: Href;
+    onPress?: () => void;
+    label?: string;
+    loading?: boolean;
+  };
 
 export function Button(props: ButtonProps) {
   const isLabel = props.type === "custom" && !!props.label;
   const iconName = props.type === "back" ? "chevron.left" : props.icon;
+  const isLoading = props.type === "custom" && props.loading;
+
 
   return (
     <Pressable
@@ -35,9 +38,11 @@ export function Button(props: ButtonProps) {
       <GlassView
         glassEffectStyle="regular"
         isInteractive={true}
-        style={isLabel ? styles.glassLabel : styles.glass}
+        style={styles.glass}
       >
-        {isLabel ? (
+        {isLoading ? (
+          <ActivityIndicator style={styles.symbol} color="white" size="small" />
+        ) : isLabel ? (
           <Text style={styles.labelText}>{props.label}</Text>
         ) : (
           <IconSymbol
@@ -59,7 +64,7 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   glass: {
-    width: 44,
+    minWidth: 44,
     height: 44,
     borderRadius: 100,
     backgroundColor: "transparent",
@@ -68,7 +73,6 @@ const styles = StyleSheet.create({
   },
   glassLabel: {
     height: 44,
-    paddingHorizontal: 20,
     borderRadius: 100,
     backgroundColor: "transparent",
     alignSelf: "center",
@@ -82,5 +86,7 @@ const styles = StyleSheet.create({
     fontSize: 17,
     fontWeight: "500",
     textAlign: "center",
+    paddingHorizontal: 20,
+
   },
 });
