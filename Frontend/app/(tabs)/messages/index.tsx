@@ -9,6 +9,7 @@ import {
   Text,
   View,
 } from "react-native";
+import SegmentedControl from "@react-native-segmented-control/segmented-control";
 import { useRouter } from "expo-router";
 import { useAuth } from "@clerk/clerk-expo";
 import { useMessagingContext } from "@/features/messaging/provider";
@@ -92,106 +93,85 @@ export default function Messages() {
 
   return (
     <ContentArea backgroundProps={{ preset: "green" }}>
-      <View style={styles.container}>
-        <View style={[styles.header, { paddingTop: 0 }]}>
-          <Pressable
-            onPress={() => setFilter("all")}
-            style={{ opacity: filter === "all" ? 1 : 0.6 }}
-          >
-            <Text style={styles.toggleText}>All</Text>
-          </Pressable>
-          <Pressable
-            onPress={() => setFilter("direct")}
-            style={{ opacity: filter === "direct" ? 1 : 0.6 }}
-          >
-            <Text style={styles.toggleText}>Direct</Text>
-          </Pressable>
-          <Pressable
-            onPress={() => setFilter("group")}
-            style={{ opacity: filter === "group" ? 1 : 0.6 }}
-          >
-            <Text style={styles.toggleText}>Groups</Text>
-          </Pressable>
+      <SegmentedControl
+        values={["All", "Direct", "Groups"]}
+        selectedIndex={filter === "all" ? 0 : filter === "direct" ? 1 : 2}
+        onValueChange={(value) => {
+          if (value === "All") setFilter("all");
+          else if (value === "Direct") setFilter("direct");
+          else setFilter("group");
+        }}
+        style={styles.segmented}
+      />
+
+      <Text style={styles.statusText}>
+        Connection: {socketState === "connected" ? "Online" : socketState}
+      </Text>
+
+      {isLoading ? (
+        <View style={styles.emptyState}>
+          <ActivityIndicator color="white" />
         </View>
+      ) : listData.length === 0 ? (
+        <View style={styles.emptyState}>
+          <Text style={styles.emptyTitle}>No conversations yet</Text>
+          <Text style={styles.emptySubtitle}>
+            Start a direct message or create a team chat to begin.
+          </Text>
+        </View>
+      ) : (
+        <FlatList
+          data={listData}
+          keyExtractor={(item) => item.id}
+          contentContainerStyle={styles.listContent}
+          ItemSeparatorComponent={() => <View style={styles.separator} />}
+          refreshControl={
+            <RefreshControl
+              refreshing={isRefetching}
+              onRefresh={refetch}
+              tintColor="white"
+            />
+          }
+          renderItem={({ item }) => (
+            <Pressable
+              onPress={() => openConversation(item.id)}
+              style={styles.row}
+            >
+              <View style={styles.avatar}>
+                <Text style={styles.avatarText}>
+                  {item.title?.[0]?.toUpperCase() ?? "?"}
+                </Text>
+              </View>
 
-        <Text style={styles.statusText}>
-          Connection: {socketState === "connected" ? "Online" : socketState}
-        </Text>
-
-        {isLoading ? (
-          <View style={styles.emptyState}>
-            <ActivityIndicator color="white" />
-          </View>
-        ) : listData.length === 0 ? (
-          <View style={styles.emptyState}>
-            <Text style={styles.emptyTitle}>No conversations yet</Text>
-            <Text style={styles.emptySubtitle}>
-              Start a direct message or create a team chat to begin.
-            </Text>
-          </View>
-        ) : (
-          <FlatList
-            data={listData}
-            keyExtractor={(item) => item.id}
-            contentContainerStyle={styles.listContent}
-            ItemSeparatorComponent={() => <View style={styles.separator} />}
-            refreshControl={
-              <RefreshControl
-                refreshing={isRefetching}
-                onRefresh={refetch}
-                tintColor="white"
-              />
-            }
-            renderItem={({ item }) => (
-              <Pressable
-                onPress={() => openConversation(item.id)}
-                style={styles.row}
-              >
-                <View style={styles.avatar}>
-                  <Text style={styles.avatarText}>
-                    {item.title?.[0]?.toUpperCase() ?? "?"}
-                  </Text>
-                </View>
-
-                <View style={styles.rowMid}>
-                  <Text style={styles.name}>{item.title}</Text>
-                  <Text style={styles.preview} numberOfLines={1}>
-                    {item.preview}
-                  </Text>
-                  {item.badge && (
-                    <View style={styles.badgeRow}>
-                      <View style={styles.badge}>
-                        <Text style={styles.badgeText}>{item.badge}</Text>
-                      </View>
+              <View style={styles.rowMid}>
+                <Text style={styles.name}>{item.title}</Text>
+                <Text style={styles.preview} numberOfLines={1}>
+                  {item.preview}
+                </Text>
+                {item.badge && (
+                  <View style={styles.badgeRow}>
+                    <View style={styles.badge}>
+                      <Text style={styles.badgeText}>{item.badge}</Text>
                     </View>
-                  )}
-                </View>
+                  </View>
+                )}
+              </View>
 
-                <View style={styles.rowRight}>
-                  <Text style={styles.time}>{item.timestamp}</Text>
-                  <Text style={styles.chev}>›</Text>
-                </View>
-              </Pressable>
-            )}
-          />
-        )}
-      </View>
+              <View style={styles.rowRight}>
+                <Text style={styles.time}>{item.timestamp}</Text>
+                <Text style={styles.chev}>›</Text>
+              </View>
+            </Pressable>
+          )}
+        />
+      )}
     </ContentArea>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    paddingTop: 8,
-  },
-  header: {
-    paddingHorizontal: 18,
-    paddingTop: 8,
-    paddingBottom: 10,
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
+  segmented: {
+    height: 40,
   },
   statusText: {
     color: "rgba(255,255,255,0.7)",
@@ -286,9 +266,5 @@ const styles = StyleSheet.create({
     color: "rgba(255,255,255,0.7)",
     fontSize: 14,
     textAlign: "center",
-  },
-  toggleText: {
-    color: "white",
-    fontWeight: "700",
   },
 });
