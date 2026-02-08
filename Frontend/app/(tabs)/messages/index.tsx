@@ -12,7 +12,6 @@ import {
 import SegmentedControl from "@react-native-segmented-control/segmented-control";
 import { useRouter } from "expo-router";
 import { useAuth } from "@clerk/clerk-expo";
-import { useMessagingContext } from "@/features/messaging/provider";
 import {
   useConversationsQuery,
   useUserDirectory,
@@ -32,7 +31,6 @@ type ListRow = {
 export default function Messages() {
   const router = useRouter();
   const { userId } = useAuth();
-  const { socketState } = useMessagingContext();
   const { data, isLoading, refetch, isRefetching } = useConversationsQuery();
   const { data: users } = useUserDirectory();
   const [filter, setFilter] = useState<"all" | "direct" | "group">("all");
@@ -104,10 +102,6 @@ export default function Messages() {
         style={styles.segmented}
       />
 
-      <Text style={styles.statusText}>
-        Connection: {socketState === "connected" ? "Online" : socketState}
-      </Text>
-
       {isLoading ? (
         <View style={styles.emptyState}>
           <ActivityIndicator color="white" />
@@ -172,12 +166,6 @@ export default function Messages() {
 const styles = StyleSheet.create({
   segmented: {
     height: 40,
-  },
-  statusText: {
-    color: "rgba(255,255,255,0.7)",
-    fontSize: 12,
-    marginLeft: 18,
-    marginBottom: 6,
   },
   listContent: {
     paddingHorizontal: 18,
