@@ -1,5 +1,4 @@
-import React, { useMemo, useState } from "react";
-import { messagesNewStyles as styles } from "@/constants/messaging-styles";
+import { useMemo, useState } from "react";
 
 import { ContentArea } from "@/components/ui/content-area";
 import {
@@ -7,6 +6,7 @@ import {
   Alert,
   FlatList,
   Pressable,
+  StyleSheet,
   Switch,
   Text,
   TextInput,
@@ -15,10 +15,7 @@ import {
 import { useRouter } from "expo-router";
 import { useAuth } from "@clerk/clerk-expo";
 import { useMessagingContext } from "@/features/messaging/provider";
-import {
-  useMyTeams,
-  useUserDirectory,
-} from "@/features/messaging/hooks";
+import { useMyTeams, useUserDirectory } from "@/features/messaging/hooks";
 import { errorToString } from "@/utils/error";
 
 type TabKey = "direct" | "team";
@@ -32,7 +29,8 @@ export default function NewChat() {
   const [isEvent, setIsEvent] = useState(false);
   const [creating, setCreating] = useState(false);
   const { userId } = useAuth();
-  const { startDirectConversation, startTeamConversation } = useMessagingContext();
+  const { startDirectConversation, startTeamConversation } =
+    useMessagingContext();
   const { data: users, isLoading: loadingUsers } = useUserDirectory();
   const { data: teams, isLoading: loadingTeams } = useMyTeams();
 
@@ -67,7 +65,7 @@ export default function NewChat() {
 
   const submitTeamChat = async () => {
     if (!selectedTeam) {
-      Alert.alert("Select a team" );
+      Alert.alert("Select a team");
       return;
     }
     const trimmed = chatName.trim();
@@ -127,9 +125,13 @@ export default function NewChat() {
                 renderItem={({ item }) => (
                   <View style={styles.row}>
                     <Text style={styles.name}>
-                      {`${item.firstname ?? ""} ${item.lastname ?? ""}`.trim() || item.email}
+                      {`${item.firstname ?? ""} ${item.lastname ?? ""}`.trim() ||
+                        item.email}
                     </Text>
-                    <Pressable onPress={() => startDirect(item.id)} disabled={creating}>
+                    <Pressable
+                      onPress={() => startDirect(item.id)}
+                      disabled={creating}
+                    >
                       <Text style={styles.actionLink}>Message</Text>
                     </Pressable>
                   </View>
@@ -186,7 +188,8 @@ export default function NewChat() {
               </View>
 
               <Text style={styles.infoText}>
-                Event chats lock membership once created. Only the creator can add members.
+                Event chats lock membership once created. Only the creator can
+                add members.
               </Text>
 
               <Pressable
@@ -207,3 +210,94 @@ export default function NewChat() {
     </ContentArea>
   );
 }
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+  },
+  tabs: {
+    flexDirection: "row",
+    paddingHorizontal: 18,
+    marginBottom: 12,
+    gap: 12,
+  },
+  tabBtn: {
+    paddingVertical: 6,
+    paddingHorizontal: 12,
+    borderRadius: 999,
+    backgroundColor: "rgba(255,255,255,0.15)",
+  },
+  tabActive: {
+    backgroundColor: "rgba(255,255,255,0.3)",
+  },
+  tabText: {
+    color: "white",
+    fontWeight: "700",
+  },
+  searchWrap: {
+    paddingHorizontal: 18,
+    paddingBottom: 12,
+  },
+  search: {
+    height: 44,
+    borderRadius: 22,
+    paddingHorizontal: 16,
+    backgroundColor: "rgba(255,255,255,0.12)",
+    color: "white",
+    fontSize: 15,
+    fontWeight: "600",
+  },
+  list: {
+    paddingHorizontal: 18,
+    paddingBottom: 18,
+  },
+  row: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingVertical: 12,
+    justifyContent: "space-between",
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderBottomColor: "rgba(255,255,255,0.15)",
+  },
+  name: {
+    color: "white",
+    fontSize: 16,
+    fontWeight: "700",
+  },
+  actionLink: {
+    color: "rgba(255,255,255,0.85)",
+    fontWeight: "600",
+  },
+  form: {
+    paddingHorizontal: 18,
+    gap: 12,
+    marginTop: 12,
+  },
+  label: {
+    color: "rgba(255,255,255,0.7)",
+    fontWeight: "600",
+    marginBottom: 4,
+  },
+  switchRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+  },
+  primaryBtn: {
+    marginTop: 12,
+    height: 46,
+    borderRadius: 23,
+    backgroundColor: "rgba(255,255,255,0.2)",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  primaryText: {
+    color: "white",
+    fontWeight: "700",
+    fontSize: 16,
+  },
+  infoText: {
+    color: "rgba(255,255,255,0.7)",
+    fontSize: 13,
+  },
+});

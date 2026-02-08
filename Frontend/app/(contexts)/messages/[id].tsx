@@ -1,6 +1,4 @@
-import React, { useMemo, useState } from "react";
-import { messagesChatStyles as styles } from "@/constants/messaging-styles";
-
+import { useMemo, useState, useEffect } from "react";
 import { ContentArea } from "@/components/ui/content-area";
 import {
   ActivityIndicator,
@@ -9,6 +7,7 @@ import {
   KeyboardAvoidingView,
   Platform,
   Pressable,
+  StyleSheet,
   Text,
   TextInput,
   View,
@@ -23,10 +22,11 @@ import {
   useUserDirectory,
 } from "@/features/messaging/hooks";
 import { useMessagingContext } from "@/features/messaging/provider";
-import { buildMessagesFromPages, formatMessageTimestamp } from "@/features/messaging/utils";
+import {
+  buildMessagesFromPages,
+  formatMessageTimestamp,
+} from "@/features/messaging/utils";
 import { errorToString } from "@/utils/error";
-
-
 
 type DisplayMessage = {
   id: string;
@@ -80,7 +80,7 @@ export default function ChatScreen() {
     return map;
   }, [directory]);
 
-  React.useEffect(() => {
+  useEffect(() => {
     if (conversation?.type === "GROUP" && conversation.id) {
       ensureTopicSubscription(conversation.id);
     }
@@ -99,7 +99,7 @@ export default function ChatScreen() {
       senderLabel:
         msg.senderId === userId
           ? "You"
-          : userMap.get(msg.senderId) ?? msg.senderId,
+          : (userMap.get(msg.senderId) ?? msg.senderId),
       timestamp: formatMessageTimestamp(msg.createdAt),
     }));
   }, [messages, userId, userMap]);
@@ -123,18 +123,24 @@ export default function ChatScreen() {
     return userMap.get(participantId) || participantId;
   };
 
-  const otherParticipant = conversation?.participants?.find((p) => p.userId !== userId);
+  const otherParticipant = conversation?.participants?.find(
+    (p) => p.userId !== userId,
+  );
   const directDisplayName = resolveParticipantName(otherParticipant?.userId);
 
   const headerTitle =
     conversation?.type === "GROUP"
       ? conversation?.name || "Team chat"
-      : directDisplayName || conversation?.name || otherParticipant?.userId || "Chat";
-  const headerSubtitle = conversation?.type === "GROUP"
-    ? conversation.isEvent
-      ? "Event chat"
-      : "Team chat"
-    : "Direct message";
+      : directDisplayName ||
+        conversation?.name ||
+        otherParticipant?.userId ||
+        "Chat";
+  const headerSubtitle =
+    conversation?.type === "GROUP"
+      ? conversation.isEvent
+        ? "Event chat"
+        : "Team chat"
+      : "Direct message";
 
   const showError = status === "error";
 
@@ -147,81 +153,88 @@ export default function ChatScreen() {
       >
         <View style={styles.screen}>
           <View style={[styles.header, { paddingTop: insets.top + 8 }]}>
-            <Pressable onPress={() => router.back()} style={styles.circleBtn} accessibilityLabel="Back">
+            <Pressable
+              onPress={() => router.back()}
+              style={styles.circleBtn}
+              accessibilityLabel="Back"
+            >
               <Text style={styles.circleIcon}>‹</Text>
             </Pressable>
 
-          <View style={styles.avatarCircle}>
-            <Text style={styles.avatarLetter}>
-              {headerTitle[0]?.toUpperCase() ?? "?"}
-            </Text>
-          </View>
+            <View style={styles.avatarCircle}>
+              <Text style={styles.avatarLetter}>
+                {headerTitle[0]?.toUpperCase() ?? "?"}
+              </Text>
+            </View>
 
-          <View style={styles.headerText}>
-            <Text style={styles.headerTitle} numberOfLines={1}>
-              {headerTitle}
-            </Text>
-            <Text style={styles.headerSub} numberOfLines={1}>
-              {headerSubtitle}
-            </Text>
-            {conversation?.isEvent && (
-              <View style={styles.badge}>
-                <Text style={styles.badgeText}>Membership locked</Text>
-              </View>
-            )}
-          </View>
-
-          <View style={{ width: 44 }} />
-        </View>
-
-        {conversation?.isEvent && (
-          <Text style={styles.infoText}>
-            Event chats are locked; only original members can participate.
-          </Text>
-        )}
-
-        {showError ? (
-          <View style={styles.emptyState}>
-            <Text style={styles.emptyTitle}>Unable to load messages</Text>
-            <Text style={styles.emptySubtitle}>{errorToString(error)}</Text>
-          </View>
-        ) : status === "pending" ? (
-          <ActivityIndicator color="white" style={{ marginTop: 40 }} />
-        ) : (
-          <FlatList
-            data={displayMessages}
-            keyExtractor={(m) => m.id}
-            contentContainerStyle={styles.list}
-            ListHeaderComponent={() => (
-              hasNextPage ? (
-                <Pressable style={styles.loadMore} onPress={() => fetchNextPage()}>
-                  {isFetchingNextPage ? (
-                    <ActivityIndicator color="white" />
-                  ) : (
-                    <Text style={styles.loadMoreText}>Load previous</Text>
-                  )}
-                </Pressable>
-              ) : null
-            )}
-            renderItem={({ item }) => (
-              <View>
-                <View
-                  style={[
-                    styles.bubble,
-                    item.fromMe ? styles.bubbleMe : styles.bubbleThem,
-                    item.fromMe ? styles.right : styles.left,
-                  ]}
-                >
-                  {!item.fromMe && (
-                    <Text style={styles.senderLabel}>{item.senderLabel}</Text>
-                  )}
-                  <Text style={styles.bubbleText}>{item.text}</Text>
-                  <Text style={styles.timestamp}>{item.timestamp}</Text>
+            <View style={styles.headerText}>
+              <Text style={styles.headerTitle} numberOfLines={1}>
+                {headerTitle}
+              </Text>
+              <Text style={styles.headerSub} numberOfLines={1}>
+                {headerSubtitle}
+              </Text>
+              {conversation?.isEvent && (
+                <View style={styles.badge}>
+                  <Text style={styles.badgeText}>Membership locked</Text>
                 </View>
-              </View>
-            )}
-          />
-        )}
+              )}
+            </View>
+
+            <View style={{ width: 44 }} />
+          </View>
+
+          {conversation?.isEvent && (
+            <Text style={styles.infoText}>
+              Event chats are locked; only original members can participate.
+            </Text>
+          )}
+
+          {showError ? (
+            <View style={styles.emptyState}>
+              <Text style={styles.emptyTitle}>Unable to load messages</Text>
+              <Text style={styles.emptySubtitle}>{errorToString(error)}</Text>
+            </View>
+          ) : status === "pending" ? (
+            <ActivityIndicator color="white" style={{ marginTop: 40 }} />
+          ) : (
+            <FlatList
+              data={displayMessages}
+              keyExtractor={(m) => m.id}
+              contentContainerStyle={styles.list}
+              ListHeaderComponent={() =>
+                hasNextPage ? (
+                  <Pressable
+                    style={styles.loadMore}
+                    onPress={() => fetchNextPage()}
+                  >
+                    {isFetchingNextPage ? (
+                      <ActivityIndicator color="white" />
+                    ) : (
+                      <Text style={styles.loadMoreText}>Load previous</Text>
+                    )}
+                  </Pressable>
+                ) : null
+              }
+              renderItem={({ item }) => (
+                <View>
+                  <View
+                    style={[
+                      styles.bubble,
+                      item.fromMe ? styles.bubbleMe : styles.bubbleThem,
+                      item.fromMe ? styles.right : styles.left,
+                    ]}
+                  >
+                    {!item.fromMe && (
+                      <Text style={styles.senderLabel}>{item.senderLabel}</Text>
+                    )}
+                    <Text style={styles.bubbleText}>{item.text}</Text>
+                    <Text style={styles.timestamp}>{item.timestamp}</Text>
+                  </View>
+                </View>
+              )}
+            />
+          )}
 
           <View
             style={[
@@ -256,3 +269,145 @@ export default function ChatScreen() {
     </ContentArea>
   );
 }
+
+const styles = StyleSheet.create({
+  screen: { flex: 1 },
+  header: {
+    paddingHorizontal: 16,
+    paddingBottom: 10,
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 12,
+  },
+  circleBtn: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: "rgba(255,255,255,0.16)",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  circleIcon: {
+    color: "white",
+    fontSize: 22,
+    fontWeight: "700",
+    marginTop: -2,
+  },
+  avatarCircle: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: "rgba(255,255,255,0.22)",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  avatarLetter: { color: "white", fontWeight: "800", fontSize: 18 },
+  headerText: { flex: 1 },
+  headerTitle: { color: "white", fontSize: 18, fontWeight: "800" },
+  headerSub: {
+    color: "rgba(255,255,255,0.65)",
+    fontSize: 13,
+    marginTop: 2,
+  },
+  badge: {
+    marginTop: 6,
+    alignSelf: "flex-start",
+    paddingHorizontal: 10,
+    paddingVertical: 2,
+    borderRadius: 10,
+    backgroundColor: "rgba(255,255,255,0.18)",
+  },
+  badgeText: { color: "white", fontWeight: "600", fontSize: 12 },
+  infoText: {
+    textAlign: "center",
+    color: "rgba(255,255,255,0.55)",
+    marginTop: 6,
+    marginBottom: 10,
+    fontWeight: "600",
+  },
+  list: { paddingHorizontal: 14, paddingBottom: 10 },
+  bubble: {
+    maxWidth: "80%",
+    paddingVertical: 10,
+    paddingHorizontal: 14,
+    borderRadius: 18,
+    marginBottom: 10,
+  },
+  bubbleMe: { backgroundColor: "rgba(255,255,255,0.20)" },
+  bubbleThem: { backgroundColor: "rgba(0,0,0,0.18)" },
+  right: { alignSelf: "flex-end", borderTopRightRadius: 6 },
+  left: { alignSelf: "flex-start", borderTopLeftRadius: 6 },
+  senderLabel: {
+    color: "rgba(255,255,255,0.7)",
+    fontSize: 11,
+    marginBottom: 2,
+  },
+  bubbleText: { color: "white", fontSize: 16 },
+  timestamp: {
+    color: "rgba(255,255,255,0.5)",
+    fontSize: 11,
+    marginTop: 4,
+    textAlign: "right",
+  },
+  composerContainer: {
+    paddingHorizontal: 20,
+    paddingTop: 8,
+  },
+  composer: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingHorizontal: 18,
+    paddingVertical: 10,
+    gap: 14,
+    backgroundColor: "rgba(0,0,0,0.45)",
+    borderRadius: 32,
+    shadowColor: "#000",
+    shadowOpacity: 0.25,
+    shadowRadius: 16,
+    shadowOffset: { width: 0, height: 6 },
+    elevation: 6,
+  },
+  input: {
+    flex: 1,
+    minHeight: 48,
+    borderRadius: 24,
+    paddingHorizontal: 18,
+    paddingVertical: 10,
+    color: "white",
+    backgroundColor: "rgba(255,255,255,0.12)",
+    fontSize: 16,
+  },
+  sendBtn: {
+    height: 48,
+    minWidth: 68,
+    paddingHorizontal: 18,
+    borderRadius: 24,
+    backgroundColor: "rgba(0,0,0,0.7)",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  sendText: { color: "white", fontWeight: "800", fontSize: 15 },
+  loadMore: {
+    paddingVertical: 12,
+    alignItems: "center",
+  },
+  loadMoreText: {
+    color: "rgba(255,255,255,0.8)",
+    fontWeight: "600",
+  },
+  emptyState: {
+    marginTop: 40,
+    alignItems: "center",
+    paddingHorizontal: 24,
+  },
+  emptyTitle: {
+    color: "white",
+    fontSize: 18,
+    fontWeight: "700",
+    marginBottom: 6,
+  },
+  emptySubtitle: {
+    color: "rgba(255,255,255,0.7)",
+    textAlign: "center",
+  },
+});
