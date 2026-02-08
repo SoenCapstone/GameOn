@@ -1,4 +1,4 @@
-package com.game.on.go_team_service.team_announcement.model;
+package com.game.on.go_team_service.team_post.model;
 
 import jakarta.persistence.*;
 import lombok.*;
@@ -15,10 +15,10 @@ import java.util.UUID;
 @NoArgsConstructor
 @AllArgsConstructor
 @Entity
-@Table(name = "team_announcements")
+@Table(name = "team_posts")
 @EntityListeners(AuditingEntityListener.class)
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
-public class TeamAnnouncement {
+public class TeamPost {
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
@@ -31,15 +31,18 @@ public class TeamAnnouncement {
     @Column(name = "author_user_id", nullable = false, length = 255)
     private String authorUserId;
 
-    @Column(name = "title", length = 120)
+    @Column(name = "author_role", nullable = false, length = 30)
+    private String authorRole;
+
+    @Column(name = "title", length = 200)
     private String title;
 
-    @Column(name = "content", nullable = false, length = 2000)
-    private String content;
+    @Column(name = "body", nullable = false, length = 1000)
+    private String body;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "scope", nullable = false, length = 30)
-    private TeamAnnouncementScope scope;
+    private TeamPostScope scope;
 
     @CreatedDate
     @Column(name = "created_at", nullable = false, updatable = false)
@@ -52,7 +55,7 @@ public class TeamAnnouncement {
     @PrePersist
     void prePersist() {
         if (scope == null) {
-            scope = TeamAnnouncementScope.MEMBERS_ONLY;
+            scope = TeamPostScope.MEMBERS;
         }
     }
 }
