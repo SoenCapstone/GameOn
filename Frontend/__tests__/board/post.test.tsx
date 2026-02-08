@@ -62,8 +62,8 @@ jest.mock("react-native-context-menu-view", () => {
         "View",
         {
           testID: "context-menu",
-          onPress: () =>
-            onPress?.({ nativeEvent: { name: actions?.[0]?.title } }),
+          onPress: (actionName?: string) =>
+            onPress?.({ nativeEvent: { name: actionName || actions?.[0]?.title } }),
         },
         children,
       ),
@@ -109,16 +109,7 @@ describe("Post", () => {
     runtimeAny.__setExpoGo(false);
   });
 
-  it("renders Image for static/imported logos", () => {
-    const mockLogo = require("@/assets/images/react-logo.png");
-    const { getByTestId } = render(
-      <Post post={basePost} spaceName="My Team" spaceLogo={mockLogo} />,
-    );
-
-    expect(getByTestId("expo-image")).toBeTruthy();
-  });
-
-  it("renders Image for remote logos (URLs)", () => {
+  it("renders post with logo and content", () => {
     const { getByTestId } = render(
       <Post
         post={basePost}
@@ -128,6 +119,7 @@ describe("Post", () => {
     );
 
     expect(getByTestId("expo-image")).toBeTruthy();
+    expect(getByTestId("card")).toBeTruthy();
   });
 
   it("deletes via action sheet in Expo Go", () => {
@@ -170,5 +162,83 @@ describe("Post", () => {
     fireEvent.press(getByTestId("context-menu"));
 
     expect(onDelete).toHaveBeenCalledWith("post-1");
+  });
+
+  it("does not show delete options when canDelete is false", () => {
+    const onDelete = jest.fn();
+    const mockLogo = require("@/assets/images/react-logo.png");
+
+    const { queryByTestId } = render(
+      <Post
+        post={basePost}
+        spaceName="My Team"
+        spaceLogo={mockLogo}
+        onDelete={onDelete}
+        canDelete={false}
+      />,
+    );
+
+    expect(queryByTestId("pressable")).toBeNull();
+    expect(queryByTestId("context-menu")).toBeNull();
+  });
+
+  it("does not show delete options when onDelete is undefined", () => {
+    const mockLogo = require("@/assets/images/react-logo.png");
+
+    const { queryByTestId } = render(
+      <Post
+        post={basePost}
+        spaceName="My Team"
+        spaceLogo={mockLogo}
+        canDelete={true}
+      />,
+    );
+
+    expect(queryByTestId("pressable")).toBeNull();
+    expect(queryByTestId("context-menu")).toBeNull();
+  });
+
+  it("does nothing when user cancels action sheet in Expo Go", () => {
+    runtimeAny.__setExpoGo(true);
+    mockShowActionSheet.mockImplementation((_, callback) => callback(0));
+    const onDelete = jest.fn();
+    const mockLogo = require("@/assets/images/react-logo.png");
+
+    const { getByTestId } = render(
+      <Post
+        post={basePost}
+        spaceName="My Team"
+        spaceLogo={mockLogo}
+        onDelete={onDelete}
+        canDelete={true}
+      />,
+    );
+
+    fireEvent(getByTestId("pressable"), "onLongPress");
+
+    expect(mockShowActionSheet).toHaveBeenCalledTimes(1);
+    expect(onDelete).not.toHaveBeenCalled();
+  });
+
+  it("does nothing when context menu action is not Delete", () => {
+    runtimeAny.__setExpoGo(false);
+    const onDelete = jest.fn();
+    const mockLogo = require("@/assets/images/react-logo.png");
+
+    const { getByTestId } = render(
+      <Post
+        post={basePost}
+        spaceName="My Team"
+        spaceLogo={mockLogo}
+        onDelete={onDelete}
+        canDelete={true}
+      />,
+    );
+
+    const contextMenu = getByTestId("context-menu");
+    // Simulate pressing a different action
+    contextMenu.props.onPress("Share");
+
+    expect(onDelete).not.toHaveBeenCalled();
   });
 });

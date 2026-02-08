@@ -62,36 +62,57 @@ const createMockPost = (payload: CreateBoardPostRequest): BoardPost => {
 
 const getMockPosts = async (teamId: string) => {
   await sleep(250);
-  return mockBoardStore[teamId] ?? [];
+  const posts = mockBoardStore[teamId] ?? [];
+  log.info("Fetched board posts", { teamId, postCount: posts.length });
+  return posts;
 };
 
 const createMockPostForTeam = async (payload: CreateBoardPostRequest) => {
   await sleep(300);
-  const post = createMockPost(payload);
-  const current = mockBoardStore[payload.spaceId] ?? [];
-  mockBoardStore[payload.spaceId] = [post, ...current];
-  return post;
+  try {
+    const post = createMockPost(payload);
+    const current = mockBoardStore[payload.spaceId] ?? [];
+    mockBoardStore[payload.spaceId] = [post, ...current];
+    log.info("Created board post", {
+      postId: post.id,
+      teamId: payload.spaceId,
+      title: payload.title,
+      scope: payload.scope,
+    });
+    return post;
+  } catch (error) {
+    log.error("Failed to create board post", { error, payload });
+    throw error;
+  }
 };
 
 const deleteMockPostForTeam = async (teamId: string, postId: string) => {
   await sleep(200);
   const current = mockBoardStore[teamId] ?? [];
+  const postToDelete = current.find((post) => post.id === postId);
   mockBoardStore[teamId] = current.filter((post) => post.id !== postId);
+  log.info("Deleted board post", {
+    postId,
+    teamId,
+    postTitle: postToDelete?.title,
+    remainingPosts: mockBoardStore[teamId].length,
+  });
 };
 
 export function useTeamBoardPosts(teamId: string) {
   return useQuery<BoardPost[]>({
     queryKey: BOARD_QUERY_KEY(teamId),
     queryFn: async () => {
+      log.info("Fetching board posts", { teamId });
       try {
         return await getMockPosts(teamId);
       } catch (err) {
-        log.error("Failed to fetch board posts:", err);
+        log.error("Failed to fetch board posts", { teamId, error: err });
         throw err;
       }
     },
     enabled: Boolean(teamId),
-    staleTime: 300000,
+    retry: false,
   });
 }
 
@@ -100,6 +121,11 @@ export function useCreateBoardPost(spaceId: string) {
 
   return useMutation({
     mutationFn: async (payload: CreateBoardPostRequest) => {
+      log.info("Creating board post", {
+        spaceId,
+        title: payload.title,
+        scope: payload.scope,
+      });
       return await createMockPostForTeam({ ...payload, spaceId });
     },
     onSuccess: async () => {
@@ -109,7 +135,6 @@ export function useCreateBoardPost(spaceId: string) {
     },
     onError: (err) => {
       log.error("Failed to create board post:", err);
-      throw err;
     },
   });
 }
@@ -119,6 +144,7 @@ export function useDeleteBoardPost(teamId: string) {
 
   return useMutation({
     mutationFn: async (postId: string) => {
+      log.info("Deleting board post", { postId, teamId });
       await deleteMockPostForTeam(teamId, postId);
     },
     onSuccess: async () => {
@@ -126,9 +152,8 @@ export function useDeleteBoardPost(teamId: string) {
         queryKey: BOARD_QUERY_KEY(teamId),
       });
     },
-    onError: (err) => {
-      log.error("Failed to delete board post:", err);
-      throw err;
+    onError: (err, postId) => {
+      log.error("Failed to delete board post", { postId, teamId, error: err });
     },
   });
 }

@@ -9,6 +9,9 @@ import {
 import { BoardPost } from "@/components/board/board-types";
 import { Post } from "@/components/board/post";
 import { LegendList } from "@legendapp/list";
+import { createScopedLog } from "@/utils/logger";
+
+const log = createScopedLog("BoardList");
 
 interface BoardListProps {
   posts: BoardPost[];
@@ -31,7 +34,10 @@ export function BoardList({
 
   const handleContentSizeChange = React.useCallback(() => {
     listRef.current?.scrollToIndex({ index: 0, animated: true });
-  }, []);
+    log.info("Scrolled to top, number of posts displayed:", {
+      postCount: posts.length,
+    });
+  }, [posts.length]);
 
   const renderItem = React.useCallback(
     ({ item }: { item: BoardPost }) => {

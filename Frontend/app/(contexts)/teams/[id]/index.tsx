@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import {
   View,
   ActivityIndicator,
@@ -20,6 +20,7 @@ import {
 import { useTeamBoardPosts, useDeleteBoardPost } from "@/hooks/use-team-board";
 import { BoardList } from "@/components/board/board-list";
 import { errorToString } from "@/utils/error";
+import { createScopedLog } from "@/utils/logger";
 
 export default function Team() {
   const params = useLocalSearchParams<{ id?: string | string[] }>();
@@ -35,11 +36,11 @@ export default function Team() {
 
 function TeamContent() {
   const [tab, setTab] = useState<"board" | "overview" | "games">("board");
+  const [refreshing, setRefreshing] = useState(false);
   const router = useRouter();
   const {
     id,
     isLoading,
-    refreshing,
     onRefresh,
     handleFollow,
     title,
@@ -49,6 +50,7 @@ function TeamContent() {
   } = useTeamDetailContext();
   // TODO: change to role === "COACH" || role === "MANAGER" after testing since we cant change roles yet
   const canPost = role === "OWNER";
+  const log = createScopedLog("Team Page");
 
   const {
     data: boardPosts = [],
@@ -64,15 +66,37 @@ function TeamContent() {
 
   useTeamHeader({ title, id, isMember, onFollow: handleFollow });
 
+  const getTabFromSegmentValue = (
+    value: string,
+  ): "board" | "overview" | "games" => {
+    if (value === "Board") return "board";
+    if (value === "Overview") return "overview";
+    return "games";
+  };
+
+  const getSelectedIndex = (): number => {
+    if (tab === "board") return 0;
+    if (tab === "overview") return 1;
+    return 2;
+  };
+
   const handleDeletePost = (postId: string) => {
     Alert.alert("Delete Post", "Are you sure you want to delete this post?", [
-      { text: "Cancel", onPress: () => {} },
+      {
+        text: "Cancel",
+        onPress: () => log.info("Delete post cancelled", { postId }),
+      },
       {
         text: "Delete",
         onPress: async () => {
           try {
             await deletePostMutation.mutateAsync(postId);
+            log.info("Post deleted", { postId });
           } catch (err) {
+            log.error("Failed to delete post", {
+              postId,
+              error: errorToString(err),
+            });
             Alert.alert("Failed to delete", errorToString(err));
           }
         },
@@ -81,10 +105,22 @@ function TeamContent() {
     ]);
   };
 
-  const handleRefresh = async () => {
-    await onRefresh();
-    await refetchPosts();
-  };
+  const handleRefresh = useCallback(async () => {
+    try {
+      setRefreshing(true);
+      await onRefresh();
+      if (tab === "board") {
+        await refetchPosts();
+        log.info("Board posts refreshed", { postCount: visiblePosts.length });
+      } else {
+        log.info("Team data refreshed", { tab });
+      }
+    } catch (err) {
+      log.error("Refresh failed", { error: errorToString(err), tab });
+    } finally {
+      setRefreshing(false);
+    }
+  }, [log, onRefresh, refetchPosts, tab, visiblePosts.length]);
 
   return (
     <View style={{ flex: 1 }}>
@@ -103,21 +139,23 @@ function TeamContent() {
       >
         <SegmentedControl
           values={["Board", "Overview", "Games"]}
-          selectedIndex={tab === "board" ? 0 : tab === "overview" ? 1 : 2}
+          selectedIndex={getSelectedIndex()}
           onValueChange={(value) => {
-            if (value === "Board") setTab("board");
-            if (value === "Overview") setTab("overview");
-            if (value === "Games") setTab("games");
+            const newTab = getTabFromSegmentValue(value);
+            setTab(newTab);
+            log.info("Tab changed", { tab: newTab });
           }}
           style={{ height: 40 }}
         />
 
-        {isLoading || refreshing ? (
+        {isLoading ? (
           <View style={styles.container}>
             <ActivityIndicator size="small" color="#fff" />
           </View>
         ) : (
           <>
+            {refreshing && <ActivityIndicator size="small" color="#fff" />}
+
             {tab === "board" && (
               <BoardList
                 posts={visiblePosts}
