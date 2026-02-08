@@ -53,10 +53,10 @@ export default function ChatScreen() {
   const composerBottomInset = Math.max(insets.bottom, 8);
   const composerPaddingBottom = composerBottomInset + tabBarHeight + 8;
   const keyboardOffset = tabBarHeight + 20;
-  const { chatId } = useLocalSearchParams<{ chatId: string }>();
+  const { id } = useLocalSearchParams<{ id: string }>();
   const { userId } = useAuth();
   const { data: conversations } = useConversationsQuery();
-  const conversation = conversations?.find((c) => c.id === chatId);
+  const conversation = conversations?.find((c) => c.id === id);
   const { data: directory } = useUserDirectory();
   const { sendMessage, ensureTopicSubscription } = useMessagingContext();
   const {
@@ -66,7 +66,7 @@ export default function ChatScreen() {
     isFetchingNextPage,
     status,
     error,
-  } = useMessagesQuery(chatId ?? "");
+  } = useMessagesQuery(id ?? "");
 
   const [text, setText] = useState("");
   const [sending, setSending] = useState(false);
@@ -105,11 +105,11 @@ export default function ChatScreen() {
   }, [messages, userId, userMap]);
 
   const handleSend = async () => {
-    if (!chatId) return;
+    if (!id) return;
     if (!text.trim()) return;
     try {
       setSending(true);
-      await sendMessage(chatId, text);
+      await sendMessage(id, text);
       setText("");
     } catch (err) {
       Alert.alert("Unable to send", errorToString(err));
