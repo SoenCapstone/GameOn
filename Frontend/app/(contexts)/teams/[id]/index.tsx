@@ -48,8 +48,7 @@ function TeamContent() {
     role,
     team,
   } = useTeamDetailContext();
-  // TODO: change to role === "COACH" || role === "MANAGER" after testing since we cant change roles yet
-  const canPost = role === "OWNER";
+  const canPost = role === "OWNER" || role === "COACH" || role === "MANAGER";
   const log = createScopedLog("Team Page");
 
   const {
