@@ -1,5 +1,4 @@
-import { useMemo, useState } from "react";
-
+import { useLayoutEffect, useMemo, useState } from "react";
 import { ContentArea } from "@/components/ui/content-area";
 import {
   ActivityIndicator,
@@ -12,7 +11,7 @@ import {
   TextInput,
   View,
 } from "react-native";
-import { useRouter } from "expo-router";
+import { useNavigation, useRouter } from "expo-router";
 import { useAuth } from "@clerk/clerk-expo";
 import { useMessagingContext } from "@/features/messaging/provider";
 import { useMyTeams, useUserDirectory } from "@/features/messaging/hooks";
@@ -22,6 +21,7 @@ type TabKey = "direct" | "team";
 
 export default function NewChat() {
   const router = useRouter();
+  const navigation = useNavigation();
   const [tab, setTab] = useState<TabKey>("direct");
   const [query, setQuery] = useState("");
   const [selectedTeam, setSelectedTeam] = useState<string | null>(null);
@@ -33,6 +33,22 @@ export default function NewChat() {
     useMessagingContext();
   const { data: users, isLoading: loadingUsers } = useUserDirectory();
   const { data: teams, isLoading: loadingTeams } = useMyTeams();
+
+  useLayoutEffect(() => {
+    navigation.setOptions({
+      headerSearchBarOptions:
+        tab === "direct"
+          ? {
+              hideNavigationBar: false,
+              placement: "automatic",
+              onChangeText: (event: { nativeEvent: { text: string } }) => {
+                const text = event.nativeEvent.text || "";
+                setQuery(text);
+              },
+            }
+          : undefined,
+    });
+  }, [navigation, tab]);
 
   const filteredUsers = useMemo(() => {
     const q = query.trim().toLowerCase();
@@ -106,15 +122,6 @@ export default function NewChat() {
 
         {tab === "direct" ? (
           <>
-            <View style={styles.searchWrap}>
-              <TextInput
-                value={query}
-                onChangeText={setQuery}
-                placeholder="Search users..."
-                placeholderTextColor="rgba(255,255,255,0.55)"
-                style={styles.search}
-              />
-            </View>
             {loadingUsers ? (
               <ActivityIndicator color="white" style={{ marginTop: 40 }} />
             ) : (
@@ -233,10 +240,6 @@ const styles = StyleSheet.create({
   tabText: {
     color: "white",
     fontWeight: "700",
-  },
-  searchWrap: {
-    paddingHorizontal: 18,
-    paddingBottom: 12,
   },
   search: {
     height: 44,
