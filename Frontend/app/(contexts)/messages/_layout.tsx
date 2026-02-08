@@ -29,7 +29,7 @@ export default function MessagesLayout() {
           }}
         />
         <Stack.Screen
-          name="[chatId]"
+          name="[id]"
           options={{
             headerShown: false,
           }}
