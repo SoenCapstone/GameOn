@@ -97,9 +97,7 @@ jest.mock("@/utils/runtime", () => {
 describe("Post", () => {
   const basePost: BoardPost = {
     id: "post-1",
-    authorId: "coach-1",
     authorName: "Coach Amy",
-    authorRole: "Coach",
     title: "Practice Update",
     scope: "Members",
     body: "Practice moved to 6pm.",

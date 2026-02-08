@@ -77,9 +77,7 @@ describe("TeamBoardList", () => {
   const posts: BoardPost[] = [
     {
       id: "post-1",
-      authorId: "coach-1",
       authorName: "Coach Amy",
-      authorRole: "coach",
       title: "Practice Update",
       scope: "Members",
       body: "Practice moved to 6pm.",
@@ -87,9 +85,7 @@ describe("TeamBoardList", () => {
     },
     {
       id: "post-2",
-      authorId: "player-1",
       authorName: "Player Ben",
-      authorRole: null,
       title: "Game Announcement",
       scope: "Everyone",
       body: "Game day is Saturday.",

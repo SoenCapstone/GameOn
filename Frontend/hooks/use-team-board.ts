@@ -17,11 +17,7 @@ const BOARD_QUERY_KEY = (teamId: string) => ["team-board", teamId];
 //
 // 1. GET /api/v1/teams/{teamId}/board
 //    - Fetch all board posts for a team
-//    - Query params (optional):
-//      * limit: number (default: 50)
-//      * offset: number (default: 0)
 //    - Response: BoardPost[]
-//    - Authorization: User must be a team member OR post.scope === "everyone"
 //    - Sort: createdAt DESC (newest first)
 //
 // 2. POST /api/v1/teams/{teamId}/board
@@ -32,12 +28,11 @@ const BOARD_QUERY_KEY = (teamId: string) => ["team-board", teamId];
 //    - Validation:
 //      * title: required, max 100 characters
 //      * body: required, max 1000 characters
-//      * scope: one of "players" | "everyone"
+//      * scope: one of "Members" | "Everyone"
 //    - Auto-populate: authorId, authorName from authenticated user
 //
 // 3. DELETE /api/v1/teams/{teamId}/board/{postId}
 //    - Delete a board post
-//    - Response: 204 No Content
 //    - Authorization: User must be the post author OR have role OWNER/MANAGER (??)
 //
 // TYPES:
@@ -57,9 +52,7 @@ const createMockPost = (payload: CreateBoardPostRequest): BoardPost => {
   const now = new Date().toISOString();
   return {
     id: `post_${Crypto.randomUUID()}`,
-    authorId: "mock-coach-id",
     authorName: "Author Name",
-    authorRole: "Coach",
     title: payload.title,
     scope: payload.scope,
     body: payload.body,

@@ -2,9 +2,7 @@ export type BoardPostScope = "Members" | "Everyone";
 
 export type BoardPost = {
   id: string;
-  authorId: string;
   authorName: string;
-  authorRole: string | null;
   title: string;
   scope: BoardPostScope;
   body: string;
