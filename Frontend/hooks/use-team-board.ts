@@ -1,111 +1,106 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { createScopedLog } from "@/utils/logger";
-import * as Crypto from "expo-crypto";
+import { AxiosInstance } from "axios";
 import {
   BoardPost,
   CreateBoardPostRequest,
 } from "@/components/board/board-types";
+import {
+  useAxiosWithClerk,
+  GO_USER_SERVICE_ROUTES,
+  GO_TEAM_SERVICE_ROUTES,
+} from "@/hooks/use-axios-clerk";
 
 const log = createScopedLog("Team Board");
 
 const BOARD_QUERY_KEY = (teamId: string) => ["team-board", teamId];
 
-// This file contains mock implementations to unblock frontend development.
-// Replace these mock functions with actual API calls when backend is ready.
-//
-// ENDPOINTS:
-//
-// 1. GET /api/v1/teams/{teamId}/board
-//    - Fetch all board posts for a team
-//    - Response: BoardPost[]
-//    - Sort: createdAt DESC (newest first)
-//
-// 2. POST /api/v1/teams/{teamId}/board
-//    - Create a new board post
-//    - Request body: { title: string, scope: BoardPostScope, body: string }
-//    - Response: BoardPost
-//    - Authorization: User must have role OWNER (??), MANAGER, or COACH
-//    - Validation:
-//      * title: required, max 100 characters
-//      * body: required, max 1000 characters
-//      * scope: one of "Members" | "Everyone"
-//    - Auto-populate: authorId, authorName from authenticated user
-//
-// 3. DELETE /api/v1/teams/{teamId}/board/{postId}
-//    - Delete a board post
-//    - Authorization: User must be the post author OR have role OWNER/MANAGER (??)
-//
-// TYPES:
-// - BoardPostScope = "Members" | "Everyone"
-//   * "Members" - visible only to team members
-//   * "Everyone" - visible to everyone
-//
-// NOTES:
-// - All timestamps should be ISO 8601 format (e.g., "2026-02-03T15:30:00Z")
-// - authorName should be formatted as "FirstName LastName"
-
-const mockBoardStore: Record<string, BoardPost[]> = {};
-
-const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
-
-const createMockPost = (payload: CreateBoardPostRequest): BoardPost => {
-  const now = new Date().toISOString();
-  return {
-    id: `post_${Crypto.randomUUID()}`,
-    authorName: "Author Name",
-    title: payload.title,
-    scope: payload.scope,
-    body: payload.body,
-    createdAt: now,
-  };
+type TeamPostResponse = {
+  id: string;
+  teamId: string;
+  authorUserId: string;
+  authorRole: string;
+  title: string;
+  body: string;
+  scope: "Members" | "Everyone";
+  createdAt: string;
 };
 
-const getMockPosts = async (teamId: string) => {
-  await sleep(250);
-  const posts = mockBoardStore[teamId] ?? [];
-  log.info("Fetched board posts", { teamId, postCount: posts.length });
-  return posts;
+type TeamPostListResponse = {
+  posts: TeamPostResponse[];
+  totalElements: number;
+  pageNumber: number;
+  pageSize: number;
+  hasNext: boolean;
 };
 
-const createMockPostForTeam = async (payload: CreateBoardPostRequest) => {
-  await sleep(300);
-  try {
-    const post = createMockPost(payload);
-    const current = mockBoardStore[payload.spaceId] ?? [];
-    mockBoardStore[payload.spaceId] = [post, ...current];
-    log.info("Created board post", {
-      postId: post.id,
-      teamId: payload.spaceId,
-      title: payload.title,
-      scope: payload.scope,
-    });
-    return post;
-  } catch (error) {
-    log.error("Failed to create board post", { error, payload });
-    throw error;
-  }
-};
+async function fetchUserNameMap(
+  api: AxiosInstance,
+  userIds: string[],
+): Promise<Record<string, string>> {
+  const entries = await Promise.all(
+    userIds.map(async (userId) => {
+      try {
+        const resp = await api.get(GO_USER_SERVICE_ROUTES.BY_ID(userId));
+        const first = resp.data?.firstname ?? "";
+        const last = resp.data?.lastname ?? "";
+        const full = `${first} ${last}`.trim();
+        return [userId, full || resp.data?.email || "Unknown User"] as const;
+      } catch (err) {
+        log.error("Failed to fetch user info", { userId, error: err });
+        return [userId, "Unknown User"] as const;
+      }
+    }),
+  );
+  return Object.fromEntries(entries);
+}
 
-const deleteMockPostForTeam = async (teamId: string, postId: string) => {
-  await sleep(200);
-  const current = mockBoardStore[teamId] ?? [];
-  const postToDelete = current.find((post) => post.id === postId);
-  mockBoardStore[teamId] = current.filter((post) => post.id !== postId);
-  log.info("Deleted board post", {
-    postId,
-    teamId,
-    postTitle: postToDelete?.title,
-    remainingPosts: mockBoardStore[teamId].length,
-  });
-};
+const mapToFrontendPost = (
+  backendPost: TeamPostResponse,
+  userNameMap: Record<string, string>,
+): BoardPost => ({
+  id: backendPost.id,
+  authorName: userNameMap[backendPost.authorUserId] || "Unknown User",
+  title: backendPost.title,
+  scope: backendPost.scope,
+  body: backendPost.body,
+  createdAt: backendPost.createdAt,
+});
 
 export function useTeamBoardPosts(teamId: string) {
+  const api = useAxiosWithClerk();
+
   return useQuery<BoardPost[]>({
     queryKey: BOARD_QUERY_KEY(teamId),
     queryFn: async () => {
       log.info("Fetching board posts", { teamId });
       try {
-        return await getMockPosts(teamId);
+        const response = await api.get<TeamPostListResponse>(
+          GO_TEAM_SERVICE_ROUTES.TEAM_POSTS(teamId),
+          {
+            params: {
+              page: 0,
+              size: 50,
+            },
+          }
+        );
+
+        const uniqueAuthorIds = [
+          ...new Set(response.data.posts.map((post) => post.authorUserId)),
+        ];
+
+        const userNameMap = await fetchUserNameMap(api, uniqueAuthorIds);
+
+        const posts = response.data.posts.map((post) =>
+          mapToFrontendPost(post, userNameMap)
+        );
+
+        log.info("Fetched board posts with author names", {
+          teamId,
+          postCount: posts.length,
+          authorCount: uniqueAuthorIds.length,
+        });
+        return posts;
       } catch (err) {
         log.error("Failed to fetch board posts", { teamId, error: err });
         throw err;
@@ -116,21 +111,37 @@ export function useTeamBoardPosts(teamId: string) {
   });
 }
 
-export function useCreateBoardPost(spaceId: string) {
+export function useCreateBoardPost(teamId: string) {
+  const api = useAxiosWithClerk();
   const queryClient = useQueryClient();
 
   return useMutation({
     mutationFn: async (payload: CreateBoardPostRequest) => {
       log.info("Creating board post", {
-        spaceId,
+        teamId,
         title: payload.title,
         scope: payload.scope,
       });
-      return await createMockPostForTeam({ ...payload, spaceId });
+
+      await api.post<TeamPostResponse>(
+        GO_TEAM_SERVICE_ROUTES.TEAM_POSTS(teamId),
+        {
+          title: payload.title,
+          teamId: teamId,
+          body: payload.body,
+          scope: payload.scope,
+        }
+      );
+
+      log.info("Created board post", {
+        teamId,
+        title: payload.title,
+        scope: payload.scope,
+      });
     },
     onSuccess: async () => {
       await queryClient.invalidateQueries({
-        queryKey: BOARD_QUERY_KEY(spaceId),
+        queryKey: BOARD_QUERY_KEY(teamId),
       });
     },
     onError: (err) => {
@@ -140,12 +151,14 @@ export function useCreateBoardPost(spaceId: string) {
 }
 
 export function useDeleteBoardPost(teamId: string) {
+  const api = useAxiosWithClerk();
   const queryClient = useQueryClient();
 
   return useMutation({
     mutationFn: async (postId: string) => {
       log.info("Deleting board post", { postId, teamId });
-      await deleteMockPostForTeam(teamId, postId);
+      await api.delete(GO_TEAM_SERVICE_ROUTES.DELETE_TEAM_POST(teamId, postId));
+      log.info("Deleted board post", { postId, teamId });
     },
     onSuccess: async () => {
       await queryClient.invalidateQueries({
