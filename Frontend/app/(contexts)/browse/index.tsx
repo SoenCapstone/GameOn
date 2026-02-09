@@ -10,20 +10,16 @@ export default function Browse() {
     (result: SearchResult) => {
       if (result.type === "team") {
         router.push(`/teams/${result.id}`);
-      }
-      else if (result.type === "league") {
-        router.push(`../leagues/${result.id}`);
+      } else if (result.type === "league") {
+        router.push(`/leagues/${result.id}`);
       }
     },
     [router],
   );
 
-  const filterPublicOnly = React.useCallback(
-    (result: SearchResult) => {
-      return result.privacy?.toLowerCase() === "public";
-    },
-    [],
-  );
+  const filterPublicOnly = React.useCallback((result: SearchResult) => {
+    return result.privacy?.toLowerCase() === "public";
+  }, []);
 
   return (
     <SearchResultsScreen

@@ -3,7 +3,6 @@ import {
   View,
   Text,
   ActivityIndicator,
-  ImageSourcePropType,
   StyleSheet,
   RefreshControl,
 } from "react-native";
@@ -11,7 +10,6 @@ import SegmentedControl from "@react-native-segmented-control/segmented-control"
 import { LegendList } from "@legendapp/list";
 import { ContentArea } from "@/components/ui/content-area";
 import { InfoCard } from "@/components/info-card";
-import SvgImage from "@/components/svg-image";
 import { createScopedLog } from "@/utils/logger";
 import { useSearch } from "@/contexts/search-context";
 import type {
@@ -120,29 +118,12 @@ export function SearchResultsScreen({
 
   const renderItem = React.useCallback(
     ({ item }: { item: SearchResult }) => {
-      const isRemoteUrl =
-        item.logo.startsWith("http://") || item.logo.startsWith("https://");
-      const isFileUri = item.logo.startsWith("file://");
-      const isSvg = isRemoteUrl && item.logo.toLowerCase().endsWith(".svg");
-
-      const imageSource: ImageSourcePropType | undefined =
-        (isRemoteUrl || isFileUri) && !isSvg ? { uri: item.logo } : undefined;
-      let logoElement: React.ReactNode;
-      if (isRemoteUrl && isSvg) {
-        logoElement = <SvgImage uri={item.logo} width={48} height={48} />;
-      } else if (isFileUri || imageSource) {
-        logoElement = null;
-      } else {
-        logoElement = <Text style={styles.logoText}>{item.logo}</Text>;
-      }
-
       return (
         <InfoCard
           title={item.name}
           subtitle={item.subtitle}
           onPress={() => handlePress(item)}
-          image={imageSource}
-          logo={logoElement}
+          image={item.logo}
         />
       );
     },
@@ -267,7 +248,6 @@ export function SearchResultsScreen({
 }
 
 const styles = StyleSheet.create({
-  logoText: { fontSize: 30 },
   separator: { height: 14 },
   resultsContentStatic: { paddingVertical: 0.1 },
   loadingContainer: { alignItems: "center", padding: 8 },

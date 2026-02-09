@@ -31,23 +31,31 @@ function MyLeagueContent() {
 
   useLeagueHeader({ title, id, isMember, onFollow: handleFollow });
 
+  const getSelectedIndex = (): number => {
+    if (tab === "overview") return 0;
+    if (tab === "games") return 1;
+    return 2;
+  };
+
   return (
-    <ContentArea paddingBottom={60} backgroundProps={{ preset: "red" }}>
+    <ContentArea
+      paddingBottom={20}
+      segmentedControl
+      backgroundProps={{ preset: "red" }}
+    >
       {isLoading ? <ActivityIndicator size="small" color="#fff" /> : null}
       <View style={createTeamStyles.container}>
-        {/* Tabs (same page, no routing) */}
         <SegmentedControl
           values={["Overview", "Games", "Teams"]}
-          selectedIndex={tab === "overview" ? 0 : tab === "games" ? 1 : 2}
+          selectedIndex={getSelectedIndex()}
           onValueChange={(value) => {
             if (value === "Overview") setTab("overview");
             if (value === "Games") setTab("games");
             if (value === "Teams") setTab("teams");
           }}
-          style={{ marginBottom: 12, width: "90%" }}
+          style={{ height: 40 }}
         />
 
-        {/* Content switches below */}
         {tab === "overview" && (
           <View style={styles.emptyWrap}>
             <Text style={styles.emptyTitle}>Overview</Text>

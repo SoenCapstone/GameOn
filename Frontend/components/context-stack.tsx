@@ -10,6 +10,7 @@ interface ContextStackConfig {
   readonly create?: { name: string; title: string };
   readonly indexName: string;
   readonly extraScreens?: string[];
+  readonly enableSearchBar?: boolean;
 }
 
 const transparentOptions = {
@@ -35,6 +36,7 @@ export function useContextStackScreens({
   create,
   indexName,
   extraScreens = [],
+  enableSearchBar = false,
 }: Readonly<ContextStackConfig>) {
   const { setQuery, setSearchActive } = useSearch();
 
@@ -66,7 +68,7 @@ export function useContextStackScreens({
       name={indexName}
       options={{
         ...backlessOptions,
-        headerSearchBarOptions: searchBarOptions,
+        ...(enableSearchBar && { headerSearchBarOptions: searchBarOptions }),
       }}
     />,
     ...extraScreens.map((name) => (

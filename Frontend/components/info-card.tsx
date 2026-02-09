@@ -1,4 +1,3 @@
-import React from "react";
 import {
   Text,
   View,
@@ -13,8 +12,7 @@ import { IconSymbol } from "@/components/ui/icon-symbol";
 interface InfoCardProps {
   readonly title: string;
   readonly subtitle: string;
-  readonly image?: ImageSourcePropType;
-  readonly logo?: React.ReactNode;
+  readonly image: ImageSourcePropType;
   readonly onPress: () => void;
 }
 
@@ -22,30 +20,14 @@ export function InfoCard({
   title,
   subtitle,
   image,
-  logo,
   onPress,
 }: Readonly<InfoCardProps>) {
-  let contentNode: React.ReactNode;
-  if (logo) {
-    contentNode = logo;
-  } else if (image) {
-    contentNode = (
-      <Image
-        source={image}
-        style={StyleSheet.absoluteFillObject}
-        contentFit="contain"
-      />
-    );
-  } else {
-    contentNode = null;
-  }
-
   return (
     <Pressable onPress={onPress}>
       <Card>
         <View style={styles.card}>
           <View style={styles.content}>
-            <View style={styles.image}>{contentNode}</View>
+            <Image source={image} style={styles.image} contentFit="contain" />
             <View style={styles.text}>
               <Text style={styles.title}>{title}</Text>
               <Text style={styles.subtitle}>{subtitle}</Text>

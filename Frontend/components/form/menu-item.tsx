@@ -7,6 +7,7 @@ interface MenuItemProps {
   readonly options: readonly string[];
   readonly value: string;
   readonly onValueChange: (value: string) => void;
+  readonly disabled?: boolean;
 }
 
 export function MenuItem({
@@ -14,6 +15,7 @@ export function MenuItem({
   options,
   value,
   onValueChange,
+  disabled = false,
 }: Readonly<MenuItemProps>) {
   return (
     <BlurView tint="systemUltraThinMaterialDark" style={styles.item}>
@@ -22,6 +24,7 @@ export function MenuItem({
         options={options}
         value={value}
         onValueChange={onValueChange}
+        disabled={disabled}
       />
     </BlurView>
   );

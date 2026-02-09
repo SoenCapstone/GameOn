@@ -56,7 +56,8 @@ export const GO_USER_SERVICE_ROUTES = {
   CREATE: buildRoute(VERSIONING.v1, SERVICE.USER, "create"),
   ALL: buildRoute(VERSIONING.v1, SERVICE.USER, "getAllUsers"),
   BY_EMAIL: (email: string) => buildRoute(VERSIONING.v1, SERVICE.USER, email),
-  BY_ID: (userId: string) => buildRoute(VERSIONING.v1, SERVICE.USER, `id/${userId}`),
+  BY_ID: (userId: string) =>
+    buildRoute(VERSIONING.v1, SERVICE.USER, `id/${userId}`),
 };
 
 export const GO_TEAM_SERVICE_ROUTES = {
@@ -70,12 +71,17 @@ export const GO_TEAM_SERVICE_ROUTES = {
   TEAM_INVITES: (teamId: string) =>
     buildRoute(VERSIONING.v1, SERVICE.TEAMS, `invites/${teamId}`),
   USER_INVITES: buildRoute(VERSIONING.v1, SERVICE.TEAMS, "invites"),
+  TEAM_POSTS: (teamId: string) =>
+    buildRoute(VERSIONING.v1, SERVICE.TEAMS, `${teamId}/posts`),
+  DELETE_TEAM_POST: (teamId: string, postId: string) =>
+    buildRoute(VERSIONING.v1, SERVICE.TEAMS, `${teamId}/posts/${postId}`),
 };
 
 export const GO_LEAGUE_SERVICE_ROUTES = {
   ALL: buildRoute(VERSIONING.v1, SERVICE.LEAGUES),
   CREATE: buildRoute(VERSIONING.v1, SERVICE.LEAGUES, "create"),
-  GET: (leagueId: string) => buildRoute(VERSIONING.v1, SERVICE.LEAGUES, leagueId),
+  GET: (leagueId: string) =>
+    buildRoute(VERSIONING.v1, SERVICE.LEAGUES, leagueId),
   TEAMS: (leagueId: string) =>
     buildRoute(VERSIONING.v1, SERVICE.LEAGUES, `${leagueId}/teams`),
   REMOVE_TEAM: (leagueId: string, teamId: string) =>

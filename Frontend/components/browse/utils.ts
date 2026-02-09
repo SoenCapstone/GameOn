@@ -2,6 +2,8 @@ import { SearchResult } from "@/components/browse/constants";
 import { AxiosInstance } from "axios";
 import { useQuery } from "@tanstack/react-query";
 import { createScopedLog } from "@/utils/logger";
+import { ImageSourcePropType } from "react-native";
+import { images } from "@/constants/images";
 import {
   useAxiosWithClerk,
   GO_TEAM_SERVICE_ROUTES,
@@ -10,36 +12,17 @@ import {
 
 const log = createScopedLog("Browse");
 
-// Map common sports to emoji as fallback for missing logos
-export function mapSportToEmoji(sport?: string | null): string {
+export function getSportLogo(sport?: string | null): ImageSourcePropType {
   const s = (sport || "").toLowerCase();
   switch (s) {
     case "soccer":
-    case "football (soccer)":
-    case "futbol":
-      return "⚽";
+      return images.soccerLogo;
     case "basketball":
-      return "🏀";
-    case "baseball":
-      return "⚾";
-    case "american football":
-    case "nfl":
-      return "🏈";
-    case "hockey":
-    case "ice hockey":
-      return "🏒";
-    case "tennis":
-      return "🎾";
-    case "rugby":
-      return "🏉";
+      return images.basketballLogo;
     case "volleyball":
-      return "🏐";
-    case "cricket":
-      return "🏏";
-    case "golf":
-      return "⛳️";
+      return images.volleyballLogo;
     default:
-      return "🏅";
+      return images.defaultLogo;
   }
 }
 
@@ -120,10 +103,13 @@ async function fetchLeagueResults(
   if (onlyMine) params.my = onlyMine;
 
   try {
-    const resp = await api.get<LeagueListResponse>(GO_LEAGUE_SERVICE_ROUTES.ALL, {
-      params,
-      timeout: 5000,
-    });
+    const resp = await api.get<LeagueListResponse>(
+      GO_LEAGUE_SERVICE_ROUTES.ALL,
+      {
+        params,
+        timeout: 5000,
+      },
+    );
     return resp.data;
   } catch (err) {
     log.warn("fetchLeagueResults failed", err);
@@ -148,10 +134,10 @@ export function useTeamResults(query: string, onlyMine?: boolean) {
     name: t.name,
     subtitle: t.sport ? `${t.sport}` : "Team",
     sport: t.sport,
-    logo: t.logoUrl || mapSportToEmoji(t.sport),
+    logo: t.logoUrl ? { uri: t.logoUrl } : getSportLogo(t.sport),
     league: "",
     location: t.location,
-    privacy: t.privacy,
+    privacy: t.privacy ?? undefined,
   }));
 
   return {
@@ -192,10 +178,10 @@ export function useLeagueResults(query: string, onlyMine?: boolean) {
       name: league.name,
       subtitle,
       sport: league.sport,
-      logo: mapSportToEmoji(league.sport),
+      logo: getSportLogo(league.sport),
       league: "",
       location: league.region ?? "",
-      privacy: league.privacy,
+      privacy: league.privacy ?? undefined,
     };
   });
 
