@@ -100,6 +100,9 @@ public class TeamService {
         if (request.location() != null) {
             team.setLocation(trimToNull(request.location()));
         }
+        if (request.allowedRegions() != null) {
+            team.setAllowedRegions(normalizeRegions(request.allowedRegions()));
+        }
 //        if (request.maxRoster() != null) {
 //            validateMaxRoster(request.maxRoster());
 //            var activeCount = teamMemberRepository.countByTeamIdAndStatus(teamId, TeamMemberStatus.ACTIVE);
@@ -232,6 +235,12 @@ public class TeamService {
         requireActiveTeam(teamId);
         var membership = requireActiveMembership(teamId, userId);
         return teamMapper.toMember(membership);
+    }
+
+    @Transactional(readOnly = true)
+    public boolean isMember(UUID teamId, String userId) {
+        requireActiveTeam(teamId);
+        return teamMemberRepository.existsByTeamIdAndUserId(teamId, userId);
     }
 
     @Transactional
@@ -505,6 +514,17 @@ public class TeamService {
         return StringUtils.hasText(value) ? value.trim() : null;
     }
 
+    private List<String> normalizeRegions(List<String> regions) {
+        if (regions == null) {
+            return new java.util.ArrayList<>();
+        }
+        return regions.stream()
+                .map(region -> region == null ? null : region.trim())
+                .filter(region -> region != null && !region.isBlank())
+                .distinct()
+                .collect(java.util.stream.Collectors.toCollection(java.util.ArrayList::new));
+    }
+
     private void validateMaxRoster(Integer maxRoster) {
         if (maxRoster != null && maxRoster <= 0) {
             throw new BadRequestException("maxRoster must be greater than 0");
@@ -514,6 +534,7 @@ public class TeamService {
     private boolean requestEqualsNoChange(TeamUpdateRequest request) {
         return request.name() == null && request.sport() == null
                 && request.logoUrl() == null && request.location() == null
+                && request.allowedRegions() == null
                 && request.privacy() == null;
     }
 
