@@ -1,32 +1,21 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { ContentArea } from "@/components/ui/content-area";
 import {
   ActivityIndicator,
-  FlatList,
-  Pressable,
   RefreshControl,
   StyleSheet,
   Text,
   View,
 } from "react-native";
 import SegmentedControl from "@react-native-segmented-control/segmented-control";
+import { LegendList } from "@legendapp/list";
 import { useRouter } from "expo-router";
 import { useAuth } from "@clerk/clerk-expo";
 import {
   useConversationsQuery,
   useUserDirectory,
 } from "@/features/messaging/hooks";
-import { formatMessageTimestamp } from "@/features/messaging/utils";
-
-type ListRow = {
-  id: string;
-  title: string;
-  subtitle: string;
-  preview: string;
-  timestamp: string;
-  badge?: string;
-  badgeTone?: string;
-};
+import { Chat, type ChatItem } from "@/components/messages/chat";
 
 export default function Messages() {
   const router = useRouter();
@@ -34,6 +23,7 @@ export default function Messages() {
   const { data, isLoading, refetch, isRefetching } = useConversationsQuery();
   const { data: users } = useUserDirectory();
   const [filter, setFilter] = useState<"all" | "direct" | "group">("all");
+  const listRef = useRef<any>(null);
 
   const userMap = useMemo(() => {
     const map = new Map<string, string>();
@@ -44,7 +34,7 @@ export default function Messages() {
     return map;
   }, [users]);
 
-  const listData = useMemo<ListRow[]>(() => {
+  const listData = useMemo<ChatItem[]>(() => {
     if (!data) return [];
     return data
       .filter((conversation) => {
@@ -62,12 +52,7 @@ export default function Messages() {
           : (userMap.get(otherParticipant?.userId ?? "") ?? "Direct message");
         const preview =
           conversation.lastMessage?.content ?? "Start the conversation";
-        const badge = isGroup
-          ? conversation.isEvent
-            ? "Event"
-            : "Team"
-          : undefined;
-        const timestamp = formatMessageTimestamp(
+        const timestamp = new Date(
           conversation.lastMessage?.createdAt ??
             conversation.lastMessageAt ??
             conversation.createdAt,
@@ -82,15 +67,30 @@ export default function Messages() {
             : "Direct message",
           preview,
           timestamp,
-          badge,
-        } satisfies ListRow;
+          group: isGroup,
+        } satisfies ChatItem;
       });
   }, [data, filter, userId, userMap]);
+
+  useEffect(() => {
+    listRef.current?.scrollToIndex({ index: 0, animated: true });
+  }, [listData.length]);
 
   const openConversation = (id: string) => router.push(`/messages/${id}`);
 
   return (
-    <ContentArea backgroundProps={{ preset: "green" }}>
+    <ContentArea
+      scrollable
+      segmentedControl
+      backgroundProps={{ preset: "green" }}
+      refreshControl={
+        <RefreshControl
+          refreshing={isRefetching}
+          onRefresh={refetch}
+          tintColor="white"
+        />
+      }
+    >
       <SegmentedControl
         values={["All", "Direct", "Groups"]}
         selectedIndex={filter === "all" ? 0 : filter === "direct" ? 1 : 2}
@@ -102,7 +102,7 @@ export default function Messages() {
         style={styles.segmented}
       />
 
-      {isLoading ? (
+      {isLoading || isRefetching ? (
         <View style={styles.emptyState}>
           <ActivityIndicator color="white" />
         </View>
@@ -114,48 +114,15 @@ export default function Messages() {
           </Text>
         </View>
       ) : (
-        <FlatList
+        <LegendList
+          ref={listRef}
           data={listData}
           keyExtractor={(item) => item.id}
+          style={{ overflow: "visible" }}
           contentContainerStyle={styles.listContent}
           ItemSeparatorComponent={() => <View style={styles.separator} />}
-          refreshControl={
-            <RefreshControl
-              refreshing={isRefetching}
-              onRefresh={refetch}
-              tintColor="white"
-            />
-          }
           renderItem={({ item }) => (
-            <Pressable
-              onPress={() => openConversation(item.id)}
-              style={styles.row}
-            >
-              <View style={styles.avatar}>
-                <Text style={styles.avatarText}>
-                  {item.title?.[0]?.toUpperCase() ?? "?"}
-                </Text>
-              </View>
-
-              <View style={styles.rowMid}>
-                <Text style={styles.name}>{item.title}</Text>
-                <Text style={styles.preview} numberOfLines={1}>
-                  {item.preview}
-                </Text>
-                {item.badge && (
-                  <View style={styles.badgeRow}>
-                    <View style={styles.badge}>
-                      <Text style={styles.badgeText}>{item.badge}</Text>
-                    </View>
-                  </View>
-                )}
-              </View>
-
-              <View style={styles.rowRight}>
-                <Text style={styles.time}>{item.timestamp}</Text>
-                <Text style={styles.chev}>›</Text>
-              </View>
-            </Pressable>
+            <Chat item={item} onPress={openConversation} />
           )}
         />
       )}
@@ -168,80 +135,18 @@ const styles = StyleSheet.create({
     height: 40,
   },
   listContent: {
-    paddingHorizontal: 18,
-    paddingTop: 6,
-    paddingBottom: 18,
-  },
-  row: {
-    flexDirection: "row",
-    alignItems: "center",
-    paddingVertical: 12,
-  },
-  avatar: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    backgroundColor: "rgba(255,255,255,0.18)",
-    alignItems: "center",
-    justifyContent: "center",
-    marginRight: 12,
-    overflow: "hidden",
-  },
-  avatarText: {
-    color: "white",
-    fontWeight: "700",
-    fontSize: 16,
-  },
-  rowMid: {
-    flex: 1,
-  },
-  name: {
-    color: "white",
-    fontWeight: "700",
-    fontSize: 16,
-    marginBottom: 2,
-  },
-  preview: {
-    color: "rgba(255,255,255,0.65)",
-    fontSize: 13,
-  },
-  rowRight: {
-    alignItems: "flex-end",
-    gap: 4,
-    marginLeft: 10,
-  },
-  time: {
-    color: "rgba(255,255,255,0.75)",
-    fontSize: 12,
-  },
-  chev: {
-    color: "rgba(255,255,255,0.6)",
-    fontSize: 18,
-    marginTop: -4,
+    marginTop: 10,
+    paddingHorizontal: 14,
   },
   separator: {
-    height: 1,
+    height: StyleSheet.hairlineWidth,
+    marginVertical: 18,
     backgroundColor: "rgba(255,255,255,0.10)",
-  },
-  badgeRow: {
-    flexDirection: "row",
-    gap: 6,
-    marginTop: 4,
-  },
-  badge: {
-    paddingHorizontal: 8,
-    paddingVertical: 2,
-    borderRadius: 10,
-    backgroundColor: "rgba(255,255,255,0.18)",
-  },
-  badgeText: {
-    color: "white",
-    fontSize: 10,
-    fontWeight: "600",
   },
   emptyState: {
     alignItems: "center",
-    marginTop: 80,
+    justifyContent: "center",
+    height: 160,
     paddingHorizontal: 24,
   },
   emptyTitle: {
