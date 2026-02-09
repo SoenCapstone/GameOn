@@ -5,6 +5,7 @@ GameOn is a mobile platform that keeps amateur sports leagues organized by combi
 ## Table of Contents
 
 - [📘 Project Summary](#project-summary)
+- [🚀 Deployment](#deployment)
 - [🎬 Release Demos](#release-demos)
 - [👥 Team Members](#team-members)
 - [🏗️ Architecture Overview](#architecture-overview)

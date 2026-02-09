@@ -43,16 +43,6 @@ jest.mock("@/components/info-card", () => {
   };
 });
 
-jest.mock("@/components/svg-image", () => {
-  const mockReact = jest.requireActual("react");
-  const mockText = jest.requireActual("react-native").Text;
-  return {
-    __esModule: true,
-    default: (props: any) =>
-      mockReact.createElement(mockText, { testID: "svg-image" }, props.uri),
-  };
-});
-
 jest.mock("@legendapp/list", () => {
   const mockReact = jest.requireActual("react");
   const mockFlatList = jest.requireActual("react-native").FlatList;
@@ -247,7 +237,9 @@ describe("SearchResultsScreen", () => {
     );
 
     fireEvent.press(getByText("Test Team 1"));
-    const logMock = createScopedLog as jest.MockedFunction<typeof createScopedLog>;
+    const logMock = createScopedLog as jest.MockedFunction<
+      typeof createScopedLog
+    >;
     const log = logMock.mock.results[logMock.mock.results.length - 1].value;
     expect(log.error).toHaveBeenCalledWith("failed to navigate to result", {
       err: expect.any(Error),
@@ -282,14 +274,15 @@ describe("SearchResultsScreen", () => {
     });
 
     const onResultPress = jest.fn();
-    const { getByText, queryByText, getByTestId, queryByTestId, rerender } = render(
-      <SearchResultsScreen
-        logScope="Test"
-        backgroundPreset="blue"
-        modes={defaultModes}
-        onResultPress={onResultPress}
-      />,
-    );
+    const { getByText, queryByText, getByTestId, queryByTestId, rerender } =
+      render(
+        <SearchResultsScreen
+          logScope="Test"
+          backgroundPreset="blue"
+          modes={defaultModes}
+          onResultPress={onResultPress}
+        />,
+      );
 
     expect(getByText(/Failed to load teams/)).toBeTruthy();
     expect(queryByText(/Failed to load leagues/)).toBeNull();
@@ -361,7 +354,9 @@ describe("SearchResultsScreen", () => {
       />,
     );
 
-    const logMock = createScopedLog as jest.MockedFunction<typeof createScopedLog>;
+    const logMock = createScopedLog as jest.MockedFunction<
+      typeof createScopedLog
+    >;
     const log = logMock.mock.results[logMock.mock.results.length - 1].value;
 
     expect(setActiveMode).toHaveBeenCalledWith("teams");

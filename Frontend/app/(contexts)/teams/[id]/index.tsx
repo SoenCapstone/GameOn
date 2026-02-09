@@ -1,19 +1,28 @@
-import React from "react";
-import { View, ActivityIndicator, Text, RefreshControl } from "react-native";
-import { useLocalSearchParams } from "expo-router";
+import { useState, useCallback } from "react";
+import {
+  View,
+  ActivityIndicator,
+  RefreshControl,
+  Alert,
+  Text,
+  StyleSheet,
+} from "react-native";
+import { useLocalSearchParams, useRouter } from "expo-router";
 import { ContentArea } from "@/components/ui/content-area";
+import { Button } from "@/components/ui/button";
+import { getSportLogo } from "@/components/browse/utils";
 import SegmentedControl from "@react-native-segmented-control/segmented-control";
-import { Card } from "@/components/ui/card";
-import { createTeamStyles } from "@/components/teams/teams-styles";
-import { useSearch } from "@/contexts/search-context";
-import { useMockTeamBoard } from "@/components/teams/use-mock-team-board";
 import { useTeamHeader } from "@/hooks/use-team-league-header";
 import {
   TeamDetailProvider,
   useTeamDetailContext,
 } from "@/contexts/team-detail-context";
+import { useTeamBoardPosts, useDeleteBoardPost } from "@/hooks/use-team-board";
+import { BoardList } from "@/components/board/board-list";
+import { errorToString } from "@/utils/error";
+import { createScopedLog } from "@/utils/logger";
 
-export default function TeamScreen() {
+export default function Team() {
   const params = useLocalSearchParams<{ id?: string | string[] }>();
   const rawId = params.id;
   const id = Array.isArray(rawId) ? rawId[0] : (rawId ?? "");
@@ -26,185 +35,139 @@ export default function TeamScreen() {
 }
 
 function TeamContent() {
-  const [tab, setTab] = React.useState<"board" | "overview" | "games">("board");
-  const { query } = useSearch();
-  const { id, isLoading, refreshing, onRefresh, handleFollow, title, isMember } =
-    useTeamDetailContext();
-  const { items, loading: boardLoading } = useMockTeamBoard(id, query);
+  const [tab, setTab] = useState<"board" | "overview" | "games">("board");
+  const [refreshing, setRefreshing] = useState(false);
+  const router = useRouter();
+  const {
+    id,
+    isLoading,
+    onRefresh,
+    handleFollow,
+    title,
+    isMember,
+    role,
+    team,
+  } = useTeamDetailContext();
+  const canPost = role === "OWNER" || role === "COACH" || role === "MANAGER";
+  const log = createScopedLog("Team Page");
+
+  const {
+    data: boardPosts = [],
+    isLoading: postsLoading,
+    refetch: refetchPosts,
+  } = useTeamBoardPosts(id);
+
+  const visiblePosts = isMember
+    ? boardPosts
+    : boardPosts.filter((post) => post.scope === "Everyone");
+
+  const deletePostMutation = useDeleteBoardPost(id);
 
   useTeamHeader({ title, id, isMember, onFollow: handleFollow });
 
-  return (
-    <ContentArea
-      scrollable
-      paddingBottom={60}
-      backgroundProps={{ preset: "red" }}
-      refreshControl={
-        <RefreshControl
-          refreshing={refreshing}
-          onRefresh={onRefresh}
-          tintColor="#fff"
-        />
+  const getTabFromSegmentValue = (
+    value: string,
+  ): "board" | "overview" | "games" => {
+    if (value === "Board") return "board";
+    if (value === "Overview") return "overview";
+    return "games";
+  };
+
+  const getSelectedIndex = (): number => {
+    if (tab === "board") return 0;
+    if (tab === "overview") return 1;
+    return 2;
+  };
+
+  const handleDeletePost = (postId: string) => {
+    Alert.alert("Delete Post", "Are you sure you want to delete this post?", [
+      {
+        text: "Cancel",
+        onPress: () => log.info("Delete post cancelled", { postId }),
+      },
+      {
+        text: "Delete",
+        onPress: async () => {
+          try {
+            await deletePostMutation.mutateAsync(postId);
+            log.info("Post deleted", { postId });
+          } catch (err) {
+            log.error("Failed to delete post", {
+              postId,
+              error: errorToString(err),
+            });
+            Alert.alert("Failed to delete", errorToString(err));
+          }
+        },
+        style: "destructive",
+      },
+    ]);
+  };
+
+  const handleRefresh = useCallback(async () => {
+    try {
+      setRefreshing(true);
+      await onRefresh();
+      if (tab === "board") {
+        await refetchPosts();
+        log.info("Board posts refreshed", { postCount: visiblePosts.length });
+      } else {
+        log.info("Team data refreshed", { tab });
       }
-    >
-      <View style={createTeamStyles.container}>
+    } catch (err) {
+      log.error("Refresh failed", { error: errorToString(err), tab });
+    } finally {
+      setRefreshing(false);
+    }
+  }, [log, onRefresh, refetchPosts, tab, visiblePosts.length]);
+
+  return (
+    <View style={{ flex: 1 }}>
+      <ContentArea
+        scrollable
+        paddingBottom={20}
+        segmentedControl
+        backgroundProps={{ preset: "red" }}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={handleRefresh}
+            tintColor="#fff"
+          />
+        }
+      >
+        <SegmentedControl
+          values={["Board", "Overview", "Games"]}
+          selectedIndex={getSelectedIndex()}
+          onValueChange={(value) => {
+            const newTab = getTabFromSegmentValue(value);
+            setTab(newTab);
+            log.info("Tab changed", { tab: newTab });
+          }}
+          style={{ height: 40 }}
+        />
+
         {isLoading ? (
-          <ActivityIndicator size="small" color="#fff" />
+          <View style={styles.container}>
+            <ActivityIndicator size="small" color="#fff" />
+          </View>
         ) : (
           <>
             {refreshing && <ActivityIndicator size="small" color="#fff" />}
-            <SegmentedControl
-              values={["Board", "Overview", "Games"]}
-              selectedIndex={tab === "board" ? 0 : tab === "overview" ? 1 : 2}
-              onValueChange={(value) => {
-                if (value === "Board") setTab("board");
-                if (value === "Overview") setTab("overview");
-                if (value === "Games") setTab("games");
-              }}
-              style={{ marginBottom: 12, width: "90%" }}
-            />
 
             {tab === "board" && (
-              <View style={createTeamStyles.boardList}>
-                {boardLoading ? (
-                  <ActivityIndicator size="large" color="#fff" />
-                ) : items.length === 0 ? (
-                  <Text style={{ color: "rgba(255,255,255,0.8)" }}>
-                    No board cards (query: &quot;{query}&quot;)
-                  </Text>
-                ) : (
-                  items.map((item) => (
-                    <Card key={item.id}>
-                      <View
-                        style={{
-                          flexDirection: "row",
-                          justifyContent: "space-between",
-                          alignItems: "center",
-                        }}
-                      >
-                        <Text
-                          style={{
-                            color: "rgba(255,255,255,0.85)",
-                            fontSize: 12,
-                          }}
-                        >
-                          {item.category}
-                        </Text>
-
-                        {item.unreadCount > 0 && (
-                          <View
-                            style={{
-                              minWidth: 26,
-                              paddingHorizontal: 8,
-                              paddingVertical: 4,
-                              borderRadius: 999,
-                              backgroundColor: "rgba(255,255,255,0.18)",
-                              alignItems: "center",
-                              justifyContent: "center",
-                            }}
-                          >
-                            <Text
-                              style={{
-                                color: "#fff",
-                                fontSize: 12,
-                                fontWeight: "500",
-                              }}
-                            >
-                              {item.unreadCount}
-                            </Text>
-                          </View>
-                        )}
-                      </View>
-
-                      <Text
-                        style={{
-                          color: "#fff",
-                          fontSize: 16,
-                          fontWeight: "700",
-                          marginTop: 8,
-                        }}
-                      >
-                        {item.title}
-                      </Text>
-
-                      <Text
-                        style={{
-                          color: "rgba(255,255,255,0.75)",
-                          marginTop: 6,
-                          lineHeight: 18,
-                        }}
-                      >
-                        {item.description}
-                      </Text>
-
-                      <View style={{ marginTop: 12, gap: 4 }}>
-                        <Text
-                          style={{
-                            color: "rgba(255,255,255,0.65)",
-                            fontSize: 12,
-                          }}
-                        >
-                          By {item.author}
-                        </Text>
-
-                        <Text
-                          style={{
-                            color: "rgba(255,255,255,0.65)",
-                            fontSize: 12,
-                          }}
-                        >
-                          Posted {new Date(item.createdAt).toLocaleString()}
-                        </Text>
-
-                        {item.dueAt && (
-                          <Text
-                            style={{
-                              color: "rgba(255,255,255,0.65)",
-                              fontSize: 12,
-                            }}
-                          >
-                            Due {new Date(item.dueAt).toLocaleString()}
-                          </Text>
-                        )}
-                      </View>
-
-                      {item.tags.length > 0 && (
-                        <View
-                          style={{
-                            flexDirection: "row",
-                            flexWrap: "wrap",
-                            gap: 8,
-                            marginTop: 12,
-                          }}
-                        >
-                          {item.tags.map((t) => (
-                            <View
-                              key={`${item.id}-${t}`}
-                              style={{
-                                paddingHorizontal: 10,
-                                paddingVertical: 4,
-                                borderRadius: 999,
-                                backgroundColor: "rgba(255,255,255,0.12)",
-                              }}
-                            >
-                              <Text
-                                style={{
-                                  color: "rgba(255,255,255,0.85)",
-                                  fontSize: 12,
-                                }}
-                              >
-                                {t}
-                              </Text>
-                            </View>
-                          ))}
-                        </View>
-                      )}
-
-                      <View style={createTeamStyles.cardSpacer} />
-                    </Card>
-                  ))
-                )}
-              </View>
+              <BoardList
+                posts={visiblePosts}
+                isLoading={postsLoading}
+                spaceName={team?.name ?? title}
+                spaceLogo={
+                  team?.logoUrl
+                    ? { uri: team.logoUrl }
+                    : getSportLogo(team?.sport)
+                }
+                onDeletePost={handleDeletePost}
+                canDelete={canPost}
+              />
             )}
 
             {tab === "overview" && (
@@ -214,10 +177,43 @@ function TeamContent() {
             {tab === "games" && (
               <Text style={{ color: "white" }}>Games content here</Text>
             )}
-
           </>
         )}
-      </View>
-    </ContentArea>
+      </ContentArea>
+
+      {/* Create Post Button */}
+      {canPost && tab === "board" && (
+        <View
+          style={{
+            position: "absolute",
+            bottom: 20,
+            right: 20,
+          }}
+        >
+          <Button
+            type="custom"
+            icon="plus"
+            onPress={() =>
+              router.push({
+                pathname: "/post",
+                params: {
+                  id,
+                  privacy: team?.privacy,
+                },
+              })
+            }
+          />
+        </View>
+      )}
+    </View>
   );
 }
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    minHeight: 200,
+  },
+});
