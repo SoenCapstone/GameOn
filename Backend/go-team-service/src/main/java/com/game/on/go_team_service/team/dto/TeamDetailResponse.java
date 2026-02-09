@@ -16,6 +16,7 @@ public record TeamDetailResponse(
         String slug,
         String logoUrl,
         String location,
+        List<String> allowedRegions,
 //        Integer maxRoster,
         TeamPrivacy privacy,
         boolean archived,
