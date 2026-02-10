@@ -134,9 +134,9 @@ export default function ChatScreen() {
     conversation?.type === "GROUP"
       ? conversation?.name || "Team chat"
       : directDisplayName ||
-      conversation?.name ||
-      otherParticipant?.userId ||
-      "Chat";
+        conversation?.name ||
+        otherParticipant?.userId ||
+        "Chat";
   const headerSubtitle =
     conversation?.type === "GROUP"
       ? conversation.isEvent
@@ -154,9 +154,7 @@ export default function ChatScreen() {
       headerTitle: () => (
         <Header
           left={<Button type="back" />}
-          center={
-            <PageTitle title={headerTitle} subtitle={headerSubtitle} />
-          }
+          center={<PageTitle title={headerTitle} subtitle={headerSubtitle} />}
           right={
             <GlassView style={styles.avatarCircle}>
               <IconSymbol
@@ -175,6 +173,7 @@ export default function ChatScreen() {
     <View style={styles.screen}>
       <ContentArea
         scrollable
+        progressiveBlur
         scrollRef={contentRef as React.RefObject<ScrollView>}
         onContentSizeChange={() => {
           if (status !== "success") return;
@@ -194,9 +193,7 @@ export default function ChatScreen() {
         {showError ? (
           <View style={styles.emptyState}>
             <Text style={styles.emptyTitle}>Unable to load messages</Text>
-            <Text style={styles.emptySubtitle}>
-              {errorToString(error)}
-            </Text>
+            <Text style={styles.emptySubtitle}>{errorToString(error)}</Text>
           </View>
         ) : status === "pending" ? (
           <ActivityIndicator color="white" style={{ marginTop: 40 }} />
@@ -232,9 +229,7 @@ export default function ChatScreen() {
                   tintColor={item.fromMe ? "#1B5E2B" : "#2C2C2E"}
                 >
                   {!item.fromMe && (
-                    <Text style={styles.senderLabel}>
-                      {item.senderLabel}
-                    </Text>
+                    <Text style={styles.senderLabel}>{item.senderLabel}</Text>
                   )}
                   <Text style={styles.bubbleText}>{item.text}</Text>
                   <Text style={styles.timestamp}>{item.timestamp}</Text>
@@ -245,13 +240,12 @@ export default function ChatScreen() {
         )}
       </ContentArea>
 
-      <KeyboardStickyView offset={{ closed: -composerBottomInset, opened: -15 }}>
+      <KeyboardStickyView
+        offset={{ closed: -composerBottomInset, opened: -15 }}
+      >
         <View style={styles.composerContainer}>
           <View style={styles.composer}>
-            <GlassView
-              isInteractive={true}
-              style={styles.inputWrap}
-            >
+            <GlassView isInteractive={true} style={styles.inputWrap}>
               <TextInput
                 value={text}
                 onChangeText={setText}
