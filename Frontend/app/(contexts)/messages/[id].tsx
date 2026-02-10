@@ -1,21 +1,20 @@
-import { useMemo, useState, useEffect } from "react";
+import { useLayoutEffect, useMemo, useRef, useState, useEffect } from "react";
 import { ContentArea } from "@/components/ui/content-area";
 import {
   ActivityIndicator,
   Alert,
-  FlatList,
-  KeyboardAvoidingView,
-  Platform,
   Pressable,
   StyleSheet,
   Text,
   TextInput,
   View,
 } from "react-native";
-import { useLocalSearchParams, useRouter } from "expo-router";
+import { KeyboardStickyView } from "react-native-keyboard-controller";
+import { LegendList } from "@legendapp/list";
+import { useLocalSearchParams } from "expo-router";
+import { useNavigation } from "@react-navigation/native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useAuth } from "@clerk/clerk-expo";
-import { useBottomTabBarHeight } from "@react-navigation/bottom-tabs";
 import {
   useConversationsQuery,
   useMessagesQuery,
@@ -27,6 +26,11 @@ import {
   formatMessageTimestamp,
 } from "@/features/messaging/utils";
 import { errorToString } from "@/utils/error";
+import { Header } from "@/components/header/header";
+import { PageTitle } from "@/components/header/page-title";
+import { Button } from "@/components/ui/button";
+import { IconSymbol } from "@/components/ui/icon-symbol";
+import { GlassView } from "expo-glass-effect";
 
 type DisplayMessage = {
   id: string;
@@ -36,23 +40,10 @@ type DisplayMessage = {
   timestamp: string;
 };
 
-const TAB_BAR_FALLBACK_HEIGHT = 0;
-
-const useOptionalTabBarHeight = () => {
-  try {
-    return useBottomTabBarHeight();
-  } catch {
-    return TAB_BAR_FALLBACK_HEIGHT;
-  }
-};
-
 export default function ChatScreen() {
-  const router = useRouter();
+  const listRef = useRef<any>(null);
   const insets = useSafeAreaInsets();
-  const tabBarHeight = useOptionalTabBarHeight();
   const composerBottomInset = Math.max(insets.bottom, 8);
-  const composerPaddingBottom = composerBottomInset + tabBarHeight + 8;
-  const keyboardOffset = tabBarHeight + 20;
   const { id } = useLocalSearchParams<{ id: string }>();
   const { userId } = useAuth();
   const { data: conversations } = useConversationsQuery();
@@ -132,9 +123,9 @@ export default function ChatScreen() {
     conversation?.type === "GROUP"
       ? conversation?.name || "Team chat"
       : directDisplayName ||
-        conversation?.name ||
-        otherParticipant?.userId ||
-        "Chat";
+      conversation?.name ||
+      otherParticipant?.userId ||
+      "Chat";
   const headerSubtitle =
     conversation?.type === "GROUP"
       ? conversation.isEvent
@@ -144,180 +135,146 @@ export default function ChatScreen() {
 
   const showError = status === "error";
 
+  const isGroup = conversation?.type === "GROUP";
+  const navigation = useNavigation();
+
+  useLayoutEffect(() => {
+    navigation.setOptions({
+      headerTitle: () => (
+        <Header
+          left={<Button type="back" />}
+          center={
+            <PageTitle title={headerTitle} subtitle={headerSubtitle} />
+          }
+          right={
+            <GlassView style={styles.avatarCircle}>
+              <IconSymbol
+                name={isGroup ? "person.2.fill" : "person.fill"}
+                color="white"
+                size={isGroup ? 24 : 18}
+              />
+            </GlassView>
+          }
+        />
+      ),
+    });
+  }, [navigation, headerTitle, headerSubtitle, isGroup]);
+
   return (
-    <ContentArea backgroundProps={{ preset: "green" }}>
-      <KeyboardAvoidingView
-        style={styles.screen}
-        behavior={Platform.OS === "ios" ? "padding" : undefined}
-        keyboardVerticalOffset={keyboardOffset}
-      >
-        <View style={styles.screen}>
-          <View style={[styles.header, { paddingTop: insets.top + 8 }]}>
-            <Pressable
-              onPress={() => router.back()}
-              style={styles.circleBtn}
-              accessibilityLabel="Back"
-            >
-              <Text style={styles.circleIcon}>‹</Text>
-            </Pressable>
+    <View style={styles.screen}>
+      <ContentArea scrollable paddingBottom={composerBottomInset} backgroundProps={{ preset: "green", mode: "form" }}>
+        {conversation?.isEvent && (
+          <Text style={styles.infoText}>
+            Event chats are locked; only original members can participate.
+          </Text>
+        )}
 
-            <View style={styles.avatarCircle}>
-              <Text style={styles.avatarLetter}>
-                {headerTitle[0]?.toUpperCase() ?? "?"}
-              </Text>
-            </View>
-
-            <View style={styles.headerText}>
-              <Text style={styles.headerTitle} numberOfLines={1}>
-                {headerTitle}
-              </Text>
-              <Text style={styles.headerSub} numberOfLines={1}>
-                {headerSubtitle}
-              </Text>
-              {conversation?.isEvent && (
-                <View style={styles.badge}>
-                  <Text style={styles.badgeText}>Membership locked</Text>
-                </View>
-              )}
-            </View>
-
-            <View style={{ width: 44 }} />
-          </View>
-
-          {conversation?.isEvent && (
-            <Text style={styles.infoText}>
-              Event chats are locked; only original members can participate.
+        {showError ? (
+          <View style={styles.emptyState}>
+            <Text style={styles.emptyTitle}>Unable to load messages</Text>
+            <Text style={styles.emptySubtitle}>
+              {errorToString(error)}
             </Text>
-          )}
+          </View>
+        ) : status === "pending" ? (
+          <ActivityIndicator color="white" style={{ marginTop: 40 }} />
+        ) : (
+          <LegendList
+            ref={listRef}
+            data={displayMessages}
+            keyExtractor={(m) => m.id}
+            style={styles.list}
+            ListHeaderComponent={() =>
+              hasNextPage ? (
+                <Pressable
+                  style={styles.loadMore}
+                  onPress={() => fetchNextPage()}
+                >
+                  {isFetchingNextPage ? (
+                    <ActivityIndicator color="white" />
+                  ) : (
+                    <Text style={styles.loadMoreText}>Load previous</Text>
+                  )}
+                </Pressable>
+              ) : null
+            }
+            renderItem={({ item }) => (
+              <View
+                style={[
+                  styles.bubbleRow,
+                  item.fromMe ? styles.right : styles.left,
+                ]}
+              >
+                <GlassView
+                  style={styles.bubble}
+                  tintColor={item.fromMe ? "#1B5E2B" : "#2C2C2E"}
+                >
+                  {!item.fromMe && (
+                    <Text style={styles.senderLabel}>
+                      {item.senderLabel}
+                    </Text>
+                  )}
+                  <Text style={styles.bubbleText}>{item.text}</Text>
+                  <Text style={styles.timestamp}>{item.timestamp}</Text>
+                </GlassView>
+              </View>
+            )}
+          />
+        )}
+      </ContentArea>
 
-          {showError ? (
-            <View style={styles.emptyState}>
-              <Text style={styles.emptyTitle}>Unable to load messages</Text>
-              <Text style={styles.emptySubtitle}>{errorToString(error)}</Text>
-            </View>
-          ) : status === "pending" ? (
-            <ActivityIndicator color="white" style={{ marginTop: 40 }} />
-          ) : (
-            <FlatList
-              data={displayMessages}
-              keyExtractor={(m) => m.id}
-              contentContainerStyle={styles.list}
-              ListHeaderComponent={() =>
-                hasNextPage ? (
-                  <Pressable
-                    style={styles.loadMore}
-                    onPress={() => fetchNextPage()}
-                  >
-                    {isFetchingNextPage ? (
-                      <ActivityIndicator color="white" />
-                    ) : (
-                      <Text style={styles.loadMoreText}>Load previous</Text>
-                    )}
-                  </Pressable>
-                ) : null
-              }
-              renderItem={({ item }) => (
-                <View>
-                  <View
-                    style={[
-                      styles.bubble,
-                      item.fromMe ? styles.bubbleMe : styles.bubbleThem,
-                      item.fromMe ? styles.right : styles.left,
-                    ]}
-                  >
-                    {!item.fromMe && (
-                      <Text style={styles.senderLabel}>{item.senderLabel}</Text>
-                    )}
-                    <Text style={styles.bubbleText}>{item.text}</Text>
-                    <Text style={styles.timestamp}>{item.timestamp}</Text>
-                  </View>
-                </View>
-              )}
-            />
-          )}
-
-          <View
-            style={[
-              styles.composerContainer,
-              {
-                paddingBottom: composerPaddingBottom,
-              },
-            ]}
-          >
-            <View style={styles.composer}>
+      <KeyboardStickyView offset={{ closed: -composerBottomInset, opened: -15 }}>
+        <View style={styles.composerContainer}>
+          <View style={styles.composer}>
+            <GlassView
+              isInteractive={true}
+              style={styles.inputWrap}
+            >
               <TextInput
                 value={text}
                 onChangeText={setText}
                 placeholder="Message"
-                placeholderTextColor="rgba(255,255,255,0.35)"
+                placeholderTextColor="rgba(255,255,255,0.4)"
                 style={styles.input}
                 editable={!sending}
+                selectionColor="white"
               />
+            </GlassView>
 
-              <Pressable
+            <Pressable
+              onPress={handleSend}
+              disabled={sending}
+              accessibilityLabel="Send message"
+            >
+              <GlassView
+                glassEffectStyle="regular"
+                isInteractive={true}
                 style={styles.sendBtn}
-                onPress={handleSend}
-                disabled={sending}
-                accessibilityLabel="Send message"
               >
-                <Text style={styles.sendText}>{sending ? "..." : "Send"}</Text>
-              </Pressable>
-            </View>
+                <IconSymbol
+                  name="arrow.up"
+                  size={22}
+                  color="white"
+                  style={styles.sendIcon}
+                />
+              </GlassView>
+            </Pressable>
           </View>
         </View>
-      </KeyboardAvoidingView>
-    </ContentArea>
+      </KeyboardStickyView>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
   screen: { flex: 1 },
-  header: {
-    paddingHorizontal: 16,
-    paddingBottom: 10,
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 12,
-  },
-  circleBtn: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    backgroundColor: "rgba(255,255,255,0.16)",
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  circleIcon: {
-    color: "white",
-    fontSize: 22,
-    fontWeight: "700",
-    marginTop: -2,
-  },
   avatarCircle: {
     width: 44,
     height: 44,
     borderRadius: 22,
-    backgroundColor: "rgba(255,255,255,0.22)",
     alignItems: "center",
     justifyContent: "center",
   },
-  avatarLetter: { color: "white", fontWeight: "800", fontSize: 18 },
-  headerText: { flex: 1 },
-  headerTitle: { color: "white", fontSize: 18, fontWeight: "800" },
-  headerSub: {
-    color: "rgba(255,255,255,0.65)",
-    fontSize: 13,
-    marginTop: 2,
-  },
-  badge: {
-    marginTop: 6,
-    alignSelf: "flex-start",
-    paddingHorizontal: 10,
-    paddingVertical: 2,
-    borderRadius: 10,
-    backgroundColor: "rgba(255,255,255,0.18)",
-  },
-  badgeText: { color: "white", fontWeight: "600", fontSize: 12 },
   infoText: {
     textAlign: "center",
     color: "rgba(255,255,255,0.55)",
@@ -325,68 +282,69 @@ const styles = StyleSheet.create({
     marginBottom: 10,
     fontWeight: "600",
   },
-  list: { paddingHorizontal: 14, paddingBottom: 10 },
-  bubble: {
+  list: { flex: 1, overflow: "visible" },
+  bubbleRow: {
     maxWidth: "80%",
+    marginBottom: 10,
+  },
+  bubble: {
     paddingVertical: 10,
     paddingHorizontal: 14,
     borderRadius: 18,
-    marginBottom: 10,
   },
-  bubbleMe: { backgroundColor: "rgba(255,255,255,0.20)" },
-  bubbleThem: { backgroundColor: "rgba(0,0,0,0.18)" },
-  right: { alignSelf: "flex-end", borderTopRightRadius: 6 },
-  left: { alignSelf: "flex-start", borderTopLeftRadius: 6 },
+  right: { alignSelf: "flex-end" },
+  left: { alignSelf: "flex-start" },
   senderLabel: {
     color: "rgba(255,255,255,0.7)",
     fontSize: 11,
     marginBottom: 2,
+    fontWeight: "500",
   },
   bubbleText: { color: "white", fontSize: 16 },
   timestamp: {
-    color: "rgba(255,255,255,0.5)",
+    color: "rgba(255,255,255,0.45)",
     fontSize: 11,
     marginTop: 4,
     textAlign: "right",
   },
   composerContainer: {
-    paddingHorizontal: 20,
+    position: "absolute",
+    bottom: 0,
+    left: 0,
+    right: 0,
+    paddingHorizontal: 16,
     paddingTop: 8,
   },
   composer: {
     flexDirection: "row",
     alignItems: "center",
-    paddingHorizontal: 18,
-    paddingVertical: 10,
-    gap: 14,
-    backgroundColor: "rgba(0,0,0,0.45)",
-    borderRadius: 32,
-    shadowColor: "#000",
-    shadowOpacity: 0.25,
-    shadowRadius: 16,
-    shadowOffset: { width: 0, height: 6 },
-    elevation: 6,
+    gap: 10,
+  },
+  inputWrap: {
+    flex: 1,
+    height: 48,
+    borderRadius: 100,
+    backgroundColor: "transparent",
+    paddingHorizontal: 20,
+    flexDirection: "row",
+    alignItems: "center",
   },
   input: {
     flex: 1,
-    minHeight: 48,
-    borderRadius: 24,
-    paddingHorizontal: 18,
-    paddingVertical: 10,
+    fontSize: 17,
     color: "white",
-    backgroundColor: "rgba(255,255,255,0.12)",
-    fontSize: 16,
   },
   sendBtn: {
-    height: 48,
-    minWidth: 68,
-    paddingHorizontal: 18,
-    borderRadius: 24,
-    backgroundColor: "rgba(0,0,0,0.7)",
-    alignItems: "center",
+    width: 44,
+    height: 44,
+    borderRadius: 100,
+    backgroundColor: "transparent",
     justifyContent: "center",
+    alignItems: "center",
   },
-  sendText: { color: "white", fontWeight: "800", fontSize: 15 },
+  sendIcon: {
+    alignSelf: "center",
+  },
   loadMore: {
     paddingVertical: 12,
     alignItems: "center",

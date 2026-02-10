@@ -31,7 +31,8 @@ export default function MessagesLayout() {
         <Stack.Screen
           name="[id]"
           options={{
-            headerShown: false,
+            headerBackVisible: false,
+            headerTransparent: true,
           }}
         />
       </Stack>
