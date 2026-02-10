@@ -55,6 +55,12 @@ public class Team {
 
     private String location;
 
+    @Builder.Default
+    @ElementCollection
+    @CollectionTable(name = "team_allowed_regions", joinColumns = @JoinColumn(name = "team_id"))
+    @Column(name = "region", length = 100)
+    private List<String> allowedRegions = new ArrayList<>();
+
 //    @Column(name = "max_roster")
 //    private Integer maxRoster;
 

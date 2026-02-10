@@ -4,6 +4,8 @@ import com.game.on.go_team_service.team.model.TeamPrivacy;
 import jakarta.validation.constraints.Positive;
 import jakarta.validation.constraints.Size;
 
+import java.util.List;
+
 public record TeamUpdateRequest(
         @Size(max = 150, message = "name cannot exceed 150 characters")
         String name,
@@ -16,6 +18,7 @@ public record TeamUpdateRequest(
         String logoUrl,
         @Size(max = 255, message = "location cannot exceed 255 characters")
         String location,
+        List<@Size(max = 100, message = "allowedRegions entries cannot exceed 100 characters") String> allowedRegions,
 //        @Positive(message = "maxRoster must be greater than 0")
 //        Integer maxRoster,
         TeamPrivacy privacy
