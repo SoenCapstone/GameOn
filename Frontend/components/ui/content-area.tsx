@@ -20,6 +20,10 @@ interface ContentAreaProps {
   readonly style?: StyleProp<ViewStyle>;
   readonly auth?: boolean;
   readonly refreshControl?: ReactElement<RefreshControlProps>;
+  readonly scrollRef?: React.RefObject<React.ComponentRef<typeof KeyboardAwareScrollView>>;
+  readonly onContentSizeChange?: ComponentProps<
+    typeof KeyboardAwareScrollView
+  >["onContentSizeChange"];
 }
 
 export function ContentArea({
@@ -31,6 +35,8 @@ export function ContentArea({
   style,
   auth,
   refreshControl,
+  scrollRef,
+  onContentSizeChange,
 }: Readonly<ContentAreaProps>) {
   const headerHeight = useHeaderHeight();
   const insets = useSafeAreaInsets();
@@ -46,6 +52,9 @@ export function ContentArea({
           paddingBottom: insets.bottom + (paddingBottom ?? 0),
           gap: 14,
         }}
+        {...(scrollable
+          ? { ref: scrollRef, onContentSizeChange }
+          : {})}
         style={[
           styles.content,
           {
