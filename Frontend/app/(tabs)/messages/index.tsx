@@ -135,7 +135,7 @@ const styles = StyleSheet.create({
     height: 40,
   },
   listContent: {
-    marginTop: 10,
+    marginTop: 8,
     paddingHorizontal: 14,
   },
   separator: {
