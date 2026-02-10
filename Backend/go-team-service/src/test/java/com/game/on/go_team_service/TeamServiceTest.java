@@ -9,9 +9,7 @@ import com.game.on.go_team_service.team.dto.*;
 import com.game.on.go_team_service.team.mapper.TeamMapper;
 import com.game.on.go_team_service.team.metrics.TeamMetricsPublisher;
 import com.game.on.go_team_service.team.model.*;
-import com.game.on.go_team_service.team.repository.TeamInviteRepository;
-import com.game.on.go_team_service.team.repository.TeamMemberRepository;
-import com.game.on.go_team_service.team.repository.TeamRepository;
+import com.game.on.go_team_service.team.repository.*;
 import com.game.on.go_team_service.team.service.TeamService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -33,6 +31,9 @@ class TeamServiceTest {
     @Mock TeamRepository teamRepository;
     @Mock TeamMemberRepository teamMemberRepository;
     @Mock TeamInviteRepository teamInviteRepository;
+    @Mock PlayRepository playRepository;
+    @Mock PlayNodeRepository playNodeRepository;
+    @Mock PlayEdgeRepository playEdgeRepository;
     @Mock UserClient userClient;
     @Mock CurrentUserProvider userProvider;
     @Mock TeamMapper teamMapper;
@@ -46,7 +47,7 @@ class TeamServiceTest {
 
     @BeforeEach
     void setup() {
-        when(userProvider.clerkUserId()).thenReturn(callerUserId);
+        lenient().when(userProvider.clerkUserId()).thenReturn(callerUserId);
     }
 
     @Test
@@ -293,4 +294,77 @@ class TeamServiceTest {
         assertNotNull(invite.getRespondedAt());
         assertEquals(callerUserId, invite.getInviteeUserId());
     }
+
+    @Test
+    void createPlay_happyPath_savesPlayNodesAndEdges_andReturnsPlayId() {
+        UUID n1 = UUID.randomUUID();
+        UUID n2 = UUID.randomUUID();
+        UUID edgeId = UUID.randomUUID();
+
+        PersonNodeDTO node1 = new PersonNodeDTO(n1, 10.0, 20.0, 32.0, "user_aaa");
+        PersonNodeDTO node2 = new PersonNodeDTO(n2, 30.0, 40.0, 28.0, null);
+
+        ArrowDTO arrow = new ArrowDTO(
+                edgeId,
+                new NodeRefDTO(n1),
+                new NodeRefDTO(n2)
+        );
+
+        List<PlayItemDTO> items = List.of(node1, node2, arrow);
+
+        ArgumentCaptor<Play> playCaptor = ArgumentCaptor.forClass(Play.class);
+        ArgumentCaptor<List<PlayNode>> nodeListCaptor = ArgumentCaptor.forClass(List.class);
+        ArgumentCaptor<List<PlayEdge>> edgeListCaptor = ArgumentCaptor.forClass(List.class);
+
+        when(playNodeRepository.saveAll(anyList())).thenAnswer(inv -> inv.getArgument(0));
+        when(playEdgeRepository.saveAll(anyList())).thenAnswer(inv -> inv.getArgument(0));
+
+        UUID playId = teamService.createPlay(items);
+
+        verify(playRepository).save(playCaptor.capture());
+        Play savedPlay = playCaptor.getValue();
+
+        assertNotNull(playId);
+        assertEquals(savedPlay.getId(), playId);
+
+        verify(playNodeRepository).saveAll(nodeListCaptor.capture());
+        List<PlayNode> savedNodes = nodeListCaptor.getValue();
+        assertEquals(2, savedNodes.size());
+
+        Map<UUID, PlayNode> nodeById = new HashMap<>();
+        for (PlayNode pn : savedNodes) nodeById.put(pn.getId(), pn);
+
+        PlayNode savedN1 = nodeById.get(n1);
+        PlayNode savedN2 = nodeById.get(n2);
+
+        assertNotNull(savedN1);
+        assertNotNull(savedN2);
+
+        assertEquals(savedPlay, savedN1.getPlay());
+        assertEquals(savedPlay, savedN2.getPlay());
+
+        assertEquals(PlayMakerShapeType.PERSON, savedN1.getType());
+        assertEquals(PlayMakerShapeType.PERSON, savedN2.getType());
+
+        assertEquals(10.0, savedN1.getX());
+        assertEquals(20.0, savedN1.getY());
+        assertEquals(32.0, savedN1.getSize());
+        assertEquals("user_aaa", savedN1.getAssociatedPlayerId());
+
+        assertEquals(30.0, savedN2.getX());
+        assertEquals(40.0, savedN2.getY());
+        assertEquals(28.0, savedN2.getSize());
+        assertNull(savedN2.getAssociatedPlayerId());
+
+        verify(playEdgeRepository).saveAll(edgeListCaptor.capture());
+        List<PlayEdge> savedEdges = edgeListCaptor.getValue();
+        assertEquals(1, savedEdges.size());
+
+        PlayEdge e = savedEdges.get(0);
+        assertEquals(edgeId, e.getId());
+        assertEquals(savedPlay, e.getPlay());
+        assertSame(savedN1, e.getFrom());
+        assertSame(savedN2, e.getTo());
+    }
+
 }

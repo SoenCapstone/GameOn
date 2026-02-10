@@ -98,4 +98,9 @@ public class TeamController {
     public ResponseEntity<TeamMemberResponse> demoteSelf(@PathVariable String userId, @PathVariable UUID teamId) {
         return ResponseEntity.ok(teamService.demoteSelfToPlayer(teamId, userId));
     }
+
+    @PostMapping("/{teamId}/play-maker")
+    public ResponseEntity<UUID> createPlay(@Valid @RequestBody List<PlayItemDTO> items) {
+        return ResponseEntity.status(201).body(teamService.createPlay(items));
+    }
 }
