@@ -78,6 +78,9 @@ public class League {
     @Column(name = "archived_at")
     private OffsetDateTime archivedAt;
 
+    @Column(name = "logo_url")
+    private String logoUrl;
+
     public boolean isArchived() {
         return archivedAt != null;
     }

@@ -1,6 +1,6 @@
 spring:
   datasource:
-    url: jdbc:postgresql://${DB_HOST:postgres_db}:${DB_PORT:5432}/${DB_NAME:gameon_db}
+    url: jdbc:postgresql://${DB_HOST:localhost}:${DB_PORT:5432}/${DB_NAME:gameon_db}
     username: ${DB_USER:username}
     password: ${DB_PASSWORD:password}
     driver-class-name: org.postgresql.Driver
@@ -68,3 +68,11 @@ management:
     web:
       exposure:
         include: health,info,metrics
+
+
+aws:
+  region: ${AWS_REGION:us-east-1}
+  endpoint:
+    url: ${AWS_ENDPOINT_URL:}
+  s3:
+    bucket: gameon-db

@@ -120,8 +120,12 @@ services:
       DB_USER: username
       DB_PASSWORD: password
       CLERK_URL: ${CLERK_URL}
+      AWS_ACCESS_KEY_ID: ${AWS_ACCESS_KEY_ID}
+      AWS_SECRET_ACCESS_KEY: ${AWS_SECRET_ACCESS_KEY}
+      AWS_REGION: ${AWS_REGION:-us-east-1}
+      AWS_S3_BUCKET: ${AWS_S3_BUCKET:-gameon-db}
     ports:
-      - "8092:8092"
+      - "8094:8094"
     depends_on:
       go-user-service:
         condition: service_started
@@ -131,7 +135,7 @@ services:
     networks:
       - backend
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8092/actuator/health"]
+      test: ["CMD", "curl", "-f", "http://localhost:8094/actuator/health"]
       interval: 10s       # how often to check
       timeout: 3s         # give the endpoint 3s to respond
       retries: 5          # mark as unhealthy after 5 failures
@@ -155,6 +159,10 @@ services:
       STRIPE_SECRET_KEY: ${STRIPE_SECRET_KEY}
       STRIPE_WEBHOOK_SECRET: ${STRIPE_WEBHOOK_SECRET}
       CLERK_URL: ${CLERK_URL}
+      AWS_ACCESS_KEY_ID: ${AWS_ACCESS_KEY_ID}
+      AWS_SECRET_ACCESS_KEY: ${AWS_SECRET_ACCESS_KEY}
+      AWS_REGION: ${AWS_REGION:-us-east-1}
+      AWS_S3_BUCKET: ${AWS_S3_BUCKET:-gameon-db}
 
     ports:
       - "8093:8093"
