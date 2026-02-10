@@ -41,7 +41,8 @@ type DisplayMessage = {
 };
 
 export default function ChatScreen() {
-  const listRef = useRef<any>(null);
+  const contentRef = useRef<any>(null);
+  const hasInitialScroll = useRef(false);
   const insets = useSafeAreaInsets();
   const composerBottomInset = Math.max(insets.bottom, 8);
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -94,6 +95,15 @@ export default function ChatScreen() {
       timestamp: formatMessageTimestamp(msg.createdAt),
     }));
   }, [messages, userId, userMap]);
+
+  useEffect(() => {
+    if (hasInitialScroll.current) return;
+    if (status !== "success" || displayMessages.length === 0) return;
+    requestAnimationFrame(() => {
+      contentRef.current?.scrollToEnd?.({ animated: false });
+    });
+    hasInitialScroll.current = true;
+  }, [status, displayMessages.length]);
 
   const handleSend = async () => {
     if (!id) return;
@@ -162,7 +172,18 @@ export default function ChatScreen() {
 
   return (
     <View style={styles.screen}>
-      <ContentArea scrollable paddingBottom={composerBottomInset} backgroundProps={{ preset: "green", mode: "form" }}>
+      <ContentArea
+        scrollable
+        scrollRef={contentRef}
+        onContentSizeChange={() => {
+          if (status !== "success") return;
+          requestAnimationFrame(() => {
+            contentRef.current?.scrollToEnd?.({ animated: true });
+          });
+        }}
+        paddingBottom={composerBottomInset}
+        backgroundProps={{ preset: "green", mode: "form" }}
+      >
         {conversation?.isEvent && (
           <Text style={styles.infoText}>
             Event chats are locked; only original members can participate.
@@ -180,10 +201,10 @@ export default function ChatScreen() {
           <ActivityIndicator color="white" style={{ marginTop: 40 }} />
         ) : (
           <LegendList
-            ref={listRef}
             data={displayMessages}
             keyExtractor={(m) => m.id}
             style={styles.list}
+            scrollEnabled={false}
             ListHeaderComponent={() =>
               hasNextPage ? (
                 <Pressable
