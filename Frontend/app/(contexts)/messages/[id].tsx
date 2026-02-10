@@ -4,6 +4,7 @@ import {
   ActivityIndicator,
   Alert,
   Pressable,
+  ScrollView,
   StyleSheet,
   Text,
   TextInput,
@@ -41,7 +42,7 @@ type DisplayMessage = {
 };
 
 export default function ChatScreen() {
-  const contentRef = useRef<any>(null);
+  const contentRef = useRef<ScrollView | null>(null);
   const hasInitialScroll = useRef(false);
   const insets = useSafeAreaInsets();
   const composerBottomInset = Math.max(insets.bottom, 8);
@@ -174,7 +175,7 @@ export default function ChatScreen() {
     <View style={styles.screen}>
       <ContentArea
         scrollable
-        scrollRef={contentRef}
+        scrollRef={contentRef as React.RefObject<ScrollView>}
         onContentSizeChange={() => {
           if (status !== "success") return;
           requestAnimationFrame(() => {
