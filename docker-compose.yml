@@ -123,7 +123,7 @@ services:
       AWS_ACCESS_KEY_ID: ${AWS_ACCESS_KEY_ID}
       AWS_SECRET_ACCESS_KEY: ${AWS_SECRET_ACCESS_KEY}
       AWS_REGION: ${AWS_REGION:-us-east-1}
-      AWS_S3_BUCKET: ${AWS_S3_BUCKET:-gameon-team-logos}
+      AWS_S3_BUCKET: ${AWS_S3_BUCKET:-gameon-db}
     ports:
       - "8094:8094"
     depends_on:
@@ -159,6 +159,10 @@ services:
       STRIPE_SECRET_KEY: ${STRIPE_SECRET_KEY}
       STRIPE_WEBHOOK_SECRET: ${STRIPE_WEBHOOK_SECRET}
       CLERK_URL: ${CLERK_URL}
+      AWS_ACCESS_KEY_ID: ${AWS_ACCESS_KEY_ID}
+      AWS_SECRET_ACCESS_KEY: ${AWS_SECRET_ACCESS_KEY}
+      AWS_REGION: ${AWS_REGION:-us-east-1}
+      AWS_S3_BUCKET: ${AWS_S3_BUCKET:-gameon-db}
 
     ports:
       - "8093:8093"

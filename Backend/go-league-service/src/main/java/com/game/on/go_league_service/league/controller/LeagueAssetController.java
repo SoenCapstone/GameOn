@@ -1,7 +1,7 @@
-package com.game.on.go_team_service.team.controller;
+package com.game.on.go_league_service.league.controller;
 
-import com.game.on.go_team_service.team.dto.TeamLogoResponse;
-import com.game.on.go_team_service.team.service.TeamService;
+import com.game.on.go_league_service.league.dto.LeagueLogoResponse;
+import com.game.on.go_league_service.league.service.LeagueService;
 import jakarta.validation.ValidationException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
@@ -16,19 +16,18 @@ import software.amazon.awssdk.auth.credentials.DefaultCredentialsProvider;
 import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.s3.S3Client;
-import software.amazon.awssdk.services.s3.model.ObjectCannedACL;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 
 import java.io.IOException;
 import java.util.UUID;
 
 @RestController
-@RequestMapping("/api/v1/teams")
+@RequestMapping("/api/v1/leagues")
 @RequiredArgsConstructor
-public class TeamAssetController {
+public class LeagueAssetController {
 
-    private final TeamService teamService;
- 
+    private final LeagueService leagueService;
+
     @Value("${aws.s3.bucket}")
     private String bucket;
 
@@ -54,12 +53,12 @@ public class TeamAssetController {
     }
 
     /**
-     * Upload a team logo image. The backend handles S3 upload and DB update.
-     * POST /api/v1/teams/{teamId}/logo with multipart/form-data
+     * Upload a league logo image. The backend handles S3 upload and DB update.
+     * POST /api/v1/leagues/{leagueId}/logo with multipart/form-data
      */
-    @PostMapping("/{teamId}/logo")
-    public ResponseEntity<TeamLogoResponse> uploadTeamLogo(
-            @PathVariable String teamId,
+    @PostMapping("/{leagueId}/logo")
+    public ResponseEntity<LeagueLogoResponse> uploadLeagueLogo(
+            @PathVariable String leagueId,
             @RequestParam("file") MultipartFile file
     ) throws IOException {
         if (file.isEmpty()) {
@@ -80,7 +79,7 @@ public class TeamAssetController {
             }
         }
 
-        String key = String.format("team-logos/%s%s", teamId, ext);
+        String key = String.format("league-logos/%s%s", leagueId, ext);
         byte[] fileBytes = file.getBytes();
 
         // Upload to S3
@@ -100,9 +99,9 @@ public class TeamAssetController {
 
         String publicUrl = String.format("https://%s.s3.%s.amazonaws.com/%s", bucket, region, key);
 
-        // Update team with logo URL in database
-        teamService.updateTeamLogo(UUID.fromString(teamId), publicUrl);
+        // Update league with logo URL in database
+        leagueService.updateLeaugeLogo(UUID.fromString(leagueId), publicUrl);
 
-        return ResponseEntity.ok(new TeamLogoResponse(publicUrl, key));
+        return ResponseEntity.ok(new LeagueLogoResponse(publicUrl, key));
     }
 }
