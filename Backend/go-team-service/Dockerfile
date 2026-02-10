@@ -31,5 +31,5 @@ WORKDIR /app
 COPY --from=build --chown=root:root --chmod=444 /app/go-team-service/target/*.jar /app/app.jar
 
 USER app
-EXPOSE 8092
+EXPOSE 8094
 ENTRYPOINT ["java","-jar","/app/app.jar"]
