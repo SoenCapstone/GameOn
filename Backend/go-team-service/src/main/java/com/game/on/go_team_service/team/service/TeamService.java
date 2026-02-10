@@ -126,6 +126,14 @@ public class TeamService {
     }
 
     @Transactional
+    public void updateTeamLogo(UUID teamId, String logoUrl) {
+        var team = requireActiveTeam(teamId);
+        team.setLogoUrl(logoUrl);
+        teamRepository.save(team);
+        log.info("Team logo updated for teamId {}", teamId);
+    }
+
+    @Transactional
     public void archiveTeam(UUID teamId) {
         String userId = userProvider.clerkUserId();
 

@@ -92,6 +92,9 @@ public class LeagueService {
         if (request.level() != null) {
             league.setLevel(request.level());
         }
+        if (request.logoUrl() != null) {
+            league.setLogoUrl(trimToNull(request.logoUrl()));
+        }
         if (request.privacy() != null) {
             league.setPrivacy(request.privacy());
         }
@@ -373,6 +376,14 @@ public class LeagueService {
         }
         return leagueSeasonRepository.countActiveSeasonsByLeagueIds(leagueIds).stream()
                 .collect(Collectors.toMap(LeagueSeasonCountProjection::getLeagueId, LeagueSeasonCountProjection::getCount));
+    }
+
+    @Transactional
+    public void updateLeaugeLogo(UUID leagueId, String logoUrl) {
+        var team = requireActiveLeague(leagueId);
+        team.setLogoUrl(logoUrl);
+        leagueRepository.save(team);
+        log.info("League logo updated for league ID {}", leagueId);
     }
 
     private String generateUniqueSlug(String name) {
