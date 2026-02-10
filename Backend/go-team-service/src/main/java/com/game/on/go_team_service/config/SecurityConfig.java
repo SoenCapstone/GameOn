@@ -17,14 +17,11 @@ public class SecurityConfig {
                 .csrf(csrf -> csrf.disable())
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(
-                                "/actuator/health",
-                                "/api/v1/teams/**"  // Allow unauthenticated access for testing
+                                "/actuator/health"
                         ).permitAll()
                         .anyRequest().authenticated()
-                );
-        
-        // Only configure OAuth2 JWT if other secured endpoints exist
-        // For now, all endpoints are permitAll, so JWT is not required
+                )
+                .oauth2ResourceServer(oauth2 -> oauth2.jwt(Customizer.withDefaults()));
 
         return http.build();
     }
