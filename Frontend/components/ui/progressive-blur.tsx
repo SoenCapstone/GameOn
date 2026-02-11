@@ -7,7 +7,7 @@ interface ProgressiveBlurProps {
   readonly height?: number;
 }
 
-export function ProgressiveBlur({ height = 120 }: ProgressiveBlurProps) {
+export function ProgressiveBlur({ height = 100 }: ProgressiveBlurProps) {
   return (
     <View style={[styles.container, { height }]} pointerEvents="none">
       <MaskedView
