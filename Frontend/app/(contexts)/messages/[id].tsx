@@ -9,6 +9,8 @@ import {
   Text,
   TextInput,
   View,
+  type TextStyle,
+  type ViewStyle,
 } from "react-native";
 import { KeyboardStickyView } from "react-native-keyboard-controller";
 import { LegendList } from "@legendapp/list";
@@ -46,6 +48,59 @@ type DisplayMessage = {
 type DateSeparatorItem = { type: "date"; id: string; label: string };
 type MessageListItem = { type: "message"; message: DisplayMessage };
 type ListItem = DateSeparatorItem | MessageListItem;
+
+function LoadPreviousHeader({
+  hasNextPage,
+  onLoadPress,
+  isLoading,
+  style,
+  textStyle,
+}: Readonly<{
+  hasNextPage: boolean;
+  onLoadPress: () => void;
+  isLoading: boolean;
+  style: ViewStyle;
+  textStyle: TextStyle;
+}>) {
+  if (!hasNextPage) return null;
+  return (
+    <Pressable style={style} onPress={onLoadPress}>
+      {isLoading ? (
+        <ActivityIndicator color="white" />
+      ) : (
+        <Text style={textStyle}>Load previous</Text>
+      )}
+    </Pressable>
+  );
+}
+
+function ChatScreenHeader({
+  title,
+  subtitle,
+  isGroup,
+  avatarStyle,
+}: Readonly<{
+  title: string;
+  subtitle: string;
+  isGroup: boolean;
+  avatarStyle: ViewStyle;
+}>) {
+  return (
+    <Header
+      left={<Button type="back" />}
+      center={<PageTitle title={title} subtitle={subtitle} />}
+      right={
+        <GlassView style={avatarStyle}>
+          <IconSymbol
+            name={isGroup ? "person.2.fill" : "person.fill"}
+            color="white"
+            size={isGroup ? 24 : 18}
+          />
+        </GlassView>
+      }
+    />
+  );
+}
 
 export default function ChatScreen() {
   const contentRef = useRef<ScrollView | null>(null);
@@ -178,18 +233,11 @@ export default function ChatScreen() {
   useLayoutEffect(() => {
     navigation.setOptions({
       headerTitle: () => (
-        <Header
-          left={<Button type="back" />}
-          center={<PageTitle title={headerTitle} subtitle={headerSubtitle} />}
-          right={
-            <GlassView style={styles.avatarCircle}>
-              <IconSymbol
-                name={isGroup ? "person.2.fill" : "person.fill"}
-                color="white"
-                size={isGroup ? 24 : 18}
-              />
-            </GlassView>
-          }
+        <ChatScreenHeader
+          title={headerTitle}
+          subtitle={headerSubtitle}
+          isGroup={isGroup}
+          avatarStyle={styles.avatarCircle}
         />
       ),
     });
@@ -231,19 +279,14 @@ export default function ChatScreen() {
             }
             style={styles.list}
             scrollEnabled={false}
-            ListHeaderComponent={() =>
-              hasNextPage ? (
-                <Pressable
-                  style={styles.loadMore}
-                  onPress={() => fetchNextPage()}
-                >
-                  {isFetchingNextPage ? (
-                    <ActivityIndicator color="white" />
-                  ) : (
-                    <Text style={styles.loadMoreText}>Load previous</Text>
-                  )}
-                </Pressable>
-              ) : null
+            ListHeaderComponent={
+              <LoadPreviousHeader
+                hasNextPage={hasNextPage}
+                onLoadPress={() => fetchNextPage()}
+                isLoading={isFetchingNextPage}
+                style={styles.loadMore}
+                textStyle={styles.loadMoreText}
+              />
             }
             renderItem={({ item }) =>
               item.type === "date" ? (
@@ -261,9 +304,7 @@ export default function ChatScreen() {
                 >
                   <GlassView
                     style={styles.bubble}
-                    tintColor={
-                      item.message.fromMe ? "#1B5E2B" : "#2C2C2E"
-                    }
+                    tintColor={item.message.fromMe ? "#1B5E2B" : "#2C2C2E"}
                   >
                     {!item.message.fromMe && (
                       <Text style={styles.senderLabel}>
