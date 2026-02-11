@@ -11,17 +11,21 @@ export function LinkItem({
   ...pressableProps
 }: Readonly<LinkItemProps>) {
   return (
-    <Pressable {...pressableProps}>
-      {({ pressed }) => (
-        <BlurView
-          tint={pressed ? "default" : "systemUltraThinMaterialDark"}
-          style={styles.item}
-        >
-          <Text style={styles.label}>{label}</Text>
-          <IconSymbol name="chevron.right" color="#8C8C8C" size={16} />
-        </BlurView>
-      )}
-    </Pressable>
+    <BlurView tint="systemUltraThinMaterialDark" style={styles.item}>
+      <Pressable {...pressableProps} style={styles.pressable}>
+        {({ pressed }) => (
+          <>
+            <Text style={[styles.label, pressed && styles.pressed]}>{label}</Text>
+            <IconSymbol
+              name="chevron.right"
+              color="#8C8C8C"
+              size={16}
+              style={pressed && styles.pressed}
+            />
+          </>
+        )}
+      </Pressable>
+    </BlurView>
   );
 }
 
@@ -33,6 +37,9 @@ const styles = StyleSheet.create({
     overflow: "hidden",
     paddingLeft: 20,
     paddingRight: 20,
+  },
+  pressable: {
+    flex: 1,
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
@@ -41,5 +48,8 @@ const styles = StyleSheet.create({
     color: "white",
     fontSize: 17,
     lineHeight: 22,
+  },
+  pressed: {
+    opacity: 0.7,
   },
 });
