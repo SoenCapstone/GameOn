@@ -44,7 +44,7 @@ function TeamContent() {
     onRefresh,
     handleFollow,
     title,
-    isMember,
+    isActiveMember,
     role,
     team,
   } = useTeamDetailContext();
@@ -57,13 +57,13 @@ function TeamContent() {
     refetch: refetchPosts,
   } = useTeamBoardPosts(id);
 
-  const visiblePosts = isMember
+  const visiblePosts = isActiveMember
     ? boardPosts
     : boardPosts.filter((post) => post.scope === "Everyone");
 
   const deletePostMutation = useDeleteBoardPost(id);
 
-  useTeamHeader({ title, id, isMember, onFollow: handleFollow });
+  useTeamHeader({ title, id, isActiveMember, onFollow: handleFollow });
 
   const getTabFromSegmentValue = (
     value: string,
@@ -171,7 +171,16 @@ function TeamContent() {
             )}
 
             {tab === "overview" && (
-              <Text style={{ color: "white" }}>Overview content here</Text>
+              <View>
+                <Text style={{ color: "white", padding: 16 }}>Overview content here</Text>
+                {canPost && (
+                  <Button
+                    type="custom"
+                    label="Open Playmaker"
+                    onPress={() => router.push(`/playmaker/${id}`)}
+                  />
+                )}
+              </View>
             )}
 
             {tab === "games" && (

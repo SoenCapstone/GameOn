@@ -6,14 +6,14 @@ import { LeagueDetailHeader } from "@/components/leagues/league-detail-header";
 interface UseTeamLeagueHeaderProps {
   title: string;
   id: string;
-  isMember: boolean;
+  isActiveMember: boolean;
   onFollow: () => void;
 }
 
 export function useTeamHeader({
   title,
   id,
-  isMember,
+  isActiveMember,
   onFollow,
 }: UseTeamLeagueHeaderProps) {
   const navigation = useNavigation();
@@ -24,20 +24,20 @@ export function useTeamHeader({
         <TeamDetailHeader
           title={title}
           id={id}
-          isMember={isMember}
+          isActiveMember={isActiveMember}
           onFollow={onFollow}
         />
       );
     }
 
     navigation.setOptions({ headerTitle: renderTeamHeader });
-  }, [navigation, title, id, isMember, onFollow]);
+  }, [navigation, title, id, isActiveMember, onFollow]);
 }
 
 export function useLeagueHeader({
   title,
   id,
-  isMember,
+  isActiveMember,
   onFollow,
 }: UseTeamLeagueHeaderProps) {
   const navigation = useNavigation();
@@ -48,12 +48,12 @@ export function useLeagueHeader({
         <LeagueDetailHeader
           title={title}
           id={id}
-          isMember={isMember}
+          isActiveMember={isActiveMember}
           onFollow={onFollow}
         />
       );
     }
 
     navigation.setOptions({ headerTitle: renderLeagueHeader });
-  }, [navigation, title, id, isMember, onFollow]);
+  }, [navigation, title, id, isActiveMember, onFollow]);
 }

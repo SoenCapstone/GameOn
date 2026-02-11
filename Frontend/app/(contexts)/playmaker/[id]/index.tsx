@@ -2,34 +2,32 @@ import React from "react";
 import { ActivityIndicator, RefreshControl, StyleSheet } from "react-native";
 import { useLocalSearchParams } from "expo-router";
 import { ContentArea } from "@/components/ui/content-area";
-import { useTeamHeader } from "@/hooks/use-team-league-header";
 import {
   TeamDetailProvider,
   useTeamDetailContext,
 } from "@/contexts/team-detail-context";
 import { PlayMakerArea } from "@/components/play-maker/play-maker-area";
 
-export default function MyTeamScreen() {
+export default function PlayMaker() {
   const params = useLocalSearchParams<{ id?: string | string[] }>();
   const rawId = params.id;
   const id = Array.isArray(rawId) ? rawId[0] : (rawId ?? "");
 
   return (
     <TeamDetailProvider id={id}>
-      <MyTeamContent />
+      <PlayMakerContent />
     </TeamDetailProvider>
   );
 }
 
-function MyTeamContent() {
-  const { id, isLoading, refreshing, onRefresh, handleFollow, title, isMember } =
+function PlayMakerContent() {
+  // More attributes regarding team and membership can be taken from the context,
+  // they were excluded as they are currently unused
+  const { isLoading, refreshing, onRefresh } =
     useTeamDetailContext();
-
-  useTeamHeader({ title, id, isMember, onFollow: handleFollow });
 
   return (
     <ContentArea
-      // scrollable
       paddingBottom={60}
       backgroundProps={{ preset: "red" }}
       refreshControl={

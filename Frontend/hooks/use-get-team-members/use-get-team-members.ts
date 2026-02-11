@@ -1,7 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
-import { useAxiosWithClerk } from "../use-axios-clerk";
-import { fetchTeamMembers } from "./utils";
-import { TeamMember } from "./model";
+import { useAxiosWithClerk } from "@/hooks/use-axios-clerk";
+import { fetchTeamMembers } from "@/hooks/use-get-team-members/utils";
+import { TeamMember } from "@/hooks/use-get-team-members/model";
 
 export const useGetTeamMembers = (teamId: string) => {
     const api = useAxiosWithClerk();

@@ -568,7 +568,7 @@ describe("useLeagueDetail", () => {
     expect(mockApi.get).toHaveBeenCalled();
   });
 
-  it("returns isMember as true when user has teams in league", async () => {
+  it("returns isActiveMember as true when user has teams in league", async () => {
     const leagueData = {
       id: "league-1",
       name: "Test League",
@@ -594,11 +594,11 @@ describe("useLeagueDetail", () => {
       expect(result.current.isLoading).toBe(false);
     });
 
-    expect(result.current.isMember).toBe(true);
+    expect(result.current.isActiveMember).toBe(true);
     expect(result.current.myLeagueTeams).toHaveLength(1);
   });
 
-  it("returns isMember as false when user has no teams in league", async () => {
+  it("returns isActiveMember as false when user has no teams in league", async () => {
     const leagueData = {
       id: "league-1",
       name: "Test League",
@@ -615,7 +615,7 @@ describe("useLeagueDetail", () => {
       expect(result.current.isLoading).toBe(false);
     });
 
-    expect(result.current.isMember).toBe(false);
+    expect(result.current.isActiveMember).toBe(false);
     expect(result.current.myLeagueTeams).toHaveLength(0);
   });
 });
