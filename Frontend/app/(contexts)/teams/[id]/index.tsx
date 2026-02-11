@@ -57,10 +57,6 @@ function TeamContent() {
     refetch: refetchPosts,
   } = useTeamBoardPosts(id);
 
-  const visiblePosts = isActiveMember
-    ? boardPosts
-    : boardPosts.filter((post) => post.scope === "Everyone");
-
   const deletePostMutation = useDeleteBoardPost(id);
 
   useTeamHeader({ title, id, isActiveMember, onFollow: handleFollow });
@@ -110,7 +106,7 @@ function TeamContent() {
       await onRefresh();
       if (tab === "board") {
         await refetchPosts();
-        log.info("Board posts refreshed", { postCount: visiblePosts.length });
+        log.info("Board posts refreshed", { postCount: boardPosts.length });
       } else {
         log.info("Team data refreshed", { tab });
       }
@@ -119,7 +115,7 @@ function TeamContent() {
     } finally {
       setRefreshing(false);
     }
-  }, [log, onRefresh, refetchPosts, tab, visiblePosts.length]);
+  }, [log, onRefresh, refetchPosts, tab, boardPosts.length]);
 
   return (
     <View style={{ flex: 1 }}>
@@ -157,7 +153,7 @@ function TeamContent() {
 
             {tab === "board" && (
               <BoardList
-                posts={visiblePosts}
+                posts={boardPosts}
                 isLoading={postsLoading}
                 spaceName={team?.name ?? title}
                 spaceLogo={
