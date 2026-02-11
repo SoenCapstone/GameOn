@@ -12,6 +12,15 @@ import { useUserDirectory } from "@/features/messaging/hooks";
 import { errorToString } from "@/utils/error";
 import { Form } from "@/components/form/form";
 
+function NewMessageHeader() {
+  return (
+    <Header
+      left={<Button type="back" />}
+      center={<PageTitle title="New Message" />}
+    />
+  );
+}
+
 export default function NewMessage() {
   const router = useRouter();
   const navigation = useNavigation();
@@ -23,12 +32,7 @@ export default function NewMessage() {
 
   useLayoutEffect(() => {
     navigation.setOptions({
-      headerTitle: () => (
-        <Header
-          left={<Button type="back" />}
-          center={<PageTitle title="New Message" />}
-        />
-      ),
+      headerTitle: () => <NewMessageHeader />,
       headerSearchBarOptions: {
         hideNavigationBar: false,
         placement: "automatic",
@@ -45,11 +49,11 @@ export default function NewMessage() {
     return (users ?? [])
       .filter((u) => u.id !== userId)
       .filter((u) =>
-        !q
-          ? true
-          : `${u.firstname ?? ""} ${u.lastname ?? ""} ${u.email}`
+        q
+          ? `${u.firstname ?? ""} ${u.lastname ?? ""} ${u.email}`
               .toLowerCase()
-              .includes(q),
+              .includes(q)
+          : true,
       );
   }, [query, users, userId]);
 
