@@ -48,7 +48,7 @@ function TeamContent() {
     role,
     team,
   } = useTeamDetailContext();
-  const canPost = role === "OWNER" || role === "COACH" || role === "MANAGER";
+  const canManage = role === "OWNER" || role === "COACH" || role === "MANAGER";
   const log = createScopedLog("Team Page");
 
   const {
@@ -166,14 +166,14 @@ function TeamContent() {
                     : getSportLogo(team?.sport)
                 }
                 onDeletePost={handleDeletePost}
-                canDelete={canPost}
+                canDelete={canManage}
               />
             )}
 
             {tab === "overview" && (
               <View>
                 <Text style={{ color: "white", padding: 16 }}>Overview content here</Text>
-                {canPost && (
+                {canManage && (
                   <Button
                     type="custom"
                     label="Open Playmaker"
@@ -191,7 +191,7 @@ function TeamContent() {
       </ContentArea>
 
       {/* Create Post Button */}
-      {canPost && tab === "board" && (
+      {canManage && tab === "board" && (
         <View
           style={{
             position: "absolute",
