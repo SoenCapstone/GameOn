@@ -80,14 +80,9 @@ export default function InvitePlayersScreen() {
       return resp.data;
     },
     onSuccess: async () => {
-      await Promise.all([
-        queryClient.invalidateQueries({ queryKey: ["teams"] }),
-        queryClient.invalidateQueries({ queryKey: ["leagues"] }),
-        queryClient.invalidateQueries({ queryKey: ["team-invites", teamId] }),
-        queryClient.invalidateQueries({ queryKey: ["team-members", teamId] }),
-        queryClient.invalidateQueries({ queryKey: ["team-membership"] }),
-        queryClient.invalidateQueries({ queryKey: ["league-memberships"] }),
-      ]);
+      await queryClient.invalidateQueries({
+        queryKey: ["team-invites", teamId],
+      });
       Alert.alert("Invite sent", "The invitation was sent successfully.");
     },
     onError: (err) => {
