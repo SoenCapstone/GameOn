@@ -1,6 +1,6 @@
 import { useLayoutEffect, useState } from "react";
 import { ContentArea } from "@/components/ui/content-area";
-import { ActivityIndicator, Alert, StyleSheet, View } from "react-native";
+import { ActivityIndicator, Alert, View } from "react-native";
 import { Form } from "@/components/form/form";
 import { AccentColors } from "@/constants/colors";
 import { Header } from "@/components/header/header";
