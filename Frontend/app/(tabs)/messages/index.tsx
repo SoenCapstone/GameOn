@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { ContentArea } from "@/components/ui/content-area";
 import {
   ActivityIndicator,
@@ -9,7 +9,12 @@ import {
 } from "react-native";
 import SegmentedControl from "@react-native-segmented-control/segmented-control";
 import { LegendList } from "@legendapp/list";
-import { useRouter } from "expo-router";
+import { useNavigation, useRouter } from "expo-router";
+import { Header } from "@/components/header/header";
+import { Logo } from "@/components/header/logo";
+import { PageTitle } from "@/components/header/page-title";
+import { Button } from "@/components/ui/button";
+import { useMessagingContext } from "@/features/messaging/provider";
 import { useAuth } from "@clerk/clerk-expo";
 import {
   useConversationsQuery,
@@ -19,11 +24,39 @@ import { Chat, type ChatItem } from "@/components/messages/chat";
 
 export default function Messages() {
   const router = useRouter();
+  const navigation = useNavigation();
+  const { socketState } = useMessagingContext();
   const { userId } = useAuth();
   const { data, isLoading, refetch, isRefetching } = useConversationsQuery();
   const { data: users } = useUserDirectory();
   const [filter, setFilter] = useState<"all" | "direct" | "group">("all");
   const listRef = useRef<any>(null);
+
+  const plusRoute =
+    filter === "group" ? "/messages/new/group" : "/messages/new/message";
+
+  useLayoutEffect(() => {
+    navigation.setOptions({
+      headerTitle: () => (
+        <Header
+          left={<Logo />}
+          center={
+            <PageTitle
+              title="Messages"
+              subtitle={socketState !== "connected" ? socketState : undefined}
+            />
+          }
+          right={
+            <Button
+              type="custom"
+              icon="plus"
+              onPress={() => router.push(plusRoute)}
+            />
+          }
+        />
+      ),
+    });
+  }, [navigation, router, filter, plusRoute, socketState]);
 
   const userMap = useMemo(() => {
     const map = new Map<string, string>();
