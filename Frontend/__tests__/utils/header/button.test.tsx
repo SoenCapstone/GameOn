@@ -20,7 +20,7 @@ jest.mock("expo-glass-effect", () => ({
   GlassView: jest.fn(({ children }) => children),
 }));
 
-describe("HeaderButton", () => {
+describe("Button", () => {
   beforeEach(() => {
     jest.clearAllMocks();
   });
@@ -76,7 +76,7 @@ describe("HeaderButton", () => {
       const call = (GlassView as jest.Mock).mock.calls[0][0];
       expect(call.glassEffectStyle).toBe("regular");
       expect(call.isInteractive).toBe(true);
-      expect(call.style.width).toBe(44);
+      expect(call.style.minWidth).toBe(44);
       expect(call.style.height).toBe(44);
     });
 

@@ -14,6 +14,7 @@ public record LeagueSummaryResponse(
         String region,
         LeagueLevel level,
         LeaguePrivacy privacy,
+        String logoUrl,
         long seasonCount,
         OffsetDateTime createdAt,
         OffsetDateTime updatedAt

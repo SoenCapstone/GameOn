@@ -14,8 +14,10 @@ RUN mvn -f common/pom.xml clean install -DskipTests -q \
     && mvn -f go-messaging-service/pom.xml clean package -DskipTests -q
 
 # Runtime Stage
-FROM eclipse-temurin:21-jre-alpine
-RUN addgroup -S app && adduser -S app -G app
+FROM eclipse-temurin:21-jre-jammy
+RUN groupadd --system app \
+ && useradd  --system --gid app --create-home --home-dir /home/app app
+
 WORKDIR /app
 
 # Copy the built JAR from the build stage

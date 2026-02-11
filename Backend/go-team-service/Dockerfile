@@ -15,14 +15,21 @@ RUN mvn -f common/pom.xml clean install -DskipTests -q \
     && mvn -f go-team-service/pom.xml clean package -DskipTests -q
 
 # Runtime Stage
-FROM eclipse-temurin:21-jre-alpine
-RUN apk add --no-cache curl
-RUN addgroup -S app && adduser -S app -G app
+FROM eclipse-temurin:21-jre-jammy
+
+# Install curl
+RUN apt-get update \
+ && apt-get install -y --no-install-recommends curl \
+ && rm -rf /var/lib/apt/lists/*
+ 
+RUN groupadd --system app \
+ && useradd  --system --gid app --create-home --home-dir /home/app app
+ 
 WORKDIR /app
 
 # Copy the built JAR from build stage
 COPY --from=build --chown=root:root --chmod=444 /app/go-team-service/target/*.jar /app/app.jar
 
 USER app
-EXPOSE 8092
+EXPOSE 8094
 ENTRYPOINT ["java","-jar","/app/app.jar"]

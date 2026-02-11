@@ -16,6 +16,7 @@ public record LeagueDetailResponse(
         String ownerUserId,
         LeagueLevel level,
         LeaguePrivacy privacy,
+        String logoUrl,
         long seasonCount,
         OffsetDateTime createdAt,
         OffsetDateTime updatedAt,

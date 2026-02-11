@@ -13,6 +13,8 @@ public record LeagueUpdateRequest(
         String region,
         @Size(max = 255, message = "location cannot exceed 255 characters")
         String location,
+        @Size(max = 350, message = "logoUrl cannot exceed 350 characters")
+        String logoUrl,
         LeagueLevel level,
         LeaguePrivacy privacy
 ) {

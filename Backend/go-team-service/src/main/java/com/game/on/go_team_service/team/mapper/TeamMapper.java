@@ -7,6 +7,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
 import java.time.OffsetDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 import static org.apache.commons.lang.StringUtils.trimToNull;
 
@@ -26,6 +28,7 @@ public class TeamMapper {
                 .slug(slugGenerator.generateUniqueSlug(request.name()))
                 .logoUrl(trimToNull(request.logoUrl()))
                 .location(trimToNull(request.location()))
+                .allowedRegions(normalizeRegions(request.allowedRegions()))
                 .privacy(request.privacy() == null ? TeamPrivacy.PUBLIC : request.privacy())
                 .build();
     }
@@ -62,6 +65,7 @@ public class TeamMapper {
                 team.getSlug(),
                 team.getLogoUrl(),
                 team.getLocation(),
+                new ArrayList<>(team.getAllowedRegions()),
 //                team.getMaxRoster(),
                 team.getPrivacy(),
                 team.isArchived(),
@@ -109,5 +113,16 @@ public class TeamMapper {
                 invite.getExpiresAt(),
                 invite.getRespondedAt()
         );
+    }
+
+    private List<String> normalizeRegions(List<String> regions) {
+        if (regions == null) {
+            return new ArrayList<>();
+        }
+        return regions.stream()
+                .map(region -> region == null ? null : region.trim())
+                .filter(region -> region != null && !region.isBlank())
+                .distinct()
+                .collect(java.util.stream.Collectors.toCollection(ArrayList::new));
     }
 }

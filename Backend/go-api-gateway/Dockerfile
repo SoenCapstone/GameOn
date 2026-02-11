@@ -13,9 +13,14 @@ COPY go-api-gateway/src ./src
 # Build the application
 RUN mvn clean package -DskipTests -q
 
+
 # Runtime Stage
-FROM eclipse-temurin:17-jre-alpine
-RUN addgroup -S app && adduser -S app -G app
+FROM eclipse-temurin:17-jre-jammy
+
+# Create non-root user
+RUN groupadd --system app \
+ && useradd  --system --gid app --create-home --home-dir /home/app app
+
 WORKDIR /app
 
 # Copy the built JAR as root, read-only (no write perms)

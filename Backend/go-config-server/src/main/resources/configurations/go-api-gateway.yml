@@ -19,6 +19,10 @@ spring:
               uri: lb://go-user-service
               predicates:
                 - Path=/api/v1/user/**
+            - id: go-league-referees
+              uri: lb://go-league-service
+              predicates:
+                - Path=/api/v1/referees/**,/api/v1/matches/*/ref-invite/**,/api/v1/matches/*/ref-invite
             - id: go-league-invite-service
               uri: lb://go-league-service
               predicates:
@@ -26,7 +30,7 @@ spring:
             - id: go-team-service
               uri: lb://go-team-service
               predicates:
-                - Path=/api/v1/teams/**,/api/v1/invites/**
+                - Path=/api/v1/teams/**,/api/v1/invites/**,/api/v1/matches/**
             - id: go-league-service
               uri: lb://go-league-service
               predicates:
@@ -45,7 +49,7 @@ spring:
     oauth2:
       resourceserver:
         jwt:
-          issuer-uri: https://one-magpie-92.clerk.accounts.dev
+          issuer-uri: ${CLERK_URL:https://one-magpie-92.clerk.accounts.dev}
 eureka:
   client:
     register-with-eureka: false

@@ -23,7 +23,7 @@ describe("SearchProvider", () => {
       type: "team",
       name: "Alpha Team",
       subtitle: "Soccer Team",
-      logo: "",
+      logo: require("@/assets/images/react-logo.png"),
       sport: "Soccer",
       location: "Toronto",
     },
@@ -32,7 +32,7 @@ describe("SearchProvider", () => {
       type: "league",
       name: "Beta League",
       subtitle: "Soccer League",
-      logo: "",
+      logo: require("@/assets/images/react-logo.png"),
       sport: "Soccer",
       location: "Toronto",
     },
@@ -184,7 +184,7 @@ describe("SearchProvider", () => {
     });
 
     expect(typeof result.current.markRendered).toBe("function");
-    
+
     act(() => {
       result.current.markRendered(100);
       result.current.markRendered(250, {
@@ -224,7 +224,7 @@ describe("SearchProvider", () => {
         type: "team",
         name: "New Team",
         subtitle: "Basketball",
-        logo: "",
+        logo: require("@/assets/images/react-logo.png"),
         sport: "Basketball",
         location: "NYC",
       },

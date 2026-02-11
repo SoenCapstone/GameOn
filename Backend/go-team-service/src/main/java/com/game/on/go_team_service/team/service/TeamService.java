@@ -10,9 +10,7 @@ import com.game.on.go_team_service.team.dto.*;
 import com.game.on.go_team_service.team.mapper.TeamMapper;
 import com.game.on.go_team_service.team.metrics.TeamMetricsPublisher;
 import com.game.on.go_team_service.team.model.*;
-import com.game.on.go_team_service.team.repository.TeamInviteRepository;
-import com.game.on.go_team_service.team.repository.TeamMemberRepository;
-import com.game.on.go_team_service.team.repository.TeamRepository;
+import com.game.on.go_team_service.team.repository.*;
 import com.game.on.common.dto.UserResponse;
 import feign.FeignException;
 import org.springframework.transaction.annotation.Transactional;
@@ -26,10 +24,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
 import java.time.OffsetDateTime;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 import static com.game.on.go_team_service.team.service.TeamSpecifications.*;
 import static java.lang.String.format;
@@ -38,11 +35,18 @@ import static java.lang.String.format;
 @Service
 @RequiredArgsConstructor
 public class TeamService {
+
     private final TeamRepository teamRepository;
 
     private final TeamMemberRepository teamMemberRepository;
 
     private final TeamInviteRepository teamInviteRepository;
+
+    private final PlayRepository playRepository;
+
+    private final PlayNodeRepository playNodeRepository;
+
+    private final PlayEdgeRepository playEdgeRepository;
 
     private final UserClient userClient;
 
@@ -100,6 +104,9 @@ public class TeamService {
         if (request.location() != null) {
             team.setLocation(trimToNull(request.location()));
         }
+        if (request.allowedRegions() != null) {
+            team.setAllowedRegions(normalizeRegions(request.allowedRegions()));
+        }
 //        if (request.maxRoster() != null) {
 //            validateMaxRoster(request.maxRoster());
 //            var activeCount = teamMemberRepository.countByTeamIdAndStatus(teamId, TeamMemberStatus.ACTIVE);
@@ -116,6 +123,14 @@ public class TeamService {
         log.info("Team updated teamId {} byUser {} ", teamId, userId);
 
         return teamMapper.toDetail(saved);
+    }
+
+    @Transactional
+    public void updateTeamLogo(UUID teamId, String logoUrl) {
+        var team = requireActiveTeam(teamId);
+        team.setLogoUrl(logoUrl);
+        teamRepository.save(team);
+        log.info("Team logo updated for teamId {}", teamId);
     }
 
     @Transactional
@@ -232,6 +247,12 @@ public class TeamService {
         requireActiveTeam(teamId);
         var membership = requireActiveMembership(teamId, userId);
         return teamMapper.toMember(membership);
+    }
+
+    @Transactional(readOnly = true)
+    public boolean isMember(UUID teamId, String userId) {
+        requireActiveTeam(teamId);
+        return teamMemberRepository.existsByTeamIdAndUserId(teamId, userId);
     }
 
     @Transactional
@@ -444,6 +465,38 @@ public class TeamService {
         return teamMapper.toMember(saved);
     }
 
+
+    @Transactional
+    public UUID createPlay(List<PlayItemDTO> items) {
+
+        List<PlayItemDTO> safeItems = (items == null) ? List.of() : items;
+
+        List<PersonNodeDTO> nodeDtos = extractNodes(safeItems);
+        List<ArrowDTO> arrowDtos = extractArrows(safeItems);
+
+        validateNodeIdsUnique(nodeDtos);
+        validateArrowsReferenceExistingNodes(arrowDtos, nodeDtos);
+
+        UUID playId = UUID.randomUUID();
+
+        Play play = Play.builder()
+                .id(playId)
+                .build();
+
+        playRepository.save(play);
+
+        List<PlayNode> nodes = mapNodes(play, nodeDtos);
+        playNodeRepository.saveAll(nodes);
+
+        Map<UUID, PlayNode> nodeById = nodes.stream()
+                .collect(Collectors.toMap(PlayNode::getId, Function.identity()));
+
+        List<PlayEdge> edges = mapEdges(play, arrowDtos, nodeById);
+        playEdgeRepository.saveAll(edges);
+
+        return playId;
+    }
+
     private Team requireActiveTeam(UUID teamId) {
         return teamRepository.findByIdAndDeletedAtIsNull(teamId)
                 .orElseThrow(() -> new NotFoundException("Team not found"));
@@ -505,6 +558,17 @@ public class TeamService {
         return StringUtils.hasText(value) ? value.trim() : null;
     }
 
+    private List<String> normalizeRegions(List<String> regions) {
+        if (regions == null) {
+            return new java.util.ArrayList<>();
+        }
+        return regions.stream()
+                .map(region -> region == null ? null : region.trim())
+                .filter(region -> region != null && !region.isBlank())
+                .distinct()
+                .collect(java.util.stream.Collectors.toCollection(java.util.ArrayList::new));
+    }
+
     private void validateMaxRoster(Integer maxRoster) {
         if (maxRoster != null && maxRoster <= 0) {
             throw new BadRequestException("maxRoster must be greater than 0");
@@ -514,6 +578,7 @@ public class TeamService {
     private boolean requestEqualsNoChange(TeamUpdateRequest request) {
         return request.name() == null && request.sport() == null
                 && request.logoUrl() == null && request.location() == null
+                && request.allowedRegions() == null
                 && request.privacy() == null;
     }
 
@@ -521,6 +586,91 @@ public class TeamService {
         if (next == null) return base;
         if (base == null) return next;
         return base.and(next);
+    }
+
+    private List<PersonNodeDTO> extractNodes(List<PlayItemDTO> items) {
+        return items.stream()
+                .filter(PersonNodeDTO.class::isInstance)
+                .map(PersonNodeDTO.class::cast)
+                .toList();
+    }
+
+    private List<ArrowDTO> extractArrows(List<PlayItemDTO> items) {
+        return items.stream()
+                .filter(ArrowDTO.class::isInstance)
+                .map(ArrowDTO.class::cast)
+                .toList();
+    }
+
+    private void validateNodeIdsUnique(List<PersonNodeDTO> nodes) {
+        Set<UUID> seen = new HashSet<>();
+        for (PersonNodeDTO n : nodes) {
+            if (n.id() == null) {
+                throw new IllegalArgumentException("Node id cannot be null");
+            }
+            if (!seen.add(n.id())) {
+                throw new IllegalArgumentException("Duplicate node id: " + n.id());
+            }
+        }
+    }
+
+    private void validateArrowsReferenceExistingNodes(List<ArrowDTO> arrows, List<PersonNodeDTO> nodes) {
+        Set<UUID> nodeIds = nodes.stream()
+                .map(PersonNodeDTO::id)
+                .filter(Objects::nonNull)
+                .collect(Collectors.toSet());
+
+        for (ArrowDTO a : arrows) {
+            if (a.id() == null) {
+                throw new IllegalArgumentException("Arrow id cannot be null");
+            }
+            if (a.from() == null || a.from().id() == null) {
+                throw new IllegalArgumentException("Arrow " + a.id() + " has null from.id");
+            }
+            if (a.to() == null || a.to().id() == null) {
+                throw new IllegalArgumentException("Arrow " + a.id() + " has null to.id");
+            }
+
+            UUID fromId = a.from().id();
+            UUID toId = a.to().id();
+
+            if (fromId.equals(toId)) {
+                throw new IllegalArgumentException("Arrow cannot point to itself: " + a.id());
+            }
+            if (!nodeIds.contains(fromId)) {
+                throw new IllegalArgumentException("Arrow " + a.id() + " references missing from node: " + fromId);
+            }
+            if (!nodeIds.contains(toId)) {
+                throw new IllegalArgumentException("Arrow " + a.id() + " references missing to node: " + toId);
+            }
+        }
+    }
+
+    private List<PlayNode> mapNodes(Play play, List<PersonNodeDTO> nodeDtos) {
+        return nodeDtos.stream()
+                .map(dto -> PlayNode.builder()
+                        .id(dto.id())
+                        .play(play)
+                        .type(PlayMakerShapeType.PERSON)
+                        .associatedPlayerId(dto.associatedPlayerId())
+                        .x(dto.x())
+                        .y(dto.y())
+                        .size(dto.size())
+                        .build()
+                )
+                .toList();
+    }
+
+    private List<PlayEdge> mapEdges(Play play, List<ArrowDTO> arrowDtos, Map<UUID, PlayNode> nodeById) {
+        return arrowDtos.stream()
+                .map(dto -> PlayEdge.builder()
+                        .id(dto.id())
+                        .play(play)
+                        .from(nodeById.get(dto.from().id()))
+                        .to(nodeById.get(dto.to().id()))
+                        .build()
+                )
+                .toList();
     }
 
 }
