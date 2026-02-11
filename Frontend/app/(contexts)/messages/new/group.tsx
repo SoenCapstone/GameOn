@@ -11,6 +11,35 @@ import { useMessagingContext } from "@/features/messaging/provider";
 import { useMyTeams } from "@/features/messaging/hooks";
 import { errorToString } from "@/utils/error";
 
+function NewGroupHeader({
+  creating,
+  hasTeams,
+  onPress,
+}: {
+  creating: boolean;
+  hasTeams: boolean;
+  onPress: () => void;
+}) {
+  return (
+    <Header
+      left={<Button type="back" />}
+      center={<PageTitle title="New Group" />}
+      right={
+        <View
+          pointerEvents={creating || !hasTeams ? "none" : "auto"}
+        >
+          <Button
+            type="custom"
+            label="Create"
+            loading={creating}
+            onPress={onPress}
+          />
+        </View>
+      }
+    />
+  );
+}
+
 export default function NewGroup() {
   const router = useRouter();
   const navigation = useNavigation();
@@ -48,23 +77,10 @@ export default function NewGroup() {
   useLayoutEffect(() => {
     navigation.setOptions({
       headerTitle: () => (
-        <Header
-          left={<Button type="back" />}
-          center={<PageTitle title="New Group" />}
-          right={
-            <View
-              pointerEvents={
-                creating || (teams ?? []).length === 0 ? "none" : "auto"
-              }
-            >
-              <Button
-                type="custom"
-                label="Create"
-                loading={creating}
-                onPress={submitTeamChat}
-              />
-            </View>
-          }
+        <NewGroupHeader
+          creating={creating}
+          hasTeams={(teams ?? []).length > 0}
+          onPress={submitTeamChat}
         />
       ),
     });
@@ -76,7 +92,11 @@ export default function NewGroup() {
         <ActivityIndicator color="white" style={{ marginTop: 40 }} />
       ) : (
         <Form accentColor={AccentColors.green}>
-          <Form.Section footer="Event chats lock membership once created. Only the creator can add members.">
+          <Form.Section
+              footer={`You can only create a group if you are the team owner.
+
+Event chats lock membership once created. Only the creator can add members.`}
+            >
             <Form.Input
               label="Name"
               value={chatName}
@@ -85,9 +105,10 @@ export default function NewGroup() {
             />
             <Form.Menu
               label="Team"
+              disabled={(teams ?? []).length === 0}
               options={
                 (teams ?? []).length > 0
-                  ? [...(teams ?? []).map((t) => t.name)]
+                  ? (teams ?? []).map((t) => t.name)
                   : ["No teams available"]
               }
               value={

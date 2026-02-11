@@ -22,6 +22,29 @@ import {
 } from "@/features/messaging/hooks";
 import { Chat, type ChatItem } from "@/components/messages/chat";
 
+function MessagesHeader({
+  socketState,
+  onPlusPress,
+}: {
+  socketState: string;
+  onPlusPress: () => void;
+}) {
+  return (
+    <Header
+      left={<Logo />}
+      center={
+        <PageTitle
+          title="Messages"
+          subtitle={socketState === "connected" ? undefined : socketState}
+        />
+      }
+      right={
+        <Button type="custom" icon="plus" onPress={onPlusPress} />
+      }
+    />
+  );
+}
+
 export default function Messages() {
   const router = useRouter();
   const navigation = useNavigation();
@@ -38,21 +61,9 @@ export default function Messages() {
   useLayoutEffect(() => {
     navigation.setOptions({
       headerTitle: () => (
-        <Header
-          left={<Logo />}
-          center={
-            <PageTitle
-              title="Messages"
-              subtitle={socketState !== "connected" ? socketState : undefined}
-            />
-          }
-          right={
-            <Button
-              type="custom"
-              icon="plus"
-              onPress={() => router.push(plusRoute)}
-            />
-          }
+        <MessagesHeader
+          socketState={socketState}
+          onPlusPress={() => router.push(plusRoute)}
         />
       ),
     });
@@ -90,14 +101,18 @@ export default function Messages() {
             conversation.lastMessageAt ??
             conversation.createdAt,
         );
+        let subtitle: string;
+        if (!isGroup) {
+          subtitle = "Direct message";
+        } else if (conversation.isEvent) {
+          subtitle = "Event chat";
+        } else {
+          subtitle = "Team chat";
+        }
         return {
           id: conversation.id,
           title,
-          subtitle: isGroup
-            ? conversation.isEvent
-              ? "Event chat"
-              : "Team chat"
-            : "Direct message",
+          subtitle,
           preview,
           timestamp,
           group: isGroup,
@@ -110,6 +125,8 @@ export default function Messages() {
   }, [listData.length]);
 
   const openConversation = (id: string) => router.push(`/messages/${id}`);
+
+  const selectedIndex = { all: 0, direct: 1, group: 2 }[filter];
 
   return (
     <ContentArea
@@ -126,7 +143,7 @@ export default function Messages() {
     >
       <SegmentedControl
         values={["All", "Direct", "Groups"]}
-        selectedIndex={filter === "all" ? 0 : filter === "direct" ? 1 : 2}
+        selectedIndex={selectedIndex}
         onValueChange={(value) => {
           if (value === "All") setFilter("all");
           else if (value === "Direct") setFilter("direct");

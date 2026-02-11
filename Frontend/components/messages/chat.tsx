@@ -8,12 +8,12 @@ TimeAgo.addDefaultLocale(en);
 const timeAgo = new TimeAgo("en-US");
 
 export type ChatItem = {
-  id: string;
-  title: string;
-  subtitle: string;
-  preview: string;
-  timestamp: Date;
-  group: boolean;
+  readonly id: string;
+  readonly title: string;
+  readonly subtitle: string;
+  readonly preview: string;
+  readonly timestamp: Date;
+  readonly group: boolean;
 };
 
 export function Chat({
