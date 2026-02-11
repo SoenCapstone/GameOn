@@ -130,7 +130,7 @@ export function FormExample() {
 
       {/* Action Buttons */}
       <Form.Section>
-        <Form.Button label="Sign Out" color={AccentColors.red} />
+        <Form.Button button="Sign Out" color={AccentColors.red} />
       </Form.Section>
     </Form>
   );
