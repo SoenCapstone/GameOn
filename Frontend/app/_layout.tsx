@@ -15,8 +15,11 @@ import { SearchProvider } from "@/contexts/search-context";
 import { FeatureFlagsProvider } from "@/components/feature-flags/feature-flags-context";
 import { KeyboardProvider } from "react-native-keyboard-controller";
 import { ActionSheetProvider } from "@expo/react-native-action-sheet";
-
+import TimeAgo from "javascript-time-ago";
+import en from "javascript-time-ago/locale/en.json";
 import { StripeProvider } from "@stripe/stripe-react-native";
+
+TimeAgo.addDefaultLocale(en);
 
 const queryClient = new QueryClient();
 
@@ -36,42 +39,42 @@ export default function RootLayout() {
       merchantIdentifier="merchant.com.gameon"
       urlScheme="gameon"
     >
-    <KeyboardProvider>
-      <ClerkProvider
-        tokenCache={tokenCache}
-        publishableKey={process.env.EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY!}
-      >
-        <QueryClientProvider client={queryClient}>
-          <FeatureFlagsProvider>
-            <ThemeProvider
-              value={colorScheme === "dark" ? DarkTheme : DefaultTheme}
-            >
-              <ActionSheetProvider>
-                <SearchProvider>
-                  <ClerkLoaded>
-                    <Stack>
-                      <Stack.Screen
-                        name="(auth)"
-                        options={{ headerShown: false }}
-                      />
-                      <Stack.Screen
-                        name="(tabs)"
-                        options={{ headerShown: false }}
-                      />
-                      <Stack.Screen
-                        name="(contexts)"
-                        options={{ headerShown: false }}
-                      />
-                    </Stack>
-                    <StatusBar style="auto" />
-                  </ClerkLoaded>
-                </SearchProvider>
-              </ActionSheetProvider>
-            </ThemeProvider>
-          </FeatureFlagsProvider>
-        </QueryClientProvider>
-      </ClerkProvider>
-    </KeyboardProvider>
+      <KeyboardProvider>
+        <ClerkProvider
+          tokenCache={tokenCache}
+          publishableKey={process.env.EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY!}
+        >
+          <QueryClientProvider client={queryClient}>
+            <FeatureFlagsProvider>
+              <ThemeProvider
+                value={colorScheme === "dark" ? DarkTheme : DefaultTheme}
+              >
+                <ActionSheetProvider>
+                  <SearchProvider>
+                    <ClerkLoaded>
+                      <Stack>
+                        <Stack.Screen
+                          name="(auth)"
+                          options={{ headerShown: false }}
+                        />
+                        <Stack.Screen
+                          name="(tabs)"
+                          options={{ headerShown: false }}
+                        />
+                        <Stack.Screen
+                          name="(contexts)"
+                          options={{ headerShown: false }}
+                        />
+                      </Stack>
+                      <StatusBar style="auto" />
+                    </ClerkLoaded>
+                  </SearchProvider>
+                </ActionSheetProvider>
+              </ThemeProvider>
+            </FeatureFlagsProvider>
+          </QueryClientProvider>
+        </ClerkProvider>
+      </KeyboardProvider>
     </StripeProvider>
   );
 }

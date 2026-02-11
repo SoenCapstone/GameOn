@@ -1,6 +1,6 @@
 spring:
   datasource:
-    url: jdbc:postgresql://${DB_HOST:postgres_db}:${DB_PORT:5432}/${DB_NAME:gameon_db}
+    url: jdbc:postgresql://${DB_HOST:localhost}:${DB_PORT:5432}/${DB_NAME:gameon_db}
     username: ${DB_USER:username}
     password: ${DB_PASSWORD:password}
     driver-class-name: org.postgresql.Driver
@@ -23,7 +23,7 @@ spring:
     oauth2:
       resourceserver:
         jwt:
-          issuer-uri: https://one-magpie-92.clerk.accounts.dev
+          issuer-uri: ${CLERK_URL:https://one-magpie-92.clerk.accounts.dev}
 
 server:
   port: 8095

@@ -1,10 +1,11 @@
 import {
-  mapSportToEmoji,
+  getSportLogo,
   fetchTeamResults,
   fetchLeagueResults,
   useTeamResults,
   useLeagueResults,
 } from "@/components/browse/utils";
+import { images } from "@/constants/images";
 
 import axios from "axios";
 import { useQuery } from "@tanstack/react-query";
@@ -32,32 +33,25 @@ jest.mock("@/utils/logger", () => ({
   })),
 }));
 
+jest.mock("@/constants/images", () => ({
+  images: {
+    soccerLogo: { testID: "soccer-logo" },
+    basketballLogo: { testID: "basketball-logo" },
+    volleyballLogo: { testID: "volleyball-logo" },
+    defaultLogo: { testID: "default-logo" },
+  },
+}));
 
-
-describe("mapSportToEmoji", () => {
-  it("returns correct emoji for known sports and default for unknown", () => {
-    const known: [string, string][] = [
-      ["soccer", "⚽"],
-      ["basketball", "🏀"],
-      ["baseball", "⚾"],
-      ["american football", "🏈"],
-      ["hockey", "🏒"],
-      ["tennis", "🎾"],
-      ["rugby", "🏉"],
-      ["volleyball", "🏐"],
-      ["cricket", "🏏"],
-      ["golf", "⛳️"],
-    ];
-
-    known.forEach(([sport, emoji]) => {
-      expect(mapSportToEmoji(sport)).toBe(emoji);
-    });
-
-    ["quidditch", "", undefined].forEach((sport) => {
-      expect(mapSportToEmoji(sport as any)).toBe("🏅");
-    });
+describe("getSportLogo", () => {
+  it("returns correct logo image for known sports and default for unknown", () => {
+    expect(getSportLogo("soccer")).toBe(images.soccerLogo);
+    expect(getSportLogo("basketball")).toBe(images.basketballLogo);
+    expect(getSportLogo("volleyball")).toBe(images.volleyballLogo);
+    expect(getSportLogo("quidditch")).toBe(images.defaultLogo);
+    expect(getSportLogo("")).toBe(images.defaultLogo);
+    expect(getSportLogo()).toBe(images.defaultLogo);
   });
- });
+});
 
 describe("fetchTeamResults", () => {
   beforeEach(() => {
@@ -120,9 +114,14 @@ describe("fetchTeamResults", () => {
     } as any;
 
     await expect(fetchTeamResults(fakeApi, "fail")).rejects.toThrow("boom");
-    const logMock = createScopedLog as jest.MockedFunction<typeof createScopedLog>;
+    const logMock = createScopedLog as jest.MockedFunction<
+      typeof createScopedLog
+    >;
     const log = logMock.mock.results[0].value;
-    expect(log.warn).toHaveBeenCalledWith("fetchTeamResults failed", expect.any(Error));
+    expect(log.warn).toHaveBeenCalledWith(
+      "fetchTeamResults failed",
+      expect.any(Error),
+    );
   });
 });
 
@@ -160,7 +159,11 @@ describe("fetchLeagueResults", () => {
     } as any;
     await fetchLeagueResults(fakeApi, "League", true);
     const callArgs = mockedAxios.get.mock.calls[0];
-    expect(callArgs[1]!.params).toMatchObject({ size: "50", q: "League", my: true });
+    expect(callArgs[1]!.params).toMatchObject({
+      size: "50",
+      q: "League",
+      my: true,
+    });
   });
 
   it("logs and rethrows when fetchLeagueResults fails", async () => {
@@ -170,10 +173,17 @@ describe("fetchLeagueResults", () => {
       defaults: { headers: { common: {} } },
     } as any;
 
-    await expect(fetchLeagueResults(fakeApi, "fail")).rejects.toThrow("league error");
-    const logMock = createScopedLog as jest.MockedFunction<typeof createScopedLog>;
+    await expect(fetchLeagueResults(fakeApi, "fail")).rejects.toThrow(
+      "league error",
+    );
+    const logMock = createScopedLog as jest.MockedFunction<
+      typeof createScopedLog
+    >;
     const log = logMock.mock.results[0].value;
-    expect(log.warn).toHaveBeenCalledWith("fetchLeagueResults failed", expect.any(Error));
+    expect(log.warn).toHaveBeenCalledWith(
+      "fetchLeagueResults failed",
+      expect.any(Error),
+    );
   });
 });
 
@@ -217,11 +227,11 @@ describe("useTeamResults mapping", () => {
     const res = useTeamResults("any");
     expect(res.data).toHaveLength(1);
     expect(res.data[0].id).toBe("123");
-    expect(res.data[0].logo).toBe("https://logo.png");
+    expect(res.data[0].logo).toEqual({ uri: "https://logo.png" });
     expect(res.data[0].subtitle).toBe("basketball");
   });
 
-  it("falls back to emoji and 'Team' subtitle when sport or logo missing", () => {
+  it("falls back to logo image and 'Team' subtitle when sport or logo missing", () => {
     const data = {
       items: [
         {
@@ -268,10 +278,10 @@ describe("useTeamResults mapping", () => {
     expect(res.data).toHaveLength(2);
 
     expect(res.data[0].subtitle).toBe("Team");
-    expect(res.data[0].logo).toBe(mapSportToEmoji("") );
+    expect(res.data[0].logo).toBe(getSportLogo(""));
 
     expect(res.data[1].subtitle).toBe("tennis");
-    expect(res.data[1].logo).toBe(mapSportToEmoji("tennis"));
+    expect(res.data[1].logo).toBe(getSportLogo("tennis"));
   });
 });
 
@@ -342,10 +352,10 @@ describe("useLeagueResults mapping", () => {
     expect(res.data[0].id).toBe("99");
     expect(res.data[0].subtitle).toBe("Europe");
     expect(res.data[0].location).toBe("Europe");
-    expect(res.data[0].logo).toBe(mapSportToEmoji("soccer"));
+    expect(res.data[0].logo).toBe(getSportLogo("soccer"));
 
     expect(res.data[1].subtitle).toBe("tennis");
-    expect(res.data[1].logo).toBe(mapSportToEmoji("tennis"));
+    expect(res.data[1].logo).toBe(getSportLogo("tennis"));
 
     expect(res.data[2].subtitle).toBe("League");
     expect(res.data[2].location).toBe("");

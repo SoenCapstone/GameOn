@@ -1,9 +1,11 @@
+import { ImageSourcePropType } from "react-native";
+
 export interface SearchResult {
   id: string;
   type: "team" | "league" | "tournament";
   name: string;
   subtitle: string;
-  logo: string;
+  logo: ImageSourcePropType;
   league?: string;
   sport: string;
   location: string;

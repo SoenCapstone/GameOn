@@ -5,6 +5,7 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Positive;
 import jakarta.validation.constraints.Size;
 
+import java.util.List;
 import java.util.UUID;
 
 public record TeamCreateRequest(
@@ -20,6 +21,7 @@ public record TeamCreateRequest(
         String logoUrl,
         @Size(max = 255, message = "location cannot exceed 255 characters")
         String location,
+        List<@Size(max = 100, message = "allowedRegions entries cannot exceed 100 characters") String> allowedRegions,
 
 //        @Positive(message = "maxRoster must be greater than 0")
 //        Integer maxRoster,

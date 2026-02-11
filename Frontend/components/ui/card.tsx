@@ -3,13 +3,14 @@ import { StyleSheet } from "react-native";
 import { GlassView } from "expo-glass-effect";
 
 interface CardProps {
+  readonly isInteractive?: boolean;
   readonly children: React.ReactNode;
 }
 
-export function Card({ children }: Readonly<CardProps>) {
+export function Card({ isInteractive=true, children }: Readonly<CardProps>) {
   return (
     <GlassView
-      isInteractive={true}
+      isInteractive={isInteractive}
       glassEffectStyle={"clear"}
       tintColor={"rgba(0,0,0,0.5)"}
       style={styles.card}

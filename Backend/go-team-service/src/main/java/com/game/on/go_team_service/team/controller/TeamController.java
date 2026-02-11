@@ -68,6 +68,11 @@ public class TeamController {
         return ResponseEntity.ok(teamService.getMyMembership(teamId));
     }
 
+    @GetMapping("/{teamId}/members/{userId}/exists")
+    public ResponseEntity<Boolean> isMember(@PathVariable UUID teamId, @PathVariable String userId) {
+        return ResponseEntity.ok(teamService.isMember(teamId, userId));
+    }
+
     @DeleteMapping("/{teamId}/delete/{userId}")
     public ResponseEntity<Void> removeMember(@PathVariable UUID teamId, @PathVariable String userId) {
         teamService.removeMember(teamId, userId);
@@ -97,5 +102,10 @@ public class TeamController {
     @PostMapping("/{teamId}/members/self-demote/{userId}")
     public ResponseEntity<TeamMemberResponse> demoteSelf(@PathVariable String userId, @PathVariable UUID teamId) {
         return ResponseEntity.ok(teamService.demoteSelfToPlayer(teamId, userId));
+    }
+
+    @PostMapping("/{teamId}/play-maker")
+    public ResponseEntity<UUID> createPlay(@Valid @RequestBody List<PlayItemDTO> items) {
+        return ResponseEntity.status(201).body(teamService.createPlay(items));
     }
 }

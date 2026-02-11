@@ -25,6 +25,7 @@ public class LeagueMapper {
                 .location(trimToNull(request.location()))
                 .region(trimToNull(request.region()))
                 .ownerUserId(ownerUserId)
+                .logoUrl(trimToNull(request.logoUrl()))
                 .level(request.level() == null ? LeagueLevel.COMPETITIVE: request.level())
                 .privacy(request.privacy() == null ? LeaguePrivacy.PUBLIC: request.privacy())
                 .seasonCount(0)
@@ -42,6 +43,7 @@ public class LeagueMapper {
                 league.getOwnerUserId(),
                 league.getLevel(),
                 league.getPrivacy(),
+                league.getLogoUrl(),
                 seasonCount,
                 league.getCreatedAt(),
                 league.getUpdatedAt(),
@@ -58,6 +60,7 @@ public class LeagueMapper {
                 league.getRegion(),
                 league.getLevel(),
                 league.getPrivacy(),
+                league.getLogoUrl(),
                 seasonCount,
                 league.getCreatedAt(),
                 league.getUpdatedAt()

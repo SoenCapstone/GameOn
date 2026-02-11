@@ -5,6 +5,7 @@ GameOn is a mobile platform that keeps amateur sports leagues organized by combi
 ## Table of Contents
 
 - [📘 Project Summary](#project-summary)
+- [🚀 Deployment](#deployment)
 - [🎬 Release Demos](#release-demos)
 - [👥 Team Members](#team-members)
 - [🏗️ Architecture Overview](#architecture-overview)
@@ -24,14 +25,24 @@ GameOn is a mobile platform that keeps amateur sports leagues organized by combi
 
 GameOn targets last-minute player absences, complex scheduling, messy payments, and scattered communication. Unlike point-solution apps, GameOn unifies roster management, real-time substitutions, attendance-aware payments, scheduling and messaging while remaining sport-agnostic through customizable templates. The goal is to make organizing and playing in leagues easier for organizers, coaches, and players.
 
+<a id="deployment"></a>
+## 🚀 Deployment
+
+- **Backend**
+  - Deployed using AWS at this [link](http://ec2-13-220-148-192.compute-1.amazonaws.com:8222/).
+  - The database only has a developer test account, you can either use that account or create new account/s to test the app's features.
+- **Frontend**
+  - Deployed using Expo Application Services (EAS).
+  - A QR code is provided in the [Release Demos](#release-demos) table to preview the app using Expo Go.
+
 <a id="release-demos"></a>
 ## 🎬 Release Demos
 
-| Release \# | Link to Demo |
-|------------|--------------|
-| Release 1  | [Demo 1](https://drive.google.com/file/d/1EH74M7fyrOtF4cqQyQ78-SJTe6lQ6VJN/view?usp=sharing)  |
-| Release 2  | [Demo 2](https://drive.google.com/file/d/1dzTUCtvsP7LVbuaq4ib6seauiT9_x8m3/view?usp=sharing)  |
-| Release 3  |              |
+| Release # | Link to Demo | Deployment |
+|-----------|--------------|---------------------|
+| Release 1 | [Demo 1](https://drive.google.com/file/d/1EH74M7fyrOtF4cqQyQ78-SJTe6lQ6VJN/view?usp=sharing) |                     |
+| Release 2 | [Demo 2](https://drive.google.com/file/d/1dzTUCtvsP7LVbuaq4ib6seauiT9_x8m3/view?usp=sharing) | <a href="https://expo.dev/projects/bc7d1a0a-aeeb-448f-ad90-be62fe6633bf/updates/637628de-1d86-4e83-9959-41fbdf953471"><img src="https://qr.expo.dev/eas-update?projectId=bc7d1a0a-aeeb-448f-ad90-be62fe6633bf&groupId=637628de-1d86-4e83-9959-41fbdf953471" width="250px" /></a>                    |
+| Release 3 |              |                     |
 
 <a id="team-members"></a>
 # 👥 Team Members
