@@ -24,6 +24,7 @@ import {
 import { useMessagingContext } from "@/features/messaging/provider";
 import {
   buildMessagesFromPages,
+  formatDateSeparator,
   formatMessageTimestamp,
 } from "@/features/messaging/utils";
 import { errorToString } from "@/utils/error";
@@ -39,7 +40,12 @@ type DisplayMessage = {
   fromMe: boolean;
   senderLabel?: string;
   timestamp: string;
+  createdAt: string;
 };
+
+type DateSeparatorItem = { type: "date"; id: string; label: string };
+type MessageListItem = { type: "message"; message: DisplayMessage };
+type ListItem = DateSeparatorItem | MessageListItem;
 
 export default function ChatScreen() {
   const contentRef = useRef<ScrollView | null>(null);
@@ -94,8 +100,28 @@ export default function ChatScreen() {
           ? "You"
           : (userMap.get(msg.senderId) ?? msg.senderId),
       timestamp: formatMessageTimestamp(msg.createdAt),
+      createdAt: msg.createdAt,
     }));
   }, [messages, userId, userMap]);
+
+  const listItems = useMemo<ListItem[]>(() => {
+    const items: ListItem[] = [];
+    let lastDayKey: string | null = null;
+    for (const msg of displayMessages) {
+      const date = new Date(msg.createdAt);
+      const dayKey = `${date.getFullYear()}-${date.getMonth()}-${date.getDate()}`;
+      if (dayKey !== lastDayKey) {
+        lastDayKey = dayKey;
+        items.push({
+          type: "date",
+          id: `date-${dayKey}`,
+          label: formatDateSeparator(msg.createdAt),
+        });
+      }
+      items.push({ type: "message", message: msg });
+    }
+    return items;
+  }, [displayMessages]);
 
   useEffect(() => {
     if (hasInitialScroll.current) return;
@@ -199,8 +225,10 @@ export default function ChatScreen() {
           <ActivityIndicator color="white" style={{ marginTop: 40 }} />
         ) : (
           <LegendList
-            data={displayMessages}
-            keyExtractor={(m) => m.id}
+            data={listItems}
+            keyExtractor={(item) =>
+              item.type === "date" ? item.id : item.message.id
+            }
             style={styles.list}
             scrollEnabled={false}
             ListHeaderComponent={() =>
@@ -217,25 +245,39 @@ export default function ChatScreen() {
                 </Pressable>
               ) : null
             }
-            renderItem={({ item }) => (
-              <View
-                style={[
-                  styles.bubbleRow,
-                  item.fromMe ? styles.right : styles.left,
-                ]}
-              >
-                <GlassView
-                  style={styles.bubble}
-                  tintColor={item.fromMe ? "#1B5E2B" : "#2C2C2E"}
+            renderItem={({ item }) =>
+              item.type === "date" ? (
+                <View style={styles.dateSeparator}>
+                  <GlassView style={styles.dateBadge}>
+                    <Text style={styles.dateBadgeText}>{item.label}</Text>
+                  </GlassView>
+                </View>
+              ) : (
+                <View
+                  style={[
+                    styles.bubbleRow,
+                    item.message.fromMe ? styles.right : styles.left,
+                  ]}
                 >
-                  {!item.fromMe && (
-                    <Text style={styles.senderLabel}>{item.senderLabel}</Text>
-                  )}
-                  <Text style={styles.bubbleText}>{item.text}</Text>
-                  <Text style={styles.timestamp}>{item.timestamp}</Text>
-                </GlassView>
-              </View>
-            )}
+                  <GlassView
+                    style={styles.bubble}
+                    tintColor={
+                      item.message.fromMe ? "#1B5E2B" : "#2C2C2E"
+                    }
+                  >
+                    {!item.message.fromMe && (
+                      <Text style={styles.senderLabel}>
+                        {item.message.senderLabel}
+                      </Text>
+                    )}
+                    <Text style={styles.bubbleText}>{item.message.text}</Text>
+                    <Text style={styles.timestamp}>
+                      {item.message.timestamp}
+                    </Text>
+                  </GlassView>
+                </View>
+              )
+            }
           />
         )}
       </ContentArea>
@@ -299,6 +341,19 @@ const styles = StyleSheet.create({
     fontWeight: "600",
   },
   list: { flex: 1, overflow: "visible" },
+  dateSeparator: {
+    alignItems: "center",
+    marginVertical: 12,
+  },
+  dateBadge: {
+    paddingVertical: 6,
+    paddingHorizontal: 12,
+    borderRadius: 14,
+  },
+  dateBadgeText: {
+    color: "rgba(255,255,255,0.9)",
+    fontSize: 13,
+  },
   bubbleRow: {
     maxWidth: "80%",
     marginBottom: 10,

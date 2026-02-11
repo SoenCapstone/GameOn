@@ -17,7 +17,10 @@ export function validateMessageContent(content: string): MessageValidation {
     return { valid: false, reason: "Message cannot be empty" };
   }
   if (trimmed.length > MAX_MESSAGE_LENGTH) {
-    return { valid: false, reason: `Message exceeds ${MAX_MESSAGE_LENGTH} characters` };
+    return {
+      valid: false,
+      reason: `Message exceeds ${MAX_MESSAGE_LENGTH} characters`,
+    };
   }
   return { valid: true, value: trimmed } as const;
 }
@@ -38,7 +41,8 @@ export function insertMessageOrdered(
     return list;
   }
   const idx = list.findIndex(
-    (m) => new Date(m.createdAt).getTime() > new Date(incoming.createdAt).getTime(),
+    (m) =>
+      new Date(m.createdAt).getTime() > new Date(incoming.createdAt).getTime(),
   );
   if (idx === -1) {
     return [...list, incoming];
@@ -99,4 +103,28 @@ export function formatMessageTimestamp(timestamp?: string | null) {
   } catch {
     return "";
   }
+}
+
+export function formatDateSeparator(timestamp: string | Date): string {
+  const date = typeof timestamp === "string" ? new Date(timestamp) : timestamp;
+  const now = new Date();
+  const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  const dateStart = new Date(
+    date.getFullYear(),
+    date.getMonth(),
+    date.getDate(),
+  );
+  const diffMs = todayStart.getTime() - dateStart.getTime();
+  const diffDays = Math.floor(diffMs / (24 * 60 * 60 * 1000));
+
+  if (diffDays === 0) return "Today";
+  if (diffDays === 1) return "Yesterday";
+  if (diffDays >= 2 && diffDays <= 6) {
+    return Intl.DateTimeFormat(undefined, { weekday: "long" }).format(date);
+  }
+  return Intl.DateTimeFormat(undefined, {
+    weekday: "short",
+    month: "short",
+    day: "numeric",
+  }).format(date);
 }
