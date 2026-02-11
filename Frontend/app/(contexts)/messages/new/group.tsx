@@ -15,19 +15,17 @@ function NewGroupHeader({
   creating,
   hasTeams,
   onPress,
-}: {
+}: Readonly<{
   creating: boolean;
   hasTeams: boolean;
   onPress: () => void;
-}) {
+}>) {
   return (
     <Header
       left={<Button type="back" />}
       center={<PageTitle title="New Group" />}
       right={
-        <View
-          pointerEvents={creating || !hasTeams ? "none" : "auto"}
-        >
+        <View pointerEvents={creating || !hasTeams ? "none" : "auto"}>
           <Button
             type="custom"
             label="Create"
@@ -93,10 +91,10 @@ export default function NewGroup() {
       ) : (
         <Form accentColor={AccentColors.green}>
           <Form.Section
-              footer={`You can only create a group if you are the team owner.
+            footer={`You can only create a group if you are the team owner.
 
 Event chats lock membership once created. Only the creator can add members.`}
-            >
+          >
             <Form.Input
               label="Name"
               value={chatName}

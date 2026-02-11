@@ -24,11 +24,11 @@ import { Chat, type ChatItem } from "@/components/messages/chat";
 
 function MessagesHeader({
   socketState,
-  onPlusPress,
-}: {
+  onPress,
+}: Readonly<{
   socketState: string;
-  onPlusPress: () => void;
-}) {
+  onPress: () => void;
+}>) {
   return (
     <Header
       left={<Logo />}
@@ -38,9 +38,7 @@ function MessagesHeader({
           subtitle={socketState === "connected" ? undefined : socketState}
         />
       }
-      right={
-        <Button type="custom" icon="plus" onPress={onPlusPress} />
-      }
+      right={<Button type="custom" icon="plus" onPress={onPress} />}
     />
   );
 }
@@ -63,7 +61,7 @@ export default function Messages() {
       headerTitle: () => (
         <MessagesHeader
           socketState={socketState}
-          onPlusPress={() => router.push(plusRoute)}
+          onPress={() => router.push(plusRoute)}
         />
       ),
     });

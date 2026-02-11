@@ -19,10 +19,10 @@ export type ChatItem = {
 export function Chat({
   item,
   onPress,
-}: {
+}: Readonly<{
   item: ChatItem;
   onPress: (id: string) => void;
-}) {
+}>) {
   const scale = useRef(new Animated.Value(1)).current;
 
   const handlePressIn = useCallback(() => {
