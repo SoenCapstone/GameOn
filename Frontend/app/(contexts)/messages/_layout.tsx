@@ -1,16 +1,6 @@
 import React from "react";
 import { Stack } from "expo-router";
 import { MessagingProvider } from "@/features/messaging/provider";
-import { Header } from "@/components/header/header";
-import { PageTitle } from "@/components/header/page-title";
-import { Button } from "@/components/ui/button";
-
-const newMessageHeader = () => (
-  <Header
-    left={<Button type="back" />}
-    center={<PageTitle title="New Message" />}
-  />
-);
 
 export default function MessagesLayout() {
   return (
@@ -18,23 +8,13 @@ export default function MessagesLayout() {
       <Stack
         screenOptions={{
           contentStyle: { backgroundColor: "#000" },
+          headerBackVisible: false,
+          headerTransparent: true,
         }}
       >
-        <Stack.Screen
-          name="new"
-          options={{
-            headerBackVisible: false,
-            headerTransparent: true,
-            headerTitle: newMessageHeader,
-          }}
-        />
-        <Stack.Screen
-          name="[id]"
-          options={{
-            headerBackVisible: false,
-            headerTransparent: true,
-          }}
-        />
+        <Stack.Screen name="new/message" />
+        <Stack.Screen name="new/group" />
+        <Stack.Screen name="[id]" />
       </Stack>
     </MessagingProvider>
   );
