@@ -1,4 +1,4 @@
-import { useLayoutEffect, useState } from "react";
+import { useCallback, useLayoutEffect, useState } from "react";
 import { ContentArea } from "@/components/ui/content-area";
 import { ActivityIndicator, Alert, View } from "react-native";
 import { Form } from "@/components/form/form";
@@ -48,7 +48,7 @@ export default function NewGroup() {
   const { startTeamConversation } = useMessagingContext();
   const { data: teams, isLoading: loadingTeams } = useMyTeams();
 
-  const submitTeamChat = async () => {
+  const submitTeamChat = useCallback(async () => {
     if (!selectedTeam) {
       Alert.alert("Select a team");
       return;
@@ -70,7 +70,7 @@ export default function NewGroup() {
     } finally {
       setCreating(false);
     }
-  };
+  }, [selectedTeam, chatName, isEvent, startTeamConversation, router]);
 
   useLayoutEffect(() => {
     navigation.setOptions({
