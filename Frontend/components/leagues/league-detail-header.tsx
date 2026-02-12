@@ -9,6 +9,7 @@ interface LeagueDetailHeaderProps {
   readonly title: string;
   readonly id: string;
   readonly isMember: boolean;
+  readonly isOwner: boolean;
   readonly onFollow: () => void;
 }
 
@@ -16,10 +17,11 @@ export function LeagueDetailHeader({
   title,
   id,
   isMember,
+  isOwner,
   onFollow,
 }: LeagueDetailHeaderProps) {
   const renderRightButton = () => {
-    if (isMember) {
+    if (isMember || isOwner) {
       return (
         <View style={styles.ownerActions}>
           <View style={styles.ownerActionButton}>

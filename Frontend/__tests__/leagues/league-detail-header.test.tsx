@@ -56,6 +56,7 @@ describe("LeagueDetailHeader", () => {
     title: "Test League",
     id: "league123",
     isMember: false,
+    isOwner: false,
     onFollow: jest.fn(),
   };
 

@@ -45,10 +45,14 @@ function TeamContent() {
     handleFollow,
     title,
     isMember,
+    isActiveMember,
     role,
     team,
   } = useTeamDetailContext();
-  const canPost = role === "OWNER" || role === "COACH" || role === "MANAGER";
+  const canManage =
+    (isActiveMember && role === "OWNER") ||
+    role === "COACH" ||
+    role === "MANAGER";
   const log = createScopedLog("Team Page");
 
   const {
@@ -56,10 +60,6 @@ function TeamContent() {
     isLoading: postsLoading,
     refetch: refetchPosts,
   } = useTeamBoardPosts(id);
-
-  const visiblePosts = isMember
-    ? boardPosts
-    : boardPosts.filter((post) => post.scope === "Everyone");
 
   const deletePostMutation = useDeleteBoardPost(id);
 
@@ -110,7 +110,7 @@ function TeamContent() {
       await onRefresh();
       if (tab === "board") {
         await refetchPosts();
-        log.info("Board posts refreshed", { postCount: visiblePosts.length });
+        log.info("Board posts refreshed", { postCount: boardPosts.length });
       } else {
         log.info("Team data refreshed", { tab });
       }
@@ -119,7 +119,7 @@ function TeamContent() {
     } finally {
       setRefreshing(false);
     }
-  }, [log, onRefresh, refetchPosts, tab, visiblePosts.length]);
+  }, [log, onRefresh, refetchPosts, tab, boardPosts.length]);
 
   return (
     <View style={{ flex: 1 }}>
@@ -157,7 +157,7 @@ function TeamContent() {
 
             {tab === "board" && (
               <BoardList
-                posts={visiblePosts}
+                posts={boardPosts}
                 isLoading={postsLoading}
                 spaceName={team?.name ?? title}
                 spaceLogo={
@@ -166,12 +166,23 @@ function TeamContent() {
                     : getSportLogo(team?.sport)
                 }
                 onDeletePost={handleDeletePost}
-                canDelete={canPost}
+                canDelete={canManage}
               />
             )}
 
             {tab === "overview" && (
-              <Text style={{ color: "white" }}>Overview content here</Text>
+              <View>
+                <Text style={{ color: "white", padding: 16 }}>
+                  Overview content here
+                </Text>
+                {canManage && (
+                  <Button
+                    type="custom"
+                    label="Open Playmaker"
+                    onPress={() => router.push(`/playmaker/${id}`)}
+                  />
+                )}
+              </View>
             )}
 
             {tab === "games" && (
@@ -182,7 +193,7 @@ function TeamContent() {
       </ContentArea>
 
       {/* Create Post Button */}
-      {canPost && tab === "board" && (
+      {canManage && tab === "board" && (
         <View
           style={{
             position: "absolute",
