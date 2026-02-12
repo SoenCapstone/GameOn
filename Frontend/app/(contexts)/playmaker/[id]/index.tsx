@@ -1,12 +1,15 @@
-import React from "react";
+import React, { useLayoutEffect } from "react";
 import { ActivityIndicator, RefreshControl, StyleSheet } from "react-native";
-import { useLocalSearchParams } from "expo-router";
+import { useLocalSearchParams, useNavigation } from "expo-router";
 import { ContentArea } from "@/components/ui/content-area";
 import {
   TeamDetailProvider,
   useTeamDetailContext,
 } from "@/contexts/team-detail-context";
 import { PlayMakerArea } from "@/components/play-maker/play-maker-area";
+import { Header } from "@/components/header/header";
+import { Button } from "@/components/ui/button";
+import { PageTitle } from "@/components/header/page-title";
 
 export default function PlayMaker() {
   const params = useLocalSearchParams<{ id?: string | string[] }>();
@@ -20,11 +23,27 @@ export default function PlayMaker() {
   );
 }
 
+function renderPlaymakerHeader(title: string) {
+  return (
+    <Header
+      left={<Button type="back" />}
+      center={<PageTitle title={`${title} Playmaker`} />}
+    />
+  );
+}
+
 function PlayMakerContent() {
   // More attributes regarding team and membership can be taken from the context,
   // they were excluded as they are currently unused
-  const { isLoading, refreshing, onRefresh } =
-    useTeamDetailContext();
+  const { isLoading, refreshing, onRefresh, title } = useTeamDetailContext();
+
+  const navigation = useNavigation();
+
+  useLayoutEffect(() => {
+    navigation.setOptions({
+      headerTitle: () => renderPlaymakerHeader(title),
+    });
+  }, [navigation, title]);
 
   return (
     <ContentArea
