@@ -378,7 +378,7 @@ describe("useTeamDetail", () => {
     expect(onRefresh1).toBe(onRefresh2);
   });
 
-  it("returns isMember as true when user is a team member", async () => {
+  it("returns isActiveMember as true when user is a team member", async () => {
     const teamData = {
       id: "team-1",
       name: "Test Team",
@@ -402,10 +402,10 @@ describe("useTeamDetail", () => {
       expect(result.current.isLoading).toBe(false);
     });
 
-    expect(result.current.isMember).toBe(true);
+    expect(result.current.isActiveMember).toBe(true);
   });
 
-  it("returns isMember as false when user is not a team member", async () => {
+  it("returns isActiveMember as false when user is not a team member", async () => {
     const teamData = {
       id: "team-1",
       name: "Test Team",
@@ -422,6 +422,6 @@ describe("useTeamDetail", () => {
       expect(result.current.isLoading).toBe(false);
     });
 
-    expect(result.current.isMember).toBe(false);
+    expect(result.current.isActiveMember).toBe(false);
   });
 });

@@ -1,35 +1,52 @@
-import React from "react";
+import React, { useLayoutEffect } from "react";
 import { ActivityIndicator, RefreshControl, StyleSheet } from "react-native";
-import { useLocalSearchParams } from "expo-router";
+import { useLocalSearchParams, useNavigation } from "expo-router";
 import { ContentArea } from "@/components/ui/content-area";
-import { useTeamHeader } from "@/hooks/use-team-league-header";
 import {
   TeamDetailProvider,
   useTeamDetailContext,
 } from "@/contexts/team-detail-context";
 import { PlayMakerArea } from "@/components/play-maker/play-maker-area";
+import { Header } from "@/components/header/header";
+import { Button } from "@/components/ui/button";
+import { PageTitle } from "@/components/header/page-title";
 
-export default function MyTeamScreen() {
+export default function PlayMaker() {
   const params = useLocalSearchParams<{ id?: string | string[] }>();
   const rawId = params.id;
   const id = Array.isArray(rawId) ? rawId[0] : (rawId ?? "");
 
   return (
     <TeamDetailProvider id={id}>
-      <MyTeamContent />
+      <PlayMakerContent />
     </TeamDetailProvider>
   );
 }
 
-function MyTeamContent() {
-  const { id, isLoading, refreshing, onRefresh, handleFollow, title, isMember } =
-    useTeamDetailContext();
+function playmakerHeader(title: string) {
+  return (
+    <Header
+      left={<Button type="back" />}
+      center={<PageTitle title={`${title} Playmaker`} />}
+    />
+  );
+}
 
-  useTeamHeader({ title, id, isMember, onFollow: handleFollow });
+function PlayMakerContent() {
+  // More attributes regarding team and membership can be taken from the context,
+  // they were excluded as they are currently unused
+  const { isLoading, refreshing, onRefresh, title } = useTeamDetailContext();
+
+  const navigation = useNavigation();
+
+  useLayoutEffect(() => {
+    navigation.setOptions({
+      headerTitle: () => playmakerHeader(title),
+    });
+  }, [navigation, title]);
 
   return (
     <ContentArea
-      // scrollable
       paddingBottom={60}
       backgroundProps={{ preset: "red" }}
       refreshControl={

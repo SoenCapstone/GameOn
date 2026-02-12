@@ -71,6 +71,7 @@ export function useTeamDetail(id: string) {
   const title = team?.name ?? (id ? `Team ${id}` : "Team");
   const isOwner = Boolean(userId && team && team.ownerUserId === userId);
   const isMember = Boolean(membership);
+  const isActiveMember = membership?.status === "ACTIVE";
   const role = membership?.role;
   const memStatus = membership?.status;
   const joinedAt = membership?.joinedAt;
@@ -84,6 +85,7 @@ export function useTeamDetail(id: string) {
     title,
     isOwner,
     isMember,
+    isActiveMember,
     role,
     memStatus,
     joinedAt,
