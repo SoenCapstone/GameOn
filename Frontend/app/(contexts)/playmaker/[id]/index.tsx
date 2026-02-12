@@ -23,7 +23,7 @@ export default function PlayMaker() {
   );
 }
 
-function renderPlaymakerHeader(title: string) {
+function playmakerHeader(title: string) {
   return (
     <Header
       left={<Button type="back" />}
@@ -41,7 +41,7 @@ function PlayMakerContent() {
 
   useLayoutEffect(() => {
     navigation.setOptions({
-      headerTitle: () => renderPlaymakerHeader(title),
+      headerTitle: () => playmakerHeader(title),
     });
   }, [navigation, title]);
 
