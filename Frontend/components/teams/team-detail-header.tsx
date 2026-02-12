@@ -7,18 +7,18 @@ import { PageTitle } from "@/components/header/page-title";
 interface TeamDetailHeaderProps {
   readonly title: string;
   readonly id: string;
-  readonly isActiveMember: boolean;
+  readonly isMember: boolean;
   readonly onFollow: () => void;
 }
 
 export function TeamDetailHeader({
   title,
   id,
-  isActiveMember,
+  isMember,
   onFollow,
 }: TeamDetailHeaderProps) {
   const renderRightButton = () => {
-    if (isActiveMember) {
+    if (isMember) {
       return (
         <View style={styles.ownerActions}>
           <View style={styles.ownerActionButton}>
@@ -35,7 +35,7 @@ export function TeamDetailHeader({
       );
     }
 
-    if (!isActiveMember) {
+    if (!isMember) {
       return <Button type="custom" label="Follow" onPress={onFollow} />;
     }
 

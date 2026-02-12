@@ -44,11 +44,15 @@ function TeamContent() {
     onRefresh,
     handleFollow,
     title,
+    isMember,
     isActiveMember,
     role,
     team,
   } = useTeamDetailContext();
-  const canManage = role === "OWNER" || role === "COACH" || role === "MANAGER";
+  const canManage =
+    (isActiveMember && role === "OWNER") ||
+    role === "COACH" ||
+    role === "MANAGER";
   const log = createScopedLog("Team Page");
 
   const {
@@ -59,7 +63,7 @@ function TeamContent() {
 
   const deletePostMutation = useDeleteBoardPost(id);
 
-  useTeamHeader({ title, id, isActiveMember, onFollow: handleFollow });
+  useTeamHeader({ title, id, isMember, onFollow: handleFollow });
 
   const getTabFromSegmentValue = (
     value: string,
@@ -168,7 +172,9 @@ function TeamContent() {
 
             {tab === "overview" && (
               <View>
-                <Text style={{ color: "white", padding: 16 }}>Overview content here</Text>
+                <Text style={{ color: "white", padding: 16 }}>
+                  Overview content here
+                </Text>
                 {canManage && (
                   <Button
                     type="custom"

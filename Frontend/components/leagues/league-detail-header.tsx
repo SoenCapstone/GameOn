@@ -8,18 +8,20 @@ import { styles } from "@/components/teams/team-detail-header";
 interface LeagueDetailHeaderProps {
   readonly title: string;
   readonly id: string;
-  readonly isActiveMember: boolean;
+  readonly isMember: boolean;
+  readonly isOwner: boolean;
   readonly onFollow: () => void;
 }
 
 export function LeagueDetailHeader({
   title,
   id,
-  isActiveMember,
+  isMember,
+  isOwner,
   onFollow,
 }: LeagueDetailHeaderProps) {
   const renderRightButton = () => {
-    if (isActiveMember) {
+    if (isMember || isOwner) {
       return (
         <View style={styles.ownerActions}>
           <View style={styles.ownerActionButton}>
@@ -40,7 +42,7 @@ export function LeagueDetailHeader({
       );
     }
 
-    if (!isActiveMember) {
+    if (!isMember) {
       return <Button type="custom" label="Follow" onPress={onFollow} />;
     }
 
