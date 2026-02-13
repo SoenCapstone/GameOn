@@ -74,11 +74,13 @@ async function fetchTeamResults(
   api: AxiosInstance,
   query: string,
   onlyMine?: boolean,
+  sport?: string,
 ): Promise<TeamListResponse> {
   const params: Record<string, string | boolean> = { size: "50" };
 
   if (query && query.trim().length > 0) params.q = query.trim();
   if (onlyMine) params.my = onlyMine;
+  if (sport && sport.trim().length > 0) params.sport = sport.trim();
 
   try {
     const resp = await api.get<TeamListResponse>(GO_TEAM_SERVICE_ROUTES.ALL, {
