@@ -4,6 +4,7 @@ import { MenuPicker } from "@/components/ui/menu-picker";
 
 interface MenuItemProps {
   readonly label: string;
+  readonly title?: string;
   readonly options: readonly string[];
   readonly value: string;
   readonly onValueChange: (value: string) => void;
@@ -12,6 +13,7 @@ interface MenuItemProps {
 
 export function MenuItem({
   label,
+  title,
   options,
   value,
   onValueChange,
@@ -21,6 +23,7 @@ export function MenuItem({
     <BlurView tint="systemUltraThinMaterialDark" style={styles.item}>
       <Text style={styles.label}>{label}</Text>
       <MenuPicker
+        title={title}
         options={options}
         value={value}
         onValueChange={onValueChange}

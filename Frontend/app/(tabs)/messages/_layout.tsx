@@ -5,11 +5,15 @@ import { MessagingProvider } from "@/features/messaging/provider";
 export default function MessagesLayout() {
   return (
     <MessagingProvider>
-      <Stack
-        screenOptions={{
-          headerShown: false,
-        }}
-      />
+      <Stack>
+        <Stack.Screen
+          name="index"
+          options={{
+            headerTransparent: true,
+            headerShadowVisible: false,
+          }}
+        />
+      </Stack>
     </MessagingProvider>
   );
 }

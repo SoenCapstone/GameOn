@@ -22,23 +22,27 @@ export function ProfileItem({
   ...pressableProps
 }: Readonly<ProfileItemProps>) {
   return (
-    <Pressable {...pressableProps}>
-      {({ pressed }) => (
-        <BlurView
-          tint={pressed ? "default" : "systemUltraThinMaterialDark"}
-          style={styles.item}
-        >
-          <View style={styles.container}>
-            <Image source={image} style={styles.image} />
-            <View>
-              <Text style={styles.name}>{name}</Text>
-              <Text style={styles.email}>{email}</Text>
+    <BlurView tint="systemUltraThinMaterialDark" style={styles.item}>
+      <Pressable {...pressableProps} style={styles.pressable}>
+        {({ pressed }) => (
+          <>
+            <View style={[styles.container, pressed && styles.pressed]}>
+              <Image source={image} style={styles.image} />
+              <View style={styles.labels}>
+                <Text style={styles.name}>{name}</Text>
+                <Text style={styles.email}>{email}</Text>
+              </View>
             </View>
-          </View>
-          <IconSymbol name="chevron.right" color="#8C8C8C" size={16} />
-        </BlurView>
-      )}
-    </Pressable>
+            <IconSymbol
+              name="chevron.right"
+              color="#8C8C8C"
+              size={16}
+              style={pressed && styles.pressed}
+            />
+          </>
+        )}
+      </Pressable>
+    </BlurView>
   );
 }
 
@@ -49,6 +53,9 @@ const styles = StyleSheet.create({
     borderRadius: 30,
     overflow: "hidden",
     paddingHorizontal: 20,
+  },
+  pressable: {
+    flex: 1,
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
@@ -57,7 +64,9 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     gap: 14,
     alignItems: "center",
-    alignSelf: "center",
+  },
+  labels: {
+    gap: 2,
   },
   name: {
     fontSize: 20,
@@ -74,5 +83,8 @@ const styles = StyleSheet.create({
     borderRadius: "100%",
     height: 60,
     width: 60,
+  },
+  pressed: {
+    opacity: 0.7,
   },
 });
