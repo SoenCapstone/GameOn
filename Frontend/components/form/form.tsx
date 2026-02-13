@@ -14,6 +14,7 @@ import { ProfileItem } from "@/components/form/profile-item";
 import { IconItem } from "@/components/form/icon-item";
 import { MenuCardItem } from "@/components/form/menu-card-item";
 import { ImageItem } from "@/components/form/image-item";
+import { MultiselectItem } from "@/components/form/multiselect-item";
 
 interface FormProps {
   readonly children: ReactNode;
@@ -41,6 +42,7 @@ Form.Profile = ProfileItem;
 Form.Icon = IconItem;
 Form.MenuCard = MenuCardItem;
 Form.Image = ImageItem;
+Form.Multiselect = MultiselectItem;
 
 const styles = StyleSheet.create({
   form: { gap: 22 },
