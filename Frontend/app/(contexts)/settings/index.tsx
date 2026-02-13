@@ -62,7 +62,7 @@ export default function Settings() {
           )}
           <Form.Link label="Terms and Privacy Policy" onPress={openPolicy} />
           <Form.Button
-            label="Sign Out"
+            button="Sign Out"
             color={AccentColors.red}
             onPress={() => logout()}
           />

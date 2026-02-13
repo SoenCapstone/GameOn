@@ -17,6 +17,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { useActionSheet } from "@expo/react-native-action-sheet";
 
 interface MenuPickerProps {
+  readonly title?: string;
   readonly options: readonly string[];
   readonly value: string;
   readonly onValueChange: (value: string) => void;
@@ -24,6 +25,7 @@ interface MenuPickerProps {
 }
 
 export function MenuPicker({
+  title,
   options,
   value,
   onValueChange,
@@ -37,6 +39,7 @@ export function MenuPicker({
 
     showActionSheetWithOptions(
       {
+        title: title,
         options: [...options],
         anchor: findNodeHandle(anchorRef.current) ?? undefined,
       },

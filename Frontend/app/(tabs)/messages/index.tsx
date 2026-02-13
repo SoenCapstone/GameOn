@@ -1,45 +1,71 @@
-import React, { useMemo, useState } from "react";
-import { messagesIndexStyles as styles } from "@/constants/messaging-styles";
-
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { ContentArea } from "@/components/ui/content-area";
 import {
   ActivityIndicator,
-  FlatList,
-  Pressable,
   RefreshControl,
+  StyleSheet,
   Text,
   View,
 } from "react-native";
-import { useRouter } from "expo-router";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { useAuth } from "@clerk/clerk-expo";
+import SegmentedControl from "@react-native-segmented-control/segmented-control";
+import { LegendList } from "@legendapp/list";
+import { useNavigation, useRouter } from "expo-router";
+import { Header } from "@/components/header/header";
+import { Logo } from "@/components/header/logo";
+import { PageTitle } from "@/components/header/page-title";
+import { Button } from "@/components/ui/button";
 import { useMessagingContext } from "@/features/messaging/provider";
+import { useAuth } from "@clerk/clerk-expo";
 import {
   useConversationsQuery,
   useUserDirectory,
 } from "@/features/messaging/hooks";
-import { formatMessageTimestamp } from "@/features/messaging/utils";
+import { Chat, type ChatItem } from "@/components/messages/chat";
 
-
-
-type ListRow = {
-  id: string;
-  title: string;
-  subtitle: string;
-  preview: string;
-  timestamp: string;
-  badge?: string;
-  badgeTone?: string;
-};
+function MessagesHeader({
+  socketState,
+  onPress,
+}: Readonly<{
+  socketState: string;
+  onPress: () => void;
+}>) {
+  return (
+    <Header
+      left={<Logo />}
+      center={
+        <PageTitle
+          title="Messages"
+          subtitle={socketState === "connected" ? undefined : socketState}
+        />
+      }
+      right={<Button type="custom" icon="plus" onPress={onPress} />}
+    />
+  );
+}
 
 export default function Messages() {
   const router = useRouter();
-  const insets = useSafeAreaInsets();
-  const { userId } = useAuth();
+  const navigation = useNavigation();
   const { socketState } = useMessagingContext();
+  const { userId } = useAuth();
   const { data, isLoading, refetch, isRefetching } = useConversationsQuery();
   const { data: users } = useUserDirectory();
   const [filter, setFilter] = useState<"all" | "direct" | "group">("all");
+  const listRef = useRef<any>(null);
+
+  const plusRoute =
+    filter === "group" ? "/messages/new/group" : "/messages/new/message";
+
+  useLayoutEffect(() => {
+    navigation.setOptions({
+      headerTitle: () => (
+        <MessagesHeader
+          socketState={socketState}
+          onPress={() => router.push(plusRoute)}
+        />
+      ),
+    });
+  }, [navigation, router, filter, plusRoute, socketState]);
 
   const userMap = useMemo(() => {
     const map = new Map<string, string>();
@@ -50,7 +76,7 @@ export default function Messages() {
     return map;
   }, [users]);
 
-  const listData = useMemo<ListRow[]>(() => {
+  const listData = useMemo<ChatItem[]>(() => {
     if (!data) return [];
     return data
       .filter((conversation) => {
@@ -64,106 +90,122 @@ export default function Messages() {
           (p) => p.userId !== userId,
         );
         const title = isGroup
-          ? conversation.name ?? "Team chat"
-          : userMap.get(otherParticipant?.userId ?? "") ?? "Direct message";
-        const preview = conversation.lastMessage?.content ?? "Start the conversation";
-        const badge = isGroup ? (conversation.isEvent ? "Event" : "Team") : undefined;
-        const timestamp = formatMessageTimestamp(
+          ? (conversation.name ?? "Team chat")
+          : (userMap.get(otherParticipant?.userId ?? "") ?? "Direct message");
+        const preview =
+          conversation.lastMessage?.content ?? "Start the conversation";
+        const timestamp = new Date(
           conversation.lastMessage?.createdAt ??
             conversation.lastMessageAt ??
             conversation.createdAt,
         );
+        let subtitle: string;
+        if (!isGroup) {
+          subtitle = "Direct message";
+        } else if (conversation.isEvent) {
+          subtitle = "Event chat";
+        } else {
+          subtitle = "Team chat";
+        }
         return {
           id: conversation.id,
           title,
-          subtitle: isGroup ? (conversation.isEvent ? "Event chat" : "Team chat") : "Direct message",
+          subtitle,
           preview,
           timestamp,
-          badge,
-        } satisfies ListRow;
+          group: isGroup,
+        } satisfies ChatItem;
       });
   }, [data, filter, userId, userMap]);
 
+  useEffect(() => {
+    listRef.current?.scrollToIndex({ index: 0, animated: true });
+  }, [listData.length]);
+
   const openConversation = (id: string) => router.push(`/messages/${id}`);
-  const openNewChat = () => router.push("/messages/new");
+
+  const selectedIndex = { all: 0, direct: 1, group: 2 }[filter];
 
   return (
-    <ContentArea backgroundProps={{ preset: "green" }}>
-      <View style={styles.container}>
-        <View style={[styles.header, { paddingTop: insets.top + 8 }]}>
-          <Text style={styles.title}>Messages</Text>
-          <Pressable onPress={openNewChat} style={styles.plusBtn} accessibilityLabel="Start a new conversation">
-            <Text style={styles.plusText}>+</Text>
-          </Pressable>
+    <ContentArea
+      scrollable
+      segmentedControl
+      backgroundProps={{ preset: "green" }}
+      refreshControl={
+        <RefreshControl
+          refreshing={isRefetching}
+          onRefresh={refetch}
+          tintColor="white"
+        />
+      }
+    >
+      <SegmentedControl
+        values={["All", "Direct", "Groups"]}
+        selectedIndex={selectedIndex}
+        onValueChange={(value) => {
+          if (value === "All") setFilter("all");
+          else if (value === "Direct") setFilter("direct");
+          else setFilter("group");
+        }}
+        style={styles.segmented}
+      />
+
+      {isLoading || isRefetching ? (
+        <View style={styles.emptyState}>
+          <ActivityIndicator color="white" />
         </View>
-
-        <View style={[styles.header, { paddingTop: 0 }]}> 
-          <Pressable onPress={() => setFilter("all")} style={{ opacity: filter === "all" ? 1 : 0.6 }}>
-            <Text style={styles.toggleText}>All</Text>
-          </Pressable>
-          <Pressable onPress={() => setFilter("direct")} style={{ opacity: filter === "direct" ? 1 : 0.6 }}>
-            <Text style={styles.toggleText}>Direct</Text>
-          </Pressable>
-          <Pressable onPress={() => setFilter("group")} style={{ opacity: filter === "group" ? 1 : 0.6 }}>
-            <Text style={styles.toggleText}>Groups</Text>
-          </Pressable>
+      ) : listData.length === 0 ? (
+        <View style={styles.emptyState}>
+          <Text style={styles.emptyTitle}>No conversations yet</Text>
+          <Text style={styles.emptySubtitle}>
+            Start a direct message or create a team chat to begin.
+          </Text>
         </View>
-
-        <Text style={styles.statusText}>
-          Connection: {socketState === "connected" ? "Online" : socketState}
-        </Text>
-
-        {isLoading ? (
-          <View style={styles.emptyState}>
-            <ActivityIndicator color="white" />
-          </View>
-        ) : listData.length === 0 ? (
-          <View style={styles.emptyState}>
-            <Text style={styles.emptyTitle}>No conversations yet</Text>
-            <Text style={styles.emptySubtitle}>
-              Start a direct message or create a team chat to begin.
-            </Text>
-          </View>
-        ) : (
-          <FlatList
-            data={listData}
-            keyExtractor={(item) => item.id}
-            contentContainerStyle={styles.listContent}
-            ItemSeparatorComponent={() => <View style={styles.separator} />}
-            refreshControl={
-              <RefreshControl refreshing={isRefetching} onRefresh={refetch} tintColor="white" />
-            }
-            renderItem={({ item }) => (
-              <Pressable onPress={() => openConversation(item.id)} style={styles.row}>
-                <View style={styles.avatar}>
-                  <Text style={styles.avatarText}>
-                    {item.title?.[0]?.toUpperCase() ?? "?"}
-                  </Text>
-                </View>
-
-                <View style={styles.rowMid}>
-                  <Text style={styles.name}>{item.title}</Text>
-                  <Text style={styles.preview} numberOfLines={1}>
-                    {item.preview}
-                  </Text>
-                  {item.badge && (
-                    <View style={styles.badgeRow}>
-                      <View style={styles.badge}>
-                        <Text style={styles.badgeText}>{item.badge}</Text>
-                      </View>
-                    </View>
-                  )}
-                </View>
-
-                <View style={styles.rowRight}>
-                  <Text style={styles.time}>{item.timestamp}</Text>
-                  <Text style={styles.chev}>›</Text>
-                </View>
-              </Pressable>
-            )}
-          />
-        )}
-      </View>
+      ) : (
+        <LegendList
+          ref={listRef}
+          data={listData}
+          keyExtractor={(item) => item.id}
+          style={{ overflow: "visible" }}
+          contentContainerStyle={styles.listContent}
+          ItemSeparatorComponent={() => <View style={styles.separator} />}
+          renderItem={({ item }) => (
+            <Chat item={item} onPress={openConversation} />
+          )}
+        />
+      )}
     </ContentArea>
   );
 }
+
+const styles = StyleSheet.create({
+  segmented: {
+    height: 40,
+  },
+  listContent: {
+    marginTop: 8,
+    paddingHorizontal: 14,
+  },
+  separator: {
+    height: StyleSheet.hairlineWidth,
+    marginVertical: 18,
+    backgroundColor: "rgba(255,255,255,0.10)",
+  },
+  emptyState: {
+    alignItems: "center",
+    justifyContent: "center",
+    height: 160,
+    paddingHorizontal: 24,
+  },
+  emptyTitle: {
+    color: "white",
+    fontSize: 18,
+    fontWeight: "700",
+    marginBottom: 8,
+  },
+  emptySubtitle: {
+    color: "rgba(255,255,255,0.7)",
+    fontSize: 14,
+    textAlign: "center",
+  },
+});
