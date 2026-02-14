@@ -114,9 +114,7 @@ function LeagueContent() {
           style={{ height: 40 }}
         />
 
-        {isLoading ? (
-          <ActivityIndicator size="small" color="#fff" />
-        ) : null}
+        {isLoading ? <ActivityIndicator size="small" color="#fff" /> : null}
 
         {tab === "board" ? (
           <BoardList
@@ -175,7 +173,7 @@ function LeagueContent() {
             <Button
               type="custom"
               icon={fabOpen ? "xmark" : "plus"}
-              onPress={() => setFabOpen((v) => !v)}
+              onPress={() => setFabOpen((value) => !value)}
             />
           </View>
         </View>
