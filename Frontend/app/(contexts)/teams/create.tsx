@@ -2,7 +2,6 @@ import React, { useCallback, useLayoutEffect } from "react";
 import { Alert } from "react-native";
 import { useRouter } from "expo-router";
 import { useNavigation } from "@react-navigation/native";
-import * as ImagePicker from "expo-image-picker";
 import { ContentArea } from "@/components/ui/content-area";
 import { Header } from "@/components/header/header";
 import { PageTitle } from "@/components/header/page-title";
@@ -23,6 +22,7 @@ import {
   SCOPE_OPTIONS,
   CITIES,
 } from "@/components/teams/team-form-constants";
+import { pickImage } from "@/utils/pick-image";
 
 const log = createScopedLog("Create Team Page");
 
@@ -48,22 +48,10 @@ export default function CreateTeamScreen() {
     setLogoUri,
   } = useTeamForm();
 
-  const handlePickLogo = useCallback(async () => {
-    const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
-    if (status !== "granted") {
-      Alert.alert("Permission required", "We need access to your photos.");
-      return;
-    }
-    const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ["images"],
-      allowsEditing: true,
-      aspect: [1, 1],
-      quality: 0.8,
-    });
-    if (!result.canceled && result.assets.length > 0) {
-      setLogoUri(result.assets[0].uri);
-    }
-  }, [setLogoUri]);
+  const handlePickLogo = useCallback(
+    () => pickImage((img) => setLogoUri(img.uri)),
+    [setLogoUri],
+  );
 
   const createTeamMutation = useMutation({
     mutationFn: async () => {

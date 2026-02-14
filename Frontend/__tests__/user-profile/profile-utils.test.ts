@@ -3,9 +3,9 @@ import * as ImagePicker from "expo-image-picker";
 import { File } from "expo-file-system";
 import {
   handleSaveProfile,
-  pickImage,
   confirmLogout,
 } from "@/components/user-profile/profile-utils";
+import { pickImage } from "@/utils/pick-image";
 
 jest.mock("react-native", () => ({
   Alert: {
@@ -283,7 +283,7 @@ describe("handleSaveProfile", () => {
 
     const imageError = new Error("Image upload failed");
     mockUser.setProfileImage.mockRejectedValue(imageError);
-      mockUser.update.mockResolvedValue(undefined);
+    mockUser.update.mockResolvedValue(undefined);
     const mockFileInstance = {
       base64: jest.fn().mockResolvedValue("base64string"),
     };
@@ -324,7 +324,9 @@ describe("pickImage", () => {
   });
 
   it("handles permission request and denied/granted responses", async () => {
-    (ImagePicker.requestMediaLibraryPermissionsAsync as jest.Mock).mockResolvedValue({
+    (
+      ImagePicker.requestMediaLibraryPermissionsAsync as jest.Mock
+    ).mockResolvedValue({
       granted: false,
     });
 
@@ -339,7 +341,9 @@ describe("pickImage", () => {
 
     jest.clearAllMocks();
 
-    (ImagePicker.requestMediaLibraryPermissionsAsync as jest.Mock).mockResolvedValue({
+    (
+      ImagePicker.requestMediaLibraryPermissionsAsync as jest.Mock
+    ).mockResolvedValue({
       granted: true,
     });
     (ImagePicker.launchImageLibraryAsync as jest.Mock).mockResolvedValue({
@@ -359,7 +363,9 @@ describe("pickImage", () => {
   });
 
   it("handles image selection with various mime types and asset scenarios", async () => {
-    (ImagePicker.requestMediaLibraryPermissionsAsync as jest.Mock).mockResolvedValue({
+    (
+      ImagePicker.requestMediaLibraryPermissionsAsync as jest.Mock
+    ).mockResolvedValue({
       granted: true,
     });
 
@@ -381,7 +387,9 @@ describe("pickImage", () => {
     });
 
     jest.clearAllMocks();
-    (ImagePicker.requestMediaLibraryPermissionsAsync as jest.Mock).mockResolvedValue({
+    (
+      ImagePicker.requestMediaLibraryPermissionsAsync as jest.Mock
+    ).mockResolvedValue({
       granted: true,
     });
 
@@ -403,7 +411,9 @@ describe("pickImage", () => {
     });
 
     jest.clearAllMocks();
-    (ImagePicker.requestMediaLibraryPermissionsAsync as jest.Mock).mockResolvedValue({
+    (
+      ImagePicker.requestMediaLibraryPermissionsAsync as jest.Mock
+    ).mockResolvedValue({
       granted: true,
     });
 
@@ -425,7 +435,9 @@ describe("pickImage", () => {
     });
 
     jest.clearAllMocks();
-    (ImagePicker.requestMediaLibraryPermissionsAsync as jest.Mock).mockResolvedValue({
+    (
+      ImagePicker.requestMediaLibraryPermissionsAsync as jest.Mock
+    ).mockResolvedValue({
       granted: true,
     });
 
@@ -445,7 +457,9 @@ describe("pickImage", () => {
     });
 
     jest.clearAllMocks();
-    (ImagePicker.requestMediaLibraryPermissionsAsync as jest.Mock).mockResolvedValue({
+    (
+      ImagePicker.requestMediaLibraryPermissionsAsync as jest.Mock
+    ).mockResolvedValue({
       granted: true,
     });
 
@@ -459,7 +473,9 @@ describe("pickImage", () => {
     expect(mockSetImage).not.toHaveBeenCalled();
 
     jest.clearAllMocks();
-    (ImagePicker.requestMediaLibraryPermissionsAsync as jest.Mock).mockResolvedValue({
+    (
+      ImagePicker.requestMediaLibraryPermissionsAsync as jest.Mock
+    ).mockResolvedValue({
       granted: true,
     });
 
@@ -477,27 +493,39 @@ describe("pickImage", () => {
     let consoleSpy = jest.spyOn(console, "error").mockImplementation();
 
     const permissionError = new Error("Permission error");
-    (ImagePicker.requestMediaLibraryPermissionsAsync as jest.Mock).mockRejectedValue(permissionError);
+    (
+      ImagePicker.requestMediaLibraryPermissionsAsync as jest.Mock
+    ).mockRejectedValue(permissionError);
 
     await pickImage(mockSetImage);
 
-    expect(consoleSpy).toHaveBeenCalledWith("Image picker error:", "Permission error");
+    expect(consoleSpy).toHaveBeenCalledWith(
+      "Image picker error:",
+      "Permission error",
+    );
     expect(mockAlert).toHaveBeenCalledWith(
       "Error",
       "Failed to pick image: Permission error",
     );
     expect(mockSetImage).not.toHaveBeenCalled();
 
-    (ImagePicker.requestMediaLibraryPermissionsAsync as jest.Mock).mockResolvedValue({
+    (
+      ImagePicker.requestMediaLibraryPermissionsAsync as jest.Mock
+    ).mockResolvedValue({
       granted: true,
     });
     const pickerError = new Error("Picker crashed");
-    (ImagePicker.launchImageLibraryAsync as jest.Mock).mockRejectedValue(pickerError);
+    (ImagePicker.launchImageLibraryAsync as jest.Mock).mockRejectedValue(
+      pickerError,
+    );
     consoleSpy = jest.spyOn(console, "error").mockImplementation();
 
     await pickImage(mockSetImage);
 
-    expect(consoleSpy).toHaveBeenCalledWith("Image picker error:", "Picker crashed");
+    expect(consoleSpy).toHaveBeenCalledWith(
+      "Image picker error:",
+      "Picker crashed",
+    );
     expect(mockAlert).toHaveBeenCalledWith(
       "Error",
       "Failed to pick image: Picker crashed",
