@@ -11,7 +11,6 @@ import {
 import { useLocalSearchParams, useRouter } from "expo-router";
 import SegmentedControl from "@react-native-segmented-control/segmented-control";
 import { useQuery } from "@tanstack/react-query";
-
 import { ContentArea } from "@/components/ui/content-area";
 import { useLeagueHeader } from "@/hooks/use-team-league-header";
 import {
@@ -57,8 +56,17 @@ function LeagueContent() {
   const [tab, setTab] = useState<"board" | "standings" | "browser">("board");
   const [refreshingLocal, setRefreshingLocal] = useState(false);
 
-  const { id, isLoading, refreshing, onRefresh, handleFollow, title, isMember, isOwner, league } =
-    useLeagueDetailContext();
+  const {
+    id,
+    isLoading,
+    refreshing,
+    onRefresh,
+    handleFollow,
+    title,
+    isMember,
+    isOwner,
+    league,
+  } = useLeagueDetailContext();
 
   const log = createScopedLog("League Page");
 
@@ -190,7 +198,13 @@ function LeagueBrowserTeams({ leagueId }: { leagueId: string }) {
           } catch {
             return [
               t.teamId,
-              { id: t.teamId, name: "Team", sport: null, location: null, logoUrl: null },
+              {
+                id: t.teamId,
+                name: "Team",
+                sport: null,
+                location: null,
+                logoUrl: null,
+              },
             ] as const;
           }
         }),
@@ -206,9 +220,7 @@ function LeagueBrowserTeams({ leagueId }: { leagueId: string }) {
     return (
       <View style={styles.section}>
         <Text style={styles.title}>Browse</Text>
-        <Text style={styles.text}>
-          Failed to load league teams.
-        </Text>
+        <Text style={styles.text}>Failed to load league teams.</Text>
       </View>
     );
   }
@@ -233,7 +245,6 @@ function LeagueBrowserTeams({ leagueId }: { leagueId: string }) {
           const sportOrLoc = details?.sport ?? details?.location ?? "";
           const logoUrl = details?.logoUrl ?? null;
 
-          // initials fallback (nice for null logo)
           const initials = name
             .split(" ")
             .filter(Boolean)
