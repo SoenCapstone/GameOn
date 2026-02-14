@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { ContentArea } from "@/components/ui/content-area";
 import { AccentColors } from "@/constants/colors";
 import { Form } from "@/components/form/form";
@@ -9,10 +10,13 @@ import { log } from "@/utils/logger";
 import { openPolicy } from "@/components/privacy-disclaimer/utils";
 import { images } from "@/constants/images";
 
+const CITY_OPTIONS = ["Toronto", "Montreal", "Laval", "Vancouver"];
+
 export default function Settings() {
   const { signOut } = useAuth();
   const { isLoaded, isSignedIn, user } = useUser();
   const { flags, toggleFlag } = useFeatureFlags();
+  const [selectedCities, setSelectedCities] = useState<string[]>([]);
 
   const isDev = (user?.publicMetadata as { isDev?: boolean })?.isDev === true;
 
@@ -53,6 +57,13 @@ export default function Settings() {
             ))}
           </Form.Section>
         )}
+        <Form.Section header="Preferred Cities">
+          <Form.Multiselect
+            options={CITY_OPTIONS}
+            selected={selectedCities}
+            onSelected={setSelectedCities}
+          />
+        </Form.Section>
         <Form.Section>
           {isDev && (
             <Form.Link
@@ -60,6 +71,11 @@ export default function Settings() {
               onPress={() => router.push("/_sitemap")}
             />
           )}
+          <Form.Link
+            label="Sports"
+            preview={["Basketball", "Soccer"]}
+            onPress={() => router.push("/settings")}
+          />
           <Form.Link label="Terms and Privacy Policy" onPress={openPolicy} />
           <Form.Button
             button="Sign Out"
