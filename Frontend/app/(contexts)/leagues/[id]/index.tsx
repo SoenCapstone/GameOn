@@ -62,7 +62,7 @@ function LeagueContent() {
   } = useLeagueMatches(id);
 
   const teamIds = useMemo(
-    () => Array.from(new Set(matches.flatMap((m) => [m.homeTeamId, m.awayTeamId]))),
+    () => Array.from(new Set(matches.flatMap((match) => [match.homeTeamId, match.awayTeamId]))),
     [matches],
   );
   const teamsQuery = useTeamsByIds(teamIds);
