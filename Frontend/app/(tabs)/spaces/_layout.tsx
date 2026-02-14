@@ -21,7 +21,7 @@ function SpacesHeader() {
     ) : mode === "tournaments" ? (
       <Button type="custom" icon="plus" onPress={handleComingSoon} />
     ) : (
-      <Button type="custom" route="/teams/create-team" icon="plus" />
+      <Button type="custom" route="/teams/create" icon="plus" />
     );
 
   return (
