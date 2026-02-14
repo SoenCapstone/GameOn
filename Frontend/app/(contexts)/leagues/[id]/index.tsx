@@ -40,10 +40,20 @@ type TeamDetailResponse = {
   logoUrl?: string | null;
 };
 
+type LeagueTab = "board" | "standings" | "browser";
+
+// NOTE: order matters (this is used for index mapping)
+const LEAGUE_TABS: readonly LeagueTab[] = ["board", "standings", "browser"] as const;
+const TAB_LABELS: Record<LeagueTab, string> = {
+  board: "Board",
+  standings: "Standings",
+  browser: "Browse",
+};
+
 export default function LeagueScreen() {
   const params = useLocalSearchParams<{ id?: string | string[] }>();
   const rawId = params.id;
-  const id = Array.isArray(rawId) ? rawId[0] : (rawId ?? "");
+  const id = Array.isArray(rawId) ? rawId[0] : rawId ?? "";
 
   return (
     <LeagueDetailProvider id={id}>
@@ -53,7 +63,7 @@ export default function LeagueScreen() {
 }
 
 function LeagueContent() {
-  const [tab, setTab] = useState<"board" | "standings" | "browser">("board");
+  const [tab, setTab] = useState<LeagueTab>("board");
   const [refreshingLocal, setRefreshingLocal] = useState(false);
 
   const {
@@ -72,19 +82,16 @@ function LeagueContent() {
 
   useLeagueHeader({ title, id, isMember, isOwner, onFollow: handleFollow });
 
-  const getTabFromSegmentValue = (
-    value: string,
-  ): "board" | "standings" | "browser" => {
-    if (value === "Board") return "board";
-    if (value === "Standings") return "standings";
-    return "browser";
-  };
+  const selectedIndex = useMemo(() => LEAGUE_TABS.indexOf(tab), [tab]);
 
-  const getSelectedIndex = (): number => {
-    if (tab === "board") return 0;
-    if (tab === "standings") return 1;
-    return 2;
-  };
+  const handleTabChange = useCallback(
+    (index: number) => {
+      const nextTab = LEAGUE_TABS[index] ?? "board";
+      setTab(nextTab);
+      log.info("Tab changed", { tab: nextTab });
+    },
+    [log],
+  );
 
   const handleRefresh = useCallback(async () => {
     try {
@@ -113,21 +120,21 @@ function LeagueContent() {
       }
     >
       <SegmentedControl
-        values={["Board", "Standings", "Browse"]}
-        selectedIndex={getSelectedIndex()}
-        onValueChange={(value) => {
-          const newTab = getTabFromSegmentValue(value);
-          setTab(newTab);
-          log.info("Tab changed", { tab: newTab });
+        values={LEAGUE_TABS.map((t) => TAB_LABELS[t])}
+        selectedIndex={selectedIndex}
+        onChange={(event) => {
+          handleTabChange(event.nativeEvent.selectedSegmentIndex);
         }}
         style={{ height: 40 }}
       />
 
-      {isLoading ? (
+      {isLoading && (
         <View style={styles.container}>
           <ActivityIndicator size="small" color="#fff" />
         </View>
-      ) : (
+      )}
+
+      {!isLoading && (
         <>
           {(refreshing || refreshingLocal) && (
             <ActivityIndicator size="small" color="#fff" />
@@ -191,20 +198,12 @@ function LeagueBrowserTeams({ leagueId }: { leagueId: string }) {
       const entries = await Promise.all(
         leagueTeams.map(async (t) => {
           try {
-            const resp = await api.get(
-              `${GO_TEAM_SERVICE_ROUTES.ALL}/${t.teamId}`,
-            );
+            const resp = await api.get(`${GO_TEAM_SERVICE_ROUTES.ALL}/${t.teamId}`);
             return [t.teamId, resp.data] as const;
           } catch {
             return [
               t.teamId,
-              {
-                id: t.teamId,
-                name: "Team",
-                sport: null,
-                location: null,
-                logoUrl: null,
-              },
+              { id: t.teamId, name: "Team", sport: null, location: null, logoUrl: null },
             ] as const;
           }
         }),
@@ -242,7 +241,7 @@ function LeagueBrowserTeams({ leagueId }: { leagueId: string }) {
         {leagueTeams.map((t) => {
           const details = teamDetailsMap?.[t.teamId];
           const name = details?.name ?? "Team";
-          const sportOrLoc = details?.sport ?? details?.location ?? "";
+          const subtitle = details?.sport ?? details?.location ?? "";
           const logoUrl = details?.logoUrl ?? null;
 
           const initials = name
@@ -259,10 +258,7 @@ function LeagueBrowserTeams({ leagueId }: { leagueId: string }) {
               onPress={() => router.push(`/teams/${t.teamId}`)}
             >
               {logoUrl ? (
-                <Image
-                  source={{ uri: logoUrl }}
-                  style={styles.browserAvatarImage}
-                />
+                <Image source={{ uri: logoUrl }} style={styles.browserAvatarImage} />
               ) : (
                 <View style={styles.browserAvatar}>
                   <Text style={styles.browserAvatarText}>{initials || "T"}</Text>
@@ -273,9 +269,9 @@ function LeagueBrowserTeams({ leagueId }: { leagueId: string }) {
                 {name}
               </Text>
 
-              {sportOrLoc ? (
+              {subtitle ? (
                 <Text style={styles.browserSub} numberOfLines={1}>
-                  {sportOrLoc}
+                  {subtitle}
                 </Text>
               ) : null}
             </Pressable>
@@ -311,7 +307,6 @@ const styles = StyleSheet.create({
     color: "white",
     opacity: 0.6,
   },
-
   browserWrap: {
     paddingTop: 16,
     paddingHorizontal: 8,
