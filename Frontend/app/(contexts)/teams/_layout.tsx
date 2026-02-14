@@ -4,7 +4,7 @@ import { useContextStackScreens } from "@/components/context-stack";
 
 export default function TeamsLayout() {
   const screens = useContextStackScreens({
-    create: { name: "create-team", title: "Create Team" },
+    create: { name: "create", title: "Create a Team" },
     indexName: "[id]/index",
     extraScreens: [
       "[id]/settings/index",
