@@ -153,6 +153,7 @@ export default function CreateTeamScreen() {
       <Form accentColor={AccentColors.purple}>
         <Form.Section>
           <Form.Image
+            logo
             image={pickedLogo ? { uri: pickedLogo.uri } : images.defaultLogo}
             onPress={handlePickLogo}
           />
