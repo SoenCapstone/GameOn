@@ -14,13 +14,14 @@ import {
 } from "react-native";
 import { KeyboardStickyView } from "react-native-keyboard-controller";
 import { LegendList } from "@legendapp/list";
-import { useLocalSearchParams } from "expo-router";
+import { useLocalSearchParams, useRouter } from "expo-router";
 import { useNavigation } from "@react-navigation/native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useAuth } from "@clerk/clerk-expo";
 import {
   useConversationsQuery,
   useMessagesQuery,
+  useMyTeams,
   useUserDirectory,
 } from "@/features/messaging/hooks";
 import { useMessagingContext } from "@/features/messaging/provider";
@@ -78,26 +79,39 @@ function ChatScreenHeader({
   title,
   subtitle,
   isGroup,
-  avatarStyle,
+  imageUrl,
+  teamId,
 }: Readonly<{
   title: string;
   subtitle: string;
   isGroup: boolean;
-  avatarStyle: ViewStyle;
+  imageUrl?: string | null;
+  teamId?: string | null;
 }>) {
+  const router = useRouter();
+
+  const right = (
+    <Button
+      type="custom"
+      image={teamId && imageUrl ? { uri: imageUrl } : undefined}
+      icon={
+        !(teamId && imageUrl)
+          ? isGroup
+            ? "shield.fill"
+            : "person.fill"
+          : undefined
+      }
+      iconSize={isGroup ? 24 : 20}
+      onPress={teamId ? () => router.push(`/teams/${teamId}`) : undefined}
+      isInteractive={!!teamId}
+    />
+  );
+
   return (
     <Header
       left={<Button type="back" />}
       center={<PageTitle title={title} subtitle={subtitle} />}
-      right={
-        <GlassView style={avatarStyle}>
-          <IconSymbol
-            name={isGroup ? "person.2.fill" : "person.fill"}
-            color="white"
-            size={isGroup ? 24 : 18}
-          />
-        </GlassView>
-      }
+      right={right}
     />
   );
 }
@@ -112,6 +126,7 @@ export default function ChatScreen() {
   const { data: conversations } = useConversationsQuery();
   const conversation = conversations?.find((c) => c.id === id);
   const { data: directory } = useUserDirectory();
+  const { data: myTeams } = useMyTeams();
   const { sendMessage, ensureTopicSubscription } = useMessagingContext();
   const {
     data: messagePages,
@@ -230,6 +245,11 @@ export default function ChatScreen() {
   const isGroup = conversation?.type === "GROUP";
   const navigation = useNavigation();
 
+  const headerLogoUrl =
+    isGroup && conversation?.teamId
+      ? (myTeams?.find((t) => t.id === conversation.teamId)?.logoUrl ?? null)
+      : null;
+
   useLayoutEffect(() => {
     navigation.setOptions({
       headerTitle: () => (
@@ -237,11 +257,19 @@ export default function ChatScreen() {
           title={headerTitle}
           subtitle={headerSubtitle}
           isGroup={isGroup}
-          avatarStyle={styles.avatarCircle}
+          imageUrl={headerLogoUrl}
+          teamId={conversation?.teamId ?? null}
         />
       ),
     });
-  }, [navigation, headerTitle, headerSubtitle, isGroup]);
+  }, [
+    navigation,
+    headerTitle,
+    headerSubtitle,
+    isGroup,
+    headerLogoUrl,
+    conversation?.teamId,
+  ]);
 
   return (
     <View style={styles.screen}>
@@ -367,13 +395,6 @@ export default function ChatScreen() {
 
 const styles = StyleSheet.create({
   screen: { flex: 1 },
-  avatarCircle: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    alignItems: "center",
-    justifyContent: "center",
-  },
   infoText: {
     textAlign: "center",
     color: "rgba(255,255,255,0.55)",
