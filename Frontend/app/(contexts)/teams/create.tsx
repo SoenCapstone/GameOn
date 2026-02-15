@@ -1,4 +1,4 @@
-import React, { useCallback, useLayoutEffect } from "react";
+import { useCallback, useLayoutEffect, useState } from "react";
 import { Alert } from "react-native";
 import { useRouter } from "expo-router";
 import { useNavigation } from "@react-navigation/native";
@@ -23,6 +23,10 @@ import {
   CITIES,
 } from "@/components/teams/team-form-constants";
 import { pickImage } from "@/utils/pick-image";
+import {
+  isAllowedLogoMimeType,
+  getLogoFileExtension,
+} from "@/utils/logo-upload";
 
 const log = createScopedLog("Create Team Page");
 
@@ -35,6 +39,11 @@ export default function CreateTeamScreen() {
   const api = useAxiosWithClerk();
   const queryClient = useQueryClient();
 
+  const [pickedLogo, setPickedLogo] = useState<{
+    uri: string;
+    mimeType: string;
+  } | null>(null);
+
   const {
     teamName,
     setTeamName,
@@ -44,14 +53,23 @@ export default function CreateTeamScreen() {
     setSelectedScope,
     selectedCity,
     setSelectedCity,
-    logoUri,
-    setLogoUri,
   } = useTeamForm();
 
-  const handlePickLogo = useCallback(
-    () => pickImage((img) => setLogoUri(img.uri)),
-    [setLogoUri],
-  );
+  const handlePickLogo = useCallback(async () => {
+    await pickImage((img) => {
+      if (!isAllowedLogoMimeType(img.mimeType)) {
+        Alert.alert(
+          "Unsupported format",
+          "Only images with transparent background are supported for logos.",
+        );
+        return;
+      }
+      setPickedLogo({
+        uri: img.uri,
+        mimeType: (img.mimeType ?? "image/png").toLowerCase().trim(),
+      });
+    });
+  }, []);
 
   const createTeamMutation = useMutation({
     mutationFn: async () => {
@@ -59,13 +77,25 @@ export default function CreateTeamScreen() {
         name: teamName.trim(),
         sport: selectedSport?.id ?? "",
         scope: selectedScope?.id ?? "",
-        logoUrl: logoUri ?? "",
         location: selectedCity?.label ?? "",
         privacy: "PRIVATE",
       };
       log.info("Sending team creation payload:", payload);
       const resp = await api.post(GO_TEAM_SERVICE_ROUTES.CREATE, payload);
-      return resp.data as { id: string; slug: string };
+      const data = resp.data as { id: string; slug: string };
+
+      if (pickedLogo && data.id) {
+        const formData = new FormData();
+        formData.append("file", {
+          uri: pickedLogo.uri,
+          type: pickedLogo.mimeType,
+          name: `logo.${getLogoFileExtension(pickedLogo.mimeType)}`,
+        } as unknown as Blob);
+        await api.post(GO_TEAM_SERVICE_ROUTES.TEAM_LOGO(data.id), formData);
+        log.info("Team logo uploaded for team", data.id);
+      }
+
+      return data;
     },
     onSuccess: async () => {
       await queryClient.invalidateQueries({ queryKey: ["teams"] });
@@ -93,12 +123,7 @@ export default function CreateTeamScreen() {
       return;
     }
     createTeamMutation.mutate();
-  }, [
-    teamName,
-    selectedSport,
-    selectedCity,
-    createTeamMutation,
-  ]);
+  }, [teamName, selectedSport, selectedCity, createTeamMutation]);
 
   const navigation = useNavigation();
   useLayoutEffect(() => {
@@ -118,11 +143,7 @@ export default function CreateTeamScreen() {
         />
       ),
     });
-  }, [
-    navigation,
-    createTeamMutation.isPending,
-    handleCreateTeam,
-  ]);
+  }, [navigation, createTeamMutation.isPending, handleCreateTeam]);
 
   return (
     <ContentArea
@@ -132,17 +153,17 @@ export default function CreateTeamScreen() {
       <Form accentColor={AccentColors.purple}>
         <Form.Section>
           <Form.Image
-            image={logoUri ? { uri: logoUri } : images.defaultLogo}
+            image={pickedLogo ? { uri: pickedLogo.uri } : images.defaultLogo}
             onPress={handlePickLogo}
           />
           <Button
             type="custom"
             label="Remove logo"
-            onPress={() => setLogoUri(null)}
+            onPress={() => setPickedLogo(null)}
           />
         </Form.Section>
 
-        <Form.Section>
+        <Form.Section footer="Only images with transparent background are supported.">
           <Form.Input
             label="Name"
             placeholder="Enter team name"

@@ -63,6 +63,8 @@ export const GO_USER_SERVICE_ROUTES = {
 export const GO_TEAM_SERVICE_ROUTES = {
   ALL: buildRoute(VERSIONING.v1, SERVICE.TEAMS),
   CREATE: buildRoute(VERSIONING.v1, SERVICE.TEAMS, "create"),
+  TEAM_LOGO: (teamId: string) =>
+    buildRoute(VERSIONING.v1, SERVICE.TEAMS, `${teamId}/logo`),
   GET_TEAM_MEMBERS: (teamId: string) =>
     buildRoute(VERSIONING.v1, SERVICE.TEAMS, `${teamId}/members`),
   REMOVE_TEAM_MEMBER: (teamId: string, userId: string) =>
