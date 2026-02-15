@@ -46,7 +46,7 @@ export default function InviteTeamsScreen() {
   const api = useAxiosWithClerk();
   const navigation = useNavigation();
   const queryClient = useQueryClient();
-  const { isOwner } = useLeagueDetail(leagueId);
+  const { isOwner, league } = useLeagueDetail(leagueId);
   const [invitedTeamIds, setInvitedTeamIds] = useState<Set<string>>(new Set());
 
   const { data: leagueTeams = [], isFetching: leagueTeamsFetching } = useQuery<
@@ -61,12 +61,12 @@ export default function InviteTeamsScreen() {
   });
 
   const teamListQuery = useQuery<TeamSummaryResponse[]>({
-    queryKey: ["team-invite-list", leagueId],
+    queryKey: ["team-invite-list", leagueId, league?.sport ?? ""],
     queryFn: async () => {
-      const resp = await fetchTeamResults(api, "", false);
+      const resp = await fetchTeamResults(api, "", false, league?.sport);
       return resp.items ?? [];
     },
-    enabled: Boolean(leagueId && isOwner),
+    enabled: Boolean(leagueId && isOwner && league?.sport),
   });
 
   const pendingInvitesQuery = useQuery<LeagueInviteResponse[]>({
@@ -119,15 +119,27 @@ export default function InviteTeamsScreen() {
     [pendingInvitesQuery.data],
   );
 
+  const normalizeSport = (sport?: string | null) =>
+    sport ? sport.trim().toLowerCase() : "";
+
   const availableTeams = useMemo(() => {
     const items = teamListQuery.data ?? [];
+    const leagueSport = normalizeSport(league?.sport);
     return items.filter(
       (team) =>
+        (!leagueSport ||
+          normalizeSport(team.sport) === leagueSport) &&
         !teamIdSet.has(team.id) &&
         !invitedTeamIds.has(team.id) &&
         !pendingInviteTeamIds.has(team.id),
     );
-  }, [invitedTeamIds, pendingInviteTeamIds, teamListQuery.data, teamIdSet]);
+  }, [
+    invitedTeamIds,
+    pendingInviteTeamIds,
+    teamListQuery.data,
+    teamIdSet,
+    league?.sport,
+  ]);
 
   const isBusy =
     leagueTeamsFetching ||
