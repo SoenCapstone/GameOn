@@ -1,8 +1,10 @@
 import { useCallback, useRef } from "react";
 import { Animated, Pressable, StyleSheet, Text, View } from "react-native";
+import { Image } from "expo-image";
 import { IconSymbol } from "@/components/ui/icon-symbol";
 import TimeAgo from "javascript-time-ago";
 import en from "javascript-time-ago/locale/en";
+import { GlassView } from "expo-glass-effect";
 
 TimeAgo.addDefaultLocale(en);
 const timeAgo = new TimeAgo("en-US");
@@ -14,6 +16,7 @@ export type ChatItem = {
   readonly preview: string;
   readonly timestamp: Date;
   readonly group: boolean;
+  readonly imageUrl?: string | null;
 };
 
 export function Chat({
@@ -47,13 +50,23 @@ export function Chat({
       onPressOut={handlePressOut}
     >
       <Animated.View style={[styles.row, { transform: [{ scale }] }]}>
-        <View style={styles.avatar}>
-          <IconSymbol
-            name={item.group ? "person.2.fill" : "person.fill"}
-            color="white"
-            size={item.group ? 24 : 18}
-          />
-        </View>
+        {item.imageUrl ? (
+          <View style={styles.avatar}>
+            <Image
+              source={{ uri: item.imageUrl }}
+              style={styles.image}
+              contentFit="cover"
+            />
+          </View>
+        ) : (
+          <GlassView style={styles.avatar}>
+            <IconSymbol
+              name={item.group ? "shield.fill" : "person.fill"}
+              color="white"
+              size={item.group ? 22 : 18}
+            />
+          </GlassView>
+        )}
 
         <View style={styles.rowContent}>
           <View style={styles.topRow}>
@@ -89,11 +102,15 @@ const styles = StyleSheet.create({
     width: 44,
     height: 44,
     borderRadius: 22,
-    backgroundColor: "rgba(255,255,255,0.18)",
     alignItems: "center",
     justifyContent: "center",
     marginRight: 12,
-    overflow: "hidden",
+  },
+  image: {
+    width: 40,
+    height: 40,
+    alignItems: "center",
+    justifyContent: "center",
   },
   rowContent: {
     flex: 1,
