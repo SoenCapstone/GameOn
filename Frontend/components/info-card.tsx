@@ -57,8 +57,8 @@ const styles = StyleSheet.create({
     gap: 16,
   },
   image: {
-    width: 44,
-    height: 44,
+    width: 40,
+    height: 40,
     alignItems: "center",
     justifyContent: "center",
   },
@@ -77,5 +77,6 @@ const styles = StyleSheet.create({
   subtitle: {
     fontSize: 15,
     color: "#8C8C8C",
+    textTransform: "capitalize",
   },
 });

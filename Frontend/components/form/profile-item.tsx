@@ -27,7 +27,9 @@ export function ProfileItem({
         {({ pressed }) => (
           <>
             <View style={[styles.container, pressed && styles.pressed]}>
-              <Image source={image} style={styles.image} />
+              <BlurView tint="systemUltraThinMaterial" style={styles.blur}>
+                <Image source={image} style={styles.image} />
+              </BlurView>
               <View style={styles.labels}>
                 <Text style={styles.name}>{name}</Text>
                 <Text style={styles.email}>{email}</Text>
@@ -64,6 +66,10 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     gap: 14,
     alignItems: "center",
+  },
+  blur: {
+    borderRadius: 100,
+    overflow: "hidden",
   },
   labels: {
     gap: 2,
