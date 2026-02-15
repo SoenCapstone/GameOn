@@ -105,6 +105,20 @@ describe("fetchTeamResults", () => {
     expect(callArgs[1]!.params).toMatchObject({ size: "50", my: true });
     expect(callArgs[1]!.params.q).toBeUndefined();
   });
+  it("adds sport when provided", async () => {
+    mockedAxios.get.mockClear();
+    const fakeApi = {
+      get: mockedAxios.get,
+      defaults: { headers: { common: {} } },
+    } as any;
+    await fetchTeamResults(fakeApi, "Test", false, "Basketball");
+    const callArgs = mockedAxios.get.mock.calls[0];
+    expect(callArgs[1]!.params).toMatchObject({
+      size: "50",
+      q: "Test",
+      sport: "Basketball",
+    });
+  });
 
   it("logs and rethrows when fetchTeamResults fails", async () => {
     mockedAxios.get.mockRejectedValueOnce(new Error("boom"));
