@@ -1,0 +1,303 @@
+import { useCallback, useLayoutEffect, useState } from "react";
+import { View, Text, ActivityIndicator, Alert } from "react-native";
+import { useLocalSearchParams, useRouter } from "expo-router";
+import { useNavigation } from "@react-navigation/native";
+import { ContentArea } from "@/components/ui/content-area";
+import { Header } from "@/components/header/header";
+import { Button } from "@/components/ui/button";
+import { PageTitle } from "@/components/header/page-title";
+import { Form } from "@/components/form/form";
+import { AccentColors } from "@/constants/colors";
+import { images } from "@/constants/images";
+import { createScopedLog } from "@/utils/logger";
+import { errorToString } from "@/utils/error";
+import { useTeamForm } from "@/hooks/use-team-form";
+import {
+  sportOptions,
+  scopeOptions,
+  cityOptions,
+  getSportByLabel,
+  getScopeByLabel,
+  getCityByLabel,
+} from "@/components/teams/team-form-constants";
+import {
+  TeamDetailProvider,
+  useTeamDetailContext,
+} from "@/contexts/team-detail-context";
+import { settingsStyles } from "@/constants/settings-styles";
+import { useUpdateTeam } from "@/hooks/use-team-league-settings";
+import {
+  useAxiosWithClerk,
+  GO_TEAM_SERVICE_ROUTES,
+} from "@/hooks/use-axios-clerk";
+import { pickImage } from "@/utils/pick-image";
+import {
+  isAllowedLogoMimeType,
+  getLogoFileExtension,
+} from "@/utils/logo-upload";
+
+const log = createScopedLog("Edit Team");
+
+export default function EditTeamScreen() {
+  const params = useLocalSearchParams<{ id?: string }>();
+  const id = params.id ?? "";
+
+  return (
+    <TeamDetailProvider id={id}>
+      <EditTeamContent />
+    </TeamDetailProvider>
+  );
+}
+
+function EditTeamContent() {
+  const navigation = useNavigation();
+  const router = useRouter();
+  const api = useAxiosWithClerk();
+  const { id, team, isLoading: teamLoading, isOwner } = useTeamDetailContext();
+
+  const [pickedLogo, setPickedLogo] = useState<{
+    uri: string;
+    mimeType: string;
+  } | null>(null);
+
+  const {
+    teamName,
+    setTeamName,
+    selectedSport,
+    setSelectedSport,
+    selectedScope,
+    setSelectedScope,
+    selectedCity,
+    setSelectedCity,
+    logoUri,
+    setLogoUri,
+  } = useTeamForm({
+    initialData: team,
+  });
+
+  const updateTeamMutation = useUpdateTeam(id, {
+    onSuccess: () => {
+      log.info("Team updated successfully");
+      router.back();
+    },
+    onError: (err) => {
+      log.error("Update team failed", errorToString(err));
+      Alert.alert("Update failed", errorToString(err));
+    },
+  });
+
+  const hasChanges = team
+    ? teamName !== (team.name ?? "") ||
+      selectedSport?.label?.toLowerCase() !== team.sport?.toLowerCase() ||
+      selectedScope?.id?.toLowerCase() !== team.scope?.toLowerCase() ||
+      selectedCity?.label?.toLowerCase() !== team.location?.toLowerCase() ||
+      logoUri !== (team.logoUrl ?? "") ||
+      pickedLogo !== null
+    : false;
+
+  const handlePickLogo = useCallback(async () => {
+    await pickImage((img) => {
+      if (!isAllowedLogoMimeType(img.mimeType)) {
+        Alert.alert(
+          "Unsupported format",
+          "Only images with transparent background are supported for logos.",
+        );
+        return;
+      }
+      setPickedLogo({
+        uri: img.uri,
+        mimeType: (img.mimeType ?? "image/png").toLowerCase().trim(),
+      });
+    });
+  }, []);
+
+  const handleRemoveLogo = useCallback(() => {
+    setPickedLogo(null);
+    setLogoUri("");
+  }, [setLogoUri]);
+
+  const handleSave = useCallback(async () => {
+    if (!teamName.trim()) {
+      Alert.alert("Team update failed", "Team name is required");
+      return;
+    }
+    if (!selectedSport) {
+      Alert.alert("Team update failed", "Sport is required");
+      return;
+    }
+    if (!selectedCity) {
+      Alert.alert("Team update failed", "City is required");
+      return;
+    }
+
+    const basePayload = {
+      name: teamName.trim(),
+      sport: selectedSport?.id ?? "",
+      scope: selectedScope?.id ?? "",
+      location: selectedCity?.label ?? "",
+      privacy: (team?.privacy ?? "PRIVATE") as "PUBLIC" | "PRIVATE",
+    };
+
+    if (pickedLogo) {
+      const formData = new FormData();
+      formData.append("file", {
+        uri: pickedLogo.uri,
+        type: pickedLogo.mimeType,
+        name: `logo.${getLogoFileExtension(pickedLogo.mimeType)}`,
+      } as unknown as Blob);
+      try {
+        const resp = await api.post(
+          GO_TEAM_SERVICE_ROUTES.TEAM_LOGO(id),
+          formData,
+        );
+        const newLogoUrl =
+          (resp.data as { publicUrl?: string })?.publicUrl ?? "";
+        updateTeamMutation.mutate({
+          ...basePayload,
+          logoUrl: newLogoUrl || (logoUri ?? ""),
+        });
+      } catch (err) {
+        log.error("Logo upload failed", errorToString(err));
+        Alert.alert("Logo upload failed", errorToString(err));
+      }
+    } else {
+      updateTeamMutation.mutate({
+        ...basePayload,
+        logoUrl: logoUri ?? "",
+      });
+    }
+  }, [
+    teamName,
+    selectedSport,
+    selectedScope,
+    selectedCity,
+    logoUri,
+    team?.privacy,
+    pickedLogo,
+    id,
+    api,
+    updateTeamMutation,
+  ]);
+
+  useLayoutEffect(() => {
+    navigation.setOptions({
+      headerTitle: () => (
+        <Header
+          left={<Button type="back" />}
+          center={<PageTitle title="Edit Team" />}
+          right={
+            <Button
+              type="custom"
+              label={updateTeamMutation.isPending ? "Saving..." : "Save"}
+              onPress={handleSave}
+              loading={updateTeamMutation.isPending}
+              isInteractive={hasChanges && !updateTeamMutation.isPending}
+            />
+          }
+        />
+      ),
+    });
+  }, [
+    navigation,
+    hasChanges,
+    updateTeamMutation.isPending,
+    handleSave,
+  ]);
+
+  if (!isOwner) {
+    return (
+      <ContentArea backgroundProps={{ preset: "red" }}>
+        <View style={settingsStyles.container}>
+          <Text style={settingsStyles.errorText}>
+            You don&apos;t have permission to edit this team
+          </Text>
+        </View>
+      </ContentArea>
+    );
+  }
+
+  if (!team) {
+    return (
+      <ContentArea backgroundProps={{ preset: "red" }}>
+        <View style={settingsStyles.container}>
+          <Text style={settingsStyles.errorText}>Team not found</Text>
+        </View>
+      </ContentArea>
+    );
+  }
+
+  return (
+    <ContentArea scrollable backgroundProps={{ preset: "red", mode: "form" }}>
+      {teamLoading && (
+        <View style={settingsStyles.loadingOverlay}>
+          <ActivityIndicator size="large" color="#fff" />
+        </View>
+      )}
+
+      <Form accentColor={AccentColors.red}>
+        <Form.Section>
+          <Form.Image
+            logo
+            image={
+              pickedLogo
+                ? { uri: pickedLogo.uri }
+                : logoUri
+                  ? { uri: logoUri }
+                  : images.defaultLogo
+            }
+            onPress={handlePickLogo}
+          />
+          <Button
+            type="custom"
+            label="Remove logo"
+            onPress={handleRemoveLogo}
+          />
+        </Form.Section>
+
+        <Form.Section footer="Only images with transparent background are supported.">
+          <Form.Input
+            label="Name"
+            placeholder="Enter team name"
+            value={teamName}
+            onChangeText={setTeamName}
+          />
+          <Form.Menu
+            label="Sport"
+            options={sportOptions}
+            value={selectedSport?.label ?? "None"}
+            onValueChange={(label) => {
+              if (label === "None") {
+                setSelectedSport(null);
+              } else {
+                const o = getSportByLabel(label);
+                if (o) setSelectedSport(o);
+              }
+            }}
+          />
+          <Form.Menu
+            label="Scope"
+            options={scopeOptions}
+            value={selectedScope.label}
+            onValueChange={(label) => {
+              const o = getScopeByLabel(label);
+              if (o) setSelectedScope(o);
+            }}
+          />
+          <Form.Menu
+            label="Location"
+            options={cityOptions}
+            value={selectedCity?.label ?? "City"}
+            onValueChange={(label) => {
+              if (label === "Select location") {
+                setSelectedCity(null);
+              } else {
+                const o = getCityByLabel(label);
+                if (o) setSelectedCity(o);
+              }
+            }}
+          />
+        </Form.Section>
+      </Form>
+    </ContentArea>
+  );
+}
