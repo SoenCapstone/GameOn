@@ -8,7 +8,10 @@ import {
   useAxiosWithClerk,
   GO_LEAGUE_SERVICE_ROUTES,
 } from "@/hooks/use-axios-clerk";
-import { fetchUserNameMap, mapToFrontendPost } from "@/components/board/board-utils";
+import {
+  fetchUserNameMap,
+  mapToFrontendPost,
+} from "@/components/board/board-utils";
 
 const log = createScopedLog("League Board");
 
@@ -47,7 +50,7 @@ export function useLeagueBoardPosts(leagueId: string) {
               page: 0,
               size: 50,
             },
-          }
+          },
         );
 
         const uniqueAuthorIds = [
@@ -57,7 +60,7 @@ export function useLeagueBoardPosts(leagueId: string) {
         const userNameMap = await fetchUserNameMap(api, uniqueAuthorIds, log);
 
         const posts = response.data.items.map((post) =>
-          mapToFrontendPost(post, userNameMap)
+          mapToFrontendPost(post, userNameMap),
         );
 
         log.info("Fetched league board posts with author names", {
@@ -95,7 +98,7 @@ export function useCreateLeagueBoardPost(leagueId: string) {
           leagueId,
           body: payload.body,
           scope: payload.scope,
-        }
+        },
       );
 
       log.info("Created league board post", {
@@ -122,9 +125,7 @@ export function useDeleteLeagueBoardPost(leagueId: string) {
   return useMutation({
     mutationFn: async (postId: string) => {
       log.info("Deleting league post", { leagueId, postId });
-      await api.delete(
-        GO_LEAGUE_SERVICE_ROUTES.LEAGUE_POST(leagueId, postId),
-      );
+      await api.delete(GO_LEAGUE_SERVICE_ROUTES.LEAGUE_POST(leagueId, postId));
     },
     onSuccess: async () => {
       await queryClient.invalidateQueries({
@@ -132,7 +133,11 @@ export function useDeleteLeagueBoardPost(leagueId: string) {
       });
     },
     onError: (err, postId) => {
-      log.error("Failed to delete board post", { postId, leagueId, error: err });
+      log.error("Failed to delete board post", {
+        postId,
+        leagueId,
+        error: err,
+      });
     },
   });
 }

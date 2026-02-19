@@ -37,7 +37,7 @@ function TeamContent() {
   const [tab, setTab] = useState<"board" | "overview" | "games">("board");
   const router = useRouter();
   const log = createScopedLog("Team Page");
-  
+
   const {
     id,
     isLoading,
@@ -64,19 +64,17 @@ function TeamContent() {
 
   useTeamHeader({ title, id, isMember, onFollow: handleFollow });
 
-  const {
-    refreshing,
-    handleDeletePost,
-    handleRefresh,
-  } = useDetailPageHandlers({
-    id,
-    currentTab: tab,
-    boardPosts,
-    onRefresh,
-    refetchPosts,
-    deletePostMutation,
-    entityName: "Team",
-  });
+  const { refreshing, handleDeletePost, handleRefresh } = useDetailPageHandlers(
+    {
+      id,
+      currentTab: tab,
+      boardPosts,
+      onRefresh,
+      refetchPosts,
+      deletePostMutation,
+      entityName: "Team",
+    },
+  );
 
   const getTabFromSegmentValue = (
     value: string,

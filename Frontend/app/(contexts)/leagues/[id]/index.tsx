@@ -40,7 +40,7 @@ function LeagueContent() {
   const [tab, setTab] = useState<"board" | "matches">("board");
   const router = useRouter();
   const log = createScopedLog("League Page");
-  
+
   const {
     id,
     isLoading,
@@ -62,23 +62,19 @@ function LeagueContent() {
 
   useLeagueHeader({ title, id, isMember, isOwner, onFollow: handleFollow });
 
-  const {
-    refreshing,
-    handleDeletePost,
-    handleRefresh,
-  } = useDetailPageHandlers({
-    id,
-    currentTab: tab,
-    boardPosts,
-    onRefresh,
-    refetchPosts,
-    deletePostMutation,
-    entityName: "League",
-  });
+  const { refreshing, handleDeletePost, handleRefresh } = useDetailPageHandlers(
+    {
+      id,
+      currentTab: tab,
+      boardPosts,
+      onRefresh,
+      refetchPosts,
+      deletePostMutation,
+      entityName: "League",
+    },
+  );
 
-  const getTabFromSegmentValue = (
-    value: string,
-  ): "board" | "matches" => {
+  const getTabFromSegmentValue = (value: string): "board" | "matches" => {
     if (value === "Board") return "board";
     return "matches";
   };

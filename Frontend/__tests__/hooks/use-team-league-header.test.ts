@@ -23,7 +23,10 @@ jest.mock("@/components/teams/team-detail-header", () => {
   const mockReact = jest.requireActual("react");
   return {
     TeamDetailHeader: jest.fn((props: any) =>
-      mockReact.createElement("View", { testID: "team-detail-header", ...props }),
+      mockReact.createElement("View", {
+        testID: "team-detail-header",
+        ...props,
+      }),
     ),
   };
 });
@@ -32,7 +35,10 @@ jest.mock("@/components/leagues/league-detail-header", () => {
   const mockReact = jest.requireActual("react");
   return {
     LeagueDetailHeader: jest.fn((props: any) =>
-      mockReact.createElement("View", { testID: "league-detail-header", ...props }),
+      mockReact.createElement("View", {
+        testID: "league-detail-header",
+        ...props,
+      }),
     ),
   };
 });

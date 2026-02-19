@@ -1,4 +1,7 @@
-import { fetchUserNameMap, mapToFrontendPost } from "@/components/board/board-utils";
+import {
+  fetchUserNameMap,
+  mapToFrontendPost,
+} from "@/components/board/board-utils";
 
 jest.mock("@/hooks/use-axios-clerk", () => ({
   GO_USER_SERVICE_ROUTES: {

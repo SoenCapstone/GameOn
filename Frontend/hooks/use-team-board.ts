@@ -8,7 +8,10 @@ import {
   useAxiosWithClerk,
   GO_TEAM_SERVICE_ROUTES,
 } from "@/hooks/use-axios-clerk";
-import { fetchUserNameMap, mapToFrontendPost } from "@/components/board/board-utils";
+import {
+  fetchUserNameMap,
+  mapToFrontendPost,
+} from "@/components/board/board-utils";
 
 const log = createScopedLog("Team Board");
 
@@ -48,7 +51,7 @@ export function useTeamBoardPosts(teamId: string) {
               page: 0,
               size: 50,
             },
-          }
+          },
         );
 
         const uniqueAuthorIds = [
@@ -58,7 +61,7 @@ export function useTeamBoardPosts(teamId: string) {
         const userNameMap = await fetchUserNameMap(api, uniqueAuthorIds, log);
 
         const posts = response.data.posts.map((post) =>
-          mapToFrontendPost(post, userNameMap)
+          mapToFrontendPost(post, userNameMap),
         );
 
         log.info("Fetched board posts with author names", {
@@ -96,7 +99,7 @@ export function useCreateBoardPost(teamId: string) {
           teamId: teamId,
           body: payload.body,
           scope: payload.scope,
-        }
+        },
       );
 
       log.info("Created board post", {

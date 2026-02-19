@@ -62,7 +62,9 @@ describe("useDetailPageHandlers", () => {
       });
 
       const alertCall = (Alert.alert as jest.Mock).mock.calls[0];
-      const deleteButton = alertCall[2].find((btn: any) => btn.text === "Delete");
+      const deleteButton = alertCall[2].find(
+        (btn: any) => btn.text === "Delete",
+      );
 
       await act(async () => {
         await deleteButton.onPress();
@@ -84,7 +86,9 @@ describe("useDetailPageHandlers", () => {
       });
 
       const alertCall = (Alert.alert as jest.Mock).mock.calls[0];
-      const deleteButton = alertCall[2].find((btn: any) => btn.text === "Delete");
+      const deleteButton = alertCall[2].find(
+        (btn: any) => btn.text === "Delete",
+      );
 
       await act(async () => {
         await deleteButton.onPress();
@@ -157,7 +161,8 @@ describe("useDetailPageHandlers", () => {
 
     it("updates when currentTab changes", async () => {
       const { result, rerender } = renderHook(
-        ({ currentTab }: { currentTab: string }) => useDetailPageHandlers({ ...mockConfig, currentTab }),
+        ({ currentTab }: { currentTab: string }) =>
+          useDetailPageHandlers({ ...mockConfig, currentTab }),
         { initialProps: { currentTab: "board" } as { currentTab: string } },
       );
 
@@ -184,18 +189,14 @@ describe("useDetailPageHandlers", () => {
       renderHook(() => useDetailPageHandlers(config));
 
       // Logger instance is created with entity name
-      expect(logger.createScopedLog).toHaveBeenCalledWith(
-        "League Detail Page",
-      );
+      expect(logger.createScopedLog).toHaveBeenCalledWith("League Detail Page");
     });
 
     it("uses Team entity name in logging", () => {
       const config = { ...mockConfig, entityName: "Team" };
       renderHook(() => useDetailPageHandlers(config));
 
-      expect(logger.createScopedLog).toHaveBeenCalledWith(
-        "Team Detail Page",
-      );
+      expect(logger.createScopedLog).toHaveBeenCalledWith("Team Detail Page");
     });
   });
 });

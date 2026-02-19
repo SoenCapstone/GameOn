@@ -63,7 +63,10 @@ export function useDetailPageHandlers({
         log.info(`${entityName} data refreshed`, { tab: currentTab });
       }
     } catch (err) {
-      log.error("Refresh failed", { error: errorToString(err), tab: currentTab });
+      log.error("Refresh failed", {
+        error: errorToString(err),
+        tab: currentTab,
+      });
     } finally {
       setRefreshing(false);
     }

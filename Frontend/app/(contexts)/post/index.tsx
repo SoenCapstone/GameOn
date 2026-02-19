@@ -52,8 +52,11 @@ export default function Post() {
 
   const createTeamPostMutation = useCreateBoardPost(id);
   const createLeaguePostMutation = useCreateLeagueBoardPost(id);
-  
-  const createPostMutation = params.spaceType === "league" ? createLeaguePostMutation : createTeamPostMutation;
+
+  const createPostMutation =
+    params.spaceType === "league"
+      ? createLeaguePostMutation
+      : createTeamPostMutation;
 
   const handleSubmit = useCallback(async () => {
     if (!title.trim()) {
