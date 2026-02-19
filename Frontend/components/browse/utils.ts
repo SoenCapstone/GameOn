@@ -54,6 +54,7 @@ type LeagueSummaryResponse = {
   name: string;
   sport: string;
   slug: string;
+  logoUrl?: string | null;
   region?: string | null;
   level?: string | null;
   privacy?: string | null;
@@ -178,7 +179,9 @@ export function useLeagueResults(query: string, onlyMine?: boolean) {
       name: league.name,
       subtitle,
       sport: league.sport,
-      logo: getSportLogo(league.sport),
+      logo: league.logoUrl
+        ? { uri: league.logoUrl }
+        : getSportLogo(league.sport),
       league: "",
       location: league.region ?? "",
       privacy: league.privacy ?? undefined,
