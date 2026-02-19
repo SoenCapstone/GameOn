@@ -18,10 +18,13 @@ import {
 import { errorToString } from "@/utils/error";
 import { useTeamForm } from "@/hooks/use-team-form";
 import {
-  SPORTS,
-  SCOPE_OPTIONS,
-  CITIES,
-} from "@/components/teams/team-form-constants";
+  sportOptions,
+  scopeOptions,
+  cityOptions,
+  getSportByLabel,
+  getScopeByLabel,
+  getCityByLabel,
+} from "@/constants/form-constants";
 import { pickImage } from "@/utils/pick-image";
 import {
   isAllowedLogoMimeType,
@@ -29,10 +32,6 @@ import {
 } from "@/utils/logo-upload";
 
 const log = createScopedLog("Create Team Page");
-
-const sportOptions = [...SPORTS.map((o) => o.label)];
-const scopeOptions = SCOPE_OPTIONS.map((o) => o.label);
-const cityOptions = [...CITIES.map((o) => o.label)];
 
 export default function CreateTeamScreen() {
   const router = useRouter();
@@ -179,7 +178,7 @@ export default function CreateTeamScreen() {
               if (label === "None") {
                 setSelectedSport(null);
               } else {
-                const o = SPORTS.find((x) => x.label === label);
+                const o = getSportByLabel(label);
                 if (o) setSelectedSport(o);
               }
             }}
@@ -189,7 +188,7 @@ export default function CreateTeamScreen() {
             options={scopeOptions}
             value={selectedScope.label}
             onValueChange={(label) => {
-              const o = SCOPE_OPTIONS.find((x) => x.label === label);
+              const o = getScopeByLabel(label);
               if (o) setSelectedScope(o);
             }}
           />
@@ -201,7 +200,7 @@ export default function CreateTeamScreen() {
               if (label === "Select location") {
                 setSelectedCity(null);
               } else {
-                const o = CITIES.find((x) => x.label === label);
+                const o = getCityByLabel(label);
                 if (o) setSelectedCity(o);
               }
             }}

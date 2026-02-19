@@ -19,7 +19,7 @@ import {
   getSportByLabel,
   getScopeByLabel,
   getCityByLabel,
-} from "@/components/teams/team-form-constants";
+} from "@/constants/form-constants";
 import {
   TeamDetailProvider,
   useTeamDetailContext,

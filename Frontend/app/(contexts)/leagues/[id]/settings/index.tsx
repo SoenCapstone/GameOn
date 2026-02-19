@@ -10,7 +10,7 @@ import PickerModal from "@/components/ui/pickerModal";
 import { createScopedLog } from "@/utils/logger";
 import { errorToString } from "@/utils/error";
 import { useLeagueForm } from "@/hooks/use-league-form";
-import { getLeaguePickerConfig } from "@/components/leagues/league-form-constants";
+import { getLeaguePickerConfig } from "@/constants/form-constants";
 import { LeagueNameField } from "@/components/leagues/league-name-field";
 import { LeagueDetailsCard } from "@/components/leagues/league-details-card";
 import {
