@@ -4,7 +4,7 @@ import { useContextStackScreens } from "@/components/context-stack";
 
 export default function LeaguesLayout() {
   const screens = useContextStackScreens({
-    create: { name: "create-league", title: "Create League" },
+    create: { name: "create", title: "Create a League" },
     indexName: "[id]/index",
     extraScreens: [
       "[id]/settings/index",
