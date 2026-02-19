@@ -1,10 +1,12 @@
 import React, { useState } from "react";
 import { Form } from "@/components/form/form";
+import { MenuCardItem } from "@/components/form/menu-card-item";
 import { AccentColors } from "@/constants/colors";
 
 const visibilityOptions = ["Public", "Private", "Friends Only"] as const;
 const themeOptions = ["System", "Light", "Dark"] as const;
 const languageOptions = ["English", "French", "Spanish", "Arabic"] as const;
+const roleOptions = ["Captain", "Player", "Substitute", "Coach"] as const;
 
 export function FormExample() {
   const [birthDate, setBirthDate] = useState(new Date());
@@ -16,6 +18,9 @@ export function FormExample() {
   const [notifications, setNotifications] = useState(true);
   const [darkMode, setDarkMode] = useState(false);
   const [locationSharing, setLocationSharing] = useState(false);
+  const [teamRole, setTeamRole] = useState<string>("Player");
+  const [teamRole2, setTeamRole2] = useState<string>("Captain");
+  const [teamRole3, setTeamRole3] = useState<string>("Coach");
 
   return (
     <Form accentColor={AccentColors.orange}>
@@ -78,6 +83,43 @@ export function FormExample() {
           selection={accentColor}
           onValueChanged={setAccentColor}
           onChangeText={setAccentColor}
+        />
+      </Form.Section>
+
+      {/* MenuCardItem examples */}
+      <Form.Section
+        header="Team Squad"
+        footer="Assign roles to each team member."
+      >
+        <MenuCardItem
+          title="Alex Johnson"
+          subtitle="alex.johnson@gameon.com"
+          image={{
+            uri: "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=200",
+          }}
+          options={[...roleOptions]}
+          value={teamRole}
+          onValueChange={setTeamRole}
+        />
+        <MenuCardItem
+          title="Sam Rivera"
+          subtitle="sam.rivera@gameon.com"
+          image={{
+            uri: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200",
+          }}
+          options={[...roleOptions]}
+          value={teamRole2}
+          onValueChange={setTeamRole2}
+        />
+        <MenuCardItem
+          title="Jordan Lee"
+          subtitle="jordan.lee@gameon.com"
+          image={{
+            uri: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=200",
+          }}
+          options={[...roleOptions]}
+          value={teamRole3}
+          onValueChange={setTeamRole3}
         />
       </Form.Section>
 
