@@ -11,7 +11,7 @@ jest.mock("@/utils/logger", () => ({
 }));
 
 jest.mock("@/utils/error", () => ({
-  errorToString: jest.fn((err) => String(err)),
+  errorToString: jest.fn(String),
 }));
 
 jest.spyOn(Alert, "alert");
