@@ -1,9 +1,8 @@
-import { useState, useCallback } from "react";
+import { useState } from "react";
 import {
   View,
   ActivityIndicator,
   RefreshControl,
-  Alert,
   Text,
   StyleSheet,
 } from "react-native";
@@ -22,7 +21,7 @@ import {
   useDeleteLeagueBoardPost,
 } from "@/hooks/use-league-board";
 import { BoardList } from "@/components/board/board-list";
-import { errorToString } from "@/utils/error";
+import { useDetailPageHandlers } from "@/hooks/use-detail-page-handlers";
 import { createScopedLog } from "@/utils/logger";
 
 export default function LeagueScreen() {
@@ -39,8 +38,9 @@ export default function LeagueScreen() {
 
 function LeagueContent() {
   const [tab, setTab] = useState<"board" | "matches">("board");
-  const [refreshing, setRefreshing] = useState(false);
   const router = useRouter();
+  const log = createScopedLog("League Page");
+  
   const {
     id,
     isLoading,
@@ -52,8 +52,6 @@ function LeagueContent() {
     league,
   } = useLeagueDetailContext();
 
-  const log = createScopedLog("League Page");
-
   const {
     data: boardPosts = [],
     isLoading: postsLoading,
@@ -63,6 +61,20 @@ function LeagueContent() {
   const deletePostMutation = useDeleteLeagueBoardPost(id);
 
   useLeagueHeader({ title, id, isMember, isOwner, onFollow: handleFollow });
+
+  const {
+    refreshing,
+    handleDeletePost,
+    handleRefresh,
+  } = useDetailPageHandlers({
+    id,
+    currentTab: tab,
+    boardPosts,
+    onRefresh,
+    refetchPosts,
+    deletePostMutation,
+    entityName: "League",
+  });
 
   const getTabFromSegmentValue = (
     value: string,
@@ -75,48 +87,6 @@ function LeagueContent() {
     if (tab === "board") return 0;
     return 1;
   };
-
-  const handleDeletePost = (postId: string) => {
-    Alert.alert("Delete Post", "Are you sure you want to delete this post?", [
-      {
-        text: "Cancel",
-        onPress: () => log.info("Delete post cancelled", { postId }),
-      },
-      {
-        text: "Delete",
-        onPress: async () => {
-          try {
-            await deletePostMutation.mutateAsync(postId);
-            log.info("Post deleted", { postId });
-          } catch (err) {
-            log.error("Failed to delete post", {
-              postId,
-              error: errorToString(err),
-            });
-            Alert.alert("Failed to delete", errorToString(err));
-          }
-        },
-        style: "destructive",
-      },
-    ]);
-  };
-
-  const handleRefresh = useCallback(async () => {
-    try {
-      setRefreshing(true);
-      await onRefresh();
-      if (tab === "board") {
-        await refetchPosts();
-        log.info("Board posts refreshed", { postCount: boardPosts.length });
-      } else {
-        log.info("League data refreshed", { tab });
-      }
-    } catch (err) {
-      log.error("Refresh failed", { error: errorToString(err), tab });
-    } finally {
-      setRefreshing(false);
-    }
-  }, [log, onRefresh, refetchPosts, tab, boardPosts.length]);
 
   return (
     <View style={{ flex: 1 }}>
