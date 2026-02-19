@@ -18,6 +18,17 @@ export const CITIES: Option[] = [
   { id: "van", label: "Vancouver" },
 ];
 
+export const sportOptions = SPORTS.map((o) => o.label);
+export const scopeOptions = SCOPE_OPTIONS.map((o) => o.label);
+export const cityOptions = CITIES.map((o) => o.label);
+
+export const getSportByLabel = (label: string) =>
+  SPORTS.find((x) => x.label === label);
+export const getScopeByLabel = (label: string) =>
+  SCOPE_OPTIONS.find((x) => x.label === label);
+export const getCityByLabel = (label: string) =>
+  CITIES.find((x) => x.label === label);
+
 export type PickerType = "sport" | "scope" | "city";
 
 export const getPickerConfig = (

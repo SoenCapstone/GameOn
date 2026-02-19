@@ -8,6 +8,7 @@ export default function TeamsLayout() {
     indexName: "[id]/index",
     extraScreens: [
       "[id]/settings/index",
+      "[id]/settings/edit",
       "[id]/manage-roles/index",
       "[id]/invite/index",
     ],
