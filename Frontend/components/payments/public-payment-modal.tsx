@@ -10,8 +10,11 @@ import {
 import { useStripe } from "@stripe/stripe-react-native";
 import type { AxiosInstance } from "axios";
 import { errorToString } from "@/utils/error";
-
-export type PaymentEntityType = "LEAGUE" | "TEAM";
+import {
+  type PaymentEntityType,
+  formatAmount,
+  runPaymentFlow,
+} from "@/utils/payment";
 
 type Props = Readonly<{
   visible: boolean;
@@ -19,50 +22,14 @@ type Props = Readonly<{
   api: AxiosInstance;
   entityType: PaymentEntityType;
   entityId: string;
-  amount: number; // cents
-  currency?: string; // default "cad"
+  amount: number;
+  currency?: string;
   description?: string;
   confirmButtonLabel?: string;
   successTitle?: string;
   successMessage?: string;
   onPaidSuccess: () => Promise<void>;
 }>;
-
-type PaymentIntentResponse = Record<string, string | undefined>;
-
-function pickClientSecret(respData: unknown): string | null {
-  if (!respData || typeof respData !== "object") return null;
-  const data = respData as PaymentIntentResponse;
-
-  return (
-    data.clientSecret ??
-    data.paymentIntentClientSecret ??
-    data.payment_intent_client_secret ??
-    null
-  );
-}
-
-function buildIntentPayload(args: {
-  entityType: PaymentEntityType;
-  entityId: string;
-  amount: number;
-  currency: string;
-  description: string;
-}) {
-  const base = {
-    amount: args.amount,
-    currency: args.currency,
-    description: args.description,
-  } as Record<string, unknown>;
-
-  if (args.entityType === "LEAGUE") {
-    base.leagueId = args.entityId;
-  } else {
-    base.teamId = args.entityId;
-  }
-
-  return base;
-}
 
 export default function PublicPaymentModal({
   visible,
@@ -81,54 +48,23 @@ export default function PublicPaymentModal({
   const { initPaymentSheet, presentPaymentSheet } = useStripe();
   const [isPaying, setIsPaying] = useState(false);
 
-  const formattedAmount = useMemo(() => {
-    const dollars = (amount / 100).toFixed(2);
-    return `$${dollars}`;
-  }, [amount]);
+  const formattedAmount = useMemo(() => formatAmount(amount), [amount]);
 
   const startPayment = useCallback(async () => {
     if (isPaying) return;
-
     try {
       setIsPaying(true);
-
-      const resp = await api.post(
-        "/api/v1/payments/intent",
-        buildIntentPayload({
-          entityType,
-          entityId,
-          amount,
-          currency,
-          description:
-            description ??
-            (entityType === "LEAGUE"
-              ? `Publish league (${entityId})`
-              : `Publish team (${entityId})`),
-        }),
-      );
-
-      const clientSecret = pickClientSecret(resp.data);
-      if (!clientSecret) {
-        throw new Error("Backend response missing Stripe client secret.");
-      }
-
-      const initRes = await initPaymentSheet({
-        paymentIntentClientSecret: clientSecret,
-        merchantDisplayName: "GameOn",
+      await runPaymentFlow({
+        api,
+        entityType,
+        entityId,
+        amount,
+        currency,
+        description,
+        initPaymentSheet,
+        presentPaymentSheet,
       });
-
-      if (initRes.error) {
-        throw new Error(initRes.error.message);
-      }
-
-      const presentRes = await presentPaymentSheet();
-      if (presentRes.error) {
-        Alert.alert("Payment not completed", presentRes.error.message);
-        return;
-      }
-
       await onPaidSuccess();
-
       Alert.alert(successTitle, successMessage);
       onClose();
     } catch (e) {
