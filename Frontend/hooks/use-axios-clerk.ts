@@ -82,6 +82,8 @@ export const GO_TEAM_SERVICE_ROUTES = {
 export const GO_LEAGUE_SERVICE_ROUTES = {
   ALL: buildRoute(VERSIONING.v1, SERVICE.LEAGUES),
   CREATE: buildRoute(VERSIONING.v1, SERVICE.LEAGUES, "create"),
+  LEAGUE_LOGO: (leagueId: string) =>
+    buildRoute(VERSIONING.v1, SERVICE.LEAGUES, `${leagueId}/logo`),
   GET: (leagueId: string) =>
     buildRoute(VERSIONING.v1, SERVICE.LEAGUES, leagueId),
   TEAMS: (leagueId: string) =>

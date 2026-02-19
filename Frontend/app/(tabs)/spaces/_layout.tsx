@@ -17,7 +17,7 @@ function SpacesHeader() {
 
   const right =
     mode === "leagues" ? (
-      <Button type="custom" route="/leagues/create-league" icon="plus" />
+      <Button type="custom" route="/leagues/create" icon="plus" />
     ) : mode === "tournaments" ? (
       <Button type="custom" icon="plus" onPress={handleComingSoon} />
     ) : (
