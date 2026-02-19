@@ -3,12 +3,12 @@ import { Option } from "@/components/ui/pickerModal";
 import {
   LeaguePickerType,
   LEVEL_OPTIONS,
-} from "@/components/leagues/league-form-constants";
-import { SPORTS } from "@/components/teams/team-form-constants";
+  SPORTS,
+} from "@/constants/form-constants";
 
 interface UseLeagueFormProps {
   initialData?: {
-    name: string;
+    name?: string;
     sport?: string;
     region?: string;
     location?: string;
@@ -21,7 +21,7 @@ export const useLeagueForm = (props?: UseLeagueFormProps) => {
   const [leagueName, setLeagueName] = useState("");
   const [selectedSport, setSelectedSport] = useState<Option | null>(null);
   const [selectedLevel, setSelectedLevel] = useState<Option | null>(null);
-  const [region, setRegion] = useState("");
+  const [region, setRegion] = useState(props?.initialData?.region ?? "");
   const [location, setLocation] = useState("");
   const [isPublic, setIsPublic] = useState(true);
   const [openPicker, setOpenPicker] = useState<LeaguePickerType | null>(null);

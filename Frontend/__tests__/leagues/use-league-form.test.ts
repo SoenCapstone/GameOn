@@ -1,7 +1,6 @@
 import { renderHook, act } from "@testing-library/react-native";
 import { useLeagueForm } from "@/hooks/use-league-form";
-import { SPORTS } from "@/components/teams/team-form-constants";
-import { LEVEL_OPTIONS } from "@/components/leagues/league-form-constants";
+import { SPORTS, LEVEL_OPTIONS } from "@/constants/form-constants";
 
 describe("useLeagueForm", () => {
   it("initializes with default values and all setters", () => {

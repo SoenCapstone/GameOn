@@ -1,7 +1,7 @@
 import React from "react";
 import { View, Text, Pressable, TextInput, StyleSheet } from "react-native";
 import { createTeamStyles as styles } from "@/components/teams/teams-styles";
-import { LeaguePickerType } from "@/components/leagues/league-form-constants";
+import { LeaguePickerType } from "@/constants/form-constants";
 
 type Props = {
   sportLabel: string;

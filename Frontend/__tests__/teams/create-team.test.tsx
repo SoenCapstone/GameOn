@@ -35,7 +35,7 @@ jest.mock("@/components/ui/content-area", () => ({
 
 jest.mock("@/hooks/use-team-form", () => {
   const actual = jest.requireActual("@/hooks/use-team-form");
-  const { SPORTS, CITIES } = jest.requireActual("@/components/teams/team-form-constants");
+  const { SPORTS, CITIES } = jest.requireActual("@/constants/form-constants");
   return {
     ...actual,
     useTeamForm: (props?: Parameters<typeof actual.useTeamForm>[0]) => {
