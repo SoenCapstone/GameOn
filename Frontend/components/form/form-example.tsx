@@ -27,8 +27,8 @@ export function FormExample() {
       {/* Profile Section */}
       <Form.Section header="Profile">
         <Form.Profile
-          name="Alex Johnson"
-          email="alex.johnson@gameon.com"
+          title="Alex Johnson"
+          subtitle="alex.johnson@gameon.com"
           image={{
             uri: "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=200",
           }}
