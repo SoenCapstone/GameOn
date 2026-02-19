@@ -73,7 +73,7 @@ export const GO_TEAM_SERVICE_ROUTES = {
   USER_INVITES: buildRoute(VERSIONING.v1, SERVICE.TEAMS, "invites"),
   TEAM_POSTS: (teamId: string) =>
     buildRoute(VERSIONING.v1, SERVICE.TEAMS, `${teamId}/posts`),
-  DELETE_TEAM_POST: (teamId: string, postId: string) =>
+  TEAM_POST: (teamId: string, postId: string) =>
     buildRoute(VERSIONING.v1, SERVICE.TEAMS, `${teamId}/posts/${postId}`),
 };
 
@@ -88,6 +88,10 @@ export const GO_LEAGUE_SERVICE_ROUTES = {
     buildRoute(VERSIONING.v1, SERVICE.LEAGUES, `${leagueId}/teams/${teamId}`),
   INVITES: (leagueId: string) =>
     buildRoute(VERSIONING.v1, SERVICE.LEAGUES, `${leagueId}/invites`),
+  LEAGUE_POSTS: (leagueId: string) =>
+    buildRoute(VERSIONING.v1, SERVICE.LEAGUES, `${leagueId}/posts`),
+  LEAGUE_POST: (leagueId: string, postId: string) =>
+    buildRoute(VERSIONING.v1, SERVICE.LEAGUES, `${leagueId}/posts/${postId}`),
 };
 
 const leagueInvitesBase = buildRoute(VERSIONING.v1, "league-invites");

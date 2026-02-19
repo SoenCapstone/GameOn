@@ -20,8 +20,10 @@ jest.mock('@clerk/clerk-expo', () => ({
 
 jest.mock('axios', () => {
 	let savedOnFulfilled: any = null;
-	const mockUseLocal = (onFulfilled: any) => {
+	let savedOnRejected: any = null;
+	const mockUseLocal = (onFulfilled: any, onRejected: any) => {
 		savedOnFulfilled = onFulfilled;
+		savedOnRejected = onRejected;
 		return 1;
 	};
 
@@ -33,14 +35,15 @@ jest.mock('axios', () => {
 		},
 	};
 
-		const create = jest.fn(() => instance);
-		const defaultExport = { create };
-		return {
-			default: defaultExport,
-			create,
-			__getSavedOnFulfilled: () => savedOnFulfilled,
-			__esModule: true,
-		};
+	const create = jest.fn(() => instance);
+	const defaultExport = { create };
+	return {
+		default: defaultExport,
+		create,
+		__getSavedOnFulfilled: () => savedOnFulfilled,
+		__getSavedOnRejected: () => savedOnRejected,
+		__esModule: true,
+	};
 });
 
 function TestComp() {
@@ -83,6 +86,19 @@ test('attaches interceptor and does not set Authorization when no token', async 
 	const config: any = { headers: {} };
 	await saved(config);
 	expect(config.headers.Authorization).toBeUndefined();
+});
+
+test('returns rejected promise when interceptor fails', async () => {
+	const getToken = jest.fn().mockResolvedValue('token-123');
+	mockUseAuth.mockReturnValue({ getToken });
+
+	render(React.createElement(TestComp));
+
+	const axiosMock = axios as any;
+	const savedRejected = axiosMock.__getSavedOnRejected();
+	const error = new Error('interceptor error');
+
+	await expect(savedRejected(error)).rejects.toThrow('interceptor error');
 });
 
 describe('Route Builders', () => {
@@ -133,6 +149,12 @@ describe('Route Builders', () => {
 		expect(GO_TEAM_SERVICE_ROUTES.TEAM_INVITES(teamId)).toBe(
 			`api/v1/teams/invites/${teamId}`
 		);
+		expect(GO_TEAM_SERVICE_ROUTES.TEAM_POSTS(teamId)).toBe(
+			`api/v1/teams/${teamId}/posts`
+		);
+		expect(GO_TEAM_SERVICE_ROUTES.TEAM_POST(teamId, 'post-789')).toBe(
+			`api/v1/teams/${teamId}/posts/post-789`
+		);
 
 		expect(GO_LEAGUE_SERVICE_ROUTES.GET(leagueId)).toBe(`api/v1/leagues/${leagueId}`);
 		expect(GO_LEAGUE_SERVICE_ROUTES.TEAMS(leagueId)).toBe(
@@ -143,6 +165,12 @@ describe('Route Builders', () => {
 		);
 		expect(GO_LEAGUE_SERVICE_ROUTES.INVITES(leagueId)).toBe(
 			`api/v1/leagues/${leagueId}/invites`
+		);
+		expect(GO_LEAGUE_SERVICE_ROUTES.LEAGUE_POSTS(leagueId)).toBe(
+			`api/v1/leagues/${leagueId}/posts`
+		);
+		expect(GO_LEAGUE_SERVICE_ROUTES.LEAGUE_POST(leagueId, 'post-456')).toBe(
+			`api/v1/leagues/${leagueId}/posts/post-456`
 		);
 
 		expect(GO_LEAGUE_INVITE_ROUTES.TEAM_INVITES(teamId)).toBe(

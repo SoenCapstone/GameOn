@@ -209,6 +209,7 @@ function TeamContent() {
                 pathname: "/post",
                 params: {
                   id,
+                  spaceType: "team",
                   privacy: team?.privacy,
                 },
               })

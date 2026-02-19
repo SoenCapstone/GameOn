@@ -2,10 +2,10 @@ import { PropsWithChildren } from "react";
 import { renderHook, waitFor, cleanup } from "@testing-library/react-native";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import {
-  useTeamBoardPosts,
-  useCreateBoardPost,
-  useDeleteBoardPost,
-} from "@/hooks/use-team-board";
+  useLeagueBoardPosts,
+  useCreateLeagueBoardPost,
+  useDeleteLeagueBoardPost,
+} from "@/hooks/use-league-board";
 import { CreateBoardPostRequest } from "@/components/board/board-types";
 import { useAxiosWithClerk } from "@/hooks/use-axios-clerk";
 import {
@@ -15,10 +15,10 @@ import {
 
 jest.mock("@/hooks/use-axios-clerk", () => ({
   useAxiosWithClerk: jest.fn(),
-  GO_TEAM_SERVICE_ROUTES: {
-    TEAM_POSTS: (teamId: string) => `/api/v1/teams/${teamId}/posts`,
-    TEAM_POST: (teamId: string, postId: string) =>
-      `/api/v1/teams/${teamId}/posts/${postId}`,
+  GO_LEAGUE_SERVICE_ROUTES: {
+    LEAGUE_POSTS: (leagueId: string) => `/api/v1/leagues/${leagueId}/posts`,
+    LEAGUE_POST: (leagueId: string, postId: string) =>
+      `/api/v1/leagues/${leagueId}/posts/${postId}`,
   },
 }));
 
@@ -73,7 +73,7 @@ function createWrapper() {
   };
 }
 
-describe("use-team-board", () => {
+describe("use-league-board", () => {
   const mockApi = {
     get: jest.fn(),
     post: jest.fn(),
@@ -99,18 +99,17 @@ describe("use-team-board", () => {
     await new Promise((resolve) => setTimeout(resolve, 0));
   });
 
-  describe("useTeamBoardPosts", () => {
+  describe("useLeagueBoardPosts", () => {
     it("fetches posts and maps author names", async () => {
-      const teamId = "team-123";
+      const leagueId = "league-123";
 
       mockApi.get.mockResolvedValue({
         data: {
-          posts: [
+          items: [
             {
               id: "post-1",
-              teamId,
+              leagueId,
               authorUserId: "user-1",
-              authorRole: "MANAGER",
               title: "Post One",
               body: "Body One",
               scope: "Members",
@@ -118,9 +117,8 @@ describe("use-team-board", () => {
             },
             {
               id: "post-2",
-              teamId,
+              leagueId,
               authorUserId: "user-1",
-              authorRole: "MEMBER",
               title: "Post Two",
               body: "Body Two",
               scope: "Everyone",
@@ -128,18 +126,17 @@ describe("use-team-board", () => {
             },
             {
               id: "post-3",
-              teamId,
+              leagueId,
               authorUserId: "user-2",
-              authorRole: "MEMBER",
               title: "Post Three",
               body: "Body Three",
               scope: "Members",
               createdAt: "2026-02-08T12:00:00Z",
             },
           ],
-          totalElements: 3,
-          pageNumber: 0,
-          pageSize: 50,
+          total: 3,
+          page: 0,
+          size: 50,
           hasNext: false,
         },
       });
@@ -159,7 +156,7 @@ describe("use-team-board", () => {
         authorName: userNameMap[post.authorUserId] ?? "Unknown",
       }));
 
-      const { result } = renderHook(() => useTeamBoardPosts(teamId), {
+      const { result } = renderHook(() => useLeagueBoardPosts(leagueId), {
         wrapper: createWrapper(),
       });
 
@@ -201,8 +198,8 @@ describe("use-team-board", () => {
       ]);
     });
 
-    it("disables query when teamId is empty", () => {
-      const { result } = renderHook(() => useTeamBoardPosts(""), {
+    it("disables query when leagueId is empty", () => {
+      const { result } = renderHook(() => useLeagueBoardPosts(""), {
         wrapper: createWrapper(),
       });
 
@@ -211,10 +208,10 @@ describe("use-team-board", () => {
     });
 
     it("surfaces errors from the API", async () => {
-      const teamId = "team-error";
+      const leagueId = "league-error";
       mockApi.get.mockRejectedValue(new Error("Network error"));
 
-      const { result } = renderHook(() => useTeamBoardPosts(teamId), {
+      const { result } = renderHook(() => useLeagueBoardPosts(leagueId), {
         wrapper: createWrapper(),
       });
 
@@ -226,19 +223,19 @@ describe("use-team-board", () => {
     });
   });
 
-  describe("useCreateBoardPost", () => {
-    it("creates a post and invalidates cache", async () => {
-      const teamId = "team-create";
+  describe("useCreateLeagueBoardPost", () => {
+    it("creates a league post and invalidates cache", async () => {
+      const leagueId = "league-create";
       const wrapper = createWrapper();
       const invalidateSpy = jest.spyOn(queryClient, "invalidateQueries");
 
       const { result: createResult } = renderHook(
-        () => useCreateBoardPost(teamId),
+        () => useCreateLeagueBoardPost(leagueId),
         { wrapper },
       );
 
       const payload: CreateBoardPostRequest = {
-        spaceId: teamId,
+        spaceId: leagueId,
         title: "New Post",
         scope: "Members",
         body: "Post body",
@@ -251,31 +248,31 @@ describe("use-team-board", () => {
       });
 
       expect(mockApi.post).toHaveBeenCalledWith(
-        `/api/v1/teams/${teamId}/posts`,
+        `/api/v1/leagues/${leagueId}/posts`,
         {
           title: "New Post",
-          teamId,
+          leagueId,
           body: "Post body",
           scope: "Members",
         },
       );
       expect(invalidateSpy).toHaveBeenCalledWith({
-        queryKey: ["team-board", teamId],
+        queryKey: ["league-board", leagueId],
       });
     });
 
     it("handles creation errors", async () => {
-      const teamId = "team-create-error";
+      const leagueId = "league-create-error";
       const wrapper = createWrapper();
       mockApi.post.mockRejectedValue(new Error("Creation failed"));
 
       const { result: createResult } = renderHook(
-        () => useCreateBoardPost(teamId),
+        () => useCreateLeagueBoardPost(leagueId),
         { wrapper },
       );
 
       createResult.current.mutate({
-        spaceId: teamId,
+        spaceId: leagueId,
         title: "Test",
         scope: "Members",
         body: "Body",
@@ -289,14 +286,14 @@ describe("use-team-board", () => {
     });
   });
 
-  describe("useDeleteBoardPost", () => {
-    it("deletes a post and invalidates cache", async () => {
-      const teamId = "team-delete";
+  describe("useDeleteLeagueBoardPost", () => {
+    it("deletes a league post and invalidates cache", async () => {
+      const leagueId = "league-delete";
       const postId = "post-123";
       const wrapper = createWrapper();
       const invalidateSpy = jest.spyOn(queryClient, "invalidateQueries");
 
-      const { result } = renderHook(() => useDeleteBoardPost(teamId), {
+      const { result } = renderHook(() => useDeleteLeagueBoardPost(leagueId), {
         wrapper,
       });
 
@@ -307,19 +304,19 @@ describe("use-team-board", () => {
       });
 
       expect(mockApi.delete).toHaveBeenCalledWith(
-        `/api/v1/teams/${teamId}/posts/${postId}`,
+        `/api/v1/leagues/${leagueId}/posts/${postId}`,
       );
       expect(invalidateSpy).toHaveBeenCalledWith({
-        queryKey: ["team-board", teamId],
+        queryKey: ["league-board", leagueId],
       });
     });
 
     it("handles deletion errors", async () => {
-      const teamId = "team-delete-error";
+      const leagueId = "league-delete-error";
       const wrapper = createWrapper();
       mockApi.delete.mockRejectedValue(new Error("Deletion failed"));
 
-      const { result } = renderHook(() => useDeleteBoardPost(teamId), {
+      const { result } = renderHook(() => useDeleteLeagueBoardPost(leagueId), {
         wrapper,
       });
 

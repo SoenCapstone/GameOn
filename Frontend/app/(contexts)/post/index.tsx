@@ -9,6 +9,7 @@ import { PageTitle } from "@/components/header/page-title";
 import { BoardPostScope } from "@/components/board/board-types";
 import { AccentColors } from "@/constants/colors";
 import { useCreateBoardPost } from "@/hooks/use-team-board";
+import { useCreateLeagueBoardPost } from "@/hooks/use-league-board";
 import { errorToString } from "@/utils/error";
 
 const PostScope: BoardPostScope[] = ["Members", "Everyone"];
@@ -37,6 +38,7 @@ export default function Post() {
   const params = useLocalSearchParams<{
     id?: string | string[];
     privacy?: string;
+    spaceType?: string;
   }>();
   const rawId = params.id;
   const id = Array.isArray(rawId) ? rawId[0] : (rawId ?? "");
@@ -48,7 +50,10 @@ export default function Post() {
   const [scope, setScope] = useState<BoardPostScope>("Members");
   const [body, setBody] = useState("");
 
-  const createPostMutation = useCreateBoardPost(id);
+  const createTeamPostMutation = useCreateBoardPost(id);
+  const createLeaguePostMutation = useCreateLeagueBoardPost(id);
+  
+  const createPostMutation = params.spaceType === "league" ? createLeaguePostMutation : createTeamPostMutation;
 
   const handleSubmit = useCallback(async () => {
     if (!title.trim()) {

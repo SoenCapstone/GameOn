@@ -1,4 +1,4 @@
-import { renderHook } from "@testing-library/react-native";
+import { render, renderHook } from "@testing-library/react-native";
 import { useNavigation } from "@react-navigation/native";
 import { useTeamHeader, useLeagueHeader } from "@/hooks/use-team-league-header";
 
@@ -58,6 +58,7 @@ describe("useTeamHeader", () => {
         title: "Test Team",
         id: "team-1",
         isOwner: true,
+        isMember: true,
         onFollow,
       }),
     );
@@ -81,6 +82,7 @@ describe("useTeamHeader", () => {
           title,
           id: "team-1",
           isOwner: false,
+          isMember: false,
           onFollow: jest.fn(),
         }),
       {
@@ -101,6 +103,7 @@ describe("useTeamHeader", () => {
       title: "Test Team",
       id: "team-1",
       isOwner: false,
+      isMember: false,
       onFollow,
     };
 
@@ -122,6 +125,7 @@ describe("useTeamHeader", () => {
           title,
           id: "team-1",
           isOwner: false,
+          isMember: false,
           onFollow: jest.fn(),
         }),
       {
@@ -152,6 +156,7 @@ describe("useTeamHeader", () => {
           title: "Test Team",
           id: "team-1",
           isOwner: false,
+          isMember: true,
           onFollow: jest.fn(),
         }),
       { initialProps: {} },
@@ -186,6 +191,7 @@ describe("useLeagueHeader", () => {
         title: "Test League",
         id: "league-1",
         isOwner: true,
+        isMember: true,
         onFollow,
       }),
     );
@@ -202,6 +208,30 @@ describe("useLeagueHeader", () => {
     expect(result).not.toBeNull();
   });
 
+  it("defaults isOwner to false when undefined", () => {
+    const onFollow = jest.fn();
+    renderHook(() =>
+      useLeagueHeader({
+        title: "Test League",
+        id: "league-1",
+        isMember: true,
+        onFollow,
+      }),
+    );
+
+    const setOptionsCall = mockSetOptions.mock.calls[0][0];
+    const headerTitleFn = setOptionsCall.headerTitle as () => React.ReactNode;
+    render(headerTitleFn() as React.ReactElement);
+
+    const { LeagueDetailHeader } = jest.requireMock(
+      "@/components/leagues/league-detail-header",
+    );
+    expect(LeagueDetailHeader).toHaveBeenCalledWith(
+      expect.objectContaining({ isOwner: false }),
+      undefined,
+    );
+  });
+
   it("updates header when dependencies change", () => {
     const { rerender } = renderHook(
       ({ title }: { title: string }) =>
@@ -209,6 +239,7 @@ describe("useLeagueHeader", () => {
           title,
           id: "league-1",
           isOwner: false,
+          isMember: false,
           onFollow: jest.fn(),
         }),
       {
@@ -229,6 +260,7 @@ describe("useLeagueHeader", () => {
       title: "Test League",
       id: "league-1",
       isOwner: false,
+      isMember: false,
       onFollow,
     };
 
@@ -250,6 +282,7 @@ describe("useLeagueHeader", () => {
           title,
           id: "league-1",
           isOwner: false,
+          isMember: false,
           onFollow: jest.fn(),
         }),
       {
@@ -280,6 +313,7 @@ describe("useLeagueHeader", () => {
           title: "Test League",
           id: "league-1",
           isOwner: false,
+          isMember: true,
           onFollow: jest.fn(),
         }),
       { initialProps: {} },
