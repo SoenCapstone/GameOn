@@ -13,11 +13,11 @@ export function ImageItem({
   ...pressableProps
 }: Readonly<ImageItemProps>) {
   return (
-    <Pressable {...pressableProps}>
-      <GlassView isInteractive={true} style={styles.glass}>
+    <GlassView isInteractive={true} style={styles.glass}>
+      <Pressable style={styles.pressable} {...pressableProps}>
         <Image source={image} style={logo ? styles.image : styles.glass} />
-      </GlassView>
-    </Pressable>
+      </Pressable>
+    </GlassView>
   );
 }
 
@@ -29,6 +29,11 @@ const styles = StyleSheet.create({
     alignSelf: "center",
     justifyContent: "center",
     alignItems: "center",
+  },
+  pressable: {
+    flex: 1,
+    alignItems: "center",
+    justifyContent: "center",
   },
   image: {
     width: 110,
