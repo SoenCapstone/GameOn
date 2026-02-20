@@ -2,7 +2,7 @@ import { SearchResult } from "@/components/browse/constants";
 import { AxiosInstance } from "axios";
 import { useQuery } from "@tanstack/react-query";
 import { createScopedLog } from "@/utils/logger";
-import { ImageSourcePropType } from "react-native";
+import { ImageSource } from "expo-image";
 import { images } from "@/constants/images";
 import {
   useAxiosWithClerk,
@@ -12,7 +12,7 @@ import {
 
 const log = createScopedLog("Browse");
 
-export function getSportLogo(sport?: string | null): ImageSourcePropType {
+export function getSportLogo(sport?: string | null): ImageSource {
   const s = (sport || "").toLowerCase();
   switch (s) {
     case "soccer":
