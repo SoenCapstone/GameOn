@@ -7,25 +7,17 @@ import { Header } from "@/components/header/header";
 import { PageTitle } from "@/components/header/page-title";
 import { Button } from "@/components/ui/button";
 import { Form } from "@/components/form/form";
+import { TeamForm } from "@/components/teams/team-form";
 import { AccentColors } from "@/constants/colors";
-import { images } from "@/constants/images";
 import { createScopedLog } from "@/utils/logger";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { errorToString } from "@/utils/error";
+import { useTeamForm } from "@/hooks/use-team-form";
+import { pickLogo, PickedLogo, uploadLogo } from "@/utils/team-league-form";
 import {
   useAxiosWithClerk,
   GO_TEAM_SERVICE_ROUTES,
 } from "@/hooks/use-axios-clerk";
-import { errorToString } from "@/utils/error";
-import { useTeamForm } from "@/hooks/use-team-form";
-import {
-  sportOptions,
-  scopeOptions,
-  cityOptions,
-  getSportByLabel,
-  getScopeByLabel,
-  getCityByLabel,
-} from "@/constants/form-constants";
-import { pickLogo, PickedLogo, uploadLogo } from "@/utils/team-league-form";
 
 const log = createScopedLog("Create Team Page");
 
@@ -129,62 +121,23 @@ export default function CreateTeamScreen() {
       backgroundProps={{ preset: "purple", mode: "form" }}
     >
       <Form accentColor={AccentColors.purple}>
-        <Form.Section>
-          <Form.Image
-            logo
-            image={pickedLogo ? { uri: pickedLogo.uri } : images.defaultLogo}
-            onPress={handlePickLogo}
-          />
-          <Button
-            type="custom"
-            label="Remove logo"
-            onPress={() => setPickedLogo(null)}
-          />
-        </Form.Section>
-
-        <Form.Section footer="Only images with transparent background are supported.">
-          <Form.Input
-            label="Name"
-            placeholder="Enter team name"
-            value={teamName}
-            onChangeText={setTeamName}
-          />
-          <Form.Menu
-            label="Sport"
-            options={sportOptions}
-            value={selectedSport?.label ?? "None"}
-            onValueChange={(label) => {
-              if (label === "None") {
-                setSelectedSport(null);
-              } else {
-                const o = getSportByLabel(label);
-                if (o) setSelectedSport(o);
-              }
-            }}
-          />
-          <Form.Menu
-            label="Scope"
-            options={scopeOptions}
-            value={selectedScope.label}
-            onValueChange={(label) => {
-              const o = getScopeByLabel(label);
-              if (o) setSelectedScope(o);
-            }}
-          />
-          <Form.Menu
-            label="Location"
-            options={cityOptions}
-            value={selectedCity?.label ?? "City"}
-            onValueChange={(label) => {
-              if (label === "Select location") {
-                setSelectedCity(null);
-              } else {
-                const o = getCityByLabel(label);
-                if (o) setSelectedCity(o);
-              }
-            }}
-          />
-        </Form.Section>
+        <TeamForm
+          values={{
+            teamName,
+            selectedSport,
+            selectedScope,
+            selectedCity,
+          }}
+          logo={{ pickedLogo }}
+          onChange={{
+            onTeamNameChange: setTeamName,
+            onSportChange: setSelectedSport,
+            onScopeChange: setSelectedScope,
+            onCityChange: setSelectedCity,
+            onPickLogo: handlePickLogo,
+            onRemoveLogo: () => setPickedLogo(null),
+          }}
+        />
       </Form>
     </ContentArea>
   );
