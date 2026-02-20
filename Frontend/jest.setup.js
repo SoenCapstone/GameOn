@@ -19,8 +19,9 @@ jest.mock("expo-linear-gradient", () => {
     if (i >= 0) {
       const prev = calls[i];
       // If React passed undefined (or only 1 arg), rewrite to match tests
-      if (prev.length === 1) calls[i] = [prev[0], {}];
-      else if (prev.length === 2 && prev[1] == null) calls[i] = [prev[0], {}];
+      if (prev.length === 1 || (prev.length === 2 && prev[1] == null)) {
+        calls[i] = [prev[0], {}];
+      }
     }
 
     return React.createElement(View, props, props.children);
