@@ -27,31 +27,40 @@ export const PlayMakerArea = ({
   const [selectedTool, setSelectedTool] = useState<ShapeTool>("person");
   const [selectedShapeId, setSelectedShapeId] = useState<string | null>(null);
   const [shapes, setShapes] = useState<Shape[]>([]);
-useEffect(() => {
-  (async () => {
-    try {
-      const saved = await AsyncStorage.getItem(storageKey);
-      if (saved) setShapes(JSON.parse(saved));
-    } catch (e) {
 
-    }
-  })();
-}, [storageKey]);
   const { id: teamId } = useTeamDetailContext();
   const storageKey = `playmaker:${teamId}`;
   const { data, isLoading } = useGetTeamMembers(teamId);
 
+  // LOAD (when page opens) — only set if there is actual saved content
+  useEffect(() => {
+    (async () => {
+      try {
+        const saved = await AsyncStorage.getItem(storageKey);
+        if (!saved) return;
+
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          setShapes(parsed);
+        }
+      } catch {
+        // ignore
+      }
+    })();
+  }, [storageKey]);
+
+  // Keep parent screen in sync with current shapes (used by Save button)
   useEffect(() => {
     onShapesChange?.(shapes);
   }, [shapes, onShapesChange]);
-useEffect(() => {
-  AsyncStorage.setItem(storageKey, JSON.stringify(shapes)).catch(() => {});
-}, [shapes, storageKey]);
 
-  const renderedShapes = useRenderPlayMakerShapes(
-    shapes,
-    selectedShapeId,
-    (id) => setSelectedShapeId(id)
+  // SAVE (whenever shapes change)
+  useEffect(() => {
+    AsyncStorage.setItem(storageKey, JSON.stringify(shapes)).catch(() => {});
+  }, [shapes, storageKey]);
+
+  const renderedShapes = useRenderPlayMakerShapes(shapes, selectedShapeId, (id) =>
+    setSelectedShapeId(id)
   );
 
   return (
