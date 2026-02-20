@@ -21,6 +21,27 @@ import {
 
 const log = createScopedLog("Create League Page");
 
+const CreateLeagueHeader = ({
+  onCreate,
+  isCreating,
+}: {
+  onCreate: () => void;
+  isCreating: boolean;
+}) => (
+  <Header
+    left={<Button type="back" />}
+    center={<PageTitle title="Create a League" />}
+    right={
+      <Button
+        type="custom"
+        label={isCreating ? "Creating..." : "Create"}
+        onPress={onCreate}
+        loading={isCreating}
+      />
+    }
+  />
+);
+
 export default function CreateLeagueScreen() {
   const router = useRouter();
   const api = useAxiosWithClerk();
@@ -101,17 +122,9 @@ export default function CreateLeagueScreen() {
   useLayoutEffect(() => {
     navigation.setOptions({
       headerTitle: () => (
-        <Header
-          left={<Button type="back" />}
-          center={<PageTitle title="Create a League" />}
-          right={
-            <Button
-              type="custom"
-              label={createLeagueMutation.isPending ? "Creating..." : "Create"}
-              onPress={handleCreateLeague}
-              loading={createLeagueMutation.isPending}
-            />
-          }
+        <CreateLeagueHeader
+          onCreate={handleCreateLeague}
+          isCreating={createLeagueMutation.isPending}
         />
       ),
     });

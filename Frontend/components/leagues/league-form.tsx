@@ -45,20 +45,16 @@ export function LeagueForm({
   logo,
   onChange,
 }: Readonly<LeagueFormProps>) {
+  const pickedLogoImage = logo.pickedLogo
+    ? { uri: logo.pickedLogo.uri }
+    : undefined;
+  const uploadedLogoImage = logo.logoUri ? { uri: logo.logoUri } : undefined;
+  const logoImage = pickedLogoImage ?? uploadedLogoImage ?? images.defaultLogo;
+
   return (
     <>
       <Form.Section>
-        <Form.Image
-          logo
-          image={
-            logo.pickedLogo
-              ? { uri: logo.pickedLogo.uri }
-              : logo.logoUri
-                ? { uri: logo.logoUri }
-                : images.defaultLogo
-          }
-          onPress={onChange.onPickLogo}
-        />
+        <Form.Image logo image={logoImage} onPress={onChange.onPickLogo} />
         <Button
           type="custom"
           label="Remove logo"

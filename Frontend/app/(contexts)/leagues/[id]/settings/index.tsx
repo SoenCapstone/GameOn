@@ -27,6 +27,15 @@ import {
 const log = createScopedLog("League Settings");
 const PUBLICATION_FEE_CENTS = 1500;
 
+function LeagueSettingsHeader() {
+  return (
+    <Header
+      left={<Button type="back" />}
+      center={<PageTitle title="League Settings" />}
+    />
+  );
+}
+
 export default function LeagueSettingsScreen() {
   const params = useLocalSearchParams<{ id?: string }>();
   const id = params.id ?? "";
@@ -144,12 +153,7 @@ function LeagueSettingsContent() {
 
   useLayoutEffect(() => {
     navigation.setOptions({
-      headerTitle: () => (
-        <Header
-          left={<Button type="back" />}
-          center={<PageTitle title="League Settings" />}
-        />
-      ),
+      headerTitle: LeagueSettingsHeader,
     });
   }, [navigation]);
 
