@@ -200,16 +200,16 @@ export default function CreateLeagueScreen() {
           />
           <Form.Input
             label="Region"
-            placeholder="e.g. Quebec"
+            placeholder="Enter region"
             value={region}
             editable={false}
           />
           <Form.Menu
             label="Location"
             options={cityOptions}
-            value={location || "Select location"}
+            value={location || "City"}
             onValueChange={(label) => {
-              if (label === "Select location") {
+              if (label === "City") {
                 setLocation("");
               } else {
                 const o = getCityByLabel(label);

@@ -1,6 +1,4 @@
-import type { Option } from "@/components/ui/pickerModal";
-
-export type { Option };
+export type Option = { id: string; label: string };
 
 export const SPORTS: Option[] = [
   { id: "soccer", label: "Soccer" },

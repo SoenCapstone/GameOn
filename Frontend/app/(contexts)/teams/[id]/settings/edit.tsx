@@ -188,21 +188,15 @@ function EditTeamContent() {
           right={
             <Button
               type="custom"
-              label={updateTeamMutation.isPending ? "Saving..." : "Save"}
+              label="Save"
               onPress={handleSave}
               loading={updateTeamMutation.isPending}
-              isInteractive={hasChanges && !updateTeamMutation.isPending}
             />
           }
         />
       ),
     });
-  }, [
-    navigation,
-    hasChanges,
-    updateTeamMutation.isPending,
-    handleSave,
-  ]);
+  }, [navigation, hasChanges, updateTeamMutation.isPending, handleSave]);
 
   if (!isOwner) {
     return (
