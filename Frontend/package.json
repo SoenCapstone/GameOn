@@ -25,9 +25,9 @@
     "@expo/vector-icons": "^15.0.3",
     "@legendapp/list": "^2.0.12",
     "@radix-ui/react-dialog": "^1.1.15",
-    "@react-native-async-storage/async-storage": "^2.2.0",
-    "@react-native-masked-view/masked-view": "^0.3.2",
+    "@react-native-async-storage/async-storage": "2.2.0",
     "@react-native-community/datetimepicker": "8.4.4",
+    "@react-native-masked-view/masked-view": "^0.3.2",
     "@react-native-picker/picker": "2.11.1",
     "@react-native-segmented-control/segmented-control": "2.5.7",
     "@react-navigation/bottom-tabs": "^7.4.0",
@@ -94,9 +94,8 @@
   "private": true,
   "jest": {
     "preset": "jest-expo",
-    "testMatch": [
-      "**/__tests__/**/*.test.ts?(x)"
-    ],
+    "setupFilesAfterEnv": ["<rootDir>/jest.setup.js"],
+    "testMatch": ["**/__tests__/**/*.test.ts?(x)"],
     "transformIgnorePatterns": [
       "node_modules/(?!(jest-)?react-native|@react-native|expo(nent)?|@expo(nent)?/.*|expo-router)"
     ]
