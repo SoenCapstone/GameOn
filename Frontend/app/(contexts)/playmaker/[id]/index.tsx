@@ -8,6 +8,7 @@ import {
   Alert,
 } from "react-native";
 import { useLocalSearchParams, useNavigation } from "expo-router";
+
 import { ContentArea } from "@/components/ui/content-area";
 import {
   TeamDetailProvider,
@@ -43,31 +44,20 @@ function toBackendPayload(shapes: Shape[]) {
       x: s.x,
       y: s.y,
       size: s.size,
-      ...(s.associatedPlayerId ? { associatedPlayerId: s.associatedPlayerId } : {}),
+      ...(s.associatedPlayerId
+        ? { associatedPlayerId: s.associatedPlayerId }
+        : {}),
     };
   });
 }
 
-export default function PlayMaker() {
-  const params = useLocalSearchParams<{ id?: string | string[] }>();
-  const rawId = params.id;
-  const id = Array.isArray(rawId) ? rawId[0] : rawId ?? "";
-
-  return (
-    <TeamDetailProvider id={id}>
-      <PlayMakerContent />
-    </TeamDetailProvider>
-  );
-}
-function PlaymakerHeader({
-  title,
-  saving,
-  onSave,
-}: {
+type PlaymakerHeaderProps = Readonly<{
   title: string;
   saving: boolean;
   onSave: () => void;
-}) {
+}>;
+
+function PlaymakerHeader({ title, saving, onSave }: PlaymakerHeaderProps) {
   return (
     <Header
       left={<Button type="back" />}
@@ -81,19 +71,28 @@ function PlaymakerHeader({
             saving && { opacity: 0.5 },
           ]}
         >
-          <Text style={styles.saveText}>
-            {saving ? "Saving..." : "Save"}
-          </Text>
+          <Text style={styles.saveText}>{saving ? "Saving..." : "Save"}</Text>
         </Pressable>
       }
     />
   );
 }
+
+export default function PlayMaker() {
+  const params = useLocalSearchParams<{ id?: string | string[] }>();
+  const rawId = params.id;
+  const id = Array.isArray(rawId) ? rawId[0] : rawId ?? "";
+
+  return (
+    <TeamDetailProvider id={id}>
+      <PlayMakerContent />
+    </TeamDetailProvider>
+  );
+}
+
 function PlayMakerContent() {
   const { isLoading, refreshing, onRefresh, title, id: teamId } =
     useTeamDetailContext();
-
-
 
   const navigation = useNavigation();
   const api = useAxiosWithClerk();
@@ -117,16 +116,9 @@ function PlayMakerContent() {
 
     try {
       const payload = toBackendPayload(shapes);
-
-
       const route = GO_TEAM_SERVICE_ROUTES.CREATE_PLAY(teamId);
 
-
-      const token = await api.defaults.headers?.Authorization;
-
-
-      const res = await api.post(route, payload);
-
+      await api.post(route, payload);
 
       Alert.alert("Saved", "Your play was saved successfully.");
     } catch (e: any) {
@@ -148,13 +140,14 @@ function PlayMakerContent() {
     }
   }, [api, teamId]);
 
+  const headerTitle = useCallback(
+    () => <PlaymakerHeader title={title} saving={saving} onSave={onSave} />,
+    [title, saving, onSave]
+  );
+
   useLayoutEffect(() => {
-    navigation.setOptions({
-      headerTitle: () => (
-        <PlaymakerHeader title={title} saving={saving} onSave={onSave} />
-      ),
-    });
-  }, [navigation, title, onSave, saving]);
+    navigation.setOptions({ headerTitle });
+  }, [navigation, headerTitle]);
 
   return (
     <ContentArea
