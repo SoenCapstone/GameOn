@@ -1,5 +1,6 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { View, ActivityIndicator } from "react-native";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import { PlayMakerBoard } from "@/components/play-maker/play-maker-board";
 import { ShapesTab } from "@/components/play-maker/shapes-tab";
 import type {
@@ -14,21 +15,43 @@ import { PlayerAssignmentPanel } from "./player-assignment-panel";
 import { useGetTeamMembers } from "@/hooks/use-get-team-members/use-get-team-members";
 import { useTeamDetailContext } from "@/contexts/team-detail-context";
 
+type PlayMakerAreaWithCallbackProps = PlayMakerAreaProps & {
+  onShapesChange?: (shapes: Shape[]) => void;
+};
+
 export const PlayMakerArea = ({
   styles,
   boardConfig: BoardConfig,
-}: PlayMakerAreaProps) => {
+  onShapesChange,
+}: PlayMakerAreaWithCallbackProps) => {
   const [selectedTool, setSelectedTool] = useState<ShapeTool>("person");
   const [selectedShapeId, setSelectedShapeId] = useState<string | null>(null);
   const [shapes, setShapes] = useState<Shape[]>([]);
+useEffect(() => {
+  (async () => {
+    try {
+      const saved = await AsyncStorage.getItem(storageKey);
+      if (saved) setShapes(JSON.parse(saved));
+    } catch (e) {
 
+    }
+  })();
+}, [storageKey]);
   const { id: teamId } = useTeamDetailContext();
+  const storageKey = `playmaker:${teamId}`;
   const { data, isLoading } = useGetTeamMembers(teamId);
+
+  useEffect(() => {
+    onShapesChange?.(shapes);
+  }, [shapes, onShapesChange]);
+useEffect(() => {
+  AsyncStorage.setItem(storageKey, JSON.stringify(shapes)).catch(() => {});
+}, [shapes, storageKey]);
 
   const renderedShapes = useRenderPlayMakerShapes(
     shapes,
     selectedShapeId,
-    (id) => setSelectedShapeId(id),
+    (id) => setSelectedShapeId(id)
   );
 
   return (
@@ -46,7 +69,7 @@ export const PlayMakerArea = ({
               selectedTool,
               setShapes,
               selectedShapeId,
-              setSelectedShapeId,
+              setSelectedShapeId
             )
           }
         >
@@ -62,6 +85,7 @@ export const PlayMakerArea = ({
           selectedShapeId={selectedShapeId}
         />
       </View>
+
       {isLoading ? (
         <ActivityIndicator testID="team-loading" size="large" color="white" />
       ) : (
