@@ -59,7 +59,36 @@ export default function PlayMaker() {
     </TeamDetailProvider>
   );
 }
-
+function PlaymakerHeader({
+  title,
+  saving,
+  onSave,
+}: {
+  title: string;
+  saving: boolean;
+  onSave: () => void;
+}) {
+  return (
+    <Header
+      left={<Button type="back" />}
+      center={<PageTitle title={`${title} Playmaker`} />}
+      right={
+        <Pressable
+          onPress={saving ? undefined : onSave}
+          style={({ pressed }) => [
+            styles.saveButton,
+            pressed && !saving && { opacity: 0.7 },
+            saving && { opacity: 0.5 },
+          ]}
+        >
+          <Text style={styles.saveText}>
+            {saving ? "Saving..." : "Save"}
+          </Text>
+        </Pressable>
+      }
+    />
+  );
+}
 function PlayMakerContent() {
   const { isLoading, refreshing, onRefresh, title, id: teamId } =
     useTeamDetailContext();
@@ -98,10 +127,6 @@ function PlayMakerContent() {
 
       const res = await api.post(route, payload);
 
-      const playId =
-        typeof res.data === "string"
-          ? res.data.replaceAll('"', "")
-          : String(res.data);
 
       Alert.alert("Saved", "Your play was saved successfully.");
     } catch (e: any) {
@@ -126,24 +151,7 @@ function PlayMakerContent() {
   useLayoutEffect(() => {
     navigation.setOptions({
       headerTitle: () => (
-        <Header
-          left={<Button type="back" />}
-          center={<PageTitle title={`${title} Playmaker`} />}
-          right={
-            <Pressable
-              onPress={saving ? undefined : onSave}
-              style={({ pressed }) => [
-                styles.saveButton,
-                pressed && !saving && { opacity: 0.7 },
-                saving && { opacity: 0.5 },
-              ]}
-            >
-              <Text style={styles.saveText}>
-                {saving ? "Saving..." : "Save"}
-              </Text>
-            </Pressable>
-          }
-        />
+        <PlaymakerHeader title={title} saving={saving} onSave={onSave} />
       ),
     });
   }, [navigation, title, onSave, saving]);
