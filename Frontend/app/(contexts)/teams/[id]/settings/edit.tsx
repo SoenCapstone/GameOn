@@ -7,25 +7,17 @@ import { Header } from "@/components/header/header";
 import { Button } from "@/components/ui/button";
 import { PageTitle } from "@/components/header/page-title";
 import { Form } from "@/components/form/form";
+import { TeamForm } from "@/components/teams/team-form";
 import { AccentColors } from "@/constants/colors";
-import { images } from "@/constants/images";
 import { createScopedLog } from "@/utils/logger";
 import { errorToString } from "@/utils/error";
 import { useTeamForm } from "@/hooks/use-team-form";
-import {
-  sportOptions,
-  scopeOptions,
-  cityOptions,
-  getSportByLabel,
-  getScopeByLabel,
-  getCityByLabel,
-} from "@/constants/form-constants";
+import { settingsStyles } from "@/constants/settings-styles";
+import { useUpdateTeam } from "@/hooks/use-team-league-settings";
 import {
   TeamDetailProvider,
   useTeamDetailContext,
 } from "@/contexts/team-detail-context";
-import { settingsStyles } from "@/constants/settings-styles";
-import { useUpdateTeam } from "@/hooks/use-team-league-settings";
 import {
   useAxiosWithClerk,
   GO_TEAM_SERVICE_ROUTES,
@@ -207,68 +199,23 @@ function EditTeamContent() {
       )}
 
       <Form accentColor={AccentColors.red}>
-        <Form.Section>
-          <Form.Image
-            logo
-            image={
-              pickedLogo
-                ? { uri: pickedLogo.uri }
-                : logoUri
-                  ? { uri: logoUri }
-                  : images.defaultLogo
-            }
-            onPress={handlePickLogo}
-          />
-          <Button
-            type="custom"
-            label="Remove logo"
-            onPress={handleRemoveLogo}
-          />
-        </Form.Section>
-
-        <Form.Section footer="Only images with transparent background are supported.">
-          <Form.Input
-            label="Name"
-            placeholder="Enter team name"
-            value={teamName}
-            onChangeText={setTeamName}
-          />
-          <Form.Menu
-            label="Sport"
-            options={sportOptions}
-            value={selectedSport?.label ?? "None"}
-            onValueChange={(label) => {
-              if (label === "None") {
-                setSelectedSport(null);
-              } else {
-                const o = getSportByLabel(label);
-                if (o) setSelectedSport(o);
-              }
-            }}
-          />
-          <Form.Menu
-            label="Scope"
-            options={scopeOptions}
-            value={selectedScope.label}
-            onValueChange={(label) => {
-              const o = getScopeByLabel(label);
-              if (o) setSelectedScope(o);
-            }}
-          />
-          <Form.Menu
-            label="Location"
-            options={cityOptions}
-            value={selectedCity?.label ?? "City"}
-            onValueChange={(label) => {
-              if (label === "Select location") {
-                setSelectedCity(null);
-              } else {
-                const o = getCityByLabel(label);
-                if (o) setSelectedCity(o);
-              }
-            }}
-          />
-        </Form.Section>
+        <TeamForm
+          values={{
+            teamName,
+            selectedSport,
+            selectedScope,
+            selectedCity,
+          }}
+          logo={{ pickedLogo, logoUri }}
+          onChange={{
+            onTeamNameChange: setTeamName,
+            onSportChange: setSelectedSport,
+            onScopeChange: setSelectedScope,
+            onCityChange: setSelectedCity,
+            onPickLogo: handlePickLogo,
+            onRemoveLogo: handleRemoveLogo,
+          }}
+        />
       </Form>
     </ContentArea>
   );
