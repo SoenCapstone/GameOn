@@ -25,11 +25,7 @@ import {
   getScopeByLabel,
   getCityByLabel,
 } from "@/constants/form-constants";
-import { pickImage } from "@/utils/pick-image";
-import {
-  isAllowedLogoMimeType,
-  getLogoFileExtension,
-} from "@/utils/logo-upload";
+import { pickLogo, PickedLogo, uploadLogo } from "@/utils/team-league-form";
 
 const log = createScopedLog("Create Team Page");
 
@@ -38,10 +34,7 @@ export default function CreateTeamScreen() {
   const api = useAxiosWithClerk();
   const queryClient = useQueryClient();
 
-  const [pickedLogo, setPickedLogo] = useState<{
-    uri: string;
-    mimeType: string;
-  } | null>(null);
+  const [pickedLogo, setPickedLogo] = useState<PickedLogo | null>(null);
 
   const {
     teamName,
@@ -55,19 +48,7 @@ export default function CreateTeamScreen() {
   } = useTeamForm();
 
   const handlePickLogo = useCallback(async () => {
-    await pickImage((img) => {
-      if (!isAllowedLogoMimeType(img.mimeType)) {
-        Alert.alert(
-          "Unsupported format",
-          "Only images with transparent background are supported for logos.",
-        );
-        return;
-      }
-      setPickedLogo({
-        uri: img.uri,
-        mimeType: (img.mimeType ?? "image/png").toLowerCase().trim(),
-      });
-    });
+    await pickLogo(setPickedLogo);
   }, []);
 
   const createTeamMutation = useMutation({
@@ -84,13 +65,11 @@ export default function CreateTeamScreen() {
       const data = resp.data as { id: string; slug: string };
 
       if (pickedLogo && data.id) {
-        const formData = new FormData();
-        formData.append("file", {
-          uri: pickedLogo.uri,
-          type: pickedLogo.mimeType,
-          name: `logo.${getLogoFileExtension(pickedLogo.mimeType)}`,
-        } as unknown as Blob);
-        await api.post(GO_TEAM_SERVICE_ROUTES.TEAM_LOGO(data.id), formData);
+        await uploadLogo(
+          api,
+          GO_TEAM_SERVICE_ROUTES.TEAM_LOGO(data.id),
+          pickedLogo,
+        );
         log.info("Team logo uploaded for team", data.id);
       }
 

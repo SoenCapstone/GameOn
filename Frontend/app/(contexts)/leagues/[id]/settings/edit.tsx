@@ -30,11 +30,12 @@ import {
   useAxiosWithClerk,
   GO_LEAGUE_SERVICE_ROUTES,
 } from "@/hooks/use-axios-clerk";
-import { pickImage } from "@/utils/pick-image";
 import {
-  isAllowedLogoMimeType,
-  getLogoFileExtension,
-} from "@/utils/logo-upload";
+  clearLogoSelection,
+  pickLogo,
+  PickedLogo,
+  uploadLogo,
+} from "@/utils/team-league-form";
 
 const log = createScopedLog("Edit League");
 
@@ -60,10 +61,7 @@ function EditLeagueContent() {
     isOwner,
   } = useLeagueDetailContext();
 
-  const [pickedLogo, setPickedLogo] = useState<{
-    uri: string;
-    mimeType: string;
-  } | null>(null);
+  const [pickedLogo, setPickedLogo] = useState<PickedLogo | null>(null);
   const [logoUri, setLogoUri] = useState("");
 
   const {
@@ -104,24 +102,11 @@ function EditLeagueContent() {
     : false;
 
   const handlePickLogo = useCallback(async () => {
-    await pickImage((img) => {
-      if (!isAllowedLogoMimeType(img.mimeType)) {
-        Alert.alert(
-          "Unsupported format",
-          "Only images with transparent background are supported for logos.",
-        );
-        return;
-      }
-      setPickedLogo({
-        uri: img.uri,
-        mimeType: (img.mimeType ?? "image/png").toLowerCase().trim(),
-      });
-    });
+    await pickLogo(setPickedLogo);
   }, []);
 
   const handleRemoveLogo = useCallback(() => {
-    setPickedLogo(null);
-    setLogoUri("");
+    clearLogoSelection(setPickedLogo, setLogoUri);
   }, []);
 
   const handleSave = useCallback(async () => {
@@ -144,19 +129,12 @@ function EditLeagueContent() {
     };
 
     if (pickedLogo) {
-      const formData = new FormData();
-      formData.append("file", {
-        uri: pickedLogo.uri,
-        type: pickedLogo.mimeType,
-        name: `logo.${getLogoFileExtension(pickedLogo.mimeType)}`,
-      } as unknown as Blob);
       try {
-        const resp = await api.post(
+        const newLogoUrl = await uploadLogo(
+          api,
           GO_LEAGUE_SERVICE_ROUTES.LEAGUE_LOGO(id),
-          formData,
+          pickedLogo,
         );
-        const newLogoUrl =
-          (resp.data as { publicUrl?: string })?.publicUrl ?? "";
         updateLeagueMutation.mutate({
           ...basePayload,
           logoUrl: newLogoUrl || (logoUri ?? ""),
