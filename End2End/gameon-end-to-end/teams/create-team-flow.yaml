@@ -35,7 +35,7 @@ appId: host.exp.Exponent
 - assertVisible: Location, Montreal ⌵
 
 - tapOn:
-    text: Create
+    text: Create Team
     index: 1
 
 - assertVisible: Team created

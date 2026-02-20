@@ -21,6 +21,27 @@ import {
 
 const log = createScopedLog("Create Team Page");
 
+const CreateTeamHeader = ({
+  onCreate,
+  isCreating,
+}: {
+  onCreate: () => void;
+  isCreating: boolean;
+}) => (
+  <Header
+    left={<Button type="back" />}
+    center={<PageTitle title="Create a Team" />}
+    right={
+      <Button
+        type="custom"
+        label={isCreating ? "Creating..." : "Create"}
+        onPress={onCreate}
+        loading={isCreating}
+      />
+    }
+  />
+);
+
 export default function CreateTeamScreen() {
   const router = useRouter();
   const api = useAxiosWithClerk();
@@ -99,17 +120,9 @@ export default function CreateTeamScreen() {
   useLayoutEffect(() => {
     navigation.setOptions({
       headerTitle: () => (
-        <Header
-          left={<Button type="back" />}
-          center={<PageTitle title="Create a Team" />}
-          right={
-            <Button
-              type="custom"
-              label={createTeamMutation.isPending ? "Creating..." : "Create"}
-              onPress={handleCreateTeam}
-              loading={createTeamMutation.isPending}
-            />
-          }
+        <CreateTeamHeader
+          onCreate={handleCreateTeam}
+          isCreating={createTeamMutation.isPending}
         />
       ),
     });

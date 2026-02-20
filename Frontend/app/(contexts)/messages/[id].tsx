@@ -89,18 +89,16 @@ function ChatScreenHeader({
   teamId?: string | null;
 }>) {
   const router = useRouter();
+  const hasTeamImage = Boolean(teamId && imageUrl);
+  const imageSource = teamId && imageUrl ? { uri: imageUrl } : undefined;
+  const fallbackIcon = isGroup ? "shield.fill" : "person.fill";
+  const iconName = hasTeamImage ? undefined : fallbackIcon;
 
   const right = (
     <Button
       type="custom"
-      image={teamId && imageUrl ? { uri: imageUrl } : undefined}
-      icon={
-        !(teamId && imageUrl)
-          ? isGroup
-            ? "shield.fill"
-            : "person.fill"
-          : undefined
-      }
+      image={imageSource}
+      icon={iconName}
       iconSize={isGroup ? 24 : 20}
       onPress={teamId ? () => router.push(`/teams/${teamId}`) : undefined}
       isInteractive={!!teamId}

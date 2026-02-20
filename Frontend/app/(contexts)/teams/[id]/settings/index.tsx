@@ -23,6 +23,15 @@ import { formatAmount } from "@/utils/payment";
 
 const PUBLICATION_FEE_CENTS = 1500;
 
+function TeamSettingsHeader() {
+  return (
+    <Header
+      left={<Button type="back" />}
+      center={<PageTitle title="Team Settings" />}
+    />
+  );
+}
+
 export default function TeamSettingsScreen() {
   const params = useLocalSearchParams<{ id?: string }>();
   const id = params.id ?? "";
@@ -135,12 +144,7 @@ function TeamSettingsContent() {
 
   useLayoutEffect(() => {
     navigation.setOptions({
-      headerTitle: () => (
-        <Header
-          left={<Button type="back" />}
-          center={<PageTitle title="Team Settings" />}
-        />
-      ),
+      headerTitle: TeamSettingsHeader,
     });
   }, [navigation]);
 

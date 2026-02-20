@@ -31,6 +31,22 @@ import {
 
 const log = createScopedLog("Edit League");
 
+const EditLeagueHeader = ({
+  onSave,
+  isSaving,
+}: {
+  onSave: () => void;
+  isSaving: boolean;
+}) => (
+  <Header
+    left={<Button type="back" />}
+    center={<PageTitle title="Edit League" />}
+    right={
+      <Button type="custom" label="Save" onPress={onSave} loading={isSaving} />
+    }
+  />
+);
+
 export default function EditLeagueScreen() {
   const params = useLocalSearchParams<{ id?: string }>();
   const id = params.id ?? "";
@@ -158,17 +174,9 @@ function EditLeagueContent() {
   useLayoutEffect(() => {
     navigation.setOptions({
       headerTitle: () => (
-        <Header
-          left={<Button type="back" />}
-          center={<PageTitle title="Edit League" />}
-          right={
-            <Button
-              type="custom"
-              label="Save"
-              onPress={handleSave}
-              loading={updateLeagueMutation.isPending}
-            />
-          }
+        <EditLeagueHeader
+          onSave={handleSave}
+          isSaving={updateLeagueMutation.isPending}
         />
       ),
     });

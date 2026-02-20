@@ -31,6 +31,22 @@ import {
 
 const log = createScopedLog("Edit Team");
 
+const EditTeamHeader = ({
+  onSave,
+  isSaving,
+}: {
+  onSave: () => void;
+  isSaving: boolean;
+}) => (
+  <Header
+    left={<Button type="back" />}
+    center={<PageTitle title="Edit Team" />}
+    right={
+      <Button type="custom" label="Save" onPress={onSave} loading={isSaving} />
+    }
+  />
+);
+
 export default function EditTeamScreen() {
   const params = useLocalSearchParams<{ id?: string }>();
   const id = params.id ?? "";
@@ -152,17 +168,9 @@ function EditTeamContent() {
   useLayoutEffect(() => {
     navigation.setOptions({
       headerTitle: () => (
-        <Header
-          left={<Button type="back" />}
-          center={<PageTitle title="Edit Team" />}
-          right={
-            <Button
-              type="custom"
-              label="Save"
-              onPress={handleSave}
-              loading={updateTeamMutation.isPending}
-            />
-          }
+        <EditTeamHeader
+          onSave={handleSave}
+          isSaving={updateTeamMutation.isPending}
         />
       ),
     });
