@@ -25,11 +25,11 @@ import {
   getLevelByLabel,
   getCityByLabel,
 } from "@/constants/form-constants";
-import { pickImage } from "@/utils/pick-image";
 import {
-  isAllowedLogoMimeType,
-  getLogoFileExtension,
-} from "@/utils/logo-upload";
+  pickLogo,
+  PickedLogo,
+  uploadLogo,
+} from "@/utils/team-league-form";
 
 const log = createScopedLog("Create League Page");
 
@@ -38,10 +38,7 @@ export default function CreateLeagueScreen() {
   const api = useAxiosWithClerk();
   const queryClient = useQueryClient();
 
-  const [pickedLogo, setPickedLogo] = useState<{
-    uri: string;
-    mimeType: string;
-  } | null>(null);
+  const [pickedLogo, setPickedLogo] = useState<PickedLogo | null>(null);
 
   const {
     leagueName,
@@ -56,19 +53,7 @@ export default function CreateLeagueScreen() {
   } = useLeagueForm({ initialData: { region: "Canada" } });
 
   const handlePickLogo = useCallback(async () => {
-    await pickImage((img) => {
-      if (!isAllowedLogoMimeType(img.mimeType)) {
-        Alert.alert(
-          "Unsupported format",
-          "Only images with transparent background are supported for logos.",
-        );
-        return;
-      }
-      setPickedLogo({
-        uri: img.uri,
-        mimeType: (img.mimeType ?? "image/png").toLowerCase().trim(),
-      });
-    });
+    await pickLogo(setPickedLogo);
   }, []);
 
   const createLeagueMutation = useMutation({
@@ -87,13 +72,11 @@ export default function CreateLeagueScreen() {
       const data = resp.data as { id: string; slug: string };
 
       if (pickedLogo && data.id) {
-        const formData = new FormData();
-        formData.append("file", {
-          uri: pickedLogo.uri,
-          type: pickedLogo.mimeType,
-          name: `logo.${getLogoFileExtension(pickedLogo.mimeType)}`,
-        } as unknown as Blob);
-        await api.post(GO_LEAGUE_SERVICE_ROUTES.LEAGUE_LOGO(data.id), formData);
+        await uploadLogo(
+          api,
+          GO_LEAGUE_SERVICE_ROUTES.LEAGUE_LOGO(data.id),
+          pickedLogo,
+        );
         log.info("League logo uploaded for league", data.id);
       }
 
