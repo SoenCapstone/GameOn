@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
-import { Option } from "@/components/ui/pickerModal";
 import {
+  Option,
   LeaguePickerType,
   LEVEL_OPTIONS,
   SPORTS,

@@ -8,6 +8,7 @@ export default function LeaguesLayout() {
     indexName: "[id]/index",
     extraScreens: [
       "[id]/settings/index",
+      "[id]/settings/edit",
       "[id]/manage/index",
       "[id]/invite/index",
     ],

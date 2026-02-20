@@ -11,24 +11,24 @@ import { AccentColors } from "@/constants/colors";
 import { images } from "@/constants/images";
 import { createScopedLog } from "@/utils/logger";
 import { errorToString } from "@/utils/error";
-import { useTeamForm } from "@/hooks/use-team-form";
+import { useLeagueForm } from "@/hooks/use-league-form";
 import {
   sportOptions,
-  scopeOptions,
+  levelOptions,
   cityOptions,
   getSportByLabel,
-  getScopeByLabel,
+  getLevelByLabel,
   getCityByLabel,
 } from "@/constants/form-constants";
 import {
-  TeamDetailProvider,
-  useTeamDetailContext,
-} from "@/contexts/team-detail-context";
+  LeagueDetailProvider,
+  useLeagueDetailContext,
+} from "@/contexts/league-detail-context";
 import { settingsStyles } from "@/constants/settings-styles";
-import { useUpdateTeam } from "@/hooks/use-team-league-settings";
+import { useUpdateLeague } from "@/hooks/use-team-league-settings";
 import {
   useAxiosWithClerk,
-  GO_TEAM_SERVICE_ROUTES,
+  GO_LEAGUE_SERVICE_ROUTES,
 } from "@/hooks/use-axios-clerk";
 import { pickImage } from "@/utils/pick-image";
 import {
@@ -36,62 +36,70 @@ import {
   getLogoFileExtension,
 } from "@/utils/logo-upload";
 
-const log = createScopedLog("Edit Team");
+const log = createScopedLog("Edit League");
 
-export default function EditTeamScreen() {
+export default function EditLeagueScreen() {
   const params = useLocalSearchParams<{ id?: string }>();
   const id = params.id ?? "";
 
   return (
-    <TeamDetailProvider id={id}>
-      <EditTeamContent />
-    </TeamDetailProvider>
+    <LeagueDetailProvider id={id}>
+      <EditLeagueContent />
+    </LeagueDetailProvider>
   );
 }
 
-function EditTeamContent() {
+function EditLeagueContent() {
   const navigation = useNavigation();
   const router = useRouter();
   const api = useAxiosWithClerk();
-  const { id, team, isLoading: teamLoading, isOwner } = useTeamDetailContext();
+  const {
+    id,
+    league,
+    isLoading: leagueLoading,
+    isOwner,
+  } = useLeagueDetailContext();
 
   const [pickedLogo, setPickedLogo] = useState<{
     uri: string;
     mimeType: string;
   } | null>(null);
+  const [logoUri, setLogoUri] = useState("");
 
   const {
-    teamName,
-    setTeamName,
+    leagueName,
+    setLeagueName,
     selectedSport,
     setSelectedSport,
-    selectedScope,
-    setSelectedScope,
-    selectedCity,
-    setSelectedCity,
-    logoUri,
-    setLogoUri,
-  } = useTeamForm({
-    initialData: team,
-  });
+    selectedLevel,
+    setSelectedLevel,
+    region,
+    location,
+    setLocation,
+  } = useLeagueForm({ initialData: league ?? undefined });
 
-  const updateTeamMutation = useUpdateTeam(id, {
+  useLayoutEffect(() => {
+    setLogoUri(league?.logoUrl ?? "");
+  }, [league?.logoUrl]);
+
+  const updateLeagueMutation = useUpdateLeague(id, {
     onSuccess: () => {
-      log.info("Team updated successfully");
+      log.info("League updated successfully");
       router.back();
     },
     onError: (err) => {
-      log.error("Update team failed", errorToString(err));
+      log.error("Update league failed", errorToString(err));
       Alert.alert("Update failed", errorToString(err));
     },
   });
 
-  const hasChanges = team
-    ? teamName !== (team.name ?? "") ||
-      selectedSport?.label?.toLowerCase() !== team.sport?.toLowerCase() ||
-      selectedScope?.id?.toLowerCase() !== team.scope?.toLowerCase() ||
-      selectedCity?.label?.toLowerCase() !== team.location?.toLowerCase() ||
-      logoUri !== (team.logoUrl ?? "") ||
+  const hasChanges = league
+    ? leagueName !== (league.name ?? "") ||
+      selectedSport?.label?.toLowerCase() !== league.sport?.toLowerCase() ||
+      selectedLevel?.id?.toLowerCase() !== league.level?.toLowerCase() ||
+      region !== (league.region ?? "") ||
+      location !== (league.location ?? "") ||
+      logoUri !== (league.logoUrl ?? "") ||
       pickedLogo !== null
     : false;
 
@@ -114,28 +122,25 @@ function EditTeamContent() {
   const handleRemoveLogo = useCallback(() => {
     setPickedLogo(null);
     setLogoUri("");
-  }, [setLogoUri]);
+  }, []);
 
   const handleSave = useCallback(async () => {
-    if (!teamName.trim()) {
-      Alert.alert("Team update failed", "Team name is required");
+    if (!leagueName.trim()) {
+      Alert.alert("League update failed", "League name is required");
       return;
     }
     if (!selectedSport) {
-      Alert.alert("Team update failed", "Sport is required");
-      return;
-    }
-    if (!selectedCity) {
-      Alert.alert("Team update failed", "City is required");
+      Alert.alert("League update failed", "Sport is required");
       return;
     }
 
     const basePayload = {
-      name: teamName.trim(),
+      name: leagueName.trim(),
       sport: selectedSport?.id ?? "",
-      scope: selectedScope?.id ?? "",
-      location: selectedCity?.label ?? "",
-      privacy: (team?.privacy ?? "PRIVATE") as "PUBLIC" | "PRIVATE",
+      level: selectedLevel?.id ?? "",
+      region: region.trim() || "",
+      location: location.trim() || "",
+      privacy: (league?.privacy ?? "PRIVATE") as "PUBLIC" | "PRIVATE",
     };
 
     if (pickedLogo) {
@@ -147,12 +152,12 @@ function EditTeamContent() {
       } as unknown as Blob);
       try {
         const resp = await api.post(
-          GO_TEAM_SERVICE_ROUTES.TEAM_LOGO(id),
+          GO_LEAGUE_SERVICE_ROUTES.LEAGUE_LOGO(id),
           formData,
         );
         const newLogoUrl =
           (resp.data as { publicUrl?: string })?.publicUrl ?? "";
-        updateTeamMutation.mutate({
+        updateLeagueMutation.mutate({
           ...basePayload,
           logoUrl: newLogoUrl || (logoUri ?? ""),
         });
@@ -161,22 +166,23 @@ function EditTeamContent() {
         Alert.alert("Logo upload failed", errorToString(err));
       }
     } else {
-      updateTeamMutation.mutate({
+      updateLeagueMutation.mutate({
         ...basePayload,
         logoUrl: logoUri ?? "",
       });
     }
   }, [
-    teamName,
+    leagueName,
     selectedSport,
-    selectedScope,
-    selectedCity,
+    selectedLevel,
+    region,
+    location,
     logoUri,
-    team?.privacy,
+    league?.privacy,
     pickedLogo,
     id,
     api,
-    updateTeamMutation,
+    updateLeagueMutation,
   ]);
 
   useLayoutEffect(() => {
@@ -184,37 +190,37 @@ function EditTeamContent() {
       headerTitle: () => (
         <Header
           left={<Button type="back" />}
-          center={<PageTitle title="Edit Team" />}
+          center={<PageTitle title="Edit League" />}
           right={
             <Button
               type="custom"
               label="Save"
               onPress={handleSave}
-              loading={updateTeamMutation.isPending}
+              loading={updateLeagueMutation.isPending}
             />
           }
         />
       ),
     });
-  }, [navigation, hasChanges, updateTeamMutation.isPending, handleSave]);
+  }, [navigation, hasChanges, updateLeagueMutation.isPending, handleSave]);
 
   if (!isOwner) {
     return (
       <ContentArea backgroundProps={{ preset: "red" }}>
         <View style={settingsStyles.container}>
           <Text style={settingsStyles.errorText}>
-            You don&apos;t have permission to edit this team
+            You don&apos;t have permission to edit this league
           </Text>
         </View>
       </ContentArea>
     );
   }
 
-  if (!team) {
+  if (!league) {
     return (
       <ContentArea backgroundProps={{ preset: "red" }}>
         <View style={settingsStyles.container}>
-          <Text style={settingsStyles.errorText}>Team not found</Text>
+          <Text style={settingsStyles.errorText}>League not found</Text>
         </View>
       </ContentArea>
     );
@@ -222,7 +228,7 @@ function EditTeamContent() {
 
   return (
     <ContentArea scrollable backgroundProps={{ preset: "red", mode: "form" }}>
-      {teamLoading && (
+      {leagueLoading && (
         <View style={settingsStyles.loadingOverlay}>
           <ActivityIndicator size="large" color="#fff" />
         </View>
@@ -251,9 +257,9 @@ function EditTeamContent() {
         <Form.Section footer="Only images with transparent background are supported.">
           <Form.Input
             label="Name"
-            placeholder="Enter team name"
-            value={teamName}
-            onChangeText={setTeamName}
+            placeholder="Enter league name"
+            value={leagueName}
+            onChangeText={setLeagueName}
           />
           <Form.Menu
             label="Sport"
@@ -269,24 +275,34 @@ function EditTeamContent() {
             }}
           />
           <Form.Menu
-            label="Scope"
-            options={scopeOptions}
-            value={selectedScope.label}
+            label="Level"
+            options={levelOptions}
+            value={selectedLevel?.label ?? "Optional"}
             onValueChange={(label) => {
-              const o = getScopeByLabel(label);
-              if (o) setSelectedScope(o);
+              if (label === "Optional") {
+                setSelectedLevel(null);
+              } else {
+                const o = getLevelByLabel(label);
+                if (o) setSelectedLevel(o);
+              }
             }}
+          />
+          <Form.Input
+            label="Region"
+            placeholder="e.g. Quebec"
+            value={region}
+            editable={false}
           />
           <Form.Menu
             label="Location"
             options={cityOptions}
-            value={selectedCity?.label ?? "City"}
+            value={location || "Select location"}
             onValueChange={(label) => {
               if (label === "Select location") {
-                setSelectedCity(null);
+                setLocation("");
               } else {
                 const o = getCityByLabel(label);
-                if (o) setSelectedCity(o);
+                if (o) setLocation(o.label);
               }
             }}
           />
