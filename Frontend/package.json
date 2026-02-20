@@ -94,9 +94,8 @@
   "private": true,
   "jest": {
     "preset": "jest-expo",
-    "testMatch": [
-      "**/__tests__/**/*.test.ts?(x)"
-    ],
+    "setupFilesAfterEnv": ["<rootDir>/jest.setup.js"],
+    "testMatch": ["**/__tests__/**/*.test.ts?(x)"],
     "transformIgnorePatterns": [
       "node_modules/(?!(jest-)?react-native|@react-native|expo(nent)?|@expo(nent)?/.*|expo-router)"
     ]
