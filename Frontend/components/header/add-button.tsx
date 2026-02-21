@@ -6,7 +6,7 @@ export function AddButton() {
   const router = useRouter();
 
   const handlePress = () => {
-    router.push("/teams/create-team");
+    router.push("/teams/create");
   };
 
   return (

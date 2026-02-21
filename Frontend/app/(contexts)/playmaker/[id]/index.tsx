@@ -27,7 +27,7 @@ function playmakerHeader(title: string) {
   return (
     <Header
       left={<Button type="back" />}
-      center={<PageTitle title={`${title} Playmaker`} />}
+      center={<PageTitle title={title} subtitle="Playmaker" />}
     />
   );
 }
