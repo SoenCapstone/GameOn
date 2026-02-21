@@ -1,6 +1,5 @@
 import { Alert } from "react-native";
 import { createScopedLog } from "@/utils/logger";
-import * as ImagePicker from "expo-image-picker";
 import { File } from "expo-file-system";
 
 const log = createScopedLog("Profile");
@@ -73,40 +72,6 @@ export const handleSaveProfile = async ({
   log.info("Updated Profile:", { firstName, lastName, email, image });
 
   router.back();
-};
-
-export const pickImage = async (
-  setImage: (img: { uri: string; mimeType?: string }) => void,
-) => {
-  try {
-    const { granted } = await ImagePicker.requestMediaLibraryPermissionsAsync();
-    if (!granted) {
-      Alert.alert(
-        "Permission denied",
-        "You need to allow access to your media library.",
-      );
-      return;
-    }
-
-    const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ["images"],
-      quality: 0.8,
-      allowsEditing: true,
-      aspect: [1, 1],
-      exif: false,
-    });
-
-    if (!result.canceled && result.assets.length > 0) {
-      const asset = result.assets[0];
-      setImage({
-        uri: asset.uri,
-        mimeType: asset.mimeType || "image/jpeg",
-      });
-    }
-  } catch (err: any) {
-    console.error("Image picker error:", err.message);
-    Alert.alert("Error", "Failed to pick image: " + err.message);
-  }
 };
 
 export const confirmLogout = (signOut: () => void, log: any) => {

@@ -18,6 +18,7 @@ import { useMessagingContext } from "@/features/messaging/provider";
 import { useAuth } from "@clerk/clerk-expo";
 import {
   useConversationsQuery,
+  useMyTeams,
   useUserDirectory,
 } from "@/features/messaging/hooks";
 import { Chat, type ChatItem } from "@/components/messages/chat";
@@ -50,6 +51,7 @@ export default function Messages() {
   const { userId } = useAuth();
   const { data, isLoading, refetch, isRefetching } = useConversationsQuery();
   const { data: users } = useUserDirectory();
+  const { data: myTeams } = useMyTeams();
   const [filter, setFilter] = useState<"all" | "direct" | "group">("all");
   const listRef = useRef<any>(null);
 
@@ -75,6 +77,14 @@ export default function Messages() {
     });
     return map;
   }, [users]);
+
+  const teamLogoMap = useMemo(() => {
+    const map = new Map<string, string>();
+    myTeams?.forEach((team) => {
+      if (team.logoUrl) map.set(team.id, team.logoUrl);
+    });
+    return map;
+  }, [myTeams]);
 
   const listData = useMemo<ChatItem[]>(() => {
     if (!data) return [];
@@ -107,6 +117,10 @@ export default function Messages() {
         } else {
           subtitle = "Team chat";
         }
+        const imageUrl =
+          isGroup && conversation.teamId
+            ? teamLogoMap.get(conversation.teamId) ?? null
+            : null;
         return {
           id: conversation.id,
           title,
@@ -114,9 +128,10 @@ export default function Messages() {
           preview,
           timestamp,
           group: isGroup,
+          imageUrl: imageUrl ?? undefined,
         } satisfies ChatItem;
       });
-  }, [data, filter, userId, userMap]);
+  }, [data, filter, userId, userMap, teamLogoMap]);
 
   useEffect(() => {
     listRef.current?.scrollToIndex({ index: 0, animated: true });
