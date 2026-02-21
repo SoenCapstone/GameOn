@@ -98,7 +98,8 @@ public class TeamAssetController {
             s3Client.putObject(putObjectRequest, RequestBody.fromBytes(fileBytes));
         }
 
-        String publicUrl = String.format("https://%s.s3.%s.amazonaws.com/%s", bucket, region, key);
+        String baseUrl = String.format("https://%s.s3.%s.amazonaws.com/%s", bucket, region, key);
+        String publicUrl = baseUrl + "?t=" + System.currentTimeMillis();
 
         // Update team with logo URL in database
         teamService.updateTeamLogo(UUID.fromString(teamId), publicUrl);
