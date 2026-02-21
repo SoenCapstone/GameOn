@@ -1,18 +1,12 @@
-import {
-  Text,
-  View,
-  StyleSheet,
-  ImageSourcePropType,
-  Pressable,
-} from "react-native";
+import { Text, View, StyleSheet, Pressable } from "react-native";
 import { Card } from "@/components/ui/card";
-import { Image } from "expo-image";
+import { Image, ImageSource } from "expo-image";
 import { IconSymbol } from "@/components/ui/icon-symbol";
 
 interface InfoCardProps {
   readonly title: string;
   readonly subtitle: string;
-  readonly image: ImageSourcePropType;
+  readonly image: ImageSource;
   readonly onPress: () => void;
 }
 
@@ -54,7 +48,7 @@ const styles = StyleSheet.create({
     display: "flex",
     flexDirection: "row",
     alignItems: "center",
-    gap: 20,
+    gap: 16,
   },
   image: {
     width: 40,
@@ -77,5 +71,6 @@ const styles = StyleSheet.create({
   subtitle: {
     fontSize: 15,
     color: "#8C8C8C",
+    textTransform: "capitalize",
   },
 });
