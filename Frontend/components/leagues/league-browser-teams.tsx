@@ -3,9 +3,9 @@ import {
   ActivityIndicator,
   View,
   Text,
-  Pressable,
   Image,
   StyleSheet,
+  Pressable,
 } from "react-native";
 import { useRouter } from "expo-router";
 import { useQueries } from "@tanstack/react-query";
@@ -14,6 +14,7 @@ import {
   teamDetailQueryOptions,
   type TeamDetailResponse,
 } from "@/hooks/use-team-detail";
+import { Card } from "@/components/ui/card";
 
 export type LeagueTeamResponse = {
   id: string;
@@ -43,7 +44,6 @@ export function LeagueBrowserTeams({
     [leagueTeams],
   );
 
-
   const teamQueries = useQueries({
     queries: teamIds.map((teamId) => teamDetailQueryOptions(api, teamId)),
   });
@@ -54,6 +54,7 @@ export function LeagueBrowserTeams({
   const teamDetailsMap = useMemo(() => {
     const entries: [string, TeamDetailResponse][] = teamQueries.map((q, idx) => {
       const teamId = teamIds[idx] ?? "";
+
       if (!teamId) {
         return [
           "",
@@ -62,7 +63,6 @@ export function LeagueBrowserTeams({
       }
 
       if (q.data) return [teamId, q.data];
-
 
       return [
         teamId,
@@ -78,7 +78,7 @@ export function LeagueBrowserTeams({
   if (leagueTeamsError || detailsError) {
     return (
       <View style={styles.section}>
-        <Text style={styles.title}>Browse</Text>
+        <Text style={styles.title}>Teams</Text>
         <Text style={styles.text}>Failed to load league teams.</Text>
       </View>
     );
@@ -87,17 +87,17 @@ export function LeagueBrowserTeams({
   if (!isBusy && leagueTeams.length === 0) {
     return (
       <View style={styles.section}>
-        <Text style={styles.title}>Browse</Text>
+        <Text style={styles.title}>Teams</Text>
         <Text style={styles.text}>No teams in this league yet.</Text>
       </View>
     );
   }
 
   return (
-    <View style={styles.browserWrap}>
+    <View style={styles.wrap}>
       {isBusy && <ActivityIndicator size="small" color="#fff" />}
 
-      <View style={styles.browserGrid}>
+      <View style={styles.list}>
         {leagueTeams.map((t) => {
           const details = teamDetailsMap?.[t.teamId];
           const name = details?.name ?? "Team";
@@ -114,30 +114,28 @@ export function LeagueBrowserTeams({
           return (
             <Pressable
               key={t.id}
-              style={styles.browserCard}
               onPress={() => router.push(`/teams/${t.teamId}`)}
             >
-              <View style={styles.cardContent}>
-                {logoUrl ? (
-                  <Image source={{ uri: logoUrl }} style={styles.avatarImage} />
-                ) : (
-                  <View style={styles.avatarFallback}>
-                    <Text style={styles.avatarFallbackText}>
-                      {initials || "T"}
-                    </Text>
+              <Card>
+                <View style={styles.cardContent}>
+                  {logoUrl ? (
+                    <Image source={{ uri: logoUrl }} style={styles.avatar} />
+                  ) : (
+                    <View style={styles.avatarFallback}>
+                      <Text style={styles.avatarText}>
+                        {initials || "T"}
+                      </Text>
+                    </View>
+                  )}
+
+                  <View style={styles.textWrap}>
+                    <Text style={styles.cardTitle}>{name}</Text>
+                    {!!subtitle && (
+                      <Text style={styles.cardSubtitle}>{subtitle}</Text>
+                    )}
                   </View>
-                )}
-
-                <Text style={styles.cardTitle} numberOfLines={2}>
-                  {name}
-                </Text>
-
-                {!!subtitle && (
-                  <Text style={styles.cardSubtitle} numberOfLines={1}>
-                    {subtitle}
-                  </Text>
-                )}
-              </View>
+                </View>
+              </Card>
             </Pressable>
           );
         })}
@@ -151,57 +149,47 @@ const styles = StyleSheet.create({
   title: { color: "#fff", fontSize: 18, fontWeight: "700", marginBottom: 6 },
   text: { color: "#fff", fontSize: 14 },
 
-  browserWrap: { paddingTop: 14, paddingBottom: 14 },
+  wrap: { paddingTop: 14, paddingBottom: 14 },
 
-  browserGrid: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    justifyContent: "space-between",
-  },
-
-  browserCard: {
-    width: "48%",
-    aspectRatio: 1,
-    backgroundColor: "rgba(255,255,255,0.10)",
-    borderRadius: 20,
-    padding: 18,
-    marginBottom: 16,
+  list: {
+    gap: 16,
   },
 
   cardContent: {
-    flex: 1,
+    flexDirection: "row",
     alignItems: "center",
-    justifyContent: "center",
+    gap: 16,
   },
 
-  avatarImage: {
-    width: 60,
-    height: 60,
-    borderRadius: 30,
-    marginBottom: 14,
+  avatar: {
+    width: 50,
+    height: 50,
+    borderRadius: 25,
   },
 
   avatarFallback: {
-    width: 60,
-    height: 60,
-    borderRadius: 30,
-    marginBottom: 14,
+    width: 50,
+    height: 50,
+    borderRadius: 25,
     backgroundColor: "rgba(255,255,255,0.18)",
     alignItems: "center",
     justifyContent: "center",
   },
 
-  avatarFallbackText: {
+  avatarText: {
     color: "#fff",
     fontWeight: "700",
-    fontSize: 18,
+    fontSize: 16,
+  },
+
+  textWrap: {
+    flex: 1,
   },
 
   cardTitle: {
     color: "#fff",
     fontSize: 18,
     fontWeight: "700",
-    textAlign: "center",
   },
 
   cardSubtitle: {
@@ -209,6 +197,5 @@ const styles = StyleSheet.create({
     opacity: 0.8,
     marginTop: 4,
     fontSize: 14,
-    textAlign: "center",
   },
 });
