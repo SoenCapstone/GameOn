@@ -20,7 +20,7 @@ import { errorToString } from "@/utils/error";
 
 type LeagueTab = "board" | "standings" | "teams";
 
-// NOTE: order matters (this is used for index mapping)
+
 const LEAGUE_TABS: readonly LeagueTab[] = ["board", "standings", "teams"] as const;
 
 const TAB_LABELS: Record<LeagueTab, string> = {
@@ -56,7 +56,7 @@ function LeagueContent() {
     isOwner,
     league,
 
-    // ✅ now comes from LeagueDetailContext (hook)
+
     leagueTeams,
     isLeagueTeamsLoading,
     leagueTeamsError,
