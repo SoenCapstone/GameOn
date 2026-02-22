@@ -1,7 +1,5 @@
 import { useLayoutEffect, useState } from "react";
 import { useNavigation, useRouter } from "expo-router";
-import { Header } from "@/components/header/header";
-import { PageTitle } from "@/components/header/page-title";
 import { Button } from "@/components/ui/button";
 import { ContentArea } from "@/components/ui/content-area";
 import { Form } from "@/components/form/form";
@@ -29,30 +27,19 @@ export function AddVenueScreen({
   const [postalCode, setPostalCode] = useState("");
 
   const canSave = Boolean(name.trim() && street.trim() && city.trim() && postalCode.trim());
+  const handleSave = () => {
+    if (!canSave) return;
+    router.replace({
+      pathname: schedulePathname,
+      params: { id: entityId, newVenue: name.trim() },
+    });
+  };
 
   useLayoutEffect(() => {
     navigation.setOptions({
-      headerTitle: () => (
-        <Header
-          left={<Button type="back" />}
-          center={<PageTitle title="Add a Venue" />}
-          right={
-            <Button
-              type="custom"
-              label="Save"
-              isInteractive={canSave}
-              onPress={() =>
-                router.replace({
-                  pathname: schedulePathname,
-                  params: { id: entityId, newVenue: name.trim() },
-                })
-              }
-            />
-          }
-        />
-      ),
+      title: "Add a Venue",
     });
-  }, [canSave, entityId, name, navigation, router, schedulePathname]);
+  }, [navigation]);
 
   return (
     <ContentArea scrollable backgroundProps={{ preset: "red", mode: "form" }}>
@@ -74,6 +61,9 @@ export function AddVenueScreen({
             placeholder="Postal code"
             autoCapitalize="characters"
           />
+        </Form.Section>
+        <Form.Section>
+          <Button type="custom" label="Save" isInteractive={canSave} onPress={handleSave} />
         </Form.Section>
       </Form>
     </ContentArea>

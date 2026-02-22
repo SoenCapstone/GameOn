@@ -41,37 +41,43 @@ function ListSection({
   readonly isLoading: boolean;
   readonly onMatchPress: (matchId: string) => void;
 }) {
+  const renderSectionContent = () => {
+    if (isLoading) {
+      return (
+        <>
+          <MatchSkeletonCard />
+          <MatchSkeletonCard />
+        </>
+      );
+    }
+
+    if (items.length === 0) {
+      return <Text style={matchStyles.emptyText}>{emptyText}</Text>;
+    }
+
+    return items.map((match) => (
+      <MatchCard
+        key={match.id}
+        homeName={match.homeName}
+        awayName={match.awayName}
+        homeLogoUrl={match.homeLogoUrl}
+        awayLogoUrl={match.awayLogoUrl}
+        sport={match.sport}
+        contextLabel={match.contextLabel}
+        status={match.status}
+        startTime={match.startTime}
+        isPast={match.isPast}
+        homeScore={match.homeScore}
+        awayScore={match.awayScore}
+        onPress={() => onMatchPress(match.id)}
+      />
+    ));
+  };
+
   return (
     <View style={matchStyles.section}>
       <Text style={matchStyles.sectionTitle}>{title}</Text>
-      <View style={matchStyles.sectionBody}>
-        {isLoading ? (
-          <>
-            <MatchSkeletonCard />
-            <MatchSkeletonCard />
-          </>
-        ) : items.length === 0 ? (
-          <Text style={matchStyles.emptyText}>{emptyText}</Text>
-        ) : (
-          items.map((match) => (
-            <MatchCard
-              key={match.id}
-              homeName={match.homeName}
-              awayName={match.awayName}
-              homeLogoUrl={match.homeLogoUrl}
-              awayLogoUrl={match.awayLogoUrl}
-              sport={match.sport}
-              contextLabel={match.contextLabel}
-              status={match.status}
-              startTime={match.startTime}
-              isPast={match.isPast}
-              homeScore={match.homeScore}
-              awayScore={match.awayScore}
-              onPress={() => onMatchPress(match.id)}
-            />
-          ))
-        )}
-      </View>
+      <View style={matchStyles.sectionBody}>{renderSectionContent()}</View>
     </View>
   );
 }

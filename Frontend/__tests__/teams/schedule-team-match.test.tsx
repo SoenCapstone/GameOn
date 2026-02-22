@@ -46,7 +46,7 @@ jest.mock("@/components/ui/button", () => ({
 jest.mock("@/components/form/form", () => {
   const ReactMock = require("react");
   const { View, Text, TextInput, Pressable } = require("react-native");
-  const idPart = (input: string) => input.replace(/\s+/g, "-").toLowerCase();
+  const idPart = (input: string) => input.replaceAll(" ", "-").toLowerCase();
 
   const Form = ({ children }: any) => ReactMock.createElement(View, null, children);
   Form.Section = ({ children }: any) => ReactMock.createElement(View, null, children);

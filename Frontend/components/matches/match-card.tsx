@@ -33,6 +33,23 @@ export function MatchCard({
   awayScore,
   onPress,
 }: Readonly<MatchCardProps>) {
+  const renderCenterValue = () => {
+    if (!isPast) {
+      return <Text style={matchStyles.dateText}>{formatMatchDateTime(startTime)}</Text>;
+    }
+
+    const hasScore = homeScore !== undefined && awayScore !== undefined;
+    if (hasScore) {
+      return (
+        <Text style={matchStyles.scoreText}>
+          {homeScore} - {awayScore}
+        </Text>
+      );
+    }
+
+    return <Text style={matchStyles.scorePending}>Score unavailable</Text>;
+  };
+
   return (
     <Pressable onPress={onPress} style={matchStyles.cardPressable}>
       <View style={matchStyles.cardSurface}>
@@ -53,17 +70,7 @@ export function MatchCard({
               <Text style={matchStyles.contextLabel} numberOfLines={1}>
                 {contextLabel}
               </Text>
-              {isPast ? (
-                homeScore !== undefined && awayScore !== undefined ? (
-                  <Text style={matchStyles.scoreText}>
-                    {homeScore} - {awayScore}
-                  </Text>
-                ) : (
-                  <Text style={matchStyles.scorePending}>Score unavailable</Text>
-                )
-              ) : (
-                <Text style={matchStyles.dateText}>{formatMatchDateTime(startTime)}</Text>
-              )}
+              {renderCenterValue()}
             </View>
 
             <View style={matchStyles.sideColumn}>

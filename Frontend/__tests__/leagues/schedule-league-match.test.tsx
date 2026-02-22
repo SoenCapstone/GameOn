@@ -46,7 +46,7 @@ jest.mock("@/components/ui/button", () => ({
 jest.mock("@/components/form/form", () => {
   const ReactMock = require("react");
   const { View, Text, TextInput, Pressable } = require("react-native");
-  const idPart = (input: string) => input.replace(/\s+/g, "-").toLowerCase();
+  const idPart = (input: string) => input.replaceAll(" ", "-").toLowerCase();
 
   const Form = ({ children }: any) => ReactMock.createElement(View, null, children);
   Form.Section = ({ children }: any) => ReactMock.createElement(View, null, children);
@@ -82,7 +82,9 @@ jest.mock("@/components/form/form", () => {
       { onPress },
       ReactMock.createElement(Text, null, label),
     );
-  Form.Switch = () => null;
+  const MockSwitch = () => null;
+  MockSwitch.displayName = "MockSwitch";
+  Form.Switch = MockSwitch;
 
   return { Form };
 });
