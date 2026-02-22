@@ -22,12 +22,12 @@ export type LeagueTeamResponse = {
   joinedAt: string;
 };
 
-type Props = {
+type Props = Readonly<{
   leagueId: string;
   leagueTeams: LeagueTeamResponse[];
   teamsFetching: boolean;
   leagueTeamsError: unknown;
-};
+}>;
 
 export function LeagueBrowserTeams({
   leagueId,
