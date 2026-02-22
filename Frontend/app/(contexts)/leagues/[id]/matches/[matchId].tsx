@@ -3,9 +3,6 @@ import { Alert, StyleSheet, Text } from "react-native";
 import { useLocalSearchParams, useNavigation } from "expo-router";
 import { useQueryClient } from "@tanstack/react-query";
 import { ContentArea } from "@/components/ui/content-area";
-import { Header } from "@/components/header/header";
-import { PageTitle } from "@/components/header/page-title";
-import { Button } from "@/components/ui/button";
 import { useLeagueDetail } from "@/hooks/use-league-detail";
 import {
   useCancelLeagueMatch,
@@ -31,12 +28,7 @@ export default function LeagueMatchDetailsScreen() {
 
   useLayoutEffect(() => {
     navigation.setOptions({
-      headerTitle: () => (
-        <Header
-          left={<Button type="back" />}
-          center={<PageTitle title={title} />}
-        />
-      ),
+      title,
     });
   }, [navigation, title]);
 

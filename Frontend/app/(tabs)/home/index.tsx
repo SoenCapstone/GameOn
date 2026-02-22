@@ -226,6 +226,129 @@ export default function Home() {
     await refetch();
   }, [refetch]);
 
+  const renderInviteContent = useCallback(
+    (invite: InviteCard) => {
+      if (invite.kind === "team") {
+        return (
+          <>
+            <Text style={styles.teamName}>{invite.teamName}</Text>
+            <Text style={styles.inviteText}>
+              You received an invite
+              {invite.inviterName ? ` from ${invite.inviterName}` : ""} to join {invite.teamName}.
+            </Text>
+            <View style={styles.actionsRow}>
+              <View style={styles.actionButton}>
+                <ButtonItem button="Accept" onPress={() => handleAccept(invite.id)} />
+              </View>
+              <View style={styles.actionButton}>
+                <ButtonItem button="Decline" color={denyColor} onPress={() => handleDeny(invite.id)} />
+              </View>
+            </View>
+          </>
+        );
+      }
+
+      if (invite.kind === "team-match") {
+        return (
+          <>
+            <Text style={styles.teamName}>{invite.homeTeamName}</Text>
+            <Text style={styles.inviteText}>
+              Match invite from {invite.homeTeamName} for {invite.awayTeamName}.
+            </Text>
+            <View style={styles.actionsRow}>
+              <View style={styles.actionButton}>
+                <ButtonItem
+                  button="Accept"
+                  onPress={() =>
+                    respondTeamMatchInviteMutation.mutate({
+                      matchId: invite.matchId,
+                      isAccepted: true,
+                    })
+                  }
+                />
+              </View>
+              <View style={styles.actionButton}>
+                <ButtonItem
+                  button="Decline"
+                  color={denyColor}
+                  onPress={() =>
+                    respondTeamMatchInviteMutation.mutate({
+                      matchId: invite.matchId,
+                      isAccepted: false,
+                    })
+                  }
+                />
+              </View>
+            </View>
+          </>
+        );
+      }
+
+      if (invite.kind === "referee-match") {
+        return (
+          <>
+            <Text style={styles.teamName}>
+              {invite.homeTeamName} vs {invite.awayTeamName}
+            </Text>
+            <Text style={styles.inviteText}>
+              You received a referee invitation for this team match.
+            </Text>
+            <View style={styles.actionsRow}>
+              <View style={styles.actionButton}>
+                <ButtonItem
+                  button="Accept"
+                  onPress={() =>
+                    respondRefereeInviteMutation.mutate({
+                      matchId: invite.matchId,
+                      isAccepted: true,
+                    })
+                  }
+                />
+              </View>
+              <View style={styles.actionButton}>
+                <ButtonItem
+                  button="Decline"
+                  color={denyColor}
+                  onPress={() =>
+                    respondRefereeInviteMutation.mutate({
+                      matchId: invite.matchId,
+                      isAccepted: false,
+                    })
+                  }
+                />
+              </View>
+            </View>
+          </>
+        );
+      }
+
+      return (
+        <>
+          <Text style={styles.teamName}>{invite.leagueName}</Text>
+          <Text style={styles.inviteText}>
+            You received an invite to join {invite.leagueName} with {invite.teamName}.
+          </Text>
+          <View style={styles.actionsRow}>
+            <View style={styles.actionButton}>
+              <ButtonItem button="Accept" onPress={() => handleAcceptLeague(invite.id)} />
+            </View>
+            <View style={styles.actionButton}>
+              <ButtonItem button="Decline" color={denyColor} onPress={() => handleDenyLeague(invite.id)} />
+            </View>
+          </View>
+        </>
+      );
+    },
+    [
+      handleAccept,
+      handleAcceptLeague,
+      handleDeny,
+      handleDenyLeague,
+      respondRefereeInviteMutation,
+      respondTeamMatchInviteMutation,
+    ],
+  );
+
   return (
     <ContentArea
       scrollable
@@ -251,124 +374,7 @@ export default function Home() {
               <Text style={styles.inviteText}>No pending invitations.</Text>
             ) : (
               invites.map((invite) => (
-                <Card key={invite.id}>
-                  {invite.kind === "team" ? (
-                    <>
-                      <Text style={styles.teamName}>{invite.teamName}</Text>
-
-                      <Text style={styles.inviteText}>
-                        You received an invite
-                        {invite.inviterName ? ` from ${invite.inviterName}` : ""}{" "}
-                        to join {invite.teamName}.
-                      </Text>
-
-                      <View style={styles.actionsRow}>
-                        <View style={styles.actionButton}>
-                          <ButtonItem
-                            button="Accept"
-                            onPress={() => handleAccept(invite.id)}
-                          />
-                        </View>
-                        <View style={styles.actionButton}>
-                          <ButtonItem
-                            button="Decline"
-                            color={denyColor}
-                            onPress={() => handleDeny(invite.id)}
-                          />
-                        </View>
-                      </View>
-                    </>
-                  ) : invite.kind === "team-match" ? (
-                    <>
-                      <Text style={styles.teamName}>{invite.homeTeamName}</Text>
-                      <Text style={styles.inviteText}>
-                        Match invite from {invite.homeTeamName} for {invite.awayTeamName}.
-                      </Text>
-                      <View style={styles.actionsRow}>
-                        <View style={styles.actionButton}>
-                          <ButtonItem
-                            button="Accept"
-                            onPress={() =>
-                              respondTeamMatchInviteMutation.mutate({
-                                matchId: invite.matchId,
-                                isAccepted: true,
-                              })
-                            }
-                          />
-                        </View>
-                        <View style={styles.actionButton}>
-                          <ButtonItem
-                            button="Decline"
-                            color={denyColor}
-                            onPress={() =>
-                              respondTeamMatchInviteMutation.mutate({
-                                matchId: invite.matchId,
-                                isAccepted: false,
-                              })
-                            }
-                          />
-                        </View>
-                      </View>
-                    </>
-                  ) : invite.kind === "referee-match" ? (
-                    <>
-                      <Text style={styles.teamName}>
-                        {invite.homeTeamName} vs {invite.awayTeamName}
-                      </Text>
-                      <Text style={styles.inviteText}>
-                        You received a referee invitation for this team match.
-                      </Text>
-                      <View style={styles.actionsRow}>
-                        <View style={styles.actionButton}>
-                          <ButtonItem
-                            button="Accept"
-                            onPress={() =>
-                              respondRefereeInviteMutation.mutate({
-                                matchId: invite.matchId,
-                                isAccepted: true,
-                              })
-                            }
-                          />
-                        </View>
-                        <View style={styles.actionButton}>
-                          <ButtonItem
-                            button="Decline"
-                            color={denyColor}
-                            onPress={() =>
-                              respondRefereeInviteMutation.mutate({
-                                matchId: invite.matchId,
-                                isAccepted: false,
-                              })
-                            }
-                          />
-                        </View>
-                      </View>
-                    </>
-                  ) : (
-                    <>
-                      <Text style={styles.teamName}>{invite.leagueName}</Text>
-                      <Text style={styles.inviteText}>
-                        You received an invite to join {invite.leagueName} with{" "}
-                        {invite.teamName}.
-                      </Text>
-                      <View style={styles.actionsRow}>
-                        <View style={styles.actionButton}>
-                          <ButtonItem
-                            button="Accept"
-                            onPress={() => handleAcceptLeague(invite.id)}
-                          />
-                        </View>
-                        <View style={styles.actionButton}>
-                          <ButtonItem
-                            button="Decline"
-                            color={denyColor}
-                            onPress={() => handleDenyLeague(invite.id)}
-                          />
-                        </View>
-                      </View>
-                    </>
-                  )}
-                </Card>
+                <Card key={invite.id}>{renderInviteContent(invite)}</Card>
               ))
             )}
           </View>

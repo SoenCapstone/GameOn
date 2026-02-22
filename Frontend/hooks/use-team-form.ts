@@ -34,10 +34,10 @@ export const useTeamForm = (props?: UseTeamFormProps) => {
   const [teamName, setTeamName] = useState("");
   const [selectedSport, setSelectedSport] = useState<Option | null>(null);
   const [selectedScope, setSelectedScope] = useState<Option>(SCOPE_OPTIONS[0]);
-  const [selectedCity, setSelectedCityState] = useState<Option | null>(null);
-  const [selectedAllowedRegions, setSelectedAllowedRegionsState] = useState<
-    string[]
-  >([]);
+  const [selectedCity, setSelectedCity] = useState<Option | null>(null);
+  const [selectedAllowedRegions, setSelectedAllowedRegions] = useState<string[]>(
+    [],
+  );
   const [allowedRegionsManuallyEdited, setAllowedRegionsManuallyEdited] =
     useState(false);
   const [logoUri, setLogoUri] = useState<string | null>(null);
@@ -71,7 +71,7 @@ export const useTeamForm = (props?: UseTeamFormProps) => {
         (c) => c.label.toLowerCase() === data.location?.toLowerCase(),
       );
       if (cityOption) {
-        setSelectedCityState(cityOption);
+        setSelectedCity(cityOption);
       }
     }
 
@@ -80,26 +80,26 @@ export const useTeamForm = (props?: UseTeamFormProps) => {
       .filter((region): region is string => Boolean(region));
 
     if (normalizedAllowedRegions.length > 0) {
-      setSelectedAllowedRegionsState(normalizedAllowedRegions);
+      setSelectedAllowedRegions(normalizedAllowedRegions);
       setAllowedRegionsManuallyEdited(true);
     } else if (data.location) {
-      setSelectedAllowedRegionsState([data.location]);
+      setSelectedAllowedRegions([data.location]);
       setAllowedRegionsManuallyEdited(false);
     }
   }, [props?.initialData]);
 
-  const setSelectedAllowedRegions = (regions: string[]) => {
+  const updateSelectedAllowedRegions = (regions: string[]) => {
     setAllowedRegionsManuallyEdited(true);
-    setSelectedAllowedRegionsState(regions);
+    setSelectedAllowedRegions(regions);
   };
 
-  const setSelectedCity = (city: Option | null) => {
-    setSelectedCityState(city);
+  const updateSelectedCity = (city: Option | null) => {
+    setSelectedCity(city);
 
     if (!city) return;
 
     if (!allowedRegionsManuallyEdited) {
-      setSelectedAllowedRegionsState([city.label]);
+      setSelectedAllowedRegions([city.label]);
     }
   };
 
@@ -111,9 +111,9 @@ export const useTeamForm = (props?: UseTeamFormProps) => {
     selectedScope,
     setSelectedScope,
     selectedCity,
-    setSelectedCity,
+    setSelectedCity: updateSelectedCity,
     selectedAllowedRegions,
-    setSelectedAllowedRegions,
+    setSelectedAllowedRegions: updateSelectedAllowedRegions,
     logoUri,
     setLogoUri,
     isPublic,

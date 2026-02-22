@@ -35,8 +35,12 @@ export function MenuPicker({
   const { showActionSheetWithOptions } = useActionSheet();
   const hasOptions = options.length > 0;
   const selectedIndex = options.indexOf(value);
-  const safeSelectedIndex =
-    selectedIndex >= 0 ? selectedIndex : hasOptions ? 0 : undefined;
+  let safeSelectedIndex: number | undefined;
+  if (selectedIndex >= 0) {
+    safeSelectedIndex = selectedIndex;
+  } else if (hasOptions) {
+    safeSelectedIndex = 0;
+  }
   const isDisabled = disabled || !hasOptions;
 
   const onPress = () => {
@@ -56,6 +60,12 @@ export function MenuPicker({
     );
   };
 
+  const getIconColor = (pressed: boolean) => {
+    if (isDisabled) return "rgba(235,235,245,0.35)";
+    if (pressed) return "rgba(235,235,245,0.7)";
+    return "rgba(235,235,245,0.6)";
+  };
+
   if (isRunningInExpoGo) {
     return (
       <Pressable
@@ -65,14 +75,7 @@ export function MenuPicker({
         disabled={isDisabled}
       >
         {({ pressed }) => {
-          let iconColor: string;
-          if (isDisabled) {
-            iconColor = "rgba(235,235,245,0.35)";
-          } else if (pressed) {
-            iconColor = "rgba(235,235,245,0.7)";
-          } else {
-            iconColor = "rgba(235,235,245,0.6)";
-          }
+          const iconColor = getIconColor(pressed);
 
           return (
             <>

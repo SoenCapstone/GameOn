@@ -21,11 +21,108 @@ import {
 } from "@/features/matches/utils";
 
 type TeamTab = "board" | "overview" | "games";
+const TEAM_SEGMENT_VALUES = ["Board", "Overview", "Games"] as const;
+
+function getRouteId(idParam: string | string[] | undefined): string {
+  if (Array.isArray(idParam)) {
+    return idParam[0] ?? "";
+  }
+  return idParam ?? "";
+}
+
+function getTeamTabFromSegment(value: string): TeamTab {
+  if (value === "Board") return "board";
+  if (value === "Overview") return "overview";
+  return "games";
+}
+
+function getTeamSegmentIndex(tab: TeamTab): number {
+  if (tab === "board") return 0;
+  if (tab === "overview") return 1;
+  return 2;
+}
+
+function TeamTabContent(props: {
+  tab: TeamTab;
+  boardPosts: any[];
+  postsLoading: boolean;
+  teamName: string;
+  teamLogo: any;
+  handleDeletePost: (postId: string) => void;
+  canManage: boolean;
+  id: string;
+  router: ReturnType<typeof useRouter>;
+  currentMatches: any[];
+  upcomingMatches: any[];
+  pastMatches: any[];
+  matchesLoading: boolean;
+  teamsLoading: boolean;
+  matchesError: unknown;
+  onRetryMatches: () => void;
+}) {
+  const {
+    tab,
+    boardPosts,
+    postsLoading,
+    teamName,
+    teamLogo,
+    handleDeletePost,
+    canManage,
+    id,
+    router,
+    currentMatches,
+    upcomingMatches,
+    pastMatches,
+    matchesLoading,
+    teamsLoading,
+    matchesError,
+    onRetryMatches,
+  } = props;
+
+  if (tab === "board") {
+    return (
+      <BoardList
+        posts={boardPosts}
+        isLoading={postsLoading}
+        spaceName={teamName}
+        spaceLogo={teamLogo}
+        onDeletePost={handleDeletePost}
+        canDelete={canManage}
+      />
+    );
+  }
+
+  if (tab === "overview") {
+    return (
+      <View>
+        <Text style={{ color: "white", padding: 16 }}>Overview content here</Text>
+        {canManage ? (
+          <Button
+            type="custom"
+            label="Open Playmaker"
+            onPress={() => router.push(`/playmaker/${id}`)}
+          />
+        ) : null}
+      </View>
+    );
+  }
+
+  return (
+    <MatchListSections
+      current={currentMatches}
+      upcoming={upcomingMatches}
+      past={pastMatches}
+      isLoading={matchesLoading || teamsLoading}
+      errorText={matchesError ? "Could not load matches." : null}
+      onRetry={onRetryMatches}
+      onMatchPress={(matchId) => router.push(`/teams/${id}/matches/${matchId}`)}
+    />
+  );
+}
 
 export default function Team() {
   const params = useLocalSearchParams<{ id?: string | string[] }>();
-  const rawId = params.id;
-  const id = Array.isArray(rawId) ? rawId[0] : (rawId ?? "");
+  const id = getRouteId(params.id);
 
   return (
     <TeamDetailProvider id={id}>
@@ -94,6 +191,22 @@ function TeamContent() {
     entityName: "Team",
   });
 
+  const handleMatchesRefresh = useMemo(
+    () => async () => {
+      await Promise.all([refetchMatches(), teamsQuery.refetch()]);
+    },
+    [refetchMatches, teamsQuery],
+  );
+
+  const handleRefreshControl = useMemo(
+    () => async () => {
+      await handleRefresh();
+      if (tab !== "games") return;
+      await handleMatchesRefresh();
+    },
+    [handleMatchesRefresh, handleRefresh, tab],
+  );
+
   return (
     <View style={{ flex: 1 }}>
       <ContentArea
@@ -104,24 +217,15 @@ function TeamContent() {
         refreshControl={
           <RefreshControl
             refreshing={refreshing || matchesFetching}
-            onRefresh={async () => {
-              await handleRefresh();
-              if (tab === "games") {
-                await Promise.all([refetchMatches(), teamsQuery.refetch()]);
-              }
-            }}
+            onRefresh={handleRefreshControl}
             tintColor="#fff"
           />
         }
       >
         <SegmentedControl
-          values={["Board", "Overview", "Games"]}
-          selectedIndex={tab === "board" ? 0 : tab === "overview" ? 1 : 2}
-          onValueChange={(value) => {
-            if (value === "Board") setTab("board");
-            else if (value === "Overview") setTab("overview");
-            else setTab("games");
-          }}
+          values={[...TEAM_SEGMENT_VALUES]}
+          selectedIndex={getTeamSegmentIndex(tab)}
+          onValueChange={(value) => setTab(getTeamTabFromSegment(value))}
           style={{ height: 40 }}
         />
 
@@ -131,44 +235,24 @@ function TeamContent() {
           </View>
         ) : null}
 
-        {tab === "board" ? (
-          <BoardList
-            posts={boardPosts}
-            isLoading={postsLoading}
-            spaceName={team?.name ?? title}
-            spaceLogo={team?.logoUrl ? { uri: team.logoUrl } : getSportLogo(team?.sport)}
-            onDeletePost={handleDeletePost}
-            canDelete={canManage}
-          />
-        ) : null}
-
-        {tab === "overview" ? (
-          <View>
-            <Text style={{ color: "white", padding: 16 }}>Overview content here</Text>
-            {canManage ? (
-              <Button
-                type="custom"
-                label="Open Playmaker"
-                onPress={() => router.push(`/playmaker/${id}`)}
-              />
-            ) : null}
-          </View>
-        ) : null}
-
-        {tab === "games" ? (
-          <MatchListSections
-            current={currentMatches}
-            upcoming={upcomingMatches}
-            past={pastMatches}
-            isLoading={matchesLoading || teamsQuery.isLoading}
-            errorText={matchesError ? "Could not load matches." : null}
-            onRetry={() => {
-              refetchMatches();
-              teamsQuery.refetch();
-            }}
-            onMatchPress={(matchId) => router.push(`/teams/${id}/matches/${matchId}`)}
-          />
-        ) : null}
+        <TeamTabContent
+          tab={tab}
+          boardPosts={boardPosts}
+          postsLoading={postsLoading}
+          teamName={team?.name ?? title}
+          teamLogo={team?.logoUrl ? { uri: team.logoUrl } : getSportLogo(team?.sport)}
+          handleDeletePost={handleDeletePost}
+          canManage={canManage}
+          id={id}
+          router={router}
+          currentMatches={currentMatches}
+          upcomingMatches={upcomingMatches}
+          pastMatches={pastMatches}
+          matchesLoading={matchesLoading}
+          teamsLoading={teamsQuery.isLoading}
+          matchesError={matchesError}
+          onRetryMatches={handleMatchesRefresh}
+        />
       </ContentArea>
 
       {canManage && tab === "board" ? (
