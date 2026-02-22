@@ -75,11 +75,14 @@ function EditTeamContent() {
     setSelectedScope,
     selectedCity,
     setSelectedCity,
+    selectedAllowedRegions,
+    setSelectedAllowedRegions,
     logoUri,
     setLogoUri,
   } = useTeamForm({
     initialData: team,
   });
+  const [allowedRegionsError, setAllowedRegionsError] = useState("");
 
   const updateTeamMutation = useUpdateTeam(id, {
     onSuccess: () => {
@@ -97,6 +100,8 @@ function EditTeamContent() {
       selectedSport?.label?.toLowerCase() !== team.sport?.toLowerCase() ||
       selectedScope?.id?.toLowerCase() !== team.scope?.toLowerCase() ||
       selectedCity?.label?.toLowerCase() !== team.location?.toLowerCase() ||
+      JSON.stringify(selectedAllowedRegions) !==
+        JSON.stringify(team.allowedRegions ?? []) ||
       logoUri !== (team.logoUrl ?? "") ||
       pickedLogo !== null
     : false;
@@ -122,12 +127,17 @@ function EditTeamContent() {
       Alert.alert("Team update failed", "City is required");
       return;
     }
+    if (selectedAllowedRegions.length === 0) {
+      setAllowedRegionsError("Please select at least one region.");
+      return;
+    }
 
     const basePayload = {
       name: teamName.trim(),
       sport: selectedSport?.id ?? "",
       scope: selectedScope?.id ?? "",
       location: selectedCity?.label ?? "",
+      allowedRegions: selectedAllowedRegions,
       privacy: (team?.privacy ?? "PRIVATE") as "PUBLIC" | "PRIVATE",
     };
 
@@ -157,6 +167,7 @@ function EditTeamContent() {
     selectedSport,
     selectedScope,
     selectedCity,
+    selectedAllowedRegions,
     logoUri,
     team?.privacy,
     pickedLogo,
@@ -213,13 +224,26 @@ function EditTeamContent() {
             selectedSport,
             selectedScope,
             selectedCity,
+            selectedAllowedRegions,
           }}
           logo={{ pickedLogo, logoUri }}
+          allowedRegionsError={allowedRegionsError}
           onChange={{
             onTeamNameChange: setTeamName,
             onSportChange: setSelectedSport,
             onScopeChange: setSelectedScope,
-            onCityChange: setSelectedCity,
+            onCityChange: (city) => {
+              setSelectedCity(city);
+              if (allowedRegionsError) {
+                setAllowedRegionsError("");
+              }
+            },
+            onAllowedRegionsChange: (regions) => {
+              setSelectedAllowedRegions(regions);
+              setAllowedRegionsError(
+                regions.length === 0 ? "Please select at least one region." : "",
+              );
+            },
             onPickLogo: handlePickLogo,
             onRemoveLogo: handleRemoveLogo,
           }}
