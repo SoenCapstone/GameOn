@@ -3,12 +3,10 @@ import { ActivityIndicator, View, Text, StyleSheet } from "react-native";
 import { useRouter } from "expo-router";
 import { useQueries } from "@tanstack/react-query";
 import { useAxiosWithClerk } from "@/hooks/use-axios-clerk";
-import {
-  teamDetailQueryOptions,
-  type TeamDetailResponse,
-} from "@/hooks/use-team-detail";
+import { teamDetailQueryOptions } from "@/hooks/use-team-detail";
 import { InfoCard } from "@/components/info-card";
 import type { ImageSource } from "expo-image";
+import { getSportLogo } from "@/components/browse/utils";
 
 export type LeagueTeamResponse = {
   id: string;
@@ -24,7 +22,13 @@ type Props = Readonly<{
   leagueTeamsError: unknown;
 }>;
 
-const DEFAULT_TEAM_IMAGE: ImageSource = require("@/assets/images/shield.png");
+type TeamDetail = Readonly<{
+  id: string;
+  name: string;
+  sport: unknown | null;
+  location: string | null;
+  logoUrl: string | null;
+}>;
 
 export function LeagueBrowserTeams({
   leagueId,
@@ -48,8 +52,9 @@ export function LeagueBrowserTeams({
   const detailsError = teamQueries.find((q) => q.error)?.error;
 
   const teamDetailsMap = useMemo(() => {
-    const entries: [string, TeamDetailResponse][] = teamQueries.map((q, idx) => {
+    const entries: [string, TeamDetail][] = teamQueries.map((q, idx) => {
       const teamId = teamIds[idx] ?? "";
+      const data = (q.data ?? null) as TeamDetail | null;
 
       if (!teamId) {
         return [
@@ -58,7 +63,7 @@ export function LeagueBrowserTeams({
         ];
       }
 
-      if (q.data) return [teamId, q.data];
+      if (data) return [teamId, data];
 
       return [
         teamId,
@@ -96,23 +101,19 @@ export function LeagueBrowserTeams({
       <View style={styles.list}>
         {leagueTeams.map((t) => {
           const details = teamDetailsMap?.[t.teamId];
-          const name = details?.name ?? "Team";
+          const title = details?.name ?? "Team";
 
-          // InfoCard subtitle is required string
-          const subtitle =
-            (details?.sport ??
-              details?.location ??
-              "")?.toString() || "Team";
+          const location = details?.location ?? "";
+          const subtitle = location.trim() ? location : "Unknown location";
 
-          // InfoCard image is required ImageSource
           const image: ImageSource = details?.logoUrl
             ? { uri: details.logoUrl }
-            : DEFAULT_TEAM_IMAGE;
+            : getSportLogo(details?.sport);
 
           return (
             <InfoCard
               key={t.id}
-              title={name}
+              title={title}
               subtitle={subtitle}
               image={image}
               onPress={() => router.push(`/teams/${t.teamId}`)}
