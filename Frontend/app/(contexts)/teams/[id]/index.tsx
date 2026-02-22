@@ -1,9 +1,9 @@
 import { useState, useCallback, useMemo } from "react";
+import { useState } from "react";
 import {
   View,
   ActivityIndicator,
   RefreshControl,
-  Alert,
   Text,
   StyleSheet,
 } from "react-native";
@@ -19,7 +19,7 @@ import {
 } from "@/contexts/team-detail-context";
 import { useTeamBoardPosts, useDeleteBoardPost } from "@/hooks/use-team-board";
 import { BoardList } from "@/components/board/board-list";
-import { errorToString } from "@/utils/error";
+import { useDetailPageHandlers } from "@/hooks/use-detail-page-handlers";
 import { createScopedLog } from "@/utils/logger";
 import { MatchListSections } from "@/components/matches/match-list-sections";
 import { useTeamMatches, useTeamsByIds } from "@/hooks/use-matches";
@@ -43,8 +43,9 @@ export default function Team() {
 
 function TeamContent() {
   const [tab, setTab] = useState<"board" | "overview" | "games">("board");
-  const [refreshing, setRefreshing] = useState(false);
   const router = useRouter();
+  const log = createScopedLog("Team Page");
+
   const {
     id,
     isLoading,
@@ -60,6 +61,9 @@ function TeamContent() {
   const canManage =
     (isActiveMember && role === "OWNER") || role === "COACH" || role === "MANAGER";
   const log = createScopedLog("Team Page");
+    (isActiveMember && role === "OWNER") ||
+    role === "COACH" ||
+    role === "MANAGER";
 
   const {
     data: boardPosts = [],
@@ -122,6 +126,18 @@ function TeamContent() {
   const pastMatches = sortPastLatestFirst(matchItems.filter((match) => match.isPast));
 
   useTeamHeader({ title, id, isMember, onFollow: handleFollow });
+
+  const { refreshing, handleDeletePost, handleRefresh } = useDetailPageHandlers(
+    {
+      id,
+      currentTab: tab,
+      boardPosts,
+      onRefresh,
+      refetchPosts,
+      deletePostMutation,
+      entityName: "Team",
+    },
+  );
 
   const getTabFromSegmentValue = (
     value: string,
@@ -284,6 +300,7 @@ function TeamContent() {
                 pathname: "/post",
                 params: {
                   id,
+                  spaceType: "team",
                   privacy: team?.privacy,
                 },
               })
