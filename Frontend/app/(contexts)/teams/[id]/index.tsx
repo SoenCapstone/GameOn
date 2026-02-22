@@ -42,24 +42,26 @@ function getTeamSegmentIndex(tab: TeamTab): number {
   return 2;
 }
 
-function TeamTabContent(props: {
-  tab: TeamTab;
-  boardPosts: any[];
-  postsLoading: boolean;
-  teamName: string;
-  teamLogo: any;
-  handleDeletePost: (postId: string) => void;
-  canManage: boolean;
-  id: string;
-  router: ReturnType<typeof useRouter>;
-  currentMatches: any[];
-  upcomingMatches: any[];
-  pastMatches: any[];
-  matchesLoading: boolean;
-  teamsLoading: boolean;
-  matchesError: unknown;
-  onRetryMatches: () => void;
-}) {
+type TeamTabContentProps = {
+  readonly tab: TeamTab;
+  readonly boardPosts: readonly any[];
+  readonly postsLoading: boolean;
+  readonly teamName: string;
+  readonly teamLogo: any;
+  readonly handleDeletePost: (postId: string) => void;
+  readonly canManage: boolean;
+  readonly id: string;
+  readonly router: ReturnType<typeof useRouter>;
+  readonly currentMatches: readonly any[];
+  readonly upcomingMatches: readonly any[];
+  readonly pastMatches: readonly any[];
+  readonly matchesLoading: boolean;
+  readonly teamsLoading: boolean;
+  readonly matchesError: unknown;
+  readonly onRetryMatches: () => void;
+};
+
+function TeamTabContent(props: Readonly<TeamTabContentProps>) {
   const {
     tab,
     boardPosts,
