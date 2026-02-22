@@ -1,26 +1,22 @@
 import React, { useMemo, useState } from "react";
 import { ActivityIndicator, RefreshControl, View } from "react-native";
 import { useLocalSearchParams, useRouter } from "expo-router";
+import SegmentedControl from "@react-native-segmented-control/segmented-control";
 import { Card } from "@/components/ui/card";
 import { ContentArea } from "@/components/ui/content-area";
-import { useState } from "react";
-import {
-  View,
-  ActivityIndicator,
-  RefreshControl,
-  Text,
-  StyleSheet,
-} from "react-native";
-import { useLocalSearchParams, useRouter } from "expo-router";
-import SegmentedControl from "@react-native-segmented-control/segmented-control";
-import { ContentArea } from "@/components/ui/content-area";
-import { getSportLogo } from "@/components/browse/utils";
 import { Button } from "@/components/ui/button";
-import { useLeagueHeader } from "@/hooks/use-team-league-header";
+import { BoardList } from "@/components/board/board-list";
+import { getSportLogo } from "@/components/browse/utils";
 import {
   LeagueDetailProvider,
   useLeagueDetailContext,
 } from "@/contexts/league-detail-context";
+import { useLeagueHeader } from "@/hooks/use-team-league-header";
+import {
+  useLeagueBoardPosts,
+  useDeleteLeagueBoardPost,
+} from "@/hooks/use-league-board";
+import { useDetailPageHandlers } from "@/hooks/use-detail-page-handlers";
 import { MatchListSections } from "@/components/matches/match-list-sections";
 import { matchStyles } from "@/components/matches/match-styles";
 import { useLeagueMatches, useTeamsByIds } from "@/hooks/use-matches";
@@ -29,13 +25,8 @@ import {
   sortPastLatestFirst,
   sortUpcomingFirst,
 } from "@/features/matches/utils";
-import {
-  useLeagueBoardPosts,
-  useDeleteLeagueBoardPost,
-} from "@/hooks/use-league-board";
-import { BoardList } from "@/components/board/board-list";
-import { useDetailPageHandlers } from "@/hooks/use-detail-page-handlers";
-import { createScopedLog } from "@/utils/logger";
+
+type LeagueTab = "board" | "matches";
 
 export default function LeagueScreen() {
   const params = useLocalSearchParams<{ id?: string | string[] }>();
@@ -51,42 +42,28 @@ export default function LeagueScreen() {
 
 function LeagueContent() {
   const router = useRouter();
+  const [tab, setTab] = useState<LeagueTab>("board");
   const [fabOpen, setFabOpen] = useState(false);
-  const {
-    id,
-    onRefresh,
-  const [tab, setTab] = useState<"board" | "matches">("board");
-  const router = useRouter();
-  const log = createScopedLog("League Page");
 
-  const {
-    id,
-    isLoading,
-    onRefresh,
-    handleFollow,
-    title,
-    isMember,
-    isOwner,
-    league,
-    refreshing,
-    handleFollow,
-  } = useLeagueDetailContext();
+  const { id, isLoading, onRefresh, handleFollow, title, isMember, isOwner, league } =
+    useLeagueDetailContext();
 
   useLeagueHeader({ title, id, isMember, isOwner, onFollow: handleFollow });
 
+  const { data: boardPosts = [], isLoading: postsLoading, refetch: refetchPosts } =
+    useLeagueBoardPosts(id);
+  const deletePostMutation = useDeleteLeagueBoardPost(id);
+
   const {
     data: matches = [],
-    isLoading,
-    isFetching,
-    error,
-    refetch,
+    isLoading: matchesLoading,
+    isFetching: matchesFetching,
+    error: matchesError,
+    refetch: refetchMatches,
   } = useLeagueMatches(id);
 
   const teamIds = useMemo(
-    () =>
-      Array.from(
-        new Set(matches.flatMap((match) => [match.homeTeamId, match.awayTeamId])),
-      ),
+    () => Array.from(new Set(matches.flatMap((m) => [m.homeTeamId, m.awayTeamId]))),
     [matches],
   );
   const teamsQuery = useTeamsByIds(teamIds);
@@ -96,11 +73,7 @@ function LeagueContent() {
       matches.map((match) => {
         const home = teamsQuery.data?.[match.homeTeamId];
         const away = teamsQuery.data?.[match.awayTeamId];
-        const section = getMatchSection(
-          match.startTime,
-          match.endTime,
-          match.status,
-        );
+        const section = getMatchSection(match.startTime, match.endTime, match.status);
         return {
           id: match.id,
           homeName: home?.name ?? "Home Team",
@@ -118,86 +91,74 @@ function LeagueContent() {
     [league?.name, matches, teamsQuery.data],
   );
 
-  const current = sortUpcomingFirst(
-    matchItems.filter((match) => match.section === "current"),
-  );
-  const upcoming = sortUpcomingFirst(
-    matchItems.filter((match) => match.section === "upcoming"),
-  );
-  const past = sortPastLatestFirst(matchItems.filter((match) => match.isPast));
-  } = useLeagueDetailContext();
+  const current = sortUpcomingFirst(matchItems.filter((m) => m.section === "current"));
+  const upcoming = sortUpcomingFirst(matchItems.filter((m) => m.section === "upcoming"));
+  const past = sortPastLatestFirst(matchItems.filter((m) => m.isPast));
 
-  const {
-    data: boardPosts = [],
-    isLoading: postsLoading,
-    refetch: refetchPosts,
-  } = useLeagueBoardPosts(id);
-
-  const deletePostMutation = useDeleteLeagueBoardPost(id);
-
-  useLeagueHeader({ title, id, isMember, isOwner, onFollow: handleFollow });
-
-  const { refreshing, handleDeletePost, handleRefresh } = useDetailPageHandlers(
-    {
-      id,
-      currentTab: tab,
-      boardPosts,
-      onRefresh,
-      refetchPosts,
-      deletePostMutation,
-      entityName: "League",
-    },
-  );
-
-  const getTabFromSegmentValue = (value: string): "board" | "matches" => {
-    if (value === "Board") return "board";
-    return "matches";
-  };
-
-  const getSelectedIndex = (): number => {
-    if (tab === "board") return 0;
-    return 1;
-  };
+  const { refreshing, handleDeletePost, handleRefresh } = useDetailPageHandlers({
+    id,
+    currentTab: tab,
+    boardPosts,
+    onRefresh,
+    refetchPosts,
+    deletePostMutation,
+    entityName: "League",
+  });
 
   return (
     <View style={{ flex: 1 }}>
       <ContentArea
         scrollable
         paddingBottom={100}
-        backgroundProps={{ preset: "red" }}
-        refreshControl={
-          <RefreshControl
-            refreshing={refreshing || isFetching}
-            onRefresh={async () => {
-              await Promise.all([onRefresh(), refetch()]);
-            }}
-        paddingBottom={20}
         segmentedControl
         backgroundProps={{ preset: "red" }}
         refreshControl={
           <RefreshControl
-            refreshing={refreshing}
-            onRefresh={handleRefresh}
+            refreshing={refreshing || matchesFetching}
+            onRefresh={async () => {
+              await handleRefresh();
+              if (tab === "matches") {
+                await Promise.all([refetchMatches(), teamsQuery.refetch()]);
+              }
+            }}
             tintColor="#fff"
           />
         }
       >
-        {(isLoading || teamsQuery.isLoading) && matches.length === 0 ? (
+        <SegmentedControl
+          values={["Board", "Matches"]}
+          selectedIndex={tab === "board" ? 0 : 1}
+          onValueChange={(value) => setTab(value === "Board" ? "board" : "matches")}
+          style={{ height: 40 }}
+        />
+
+        {isLoading ? (
           <ActivityIndicator size="small" color="#fff" />
         ) : null}
 
-        <MatchListSections
-          current={current}
-          upcoming={upcoming}
-          past={past}
-          isLoading={isLoading || teamsQuery.isLoading}
-          errorText={error ? "Could not load matches." : null}
-          onRetry={() => {
-            refetch();
-            teamsQuery.refetch();
-          }}
-          onMatchPress={(matchId) => router.push(`/leagues/${id}/matches/${matchId}`)}
-        />
+        {tab === "board" ? (
+          <BoardList
+            posts={boardPosts}
+            isLoading={postsLoading}
+            spaceName={league?.name ?? title}
+            spaceLogo={league?.logoUrl ? { uri: league.logoUrl } : getSportLogo(league?.sport)}
+            onDeletePost={handleDeletePost}
+            canDelete={isOwner}
+          />
+        ) : (
+          <MatchListSections
+            current={current}
+            upcoming={upcoming}
+            past={past}
+            isLoading={matchesLoading || teamsQuery.isLoading}
+            errorText={matchesError ? "Could not load matches." : null}
+            onRetry={() => {
+              refetchMatches();
+              teamsQuery.refetch();
+            }}
+            onMatchPress={(matchId) => router.push(`/leagues/${id}/matches/${matchId}`)}
+          />
+        )}
       </ContentArea>
 
       {isOwner ? (
@@ -212,10 +173,7 @@ function LeagueContent() {
                     setFabOpen(false);
                     router.push({
                       pathname: "/post",
-                      params: {
-                        id,
-                        privacy: league?.privacy,
-                      },
+                      params: { id, spaceType: "league", privacy: league?.privacy },
                     });
                   }}
                 />
@@ -240,85 +198,6 @@ function LeagueContent() {
           </View>
         </View>
       ) : null}
-        <SegmentedControl
-          values={["Board", "Matches"]}
-          selectedIndex={getSelectedIndex()}
-          onValueChange={(value) => {
-            const newTab = getTabFromSegmentValue(value);
-            setTab(newTab);
-            log.info("Tab changed", { tab: newTab });
-          }}
-          style={{ height: 40 }}
-        />
-
-        {isLoading ? (
-          <View style={styles.container}>
-            <ActivityIndicator size="small" color="#fff" />
-          </View>
-        ) : (
-          <>
-            {refreshing && <ActivityIndicator size="small" color="#fff" />}
-
-            {tab === "board" && (
-              <BoardList
-                posts={boardPosts}
-                isLoading={postsLoading}
-                spaceName={league?.name ?? title}
-                spaceLogo={
-                  league?.logoUrl
-                    ? { uri: league.logoUrl }
-                    : getSportLogo(league?.sport)
-                }
-                onDeletePost={handleDeletePost}
-                canDelete={isOwner}
-              />
-            )}
-
-            {tab === "matches" && (
-              <View>
-                <Text style={{ color: "white", padding: 16 }}>
-                  Matches content here
-                </Text>
-              </View>
-            )}
-          </>
-        )}
-      </ContentArea>
-
-      {/* Create Post Button */}
-      {isOwner && tab === "board" && (
-        <View
-          style={{
-            position: "absolute",
-            bottom: 20,
-            right: 20,
-          }}
-        >
-          <Button
-            type="custom"
-            icon="plus"
-            onPress={() =>
-              router.push({
-                pathname: "/post",
-                params: {
-                  id,
-                  spaceType: "league",
-                  privacy: league?.privacy,
-                },
-              })
-            }
-          />
-        </View>
-      )}
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    minHeight: 200,
-  },
-});
