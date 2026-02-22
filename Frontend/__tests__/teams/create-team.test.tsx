@@ -45,6 +45,11 @@ jest.mock("@/hooks/use-team-form", () => {
         // Pre-fill sport and city so tests don't need to open native pickers
         selectedSport: result.selectedSport ?? SPORTS[0],
         selectedCity: result.selectedCity ?? CITIES[1],
+        // allowedRegions is now required by backend contract
+        selectedAllowedRegions:
+          result.selectedAllowedRegions.length > 0
+            ? result.selectedAllowedRegions
+            : [CITIES[1].label],
       };
     },
   };
@@ -117,6 +122,7 @@ describe("CreateTeamScreen", () => {
       name: "My Team",
       sport: "soccer",
       location: "Toronto",
+      allowedRegions: ["Toronto"],
       privacy: "PRIVATE",
     });
   });

@@ -29,4 +29,7 @@ export const styles = StyleSheet.create({
     marginTop: 16,
     justifyContent: "flex-end",
   },
+  actionButton: {
+    flex: 1,
+  },
 });
