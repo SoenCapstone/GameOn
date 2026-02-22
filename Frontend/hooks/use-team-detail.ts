@@ -12,16 +12,10 @@ const log = createScopedLog("Team Detail");
 export type TeamDetailResponse = Readonly<{
   id: string;
   name: string;
-  sport: unknown | null;
+  sport: string | null;
   location: string | null;
   logoUrl: string | null;
   ownerUserId?: string | null;
-}>;
-
-export type TeamMembershipResponse = Readonly<{
-  status?: "ACTIVE" | "INACTIVE" | string;
-  role?: string | null;
-  joinedAt?: string | null;
 }>;
 
 export function teamDetailQueryOptions(
@@ -54,14 +48,18 @@ export function useTeamDetail(id: string) {
     teamDetailQueryOptions(api, id),
   );
 
-  const { data: membership } = useQuery<TeamMembershipResponse | null>({
+  const { data: membership } = useQuery<{
+    status?: "ACTIVE" | "INACTIVE" | "PENDING";
+    role?: string | null;
+    joinedAt?: string | null;
+  } | null>({
     queryKey: ["team-membership", id, userId],
     queryFn: async () => {
       try {
         const resp = await api.get(
           `${GO_TEAM_SERVICE_ROUTES.ALL}/${id}/memberships/me`,
         );
-        return resp.data as TeamMembershipResponse;
+        return resp.data;
       } catch (err) {
         log.info("User is not a member of this team:", err);
         return null;
