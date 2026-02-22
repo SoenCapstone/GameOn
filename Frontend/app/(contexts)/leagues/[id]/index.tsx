@@ -1,4 +1,4 @@
-import { useState } from "react";
+import React, { useMemo, useState } from "react";
 import {
   View,
   ActivityIndicator,
@@ -11,6 +11,7 @@ import SegmentedControl from "@react-native-segmented-control/segmented-control"
 import { ContentArea } from "@/components/ui/content-area";
 import { getSportLogo } from "@/components/browse/utils";
 import { Button } from "@/components/ui/button";
+import { LeagueBrowserTeams } from "@/components/leagues/league-browser-teams";
 import { useLeagueHeader } from "@/hooks/use-team-league-header";
 import {
   LeagueDetailProvider,
@@ -24,10 +25,21 @@ import { BoardList } from "@/components/board/board-list";
 import { useDetailPageHandlers } from "@/hooks/use-detail-page-handlers";
 import { createScopedLog } from "@/utils/logger";
 
+type LeagueTab = "board" | "matches" | "teams";
+
+// NOTE: order matters (index mapping for SegmentedControl)
+const LEAGUE_TABS: readonly LeagueTab[] = ["board", "matches", "teams"] as const;
+
+const TAB_LABELS: Record<LeagueTab, string> = {
+  board: "Board",
+  matches: "Matches",
+  teams: "Teams",
+};
+
 export default function LeagueScreen() {
   const params = useLocalSearchParams<{ id?: string | string[] }>();
   const rawId = params.id;
-  const id = Array.isArray(rawId) ? rawId[0] : (rawId ?? "");
+  const id = Array.isArray(rawId) ? rawId[0] : rawId ?? "";
 
   return (
     <LeagueDetailProvider id={id}>
@@ -37,7 +49,7 @@ export default function LeagueScreen() {
 }
 
 function LeagueContent() {
-  const [tab, setTab] = useState<"board" | "matches">("board");
+  const [tab, setTab] = useState<LeagueTab>("board");
   const router = useRouter();
   const log = createScopedLog("League Page");
 
@@ -50,6 +62,9 @@ function LeagueContent() {
     isMember,
     isOwner,
     league,
+    leagueTeams,
+    isLeagueTeamsLoading,
+    leagueTeamsError,
   } = useLeagueDetailContext();
 
   const {
@@ -62,27 +77,17 @@ function LeagueContent() {
 
   useLeagueHeader({ title, id, isMember, isOwner, onFollow: handleFollow });
 
-  const { refreshing, handleDeletePost, handleRefresh } = useDetailPageHandlers(
-    {
-      id,
-      currentTab: tab,
-      boardPosts,
-      onRefresh,
-      refetchPosts,
-      deletePostMutation,
-      entityName: "League",
-    },
-  );
+  const { refreshing, handleDeletePost, handleRefresh } = useDetailPageHandlers({
+    id,
+    currentTab: tab,
+    boardPosts,
+    onRefresh,
+    refetchPosts,
+    deletePostMutation,
+    entityName: "League",
+  });
 
-  const getTabFromSegmentValue = (value: string): "board" | "matches" => {
-    if (value === "Board") return "board";
-    return "matches";
-  };
-
-  const getSelectedIndex = (): number => {
-    if (tab === "board") return 0;
-    return 1;
-  };
+  const selectedIndex = useMemo(() => LEAGUE_TABS.indexOf(tab), [tab]);
 
   return (
     <View style={{ flex: 1 }}>
@@ -100,12 +105,13 @@ function LeagueContent() {
         }
       >
         <SegmentedControl
-          values={["Board", "Matches"]}
-          selectedIndex={getSelectedIndex()}
-          onValueChange={(value) => {
-            const newTab = getTabFromSegmentValue(value);
-            setTab(newTab);
-            log.info("Tab changed", { tab: newTab });
+          values={LEAGUE_TABS.map((t) => TAB_LABELS[t])}
+          selectedIndex={selectedIndex}
+          onChange={(event) => {
+            const index = event.nativeEvent.selectedSegmentIndex;
+            const nextTab = LEAGUE_TABS[index] ?? "board";
+            setTab(nextTab);
+            log.info("Tab changed", { tab: nextTab });
           }}
           style={{ height: 40 }}
         />
@@ -140,19 +146,22 @@ function LeagueContent() {
                 </Text>
               </View>
             )}
+
+            {tab === "teams" && (
+              <LeagueBrowserTeams
+                leagueId={id}
+                leagueTeams={leagueTeams ?? []}
+                teamsFetching={Boolean(isLeagueTeamsLoading)}
+                leagueTeamsError={leagueTeamsError}
+              />
+            )}
           </>
         )}
       </ContentArea>
 
       {/* Create Post Button */}
       {isOwner && tab === "board" && (
-        <View
-          style={{
-            position: "absolute",
-            bottom: 20,
-            right: 20,
-          }}
-        >
+        <View style={styles.fabWrap}>
           <Button
             type="custom"
             icon="plus"
@@ -179,5 +188,10 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
     minHeight: 200,
+  },
+  fabWrap: {
+    position: "absolute",
+    bottom: 20,
+    right: 20,
   },
 });
