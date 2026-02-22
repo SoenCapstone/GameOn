@@ -178,10 +178,7 @@ function TeamContent() {
                   <View style={styles.cardFill}>
                     <View style={styles.glassInner}>
                       <View style={styles.seasonHeader}>
-                        {/* ✅ STATIC (stays) */}
                         <Text style={styles.seasonTitle}>Season 2026</Text>
-
-                        {/* ✅ Placeholder for record */}
                         <View style={styles.skelRecord} />
                       </View>
 
@@ -291,7 +288,6 @@ function TeamContent() {
 
 /**
  * UNIVERSAL placeholder: layout only, no sport-specific metric names.
- * Labels are universal buckets: OFF/DEF/DIS.
  */
 function TeamPerformanceCardPlaceholder() {
   const LABELS = ["OFF", "DEF", "DIS"]; // universal buckets
@@ -342,7 +338,6 @@ const styles = StyleSheet.create({
     gap: 12,
   },
 
-  // ✅ DO NOT REMOVE: cancels Card padding: 24
   cardFill: {
     margin: -24,
   },
@@ -359,12 +354,14 @@ const styles = StyleSheet.create({
 
   seasonHeader: {
     alignItems: "center",
+    marginBottom: 4,
   },
 
   seasonTitle: {
     color: "white",
     fontSize: 20,
     fontWeight: "700",
+    letterSpacing: 0.5,
   },
 
   tilesGrid: {
@@ -504,7 +501,6 @@ const styles = StyleSheet.create({
     marginRight: 10,
   },
 
-  // ✅ Footer "INF ____" (only for Team Performance card)
   perfFooterRow: {
     flexDirection: "row",
     alignItems: "center",
