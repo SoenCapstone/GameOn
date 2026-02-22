@@ -1,20 +1,12 @@
 import React, { useMemo } from "react";
-import {
-  ActivityIndicator,
-  View,
-  Text,
-  Image,
-  StyleSheet,
-  Pressable,
-} from "react-native";
+import { ActivityIndicator, StyleSheet, Text, View } from "react-native";
 import { useRouter } from "expo-router";
 import { useQueries } from "@tanstack/react-query";
+import type { ImageSource } from "expo-image";
 import { useAxiosWithClerk } from "@/hooks/use-axios-clerk";
-import {
-  teamDetailQueryOptions,
-  type TeamDetailResponse,
-} from "@/hooks/use-team-detail";
-import { Card } from "@/components/ui/card";
+import { teamDetailQueryOptions } from "@/hooks/use-team-detail";
+import { InfoCard } from "@/components/info-card";
+import { getSportLogo } from "@/components/browse/utils";
 
 export type LeagueTeamResponse = {
   id: string;
@@ -30,6 +22,14 @@ type Props = Readonly<{
   leagueTeamsError: unknown;
 }>;
 
+type TeamDetail = Readonly<{
+  id: string;
+  name: string;
+  sport: unknown | null;
+  location: string | null;
+  logoUrl: string | null;
+}>;
+
 export function LeagueBrowserTeams({
   leagueId,
   leagueTeams,
@@ -40,7 +40,7 @@ export function LeagueBrowserTeams({
   const router = useRouter();
 
   const teamIds = useMemo(
-    () => Array.from(new Set(leagueTeams.map((t) => t.teamId))).filter(Boolean),
+    () => Array.from(new Set(leagueTeams.map((team) => team.teamId))).filter(Boolean),
     [leagueTeams],
   );
 
@@ -48,12 +48,13 @@ export function LeagueBrowserTeams({
     queries: teamIds.map((teamId) => teamDetailQueryOptions(api, teamId)),
   });
 
-  const detailsFetching = teamQueries.some((q) => q.isFetching);
-  const detailsError = teamQueries.find((q) => q.error)?.error;
+  const detailsFetching = teamQueries.some((query) => query.isFetching);
+  const detailsError = teamQueries.find((query) => query.error)?.error;
 
   const teamDetailsMap = useMemo(() => {
-    const entries: [string, TeamDetailResponse][] = teamQueries.map((q, idx) => {
-      const teamId = teamIds[idx] ?? "";
+    const entries: [string, TeamDetail][] = teamQueries.map((query, index) => {
+      const teamId = teamIds[index] ?? "";
+      const data = (query.data ?? null) as TeamDetail | null;
 
       if (!teamId) {
         return [
@@ -62,7 +63,9 @@ export function LeagueBrowserTeams({
         ];
       }
 
-      if (q.data) return [teamId, q.data];
+      if (data) {
+        return [teamId, data];
+      }
 
       return [
         teamId,
@@ -70,7 +73,7 @@ export function LeagueBrowserTeams({
       ];
     });
 
-    return Object.fromEntries(entries.filter(([k]) => Boolean(k)));
+    return Object.fromEntries(entries.filter(([id]) => Boolean(id)));
   }, [teamQueries, teamIds]);
 
   const isBusy = teamsFetching || detailsFetching;
@@ -95,48 +98,28 @@ export function LeagueBrowserTeams({
 
   return (
     <View style={styles.wrap}>
-      {isBusy && <ActivityIndicator size="small" color="#fff" />}
+      {isBusy ? <ActivityIndicator size="small" color="#fff" /> : null}
 
       <View style={styles.list}>
-        {leagueTeams.map((t) => {
-          const details = teamDetailsMap?.[t.teamId];
-          const name = details?.name ?? "Team";
-          const subtitle = details?.sport ?? details?.location ?? "";
-          const logoUrl = details?.logoUrl ?? null;
+        {leagueTeams.map((team) => {
+          const details = teamDetailsMap[team.teamId];
+          const title = details?.name ?? "Team";
 
-          const initials = name
-            .split(" ")
-            .filter(Boolean)
-            .slice(0, 2)
-            .map((w) => (w[0] ? w[0].toUpperCase() : ""))
-            .join("");
+          const location = details?.location ?? "";
+          const subtitle = location.trim() ? location : "Unknown location";
+
+          const image: ImageSource = details?.logoUrl
+            ? { uri: details.logoUrl }
+            : getSportLogo(details?.sport);
 
           return (
-            <Pressable
-              key={t.id}
-              onPress={() => router.push(`/teams/${t.teamId}`)}
-            >
-              <Card>
-                <View style={styles.cardContent}>
-                  {logoUrl ? (
-                    <Image source={{ uri: logoUrl }} style={styles.avatar} />
-                  ) : (
-                    <View style={styles.avatarFallback}>
-                      <Text style={styles.avatarText}>
-                        {initials || "T"}
-                      </Text>
-                    </View>
-                  )}
-
-                  <View style={styles.textWrap}>
-                    <Text style={styles.cardTitle}>{name}</Text>
-                    {!!subtitle && (
-                      <Text style={styles.cardSubtitle}>{subtitle}</Text>
-                    )}
-                  </View>
-                </View>
-              </Card>
-            </Pressable>
+            <InfoCard
+              key={team.id}
+              title={title}
+              subtitle={subtitle}
+              image={image}
+              onPress={() => router.push(`/teams/${team.teamId}`)}
+            />
           );
         })}
       </View>
@@ -153,49 +136,5 @@ const styles = StyleSheet.create({
 
   list: {
     gap: 16,
-  },
-
-  cardContent: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 16,
-  },
-
-  avatar: {
-    width: 50,
-    height: 50,
-    borderRadius: 25,
-  },
-
-  avatarFallback: {
-    width: 50,
-    height: 50,
-    borderRadius: 25,
-    backgroundColor: "rgba(255,255,255,0.18)",
-    alignItems: "center",
-    justifyContent: "center",
-  },
-
-  avatarText: {
-    color: "#fff",
-    fontWeight: "700",
-    fontSize: 16,
-  },
-
-  textWrap: {
-    flex: 1,
-  },
-
-  cardTitle: {
-    color: "#fff",
-    fontSize: 18,
-    fontWeight: "700",
-  },
-
-  cardSubtitle: {
-    color: "#fff",
-    opacity: 0.8,
-    marginTop: 4,
-    fontSize: 14,
   },
 });
