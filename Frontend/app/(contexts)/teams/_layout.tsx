@@ -11,6 +11,9 @@ export default function TeamsLayout() {
       "[id]/settings/edit",
       "[id]/manage-roles/index",
       "[id]/invite/index",
+      "[id]/matches/schedule",
+      "[id]/matches/add-venue",
+      "[id]/matches/[matchId]",
     ],
   });
 
