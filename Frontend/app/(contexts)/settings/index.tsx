@@ -8,11 +8,15 @@ import { confirmLogout } from "@/components/user-profile/profile-utils";
 import { log } from "@/utils/logger";
 import { openPolicy } from "@/components/privacy-disclaimer/utils";
 import { images } from "@/constants/images";
+import { useState } from "react";
+import { Alert } from "react-native";
+
 
 export default function Settings() {
   const { signOut } = useAuth();
   const { isLoaded, isSignedIn, user } = useUser();
   const { flags, toggleFlag } = useFeatureFlags();
+  const [isReferee, setIsReferee] = useState(false);
 
   const isDev = (user?.publicMetadata as { isDev?: boolean })?.isDev === true;
 
@@ -60,6 +64,53 @@ export default function Settings() {
               onPress={() => router.push("/_sitemap")}
             />
           )}
+          <Form.Section
+            header="Referee"
+            footer="Referees help keep games fair and running smoothly."
+          >
+          {!isReferee ? (
+            <Form.Button
+              button="Become a Referee"
+              onPress={() => {
+                Alert.alert(
+                  "Become a Referee?",
+                  "Referees help keep games fair and running smoothly.",
+                  [
+                    { text: "Cancel", style: "cancel" },
+                    {
+                      text: "Continue",
+                      onPress: () => setIsReferee(true),
+                    },
+                  ]
+                );
+              }}
+            />
+          ) : (
+            <>
+              <Form.Button
+                button="Sports"
+                onPress={() => {
+                  router.push("/settings/referee-sports");}
+                }
+              />
+
+              <Form.Button
+                button="Regions"
+                onPress={() => {
+                  router.push("/settings/referee-regions");}
+                }
+              />
+            
+
+              <Form.Button
+                button="Pause Refereeing"
+                color={AccentColors.red}
+                onPress={() => setIsReferee(false)}
+              />
+            </>
+          )}
+          </Form.Section>
+
           <Form.Link label="Terms and Privacy Policy" onPress={openPolicy} />
           <Form.Button
             button="Sign Out"
