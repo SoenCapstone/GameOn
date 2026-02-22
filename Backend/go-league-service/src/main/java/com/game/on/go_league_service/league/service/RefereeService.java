@@ -300,4 +300,15 @@ public class RefereeService {
 
     private record MatchContext(UUID homeTeamId, UUID awayTeamId, String sport, String matchRegion) {
     }
+
+    public boolean isReferee() {
+        String userId = userProvider.clerkUserId();
+        return refereeProfileRepository.existsByUserId(userId);
+    }
+
+    public boolean isActive() {
+        String userId = userProvider.clerkUserId();
+        RefereeProfile referee = refereeProfileRepository.findByUserId(userId);
+        return referee.isActive();
+    }
 }

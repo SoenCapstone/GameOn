@@ -10,6 +10,19 @@ const settingsHeader = () => (
     center={<PageTitle title="Settings" />}
   />
 );
+const refereeSportsHeader = () => (
+  <Header
+    left={<Button type="back" />}
+    center={<PageTitle title="Sports" />}
+  />
+);
+
+const refereeRegionsHeader = () => (
+  <Header
+    left={<Button type="back" />}
+    center={<PageTitle title="Regions" />}
+  />
+);
 
 export default function SettingsLayout() {
   return (
@@ -26,6 +39,22 @@ export default function SettingsLayout() {
         name="edit-profile"
         options={{
           headerBackVisible: false,
+          headerTransparent: true,
+        }}
+      />
+      <Stack.Screen
+        name="referee-regions"
+        options={{
+          headerBackVisible: false,
+          headerTitle: refereeRegionsHeader,
+          headerTransparent: true,
+        }}
+      />
+      <Stack.Screen
+        name="referee-sports"
+        options={{
+          headerBackVisible: false,
+          headerTitle: refereeSportsHeader,
           headerTransparent: true,
         }}
       />
