@@ -2,7 +2,7 @@ import { SearchResult } from "@/components/browse/constants";
 import { AxiosInstance } from "axios";
 import { useQuery } from "@tanstack/react-query";
 import { createScopedLog } from "@/utils/logger";
-import { ImageSourcePropType } from "react-native";
+import { ImageSource } from "expo-image";
 import { images } from "@/constants/images";
 import {
   useAxiosWithClerk,
@@ -12,7 +12,7 @@ import {
 
 const log = createScopedLog("Browse");
 
-export function getSportLogo(sport?: string | null): ImageSourcePropType {
+export function getSportLogo(sport?: string | null): ImageSource {
   const s = (sport || "").toLowerCase();
   switch (s) {
     case "soccer":
@@ -54,6 +54,7 @@ type LeagueSummaryResponse = {
   name: string;
   sport: string;
   slug: string;
+  logoUrl?: string | null;
   region?: string | null;
   level?: string | null;
   privacy?: string | null;
@@ -74,11 +75,13 @@ async function fetchTeamResults(
   api: AxiosInstance,
   query: string,
   onlyMine?: boolean,
+  sport?: string,
 ): Promise<TeamListResponse> {
   const params: Record<string, string | boolean> = { size: "50" };
 
   if (query && query.trim().length > 0) params.q = query.trim();
   if (onlyMine) params.my = onlyMine;
+  if (sport && sport.trim().length > 0) params.sport = sport.trim();
 
   try {
     const resp = await api.get<TeamListResponse>(GO_TEAM_SERVICE_ROUTES.ALL, {
@@ -178,7 +181,9 @@ export function useLeagueResults(query: string, onlyMine?: boolean) {
       name: league.name,
       subtitle,
       sport: league.sport,
-      logo: getSportLogo(league.sport),
+      logo: league.logoUrl
+        ? { uri: league.logoUrl }
+        : getSportLogo(league.sport),
       league: "",
       location: league.region ?? "",
       privacy: league.privacy ?? undefined,
