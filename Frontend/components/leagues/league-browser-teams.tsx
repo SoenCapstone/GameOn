@@ -3,7 +3,10 @@ import { ActivityIndicator, View, Text, StyleSheet } from "react-native";
 import { useRouter } from "expo-router";
 import { useQueries } from "@tanstack/react-query";
 import { useAxiosWithClerk } from "@/hooks/use-axios-clerk";
-import { teamDetailQueryOptions } from "@/hooks/use-team-detail";
+import {
+  teamDetailQueryOptions,
+  type TeamDetailResponse,
+} from "@/hooks/use-team-detail";
 import { InfoCard } from "@/components/info-card";
 import type { ImageSource } from "expo-image";
 import { getSportLogo } from "@/components/browse/utils";
@@ -22,14 +25,6 @@ type Props = Readonly<{
   leagueTeamsError: unknown;
 }>;
 
-type TeamDetail = Readonly<{
-  id: string;
-  name: string;
-  sport: string | null;
-  location: string | null;
-  logoUrl: string | null;
-}>;
-
 export function LeagueBrowserTeams({
   leagueId,
   leagueTeams,
@@ -45,31 +40,47 @@ export function LeagueBrowserTeams({
   );
 
   const teamQueries = useQueries({
-    queries: teamIds.map((teamId) => teamDetailQueryOptions(api, teamId)),
+    queries: teamIds.map((teamId) =>
+      teamDetailQueryOptions(api, teamId),
+    ),
   });
 
   const detailsFetching = teamQueries.some((q) => q.isFetching);
   const detailsError = teamQueries.find((q) => q.error)?.error;
 
   const teamDetailsMap = useMemo(() => {
-    const entries: [string, TeamDetail][] = teamQueries.map((q, idx) => {
-      const teamId = teamIds[idx] ?? "";
-      const data = (q.data ?? null) as TeamDetail | null;
+    const entries: [string, TeamDetailResponse][] = teamQueries.map(
+      (q, idx) => {
+        const teamId = teamIds[idx] ?? "";
+        const data = q.data ?? null;
 
-      if (!teamId) {
+        if (!teamId) {
+          return [
+            "",
+            {
+              id: "",
+              name: "Team",
+              sport: null,
+              location: null,
+              logoUrl: null,
+            },
+          ];
+        }
+
+        if (data) return [teamId, data];
+
         return [
-          "",
-          { id: "", name: "Team", sport: null, location: null, logoUrl: null },
+          teamId,
+          {
+            id: teamId,
+            name: "Team",
+            sport: null,
+            location: null,
+            logoUrl: null,
+          },
         ];
-      }
-
-      if (data) return [teamId, data];
-
-      return [
-        teamId,
-        { id: teamId, name: "Team", sport: null, location: null, logoUrl: null },
-      ];
-    });
+      },
+    );
 
     return Object.fromEntries(entries.filter(([k]) => Boolean(k)));
   }, [teamQueries, teamIds]);
@@ -104,7 +115,8 @@ export function LeagueBrowserTeams({
           const title = details?.name ?? "Team";
 
           const location = details?.location ?? "";
-          const subtitle = location.trim() ? location : "Unknown location";
+          const subtitle =
+            location.trim().length > 0 ? location : "Unknown location";
 
           const image: ImageSource = details?.logoUrl
             ? { uri: details.logoUrl }
