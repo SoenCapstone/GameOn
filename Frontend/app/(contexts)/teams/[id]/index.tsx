@@ -16,9 +16,8 @@ import { useDetailPageHandlers } from "@/hooks/use-detail-page-handlers";
 import { MatchListSections } from "@/components/matches/match-list-sections";
 import { useTeamMatches, useTeamsByIds } from "@/hooks/use-matches";
 import {
-  getMatchSection,
-  sortPastLatestFirst,
-  sortUpcomingFirst,
+  buildMatchCards,
+  splitMatchSections,
 } from "@/features/matches/utils";
 
 type TeamTab = "board" | "overview" | "games";
@@ -76,36 +75,14 @@ function TeamContent() {
   const teamsQuery = useTeamsByIds(teamIds);
 
   const matchItems = useMemo(
-    () =>
-      matches.map((match) => {
-        const home = teamsQuery.data?.[match.homeTeamId];
-        const away = teamsQuery.data?.[match.awayTeamId];
-        const section = getMatchSection(match.startTime, match.endTime, match.status);
-
-        return {
-          id: match.id,
-          homeName: home?.name ?? "Home Team",
-          awayName: away?.name ?? "Away Team",
-          homeLogoUrl: home?.logoUrl,
-          awayLogoUrl: away?.logoUrl,
-          sport: match.sport,
-          contextLabel: "Team Match",
-          status: match.status,
-          startTime: match.startTime,
-          section,
-          isPast: section === "past",
-        };
-      }),
+    () => buildMatchCards(matches, teamsQuery.data, "Team Match"),
     [matches, teamsQuery.data],
   );
 
-  const currentMatches = sortUpcomingFirst(
-    matchItems.filter((match) => match.section === "current"),
+  const { current: currentMatches, upcoming: upcomingMatches, past: pastMatches } = useMemo(
+    () => splitMatchSections(matchItems),
+    [matchItems],
   );
-  const upcomingMatches = sortUpcomingFirst(
-    matchItems.filter((match) => match.section === "upcoming"),
-  );
-  const pastMatches = sortPastLatestFirst(matchItems.filter((match) => match.isPast));
 
   const { refreshing, handleDeletePost, handleRefresh } = useDetailPageHandlers({
     id,

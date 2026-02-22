@@ -1,24 +1,16 @@
-import { useLayoutEffect, useMemo } from "react";
+import { useLayoutEffect } from "react";
 import { Alert, StyleSheet, Text } from "react-native";
 import { useAuth } from "@clerk/clerk-expo";
 import { useLocalSearchParams, useNavigation } from "expo-router";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQueryClient } from "@tanstack/react-query";
 import { ContentArea } from "@/components/ui/content-area";
 import { Header } from "@/components/header/header";
 import { PageTitle } from "@/components/header/page-title";
 import { Button } from "@/components/ui/button";
-import {
-  GO_USER_SERVICE_ROUTES,
-  useAxiosWithClerk,
-} from "@/hooks/use-axios-clerk";
-import {
-  useCancelTeamMatch,
-  useTeamMatch,
-  useTeamsByIds,
-} from "@/hooks/use-matches";
-import { getMatchSection } from "@/features/matches/utils";
+import { useCancelTeamMatch, useTeamMatch } from "@/hooks/use-matches";
 import { errorToString } from "@/utils/error";
 import { MatchDetailsContent } from "@/components/matches/match-details-content";
+import { useMatchPresentation } from "@/hooks/use-match-presentation";
 
 export default function TeamMatchDetailsScreen() {
   const params = useLocalSearchParams<{ id?: string; matchId?: string }>();
@@ -27,48 +19,18 @@ export default function TeamMatchDetailsScreen() {
   const queryClient = useQueryClient();
   const { userId } = useAuth();
   const navigation = useNavigation();
-  const api = useAxiosWithClerk();
 
   const { data: match } = useTeamMatch(matchId);
-
-  const teamIds = useMemo(
-    () => (match ? [match.homeTeamId, match.awayTeamId] : []),
-    [match],
-  );
-  const teamsQuery = useTeamsByIds(teamIds);
-
+  const { homeTeam, awayTeam, title, isPast, refereeText } = useMatchPresentation(match);
   const cancelMutation = useCancelTeamMatch();
-
-  const homeTeam = teamsQuery.data?.[match?.homeTeamId ?? ""];
-  const awayTeam = teamsQuery.data?.[match?.awayTeamId ?? ""];
-
-  const title = homeTeam && awayTeam ? `${homeTeam.name} vs ${awayTeam.name}` : "Match Details";
 
   useLayoutEffect(() => {
     navigation.setOptions({
       headerTitle: () => (
-        <Header
-          left={<Button type="back" />}
-          center={<PageTitle title={title} />}
-        />
+        <Header left={<Button type="back" />} center={<PageTitle title={title} />} />
       ),
     });
   }, [navigation, title]);
-
-  const refereeNameQuery = useQuery({
-    queryKey: ["user-name", match?.refereeUserId ?? ""],
-    queryFn: async () => {
-      const refereeUserId = match?.refereeUserId;
-      if (!refereeUserId) return "No referee assigned";
-      const resp = await api.get(GO_USER_SERVICE_ROUTES.BY_ID(refereeUserId));
-      const first = resp.data?.firstname ?? "";
-      const last = resp.data?.lastname ?? "";
-      const full = `${first} ${last}`.trim();
-      return full || "No referee assigned";
-    },
-    enabled: Boolean(match?.refereeUserId),
-    retry: false,
-  });
 
   if (!match) {
     return (
@@ -78,17 +40,11 @@ export default function TeamMatchDetailsScreen() {
     );
   }
 
-  const section = getMatchSection(match.startTime, match.endTime, match.status);
-  const isPast = section === "past";
   const canCancel =
     !isPast &&
     ((homeTeam?.ownerUserId && homeTeam.ownerUserId === userId) ||
       (awayTeam?.ownerUserId && awayTeam.ownerUserId === userId)) &&
     match.status !== "CANCELLED";
-
-  const refereeText = match.refereeUserId
-    ? `Referee: ${refereeNameQuery.data ?? "Loading..."}`
-    : "Referee: No referee assigned";
 
   return (
     <MatchDetailsContent

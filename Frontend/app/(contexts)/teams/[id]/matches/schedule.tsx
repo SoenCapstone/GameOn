@@ -1,10 +1,7 @@
-import { useCallback, useEffect, useLayoutEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { Alert, Text, View } from "react-native";
 import { useLocalSearchParams, useNavigation, useRouter } from "expo-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { Header } from "@/components/header/header";
-import { PageTitle } from "@/components/header/page-title";
-import { Button } from "@/components/ui/button";
 import { ContentArea } from "@/components/ui/content-area";
 import { Form } from "@/components/form/form";
 import { AccentColors } from "@/constants/colors";
@@ -19,6 +16,11 @@ import { buildStartEndIso, isValidTimeRange } from "@/features/matches/utils";
 import { toast } from "@/components/sign-up/utils";
 import { createScopedLog } from "@/utils/logger";
 import { useRefereeOptions } from "@/hooks/use-referee-options";
+import {
+  getScheduleApiErrorMessage,
+  MatchDetailsSection,
+  useScheduleHeader,
+} from "@/components/matches/schedule-shared";
 
 const log = createScopedLog("Schedule Team Match");
 
@@ -27,15 +29,6 @@ type TeamSummary = {
   name: string;
   sport?: string | null;
 };
-
-function getApiErrorMessage(err: any) {
-  const status = err?.response?.status;
-  const message = err?.response?.data?.message ?? "Could not schedule the match.";
-
-  if (!err?.response) return { status: 0, message: "Network error. Please retry." };
-  if (status === 403) return { status, message: "Only team owner can schedule matches" };
-  return { status, message };
-}
 
 export default function ScheduleTeamMatchScreen() {
   const params = useLocalSearchParams<{ id?: string; newVenue?: string }>();
@@ -160,7 +153,10 @@ export default function ScheduleTeamMatchScreen() {
       }
       router.replace(`/teams/${teamId}`);
     } catch (err: any) {
-      const { status, message } = getApiErrorMessage(err);
+      const { status, message } = getScheduleApiErrorMessage(
+        err,
+        "Only team owner can schedule matches",
+      );
       setErrors((prev) => ({ ...prev, form: message }));
       toast(message);
       if (status === 0) {
@@ -186,25 +182,12 @@ export default function ScheduleTeamMatchScreen() {
     venue,
   ]);
 
-  useLayoutEffect(() => {
-    navigation.setOptions({
-      headerTitle: () => (
-        <Header
-          left={<Button type="back" />}
-          center={<PageTitle title="Schedule a Match" />}
-          right={
-            <Button
-              type="custom"
-              label="Schedule"
-              onPress={handleSubmit}
-              loading={createMutation.isPending}
-              isInteractive={!createMutation.isPending && isValid}
-            />
-          }
-        />
-      ),
-    });
-  }, [createMutation.isPending, handleSubmit, isValid, navigation]);
+  useScheduleHeader({
+    navigation,
+    onSubmit: handleSubmit,
+    isPending: createMutation.isPending,
+    isValid,
+  });
 
   return (
     <ContentArea scrollable backgroundProps={{ preset: "red", mode: "form" }}>
@@ -232,59 +215,23 @@ export default function ScheduleTeamMatchScreen() {
           </View>
         </Form.Section>
 
-        <Form.Section header="Match Details">
-          <Form.DateTime
-            label="Date"
-            value={date}
-            mode="date"
-            display="default"
-            onChange={(_event, selectedDate) => {
-              if (selectedDate) setDate(selectedDate);
-            }}
-          />
-          <Form.DateTime
-            label="Start Time"
-            value={startTimeValue}
-            mode="time"
-            display="default"
-            onChange={(_event, selectedDate) => {
-              if (selectedDate) setStartTimeValue(selectedDate);
-            }}
-          />
-          {errors.startTime ? (
-            <Text style={matchStyles.errorInline}>{errors.startTime}</Text>
-          ) : null}
-          <Form.DateTime
-            label="End Time"
-            value={endTimeValue}
-            mode="time"
-            display="default"
-            onChange={(_event, selectedDate) => {
-              if (selectedDate) setEndTimeValue(selectedDate);
-            }}
-          />
-          {errors.endTime ? (
-            <Text style={matchStyles.errorInline}>{errors.endTime}</Text>
-          ) : null}
-          {errors.timeRange ? (
-            <Text style={matchStyles.errorInline}>{errors.timeRange}</Text>
-          ) : null}
-          <Form.Input
-            label="Venue"
-            placeholder="Optional"
-            value={venue}
-            onChangeText={setVenue}
-          />
-          <Form.Link
-            label="Add Venue"
-            onPress={() =>
-              router.push({
-                pathname: "/teams/[id]/matches/add-venue",
-                params: { id: teamId },
-              })
-            }
-          />
-        </Form.Section>
+        <MatchDetailsSection
+          date={date}
+          startTimeValue={startTimeValue}
+          endTimeValue={endTimeValue}
+          venue={venue}
+          errors={errors}
+          onDateChange={setDate}
+          onStartTimeChange={setStartTimeValue}
+          onEndTimeChange={setEndTimeValue}
+          onVenueChange={setVenue}
+          onAddVenue={() =>
+            router.push({
+              pathname: "/teams/[id]/matches/add-venue",
+              params: { id: teamId },
+            })
+          }
+        />
 
         <Form.Section header="Referee">
           <Form.Switch
