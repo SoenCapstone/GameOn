@@ -6,46 +6,45 @@ import {
 } from "@/components/board/board-types";
 import {
   useAxiosWithClerk,
-  GO_TEAM_SERVICE_ROUTES,
+  GO_LEAGUE_SERVICE_ROUTES,
 } from "@/hooks/use-axios-clerk";
 import {
   fetchUserNameMap,
   mapToFrontendPost,
 } from "@/components/board/board-utils";
 
-const log = createScopedLog("Team Board");
+const log = createScopedLog("League Board");
 
-const BOARD_QUERY_KEY = (teamId: string) => ["team-board", teamId];
+const LEAGUE_BOARD_QUERY_KEY = (leagueId: string) => ["league-board", leagueId];
 
-type TeamPostResponse = {
+type LeaguePostResponse = {
   id: string;
-  teamId: string;
+  leagueId: string;
   authorUserId: string;
-  authorRole: string;
   title: string;
   body: string;
   scope: "Members" | "Everyone";
   createdAt: string;
 };
 
-type TeamPostListResponse = {
-  posts: TeamPostResponse[];
-  totalElements: number;
-  pageNumber: number;
-  pageSize: number;
+type LeaguePostListResponse = {
+  items: LeaguePostResponse[];
+  total: number;
+  page: number;
+  size: number;
   hasNext: boolean;
 };
 
-export function useTeamBoardPosts(teamId: string) {
+export function useLeagueBoardPosts(leagueId: string) {
   const api = useAxiosWithClerk();
 
   return useQuery<BoardPost[]>({
-    queryKey: BOARD_QUERY_KEY(teamId),
+    queryKey: LEAGUE_BOARD_QUERY_KEY(leagueId),
     queryFn: async () => {
-      log.info("Fetching board posts", { teamId });
+      log.info("Fetching league board posts", { leagueId });
       try {
-        const response = await api.get<TeamPostListResponse>(
-          GO_TEAM_SERVICE_ROUTES.TEAM_POSTS(teamId),
+        const response = await api.get<LeaguePostListResponse>(
+          GO_LEAGUE_SERVICE_ROUTES.LEAGUE_POSTS(leagueId),
           {
             params: {
               page: 0,
@@ -55,62 +54,62 @@ export function useTeamBoardPosts(teamId: string) {
         );
 
         const uniqueAuthorIds = [
-          ...new Set(response.data.posts.map((post) => post.authorUserId)),
+          ...new Set(response.data.items.map((post) => post.authorUserId)),
         ];
 
         const userNameMap = await fetchUserNameMap(api, uniqueAuthorIds, log);
 
-        const posts = response.data.posts.map((post) =>
+        const posts = response.data.items.map((post) =>
           mapToFrontendPost(post, userNameMap),
         );
 
-        log.info("Fetched board posts with author names", {
-          teamId,
+        log.info("Fetched league board posts with author names", {
+          leagueId,
           postCount: posts.length,
           authorCount: uniqueAuthorIds.length,
         });
         return posts;
       } catch (err) {
-        log.error("Failed to fetch board posts", { teamId, error: err });
+        log.error("Failed to fetch board posts", { leagueId, error: err });
         throw err;
       }
     },
-    enabled: Boolean(teamId),
+    enabled: Boolean(leagueId),
     retry: false,
   });
 }
 
-export function useCreateBoardPost(teamId: string) {
+export function useCreateLeagueBoardPost(leagueId: string) {
   const api = useAxiosWithClerk();
   const queryClient = useQueryClient();
 
   return useMutation({
     mutationFn: async (payload: CreateBoardPostRequest) => {
-      log.info("Creating board post", {
-        teamId,
+      log.info("Creating league board post", {
+        leagueId,
         title: payload.title,
         scope: payload.scope,
       });
 
-      await api.post<TeamPostResponse>(
-        GO_TEAM_SERVICE_ROUTES.TEAM_POSTS(teamId),
+      await api.post<LeaguePostResponse>(
+        GO_LEAGUE_SERVICE_ROUTES.LEAGUE_POSTS(leagueId),
         {
           title: payload.title,
-          teamId: teamId,
+          leagueId,
           body: payload.body,
           scope: payload.scope,
         },
       );
 
-      log.info("Created board post", {
-        teamId,
+      log.info("Created league board post", {
+        leagueId,
         title: payload.title,
         scope: payload.scope,
       });
     },
     onSuccess: async () => {
       await queryClient.invalidateQueries({
-        queryKey: BOARD_QUERY_KEY(teamId),
+        queryKey: LEAGUE_BOARD_QUERY_KEY(leagueId),
       });
     },
     onError: (err) => {
@@ -119,23 +118,26 @@ export function useCreateBoardPost(teamId: string) {
   });
 }
 
-export function useDeleteBoardPost(teamId: string) {
+export function useDeleteLeagueBoardPost(leagueId: string) {
   const api = useAxiosWithClerk();
   const queryClient = useQueryClient();
 
   return useMutation({
     mutationFn: async (postId: string) => {
-      log.info("Deleting board post", { postId, teamId });
-      await api.delete(GO_TEAM_SERVICE_ROUTES.TEAM_POST(teamId, postId));
-      log.info("Deleted board post", { postId, teamId });
+      log.info("Deleting league post", { leagueId, postId });
+      await api.delete(GO_LEAGUE_SERVICE_ROUTES.LEAGUE_POST(leagueId, postId));
     },
     onSuccess: async () => {
       await queryClient.invalidateQueries({
-        queryKey: BOARD_QUERY_KEY(teamId),
+        queryKey: LEAGUE_BOARD_QUERY_KEY(leagueId),
       });
     },
     onError: (err, postId) => {
-      log.error("Failed to delete board post", { postId, teamId, error: err });
+      log.error("Failed to delete board post", {
+        postId,
+        leagueId,
+        error: err,
+      });
     },
   });
 }
