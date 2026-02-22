@@ -5,13 +5,11 @@ import {
   Text,
   View,
   StyleSheet,
-  Image,
-  Pressable,
 } from "react-native";
-import { useLocalSearchParams, useRouter } from "expo-router";
+import { useLocalSearchParams } from "expo-router";
 import SegmentedControl from "@react-native-segmented-control/segmented-control";
-import { useQuery } from "@tanstack/react-query";
 import { ContentArea } from "@/components/ui/content-area";
+import { LeagueBrowserTeams } from "@/components/leagues/league-browser-teams";
 import { useLeagueHeader } from "@/hooks/use-team-league-header";
 import {
   LeagueDetailProvider,
@@ -19,31 +17,12 @@ import {
 } from "@/contexts/league-detail-context";
 import { createScopedLog } from "@/utils/logger";
 import { errorToString } from "@/utils/error";
-import {
-  GO_LEAGUE_SERVICE_ROUTES,
-  GO_TEAM_SERVICE_ROUTES,
-  useAxiosWithClerk,
-} from "@/hooks/use-axios-clerk";
-
-type LeagueTeamResponse = {
-  id: string;
-  leagueId: string;
-  teamId: string;
-  joinedAt: string;
-};
-
-type TeamDetailResponse = {
-  id: string;
-  name: string;
-  sport?: string | null;
-  location?: string | null;
-  logoUrl?: string | null;
-};
 
 type LeagueTab = "board" | "standings" | "browser";
 
 // NOTE: order matters (this is used for index mapping)
 const LEAGUE_TABS: readonly LeagueTab[] = ["board", "standings", "browser"] as const;
+
 const TAB_LABELS: Record<LeagueTab, string> = {
   board: "Board",
   standings: "Standings",
@@ -76,6 +55,11 @@ function LeagueContent() {
     isMember,
     isOwner,
     league,
+
+    // ✅ now comes from LeagueDetailContext (hook)
+    leagueTeams,
+    isLeagueTeamsLoading,
+    leagueTeamsError,
   } = useLeagueDetailContext();
 
   const log = createScopedLog("League Page");
@@ -159,203 +143,44 @@ function LeagueContent() {
             </View>
           )}
 
-          {tab === "browser" && <LeagueBrowserTeams leagueId={id} />}
+          {tab === "browser" && (
+            <LeagueBrowserTeams
+              leagueId={id}
+              leagueTeams={leagueTeams ?? []}
+              teamsFetching={Boolean(isLeagueTeamsLoading)}
+              leagueTeamsError={leagueTeamsError}
+            />
+          )}
         </>
       )}
     </ContentArea>
   );
 }
 
-function LeagueBrowserTeams({ leagueId }: { leagueId: string }) {
-  const api = useAxiosWithClerk();
-  const router = useRouter();
-
-  const {
-    data: leagueTeams = [],
-    isFetching: teamsFetching,
-    error: leagueTeamsError,
-  } = useQuery<LeagueTeamResponse[]>({
-    queryKey: ["league-teams", leagueId],
-    queryFn: async () => {
-      const resp = await api.get(GO_LEAGUE_SERVICE_ROUTES.TEAMS(leagueId));
-      return resp.data ?? [];
-    },
-    enabled: Boolean(leagueId),
-  });
-
-  const teamIdsKey = useMemo(
-    () => leagueTeams.map((t) => t.teamId).join(","),
-    [leagueTeams],
-  );
-
-  const {
-    data: teamDetailsMap,
-    isFetching: detailsFetching,
-    error: detailsError,
-  } = useQuery<Record<string, TeamDetailResponse>>({
-    queryKey: ["league-team-details", leagueId, teamIdsKey],
-    queryFn: async () => {
-      const entries = await Promise.all(
-        leagueTeams.map(async (t) => {
-          try {
-            const resp = await api.get(`${GO_TEAM_SERVICE_ROUTES.ALL}/${t.teamId}`);
-            return [t.teamId, resp.data] as const;
-          } catch {
-            return [
-              t.teamId,
-              { id: t.teamId, name: "Team", sport: null, location: null, logoUrl: null },
-            ] as const;
-          }
-        }),
-      );
-      return Object.fromEntries(entries);
-    },
-    enabled: leagueTeams.length > 0,
-  });
-
-  const isBusy = teamsFetching || detailsFetching;
-
-  if (leagueTeamsError || detailsError) {
-    return (
-      <View style={styles.section}>
-        <Text style={styles.title}>Browse</Text>
-        <Text style={styles.text}>Failed to load league teams.</Text>
-      </View>
-    );
-  }
-
-  if (!isBusy && leagueTeams.length === 0) {
-    return (
-      <View style={styles.section}>
-        <Text style={styles.title}>Browse</Text>
-        <Text style={styles.text}>No teams in this league yet.</Text>
-      </View>
-    );
-  }
-
-  return (
-    <View style={styles.browserWrap}>
-      {isBusy && <ActivityIndicator size="small" color="#fff" />}
-
-      <View style={styles.browserGrid}>
-        {leagueTeams.map((t) => {
-          const details = teamDetailsMap?.[t.teamId];
-          const name = details?.name ?? "Team";
-          const subtitle = details?.sport ?? details?.location ?? "";
-          const logoUrl = details?.logoUrl ?? null;
-
-          const initials = name
-            .split(" ")
-            .filter(Boolean)
-            .slice(0, 2)
-            .map((w) => w[0]?.toUpperCase())
-            .join("");
-
-          return (
-            <Pressable
-              key={t.id}
-              style={styles.browserCard}
-              onPress={() => router.push(`/teams/${t.teamId}`)}
-            >
-              {logoUrl ? (
-                <Image source={{ uri: logoUrl }} style={styles.browserAvatarImage} />
-              ) : (
-                <View style={styles.browserAvatar}>
-                  <Text style={styles.browserAvatarText}>{initials || "T"}</Text>
-                </View>
-              )}
-
-              <Text style={styles.browserName} numberOfLines={1}>
-                {name}
-              </Text>
-
-              {subtitle ? (
-                <Text style={styles.browserSub} numberOfLines={1}>
-                  {subtitle}
-                </Text>
-              ) : null}
-            </Pressable>
-          );
-        })}
-      </View>
-    </View>
-  );
-}
-
 const styles = StyleSheet.create({
   container: {
-    flex: 1,
-    justifyContent: "center",
+    paddingTop: 12,
+    paddingBottom: 12,
     alignItems: "center",
-    minHeight: 200,
   },
   section: {
-    paddingVertical: 16,
-    paddingHorizontal: 8,
-    gap: 8,
+    paddingTop: 14,
+    paddingBottom: 14,
   },
   title: {
-    color: "white",
+    color: "#fff",
     fontSize: 18,
-    fontWeight: "600",
+    fontWeight: "700",
+    marginBottom: 6,
   },
   text: {
-    color: "white",
-    opacity: 0.9,
+    color: "#fff",
+    fontSize: 14,
+    opacity: 0.95,
   },
   muted: {
-    color: "white",
-    opacity: 0.6,
-  },
-  browserWrap: {
-    paddingTop: 16,
-    paddingHorizontal: 8,
-  },
-  browserGrid: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    gap: 14,
-  },
-  browserCard: {
-    width: "47%",
-    minHeight: 150,
-    borderRadius: 26,
-    padding: 16,
-    alignItems: "center",
-    justifyContent: "center",
-    backgroundColor: "rgba(255,255,255,0.08)",
-    borderWidth: 1,
-    borderColor: "rgba(255,255,255,0.12)",
-  },
-  browserAvatar: {
-    width: 56,
-    height: 56,
-    borderRadius: 28,
-    marginBottom: 10,
-    alignItems: "center",
-    justifyContent: "center",
-    backgroundColor: "rgba(255,255,255,0.20)",
-  },
-  browserAvatarText: {
-    color: "rgba(255,255,255,0.9)",
-    fontWeight: "700",
-  },
-  browserAvatarImage: {
-    width: 56,
-    height: 56,
-    borderRadius: 28,
-    marginBottom: 10,
-  },
-  browserName: {
-    color: "white",
-    fontSize: 16,
-    fontWeight: "700",
-    textAlign: "center",
-  },
-  browserSub: {
-    marginTop: 4,
-    color: "rgba(255,255,255,0.65)",
-    fontSize: 12,
-    textAlign: "center",
+    color: "#fff",
+    opacity: 0.75,
+    marginTop: 8,
   },
 });
