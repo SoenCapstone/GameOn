@@ -57,4 +57,16 @@ public class RefereeController {
     public ResponseEntity<RefInviteResponse> declineRefInvite(@PathVariable UUID matchId) {
         return ResponseEntity.ok(refereeService.declineRefInvite(matchId));
     }
+
+    @GetMapping("/referees/status")
+    public ResponseEntity<Boolean> isActiveReferee() {
+        boolean isReferee = refereeService.isReferee();
+        boolean isActive;
+        if (isReferee) {
+            isActive = refereeService.isActive();
+        } else {
+            return ResponseEntity.ok(isReferee);
+        }
+        return ResponseEntity.ok(isActive);
+    }
 }
