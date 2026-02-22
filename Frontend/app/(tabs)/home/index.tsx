@@ -1,4 +1,4 @@
-import React, { useCallback } from "react";
+import { useCallback, useState } from "react";
 import { ContentArea } from "@/components/ui/content-area";
 import { View, Text, RefreshControl, Alert } from "react-native";
 import SegmentedControl from "@react-native-segmented-control/segmented-control";
@@ -19,7 +19,6 @@ import { errorToString } from "@/utils/error";
 import {
   fetchLeagueInvitesWithDetails,
   LeagueInviteCard,
-  LeaguePrivacy,
 } from "@/components/leagues/league-invite-utils";
 
 type TeamInviteCard = {
@@ -44,12 +43,16 @@ type TeamInviteResponse = {
 };
 
 export default function Home() {
-  const [tab, setTab] = React.useState<"updates" | "spectating">("updates");
+  const [tab, setTab] = useState<"updates" | "spectating">("updates");
   const api = useAxiosWithClerk();
   const queryClient = useQueryClient();
   const { userId } = useAuth();
 
-  const { data: invites = [], isFetching, refetch } = useQuery<InviteCard[]>({
+  const {
+    data: invites = [],
+    isFetching,
+    refetch,
+  } = useQuery<InviteCard[]>({
     queryKey: ["user-updates", userId],
     queryFn: async () => fetchUpdatesWithDetails(api),
     enabled: Boolean(userId),
@@ -61,38 +64,57 @@ export default function Home() {
 
   const handleInviteResponseSuccess = useCallback(
     (invalidateKeys: string[][], acceptedMessage: string) =>
-      (_data: unknown, variables: { invitationId: string; isAccepted: boolean }) => {
+      (
+        _data: unknown,
+        variables: { invitationId: string; isAccepted: boolean },
+      ) => {
         const cacheKey = ["user-updates", userId];
         const currentInvites =
           queryClient.getQueryData<InviteCard[]>(cacheKey) ?? [];
         queryClient.setQueryData<InviteCard[]>(
           cacheKey,
-          currentInvites.filter((invite) => invite.id !== variables.invitationId),
+          currentInvites.filter(
+            (invite) => invite.id !== variables.invitationId,
+          ),
         );
         for (const key of invalidateKeys) {
           queryClient.invalidateQueries({ queryKey: key });
         }
         Alert.alert(
           variables.isAccepted ? "Invite accepted" : "Invite declined",
-          variables.isAccepted ? acceptedMessage : "The invitation was declined.",
+          variables.isAccepted
+            ? acceptedMessage
+            : "The invitation was declined.",
         );
       },
     [queryClient, userId],
   );
 
   const respondMutation = useMutation({
-    mutationFn: async (payload: { invitationId: string; isAccepted: boolean }) => {
+    mutationFn: async (payload: {
+      invitationId: string;
+      isAccepted: boolean;
+    }) => {
       await api.post(GO_INVITE_ROUTES.RESPOND, payload);
     },
     onSuccess: handleInviteResponseSuccess(
-      [["teams"], ["team-members"], ["team-membership"], ["leagues"], ["league-memberships"]],
+      [
+        ["teams"],
+        ["team-members"],
+        ["team-membership"],
+        ["leagues"],
+        ["league-memberships"],
+      ],
       "You have joined the team.",
     ),
     onError: handleInviteResponseError,
   });
 
   const respondLeagueInviteMutation = useMutation({
-    mutationFn: async (payload: { invitationId: string; isAccepted: boolean }) => {
+    mutationFn: async (payload: {
+      invitationId: string;
+      isAccepted: boolean;
+    }) => {
       const endpoint = payload.isAccepted
         ? GO_LEAGUE_INVITE_ROUTES.ACCEPT(payload.invitationId)
         : GO_LEAGUE_INVITE_ROUTES.DECLINE(payload.invitationId);
@@ -123,26 +145,35 @@ export default function Home() {
     (inviteId: string) => {
       const maybe = invites.find((i) => i.id === inviteId);
       if (!maybe || !isLeagueInviteCard(maybe)) {
-        Alert.alert("Missing league invite", "Could not find that league invite.");
+        Alert.alert(
+          "Missing league invite",
+          "Could not find that league invite.",
+        );
         return;
       }
 
       if (!maybe.leagueId) {
-        Alert.alert("Missing league info", "Could not find leagueId for this invite.");
+        Alert.alert(
+          "Missing league info",
+          "Could not find leagueId for this invite.",
+        );
         return;
       }
 
-      if (maybe.leaguePrivacy === LeaguePrivacy.PRIVATE) {
-        respondLeagueInviteMutation.mutate({ invitationId: inviteId, isAccepted: true });
-      }
+      respondLeagueInviteMutation.mutate({
+        invitationId: inviteId,
+        isAccepted: true,
+      });
     },
     [invites, respondLeagueInviteMutation],
   );
 
-
   const handleDenyLeague = useCallback(
     (inviteId: string) => {
-      respondLeagueInviteMutation.mutate({ invitationId: inviteId, isAccepted: false });
+      respondLeagueInviteMutation.mutate({
+        invitationId: inviteId,
+        isAccepted: false,
+      });
     },
     [respondLeagueInviteMutation],
   );
@@ -156,7 +187,11 @@ export default function Home() {
       scrollable
       backgroundProps={{ preset: "blue" }}
       refreshControl={
-        <RefreshControl refreshing={isFetching} onRefresh={onRefresh} tintColor="#fff" />
+        <RefreshControl
+          refreshing={isFetching}
+          onRefresh={onRefresh}
+          tintColor="#fff"
+        />
       }
     >
       <View style={styles.container}>
@@ -183,7 +218,9 @@ export default function Home() {
 
                       <Text style={styles.inviteText}>
                         You received an invite
-                        {invite.inviterName ? ` from ${invite.inviterName}` : ""}{" "}
+                        {invite.inviterName
+                          ? ` from ${invite.inviterName}`
+                          : ""}{" "}
                         to join {invite.teamName}.
                       </Text>
 
@@ -244,7 +281,9 @@ async function fetchTeamInvitesWithDetails(api: AxiosInstance) {
   const resp = await api.get<TeamInviteResponse[]>(
     GO_TEAM_SERVICE_ROUTES.USER_INVITES,
   );
-  const invites = (resp.data ?? []).filter((invite) => invite.status === "PENDING");
+  const invites = (resp.data ?? []).filter(
+    (invite) => invite.status === "PENDING",
+  );
 
   if (invites.length === 0) return [];
 
@@ -264,15 +303,12 @@ async function fetchTeamInvitesWithDetails(api: AxiosInstance) {
     teamId: invite.teamId,
     teamName: teamMap[invite.teamId] ?? "Team",
     inviterName: invite.invitedByUserId
-      ? inviterMap[invite.invitedByUserId] ?? "Someone"
+      ? (inviterMap[invite.invitedByUserId] ?? "Someone")
       : undefined,
   }));
 }
 
-async function fetchTeamNameMap(
-  api: AxiosInstance,
-  teamIds: string[],
-) {
+async function fetchTeamNameMap(api: AxiosInstance, teamIds: string[]) {
   const entries = await Promise.all(
     teamIds.map(async (teamId) => {
       try {
@@ -286,10 +322,7 @@ async function fetchTeamNameMap(
   return Object.fromEntries(entries);
 }
 
-async function fetchUserNameMap(
-  api: AxiosInstance,
-  userIds: string[],
-) {
+async function fetchUserNameMap(api: AxiosInstance, userIds: string[]) {
   const entries = await Promise.all(
     userIds.map(async (userId) => {
       try {
