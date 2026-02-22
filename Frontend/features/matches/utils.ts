@@ -1,4 +1,4 @@
-import { MatchStatusBadge, TeamMatch, TeamSummary } from "@/features/matches/types";
+import { LeagueMatch, MatchStatusBadge, TeamMatch, TeamSummary } from "@/features/matches/types";
 
 export const PROVINCE_OPTIONS = [
   "Alberta",
@@ -102,4 +102,53 @@ export function filterPendingTeamInvitesForOwner(
       match.status === "PENDING_TEAM_ACCEPTANCE" &&
       match.awayTeamId === ownerTeamId,
   );
+}
+
+type MatchCardItem = {
+  id: string;
+  homeName: string;
+  awayName: string;
+  homeLogoUrl?: string | null;
+  awayLogoUrl?: string | null;
+  sport: string;
+  contextLabel: string;
+  status: string;
+  startTime: string;
+  section: "current" | "upcoming" | "past";
+  isPast: boolean;
+};
+
+export function buildMatchCards(
+  matches: (LeagueMatch | TeamMatch)[],
+  teamMap: Record<string, TeamSummary> | undefined,
+  contextLabel: string,
+): MatchCardItem[] {
+  return matches.map((match) => {
+    const home = teamMap?.[match.homeTeamId];
+    const away = teamMap?.[match.awayTeamId];
+    const section = getMatchSection(match.startTime, match.endTime, match.status);
+    return {
+      id: match.id,
+      homeName: home?.name ?? "Home Team",
+      awayName: away?.name ?? "Away Team",
+      homeLogoUrl: home?.logoUrl,
+      awayLogoUrl: away?.logoUrl,
+      sport: match.sport,
+      contextLabel,
+      status: match.status,
+      startTime: match.startTime,
+      section,
+      isPast: section === "past",
+    };
+  });
+}
+
+export function splitMatchSections<T extends { section: "current" | "upcoming" | "past"; isPast: boolean; startTime: string }>(
+  matchItems: T[],
+) {
+  return {
+    current: sortUpcomingFirst(matchItems.filter((item) => item.section === "current")),
+    upcoming: sortUpcomingFirst(matchItems.filter((item) => item.section === "upcoming")),
+    past: sortPastLatestFirst(matchItems.filter((item) => item.isPast)),
+  };
 }

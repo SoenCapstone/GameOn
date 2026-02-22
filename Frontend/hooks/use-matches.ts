@@ -78,7 +78,10 @@ export function useTeamMatch(matchId: string) {
 export function useTeamsByIds(teamIds: string[]) {
   const api = useAxiosWithClerk();
   const idsKey = useMemo(
-    () => [...new Set(teamIds.filter(Boolean))].sort().join(","),
+    () =>
+      [...new Set(teamIds.filter(Boolean))]
+        .sort((left, right) => left.localeCompare(right))
+        .join(","),
     [teamIds],
   );
 
