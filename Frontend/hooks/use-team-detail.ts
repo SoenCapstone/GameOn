@@ -1,21 +1,39 @@
 import { useCallback, useState } from "react";
 import { useQuery, type UseQueryOptions } from "@tanstack/react-query";
 import { useAuth } from "@clerk/clerk-expo";
-import { useAxiosWithClerk, GO_TEAM_SERVICE_ROUTES } from "@/hooks/use-axios-clerk";
+import {
+  useAxiosWithClerk,
+  GO_TEAM_SERVICE_ROUTES,
+} from "@/hooks/use-axios-clerk";
 import { createScopedLog } from "@/utils/logger";
 
 const log = createScopedLog("Team Detail");
 
+export type TeamDetailResponse = Readonly<{
+  id: string;
+  name: string;
+  sport: unknown | null;
+  location: string | null;
+  logoUrl: string | null;
+  ownerUserId?: string | null;
+}>;
+
+export type TeamMembershipResponse = Readonly<{
+  status?: "ACTIVE" | "INACTIVE" | string;
+  role?: string | null;
+  joinedAt?: string | null;
+}>;
+
 export function teamDetailQueryOptions(
   api: ReturnType<typeof useAxiosWithClerk>,
   id: string,
-): UseQueryOptions<any> {
+): UseQueryOptions<TeamDetailResponse> {
   return {
     queryKey: ["team", id],
     queryFn: async () => {
       try {
         const resp = await api.get(`${GO_TEAM_SERVICE_ROUTES.ALL}/${id}`);
-        return resp.data;
+        return resp.data as TeamDetailResponse;
       } catch (err) {
         log.error("Failed to fetch team:", err);
         throw err;
@@ -32,20 +50,18 @@ export function useTeamDetail(id: string) {
   const api = useAxiosWithClerk();
   const { userId } = useAuth();
 
-  const {
-    data: team,
-    isLoading,
-    refetch,
-  } = useQuery(teamDetailQueryOptions(api, id));
+  const { data: team, isLoading, refetch } = useQuery(
+    teamDetailQueryOptions(api, id),
+  );
 
-  const { data: membership } = useQuery({
+  const { data: membership } = useQuery<TeamMembershipResponse | null>({
     queryKey: ["team-membership", id, userId],
     queryFn: async () => {
       try {
         const resp = await api.get(
           `${GO_TEAM_SERVICE_ROUTES.ALL}/${id}/memberships/me`,
         );
-        return resp.data;
+        return resp.data as TeamMembershipResponse;
       } catch (err) {
         log.info("User is not a member of this team:", err);
         return null;
