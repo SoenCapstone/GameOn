@@ -8,17 +8,23 @@ import {
 } from "@/hooks/use-team-board";
 import { CreateBoardPostRequest } from "@/components/board/board-types";
 import { useAxiosWithClerk } from "@/hooks/use-axios-clerk";
+import {
+  fetchUserNameMap,
+  mapToFrontendPost,
+} from "@/components/board/board-utils";
 
 jest.mock("@/hooks/use-axios-clerk", () => ({
   useAxiosWithClerk: jest.fn(),
   GO_TEAM_SERVICE_ROUTES: {
     TEAM_POSTS: (teamId: string) => `/api/v1/teams/${teamId}/posts`,
-    DELETE_TEAM_POST: (teamId: string, postId: string) =>
+    TEAM_POST: (teamId: string, postId: string) =>
       `/api/v1/teams/${teamId}/posts/${postId}`,
   },
-  GO_USER_SERVICE_ROUTES: {
-    BY_ID: (userId: string) => `/api/v1/user/id/${userId}`,
-  },
+}));
+
+jest.mock("@/components/board/board-utils", () => ({
+  fetchUserNameMap: jest.fn(),
+  mapToFrontendPost: jest.fn(),
 }));
 
 jest.mock("@/utils/logger", () => ({
@@ -30,6 +36,14 @@ jest.mock("@/utils/logger", () => ({
 
 const mockedUseAxiosWithClerk = useAxiosWithClerk as jest.MockedFunction<
   typeof useAxiosWithClerk
+>;
+
+const mockedFetchUserNameMap = fetchUserNameMap as jest.MockedFunction<
+  typeof fetchUserNameMap
+>;
+
+const mockedMapToFrontendPost = mapToFrontendPost as jest.MockedFunction<
+  typeof mapToFrontendPost
 >;
 
 let queryClient: QueryClient;
@@ -86,77 +100,65 @@ describe("use-team-board", () => {
   });
 
   describe("useTeamBoardPosts", () => {
-    it("fetches posts successfully for a team", async () => {
+    it("fetches posts and maps author names", async () => {
       const teamId = "team-123";
-
-      mockApi.get.mockImplementation((url: string) => {
-        if (url.includes("/posts")) {
-          return Promise.resolve({
-            data: {
-              posts: [
-                {
-                  id: "post-1",
-                  teamId: "team-123",
-                  authorUserId: "user-1",
-                  authorRole: "MANAGER",
-                  title: "Test Post",
-                  body: "Test body",
-                  scope: "Members",
-                  createdAt: "2026-02-08T10:00:00Z",
-                },
-              ],
-              totalElements: 1,
-              pageNumber: 0,
-              pageSize: 50,
-              hasNext: false,
-            },
-          });
-        }
-        if (url.includes("/user/id/")) {
-          return Promise.resolve({
-            data: {
-              id: "user-1",
-              firstname: "John",
-              lastname: "Doe",
-              email: "john@example.com",
-            },
-          });
-        }
-        return Promise.reject(new Error("Unknown URL"));
-      });
-
-      const { result } = renderHook(() => useTeamBoardPosts(teamId), {
-        wrapper: createWrapper(),
-      });
-
-      await waitFor(() => {
-        expect(result.current.isSuccess).toBe(true);
-      });
-
-      expect(result.current.data).toHaveLength(1);
-      expect(result.current.data?.[0]).toMatchObject({
-        id: "post-1",
-        authorName: "John Doe",
-        title: "Test Post",
-        body: "Test body",
-        scope: "Members",
-      });
-      expect(result.current.isLoading).toBe(false);
-    });
-
-    it("returns empty array for team with no posts", async () => {
-      const teamId = "team-empty";
 
       mockApi.get.mockResolvedValue({
         data: {
-          posts: [],
-          totalElements: 0,
+          posts: [
+            {
+              id: "post-1",
+              teamId,
+              authorUserId: "user-1",
+              authorRole: "MANAGER",
+              title: "Post One",
+              body: "Body One",
+              scope: "Members",
+              createdAt: "2026-02-08T10:00:00Z",
+            },
+            {
+              id: "post-2",
+              teamId,
+              authorUserId: "user-1",
+              authorRole: "MEMBER",
+              title: "Post Two",
+              body: "Body Two",
+              scope: "Everyone",
+              createdAt: "2026-02-08T11:00:00Z",
+            },
+            {
+              id: "post-3",
+              teamId,
+              authorUserId: "user-2",
+              authorRole: "MEMBER",
+              title: "Post Three",
+              body: "Body Three",
+              scope: "Members",
+              createdAt: "2026-02-08T12:00:00Z",
+            },
+          ],
+          totalElements: 3,
           pageNumber: 0,
           pageSize: 50,
           hasNext: false,
         },
       });
 
+      const userNameMap: Record<string, string> = {
+        "user-1": "Alice",
+        "user-2": "Bob",
+      };
+
+      mockedFetchUserNameMap.mockResolvedValue(userNameMap);
+      mockedMapToFrontendPost.mockImplementation((post) => ({
+        id: post.id,
+        title: post.title,
+        body: post.body,
+        scope: post.scope,
+        createdAt: post.createdAt,
+        authorName: userNameMap[post.authorUserId] ?? "Unknown",
+      }));
+
       const { result } = renderHook(() => useTeamBoardPosts(teamId), {
         wrapper: createWrapper(),
       });
@@ -165,7 +167,38 @@ describe("use-team-board", () => {
         expect(result.current.isSuccess).toBe(true);
       });
 
-      expect(result.current.data).toEqual([]);
+      expect(mockedFetchUserNameMap).toHaveBeenCalledWith(
+        mockApi,
+        ["user-1", "user-2"],
+        expect.any(Object),
+      );
+      expect(mockedMapToFrontendPost).toHaveBeenCalledTimes(3);
+      expect(result.current.data).toEqual([
+        {
+          id: "post-1",
+          title: "Post One",
+          body: "Body One",
+          scope: "Members",
+          createdAt: "2026-02-08T10:00:00Z",
+          authorName: "Alice",
+        },
+        {
+          id: "post-2",
+          title: "Post Two",
+          body: "Body Two",
+          scope: "Everyone",
+          createdAt: "2026-02-08T11:00:00Z",
+          authorName: "Alice",
+        },
+        {
+          id: "post-3",
+          title: "Post Three",
+          body: "Body Three",
+          scope: "Members",
+          createdAt: "2026-02-08T12:00:00Z",
+          authorName: "Bob",
+        },
+      ]);
     });
 
     it("disables query when teamId is empty", () => {
@@ -177,12 +210,8 @@ describe("use-team-board", () => {
       expect(result.current.data).toBeUndefined();
     });
 
-    it("handles fetch errors gracefully", async () => {
-      const teamId = "team-error-fetch";
-      const errorSpy = jest
-        .spyOn(console, "error")
-        .mockImplementation(() => {});
-
+    it("surfaces errors from the API", async () => {
+      const teamId = "team-error";
       mockApi.get.mockRejectedValue(new Error("Network error"));
 
       const { result } = renderHook(() => useTeamBoardPosts(teamId), {
@@ -194,272 +223,14 @@ describe("use-team-board", () => {
       });
 
       expect(result.current.error).toBeTruthy();
-
-      errorSpy.mockRestore();
-    });
-
-    it("uses email when user has no firstname/lastname", async () => {
-      const teamId = "team-email-fallback";
-
-      mockApi.get.mockImplementation((url: string) => {
-        if (url.includes("/posts")) {
-          return Promise.resolve({
-            data: {
-              posts: [
-                {
-                  id: "post-1",
-                  teamId: "team-email-fallback",
-                  authorUserId: "user-no-name",
-                  authorRole: "MEMBER",
-                  title: "Test Post",
-                  body: "Test body",
-                  scope: "Members",
-                  createdAt: "2026-02-08T10:00:00Z",
-                },
-              ],
-              totalElements: 1,
-              pageNumber: 0,
-              pageSize: 50,
-              hasNext: false,
-            },
-          });
-        }
-        if (url.includes("/user/id/")) {
-          return Promise.resolve({
-            data: {
-              id: "user-no-name",
-              firstname: "",
-              lastname: "",
-              email: "user@example.com",
-            },
-          });
-        }
-        return Promise.reject(new Error("Unknown URL"));
-      });
-
-      const { result } = renderHook(() => useTeamBoardPosts(teamId), {
-        wrapper: createWrapper(),
-      });
-
-      await waitFor(() => {
-        expect(result.current.isSuccess).toBe(true);
-      });
-
-      expect(result.current.data?.[0]?.authorName).toBe("user@example.com");
-    });
-
-    it("falls back to Unknown User when user fetch fails", async () => {
-      const teamId = "team-user-fetch-error";
-      const errorSpy = jest
-        .spyOn(console, "error")
-        .mockImplementation(() => {});
-
-      mockApi.get.mockImplementation((url: string) => {
-        if (url.includes("/posts")) {
-          return Promise.resolve({
-            data: {
-              posts: [
-                {
-                  id: "post-1",
-                  teamId: "team-user-fetch-error",
-                  authorUserId: "user-error",
-                  authorRole: "MEMBER",
-                  title: "Test Post",
-                  body: "Test body",
-                  scope: "Members",
-                  createdAt: "2026-02-08T10:00:00Z",
-                },
-              ],
-              totalElements: 1,
-              pageNumber: 0,
-              pageSize: 50,
-              hasNext: false,
-            },
-          });
-        }
-        if (url.includes("/user/id/")) {
-          return Promise.reject(new Error("User not found"));
-        }
-        return Promise.reject(new Error("Unknown URL"));
-      });
-
-      const { result } = renderHook(() => useTeamBoardPosts(teamId), {
-        wrapper: createWrapper(),
-      });
-
-      await waitFor(() => {
-        expect(result.current.isSuccess).toBe(true);
-      });
-
-      expect(result.current.data?.[0]?.authorName).toBe("Unknown User");
-
-      errorSpy.mockRestore();
-    });
-
-    it("handles user data with no email", async () => {
-      const teamId = "team-no-email";
-
-      mockApi.get.mockImplementation((url: string) => {
-        if (url.includes("/posts")) {
-          return Promise.resolve({
-            data: {
-              posts: [
-                {
-                  id: "post-1",
-                  teamId: "team-no-email",
-                  authorUserId: "user-no-email",
-                  authorRole: "MEMBER",
-                  title: "Test Post",
-                  body: "Test body",
-                  scope: "Members",
-                  createdAt: "2026-02-08T10:00:00Z",
-                },
-              ],
-              totalElements: 1,
-              pageNumber: 0,
-              pageSize: 50,
-              hasNext: false,
-            },
-          });
-        }
-        if (url.includes("/user/id/")) {
-          return Promise.resolve({
-            data: {
-              id: "user-no-email",
-              firstname: "",
-              lastname: "",
-              email: undefined,
-            },
-          });
-        }
-        return Promise.reject(new Error("Unknown URL"));
-      });
-
-      const { result } = renderHook(() => useTeamBoardPosts(teamId), {
-        wrapper: createWrapper(),
-      });
-
-      await waitFor(() => {
-        expect(result.current.isSuccess).toBe(true);
-      });
-
-      expect(result.current.data?.[0]?.authorName).toBe("Unknown User");
-    });
-
-    it("handles null response data from user service", async () => {
-      const teamId = "team-null-data";
-
-      mockApi.get.mockImplementation((url: string) => {
-        if (url.includes("/posts")) {
-          return Promise.resolve({
-            data: {
-              posts: [
-                {
-                  id: "post-1",
-                  teamId: "team-null-data",
-                  authorUserId: "user-null-data",
-                  authorRole: "MEMBER",
-                  title: "Test Post",
-                  body: "Test body",
-                  scope: "Members",
-                  createdAt: "2026-02-08T10:00:00Z",
-                },
-              ],
-              totalElements: 1,
-              pageNumber: 0,
-              pageSize: 50,
-              hasNext: false,
-            },
-          });
-        }
-        if (url.includes("/user/id/")) {
-          return Promise.resolve({
-            data: null,
-          });
-        }
-        return Promise.reject(new Error("Unknown URL"));
-      });
-
-      const { result } = renderHook(() => useTeamBoardPosts(teamId), {
-        wrapper: createWrapper(),
-      });
-
-      await waitFor(() => {
-        expect(result.current.isSuccess).toBe(true);
-      });
-
-      expect(result.current.data?.[0]?.authorName).toBe("Unknown User");
-    });
-
-    it("uses Unknown User fallback when userNameMap has empty string", async () => {
-      const teamId = "team-empty-name";
-
-      mockApi.get.mockImplementation((url: string) => {
-        if (url.includes("/posts")) {
-          return Promise.resolve({
-            data: {
-              posts: [
-                {
-                  id: "post-1",
-                  teamId: "team-empty-name",
-                  authorUserId: "user-empty",
-                  authorRole: "MEMBER",
-                  title: "Test Post",
-                  body: "Test body",
-                  scope: "Members",
-                  createdAt: "2026-02-08T10:00:00Z",
-                },
-              ],
-              totalElements: 1,
-              pageNumber: 0,
-              pageSize: 50,
-              hasNext: false,
-            },
-          });
-        }
-        if (url.includes("/user/id/")) {
-          return Promise.resolve({
-            data: {
-              id: "user-empty",
-              firstname: " ",
-              lastname: " ",
-              email: "",
-            },
-          });
-        }
-        return Promise.reject(new Error("Unknown URL"));
-      });
-
-      const { result } = renderHook(() => useTeamBoardPosts(teamId), {
-        wrapper: createWrapper(),
-      });
-
-      await waitFor(() => {
-        expect(result.current.isSuccess).toBe(true);
-      });
-
-      expect(result.current.data?.[0]?.authorName).toBe("Unknown User");
     });
   });
 
   describe("useCreateBoardPost", () => {
-    it("creates a post successfully", async () => {
+    it("creates a post and invalidates cache", async () => {
       const teamId = "team-create";
-
-      mockApi.post.mockResolvedValue({
-        data: {
-          id: "post-new",
-          teamId: "team-create",
-          authorUserId: "user-1",
-          authorRole: "MANAGER",
-          title: "Test Post",
-          body: "Test body content",
-          scope: "Members",
-          createdAt: "2026-02-08T10:00:00Z",
-        },
-      });
-
       const wrapper = createWrapper();
+      const invalidateSpy = jest.spyOn(queryClient, "invalidateQueries");
 
       const { result: createResult } = renderHook(
         () => useCreateBoardPost(teamId),
@@ -468,9 +239,9 @@ describe("use-team-board", () => {
 
       const payload: CreateBoardPostRequest = {
         spaceId: teamId,
-        title: "Test Post",
+        title: "New Post",
         scope: "Members",
-        body: "Test body content",
+        body: "Post body",
       };
 
       createResult.current.mutate(payload);
@@ -482,63 +253,20 @@ describe("use-team-board", () => {
       expect(mockApi.post).toHaveBeenCalledWith(
         `/api/v1/teams/${teamId}/posts`,
         {
-          title: "Test Post",
-          teamId: teamId,
-          body: "Test body content",
+          title: "New Post",
+          teamId,
+          body: "Post body",
           scope: "Members",
         },
       );
+      expect(invalidateSpy).toHaveBeenCalledWith({
+        queryKey: ["team-board", teamId],
+      });
     });
 
-    it("creates posts with different scopes", async () => {
-      const teamId = "team-scopes";
-
-      mockApi.post.mockResolvedValue({
-        data: {
-          id: "post-new",
-          teamId: "team-scopes",
-          authorUserId: "user-1",
-          authorRole: "MANAGER",
-          title: "Public Post",
-          body: "Public content",
-          scope: "Everyone",
-          createdAt: "2026-02-08T10:00:00Z",
-        },
-      });
-
+    it("handles creation errors", async () => {
+      const teamId = "team-create-error";
       const wrapper = createWrapper();
-
-      const { result: createResult } = renderHook(
-        () => useCreateBoardPost(teamId),
-        { wrapper },
-      );
-
-      createResult.current.mutate({
-        spaceId: teamId,
-        title: "Public Post",
-        scope: "Everyone",
-        body: "Public content",
-      });
-
-      await waitFor(() => {
-        expect(createResult.current.isSuccess).toBe(true);
-      });
-
-      expect(mockApi.post).toHaveBeenCalledWith(
-        `/api/v1/teams/${teamId}/posts`,
-        expect.objectContaining({
-          scope: "Everyone",
-        }),
-      );
-    });
-
-    it("handles creation errors gracefully", async () => {
-      const teamId = "team-error-create";
-      const wrapper = createWrapper();
-      const errorSpy = jest
-        .spyOn(console, "error")
-        .mockImplementation(() => {});
-
       mockApi.post.mockRejectedValue(new Error("Creation failed"));
 
       const { result: createResult } = renderHook(
@@ -550,7 +278,7 @@ describe("use-team-board", () => {
         spaceId: teamId,
         title: "Test",
         scope: "Members",
-        body: "Test body",
+        body: "Body",
       });
 
       await waitFor(() => {
@@ -558,19 +286,15 @@ describe("use-team-board", () => {
       });
 
       expect(createResult.current.error).toBeTruthy();
-
-      errorSpy.mockRestore();
     });
   });
 
   describe("useDeleteBoardPost", () => {
-    it("deletes a post successfully", async () => {
+    it("deletes a post and invalidates cache", async () => {
       const teamId = "team-delete";
       const postId = "post-123";
-
-      mockApi.delete.mockResolvedValue({ data: {} });
-
       const wrapper = createWrapper();
+      const invalidateSpy = jest.spyOn(queryClient, "invalidateQueries");
 
       const { result } = renderHook(() => useDeleteBoardPost(teamId), {
         wrapper,
@@ -585,16 +309,14 @@ describe("use-team-board", () => {
       expect(mockApi.delete).toHaveBeenCalledWith(
         `/api/v1/teams/${teamId}/posts/${postId}`,
       );
-      expect(result.current.status).toBe("success");
+      expect(invalidateSpy).toHaveBeenCalledWith({
+        queryKey: ["team-board", teamId],
+      });
     });
 
-    it("handles deletion errors gracefully", async () => {
+    it("handles deletion errors", async () => {
       const teamId = "team-delete-error";
       const wrapper = createWrapper();
-      const errorSpy = jest
-        .spyOn(console, "error")
-        .mockImplementation(() => {});
-
       mockApi.delete.mockRejectedValue(new Error("Deletion failed"));
 
       const { result } = renderHook(() => useDeleteBoardPost(teamId), {
@@ -608,8 +330,6 @@ describe("use-team-board", () => {
       });
 
       expect(result.current.error).toBeTruthy();
-
-      errorSpy.mockRestore();
     });
   });
 });

@@ -54,12 +54,13 @@ interface League {
 }
 
 interface UpdateLeaguePayload {
-readonly name: string;
-readonly sport: string;
-readonly region: string;
-readonly location: string;
-readonly level: string;
-readonly privacy: "PUBLIC" | "PRIVATE";
+  readonly name: string;
+  readonly sport: string;
+  readonly region: string;
+  readonly location: string;
+  readonly logoUrl?: string;
+  readonly level: string;
+  readonly privacy: "PUBLIC" | "PRIVATE";
 }
 
 export function useUpdateTeam(

@@ -2,7 +2,9 @@ package com.game.on.go_league_service.league.service;
 
 import com.game.on.go_league_service.client.TeamClient;
 import com.game.on.go_league_service.client.dto.TeamMembershipResponse;
+import com.game.on.go_league_service.client.dto.TeamSummaryResponse;
 import com.game.on.go_league_service.config.CurrentUserProvider;
+import com.game.on.go_league_service.exception.BadRequestException;
 import com.game.on.go_league_service.exception.ConflictException;
 import com.game.on.go_league_service.exception.ForbiddenException;
 import com.game.on.go_league_service.exception.NotFoundException;
@@ -48,7 +50,8 @@ public class LeagueInviteService {
         var league = requireActiveLeague(leagueId);
         ensureLeagueOwner(league, userId);
 
-        ensureTeamExists(request.teamId());
+        var team = requireTeam(request.teamId());
+        ensureSportCompatibility(league, team);
         ensureTeamNotInLeague(leagueId, request.teamId());
 
         leagueTeamInviteRepository.findByLeague_IdAndTeamIdAndStatus(
@@ -154,9 +157,9 @@ public class LeagueInviteService {
         }
     }
 
-    private void ensureTeamExists(UUID teamId) {
+    private TeamSummaryResponse requireTeam(UUID teamId) {
         try {
-            teamClient.getTeam(teamId);
+            return teamClient.getTeam(teamId);
         } catch (FeignException.NotFound ex) {
             throw new NotFoundException("Team not found");
         } catch (FeignException.Unauthorized ex) {
@@ -167,6 +170,18 @@ public class LeagueInviteService {
             log.error("Team service call failed. status={}, body={}", ex.status(), ex.contentUTF8(), ex);
             throw ex;
         }
+    }
+
+    private void ensureSportCompatibility(League league, TeamSummaryResponse team) {
+        var leagueSport = normalizeSport(league.getSport());
+        var teamSport = normalizeSport(team.sport());
+        if (leagueSport == null || teamSport == null || !leagueSport.equals(teamSport)) {
+            throw new BadRequestException("Team sport does not match league sport");
+        }
+    }
+
+    private String normalizeSport(String sport) {
+        return sport == null ? null : sport.trim().toLowerCase();
     }
 
     private void ensureTeamAdmin(UUID teamId) {

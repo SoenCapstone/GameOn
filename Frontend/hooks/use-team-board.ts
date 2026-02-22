@@ -1,15 +1,17 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { createScopedLog } from "@/utils/logger";
-import { AxiosInstance } from "axios";
 import {
   BoardPost,
   CreateBoardPostRequest,
 } from "@/components/board/board-types";
 import {
   useAxiosWithClerk,
-  GO_USER_SERVICE_ROUTES,
   GO_TEAM_SERVICE_ROUTES,
 } from "@/hooks/use-axios-clerk";
+import {
+  fetchUserNameMap,
+  mapToFrontendPost,
+} from "@/components/board/board-utils";
 
 const log = createScopedLog("Team Board");
 
@@ -34,39 +36,6 @@ type TeamPostListResponse = {
   hasNext: boolean;
 };
 
-async function fetchUserNameMap(
-  api: AxiosInstance,
-  userIds: string[],
-): Promise<Record<string, string>> {
-  const entries = await Promise.all(
-    userIds.map(async (userId) => {
-      try {
-        const resp = await api.get(GO_USER_SERVICE_ROUTES.BY_ID(userId));
-        const first = resp.data?.firstname ?? "";
-        const last = resp.data?.lastname ?? "";
-        const full = `${first} ${last}`.trim();
-        return [userId, full || resp.data?.email || "Unknown User"] as const;
-      } catch (err) {
-        log.error("Failed to fetch user info", { userId, error: err });
-        return [userId, "Unknown User"] as const;
-      }
-    }),
-  );
-  return Object.fromEntries(entries);
-}
-
-const mapToFrontendPost = (
-  backendPost: TeamPostResponse,
-  userNameMap: Record<string, string>,
-): BoardPost => ({
-  id: backendPost.id,
-  authorName: userNameMap[backendPost.authorUserId] || "Unknown User",
-  title: backendPost.title,
-  scope: backendPost.scope,
-  body: backendPost.body,
-  createdAt: backendPost.createdAt,
-});
-
 export function useTeamBoardPosts(teamId: string) {
   const api = useAxiosWithClerk();
 
@@ -82,17 +51,17 @@ export function useTeamBoardPosts(teamId: string) {
               page: 0,
               size: 50,
             },
-          }
+          },
         );
 
         const uniqueAuthorIds = [
           ...new Set(response.data.posts.map((post) => post.authorUserId)),
         ];
 
-        const userNameMap = await fetchUserNameMap(api, uniqueAuthorIds);
+        const userNameMap = await fetchUserNameMap(api, uniqueAuthorIds, log);
 
         const posts = response.data.posts.map((post) =>
-          mapToFrontendPost(post, userNameMap)
+          mapToFrontendPost(post, userNameMap),
         );
 
         log.info("Fetched board posts with author names", {
@@ -130,7 +99,7 @@ export function useCreateBoardPost(teamId: string) {
           teamId: teamId,
           body: payload.body,
           scope: payload.scope,
-        }
+        },
       );
 
       log.info("Created board post", {
@@ -157,7 +126,7 @@ export function useDeleteBoardPost(teamId: string) {
   return useMutation({
     mutationFn: async (postId: string) => {
       log.info("Deleting board post", { postId, teamId });
-      await api.delete(GO_TEAM_SERVICE_ROUTES.DELETE_TEAM_POST(teamId, postId));
+      await api.delete(GO_TEAM_SERVICE_ROUTES.TEAM_POST(teamId, postId));
       log.info("Deleted board post", { postId, teamId });
     },
     onSuccess: async () => {

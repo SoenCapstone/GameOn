@@ -8,10 +8,8 @@ import { Form } from "@/components/form/form";
 import { Header } from "@/components/header/header";
 import { Button } from "@/components/ui/button";
 import { PageTitle } from "@/components/header/page-title";
-import {
-  handleSaveProfile,
-  pickImage,
-} from "@/components/user-profile/profile-utils";
+import { handleSaveProfile } from "@/components/user-profile/profile-utils";
+import { pickImage } from "@/utils/pick-image";
 
 function EditProfileHeader({ onSave }: Readonly<{ onSave: () => void }>) {
   return (
