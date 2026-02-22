@@ -1,24 +1,16 @@
 import { useCallback, useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, type UseQueryOptions } from "@tanstack/react-query";
 import { useAuth } from "@clerk/clerk-expo";
-import {
-  useAxiosWithClerk,
-  GO_TEAM_SERVICE_ROUTES,
-} from "@/hooks/use-axios-clerk";
+import { useAxiosWithClerk, GO_TEAM_SERVICE_ROUTES } from "@/hooks/use-axios-clerk";
 import { createScopedLog } from "@/utils/logger";
 
 const log = createScopedLog("Team Detail");
 
-export function useTeamDetail(id: string) {
-  const [refreshing, setRefreshing] = useState(false);
-  const api = useAxiosWithClerk();
-  const { userId } = useAuth();
-
-  const {
-    data: team,
-    isLoading,
-    refetch,
-  } = useQuery({
+export function teamDetailQueryOptions(
+  api: ReturnType<typeof useAxiosWithClerk>,
+  id: string,
+): UseQueryOptions<any> {
+  return {
     queryKey: ["team", id],
     queryFn: async () => {
       try {
@@ -29,19 +21,29 @@ export function useTeamDetail(id: string) {
         throw err;
       }
     },
-    enabled: !!id,
+    enabled: Boolean(id),
     retry: false,
     refetchOnWindowFocus: false,
-  });
+  };
+}
+
+export function useTeamDetail(id: string) {
+  const [refreshing, setRefreshing] = useState(false);
+  const api = useAxiosWithClerk();
+  const { userId } = useAuth();
 
   const {
-    data: membership,
-  } = useQuery({
+    data: team,
+    isLoading,
+    refetch,
+  } = useQuery(teamDetailQueryOptions(api, id));
+
+  const { data: membership } = useQuery({
     queryKey: ["team-membership", id, userId],
     queryFn: async () => {
       try {
         const resp = await api.get(
-          `${GO_TEAM_SERVICE_ROUTES.ALL}/${id}/memberships/me`
+          `${GO_TEAM_SERVICE_ROUTES.ALL}/${id}/memberships/me`,
         );
         return resp.data;
       } catch (err) {
