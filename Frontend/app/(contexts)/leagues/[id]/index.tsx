@@ -42,6 +42,17 @@ const TAB_LABELS: Record<LeagueTab, string> = {
   teams: "Teams",
 };
 
+type LeagueTab = "board" | "matches" | "teams";
+
+// NOTE: order matters (index mapping for SegmentedControl)
+const LEAGUE_TABS: readonly LeagueTab[] = ["board", "matches", "teams"] as const;
+
+const TAB_LABELS: Record<LeagueTab, string> = {
+  board: "Board",
+  matches: "Matches",
+  teams: "Teams",
+};
+
 export default function LeagueScreen() {
   const params = useLocalSearchParams<{ id?: string | string[] }>();
   const rawId = params.id;
@@ -189,6 +200,15 @@ function LeagueContent() {
               }}
               onMatchPress={(matchId) => router.push(`/leagues/${id}/matches/${matchId}`)}
             />
+            )}
+
+            {tab === "teams" && (
+              <LeagueBrowserTeams
+                leagueId={id}
+                leagueTeams={leagueTeams ?? []}
+                teamsFetching={Boolean(isLeagueTeamsLoading)}
+                leagueTeamsError={leagueTeamsError}
+              />
             )}
 
             {tab === "teams" && (
