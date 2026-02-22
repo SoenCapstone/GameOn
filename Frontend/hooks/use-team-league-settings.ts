@@ -30,6 +30,7 @@ interface Team {
   readonly sport: string;
   readonly scope: string;
   readonly location: string;
+  readonly allowedRegions: string[];
   readonly logoUrl: string;
   readonly privacy: "PUBLIC" | "PRIVATE";
 }
@@ -40,6 +41,7 @@ interface UpdateTeamPayload {
   readonly scope: string;
   readonly logoUrl: string;
   readonly location: string;
+  readonly allowedRegions: string[];
   readonly privacy: "PUBLIC" | "PRIVATE";
 }
 

@@ -2,6 +2,7 @@ import { Form } from "@/components/form/form";
 import { Button } from "@/components/ui/button";
 import { images } from "@/constants/images";
 import { PickedLogo } from "@/utils/team-league-form";
+import { StyleSheet, Text } from "react-native";
 import {
   cityOptions,
   getCityByLabel,
@@ -17,6 +18,7 @@ interface TeamFormValues {
   readonly selectedSport: Option | null;
   readonly selectedScope: Option;
   readonly selectedCity: Option | null;
+  readonly selectedAllowedRegions: string[];
 }
 
 interface TeamFormLogo {
@@ -29,6 +31,7 @@ interface TeamFormOnChange {
   readonly onSportChange: (sport: Option | null) => void;
   readonly onScopeChange: (scope: Option) => void;
   readonly onCityChange: (city: Option | null) => void;
+  readonly onAllowedRegionsChange: (regions: string[]) => void;
   readonly onPickLogo: () => void;
   readonly onRemoveLogo: () => void;
 }
@@ -37,9 +40,15 @@ interface TeamFormProps {
   readonly values: TeamFormValues;
   readonly logo: TeamFormLogo;
   readonly onChange: TeamFormOnChange;
+  readonly allowedRegionsError?: string;
 }
 
-export function TeamForm({ values, logo, onChange }: Readonly<TeamFormProps>) {
+export function TeamForm({
+  values,
+  logo,
+  onChange,
+  allowedRegionsError,
+}: Readonly<TeamFormProps>) {
   const pickedLogoImage = logo.pickedLogo
     ? { uri: logo.pickedLogo.uri }
     : undefined;
@@ -108,6 +117,29 @@ export function TeamForm({ values, logo, onChange }: Readonly<TeamFormProps>) {
           }}
         />
       </Form.Section>
+
+      <Form.Section
+        header="Allowed Regions"
+        footer="Select the cities/regions where your team can play. This is required to schedule team matches."
+      >
+        <Form.Multiselect
+          options={cityOptions}
+          selected={values.selectedAllowedRegions}
+          onSelected={onChange.onAllowedRegionsChange}
+        />
+        {allowedRegionsError ? (
+          <Text style={styles.errorText}>{allowedRegionsError}</Text>
+        ) : null}
+      </Form.Section>
     </>
   );
 }
+
+const styles = StyleSheet.create({
+  errorText: {
+    marginHorizontal: 16,
+    color: "#ffb5b5",
+    fontSize: 13,
+    lineHeight: 18,
+  },
+});
