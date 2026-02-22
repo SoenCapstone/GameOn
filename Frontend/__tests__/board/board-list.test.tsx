@@ -4,13 +4,12 @@ import { BoardList } from "@/components/board/board-list";
 import { BoardPost } from "@/components/board/board-types";
 
 jest.mock("react-native-context-menu-view", () => {
-  const mockReact = require("react");
-  const { View } = require("react-native");
-
+  const mockReact = jest.requireActual("react");
+  const { View: MockView } = jest.requireActual("react-native");
   return {
     __esModule: true,
     default: ({ children, ...props }: any) =>
-      mockReact.createElement(View, props, children),
+      mockReact.createElement(MockView, props, children),
   };
 });
 
@@ -30,6 +29,7 @@ jest.mock("@/components/board/post", () => ({
 }));
 
 jest.mock("@legendapp/list", () => {
+  const mockReact = jest.requireActual("react");
   return {
     LegendList: ({
       data,
@@ -38,7 +38,6 @@ jest.mock("@legendapp/list", () => {
       ListEmptyComponent,
       onContentSizeChange,
     }: any) => {
-      const mockReact = require("react");
       const items = data?.length
         ? data.map((item: any, index: number) => {
             const key = keyExtractor ? keyExtractor(item, index) : index;
@@ -59,9 +58,9 @@ jest.mock("@legendapp/list", () => {
 });
 
 jest.mock("expo-glass-effect", () => {
+  const mockReact = jest.requireActual("react");
   return {
     GlassView: ({ children }: any) => {
-      const mockReact = require("react");
       return mockReact.createElement("View", null, children);
     },
   };
