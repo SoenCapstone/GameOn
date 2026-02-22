@@ -92,7 +92,8 @@ export function useTeamsByIds(teamIds: string[]) {
             const resp = await api.get(`${GO_TEAM_SERVICE_ROUTES.ALL}/${teamId}`);
             const team = resp.data as TeamSummary;
             return [teamId, team] as const;
-          } catch {
+          } catch (err) {
+            log.warn("Failed to fetch team summary by id", { teamId, err });
             return [teamId, { id: teamId, name: "Team" }] as const;
           }
         }),
@@ -109,16 +110,19 @@ export function useReferees(params?: {
   region?: string;
   active?: boolean;
   matchId?: string;
+  enabled?: boolean;
 }) {
   const api = useAxiosWithClerk();
+  const { enabled = true, ...queryParams } = params ?? {};
   return useQuery<RefereeProfile[]>({
-    queryKey: ["referees", params?.sport ?? "", params?.region ?? "", params?.active ?? true, params?.matchId ?? ""],
+    queryKey: ["referees", queryParams.sport ?? "", queryParams.region ?? "", queryParams.active ?? true, queryParams.matchId ?? ""],
     queryFn: async () => {
       const resp = await api.get(GO_REFEREE_ROUTES.ALL, {
-        params,
+        params: queryParams,
       });
       return resp.data ?? [];
     },
+    enabled,
     retry: false,
   });
 }
@@ -293,7 +297,8 @@ export async function fetchIncomingTeamMatchInvites(
       try {
         const resp = await api.get(`${GO_TEAM_SERVICE_ROUTES.ALL}/${team.id}`);
         return resp.data as TeamSummary;
-      } catch {
+      } catch (err) {
+        log.warn("Failed to fetch detailed team for owner check", { teamId: team.id, err });
         return team;
       }
     }),
@@ -362,7 +367,8 @@ export async function fetchIncomingRefereeInvites(
       try {
         const matchResp = await api.get<TeamMatch>(GO_MATCH_ROUTES.GET(invite.matchId));
         return { invite, match: matchResp.data } as const;
-      } catch {
+      } catch (err) {
+        log.warn("Failed to fetch match for referee invite", { inviteId: invite.id, err });
         return null;
       }
     }),
@@ -393,7 +399,8 @@ async function fetchTeamsByIds(api: AxiosInstance, teamIds: string[]) {
       try {
         const resp = await api.get(`${GO_TEAM_SERVICE_ROUTES.ALL}/${teamId}`);
         return resp.data as TeamSummary;
-      } catch {
+      } catch (err) {
+        log.warn("Failed to fetch team by id", { teamId, err });
         return { id: teamId, name: "Team" } as TeamSummary;
       }
     }),

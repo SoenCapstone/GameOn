@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useLayoutEffect, useMemo, useState } from "react";
 import { Text, View, Alert } from "react-native";
 import { useLocalSearchParams, useNavigation, useRouter } from "expo-router";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQueryClient } from "@tanstack/react-query";
 import { Header } from "@/components/header/header";
 import { PageTitle } from "@/components/header/page-title";
 import { Button } from "@/components/ui/button";
@@ -18,7 +18,7 @@ import {
 import { buildStartEndIso, isValidTimeRange } from "@/features/matches/utils";
 import { toast } from "@/components/sign-up/utils";
 import { createScopedLog } from "@/utils/logger";
-import { GO_USER_SERVICE_ROUTES, useAxiosWithClerk } from "@/hooks/use-axios-clerk";
+import { useRefereeOptions } from "@/hooks/use-referee-options";
 
 const log = createScopedLog("Schedule League Match");
 
@@ -37,7 +37,6 @@ export default function ScheduleLeagueMatchScreen() {
   const navigation = useNavigation();
   const router = useRouter();
   const queryClient = useQueryClient();
-  const api = useAxiosWithClerk();
 
   const [homeTeamId, setHomeTeamId] = useState("");
   const [awayTeamId, setAwayTeamId] = useState("");
@@ -73,65 +72,8 @@ export default function ScheduleLeagueMatchScreen() {
     [teams],
   );
   const teamOptions = teams.map((team) => team.name);
-  const refereeIds = useMemo(
-    () => (refereesQuery.data ?? []).map((ref) => ref.userId),
-    [refereesQuery.data],
-  );
-
-  const refereeNamesQuery = useQuery<Record<string, string>>({
-    queryKey: ["referee-name-map", refereeIds.join(",")],
-    queryFn: async () => {
-      const entries = await Promise.all(
-        refereeIds.map(async (userId) => {
-          try {
-            const resp = await api.get(GO_USER_SERVICE_ROUTES.BY_ID(userId));
-            const first = resp.data?.firstname ?? "";
-            const last = resp.data?.lastname ?? "";
-            const fullName = `${first} ${last}`.trim();
-            return [userId, fullName || userId] as const;
-          } catch {
-            return [userId, userId] as const;
-          }
-        }),
-      );
-      return Object.fromEntries(entries);
-    },
-    enabled: refereeIds.length > 0,
-    retry: false,
-  });
-
-  const labeledReferees = useMemo(() => {
-    const labels = refereeIds.map((id) => refereeNamesQuery.data?.[id] ?? id);
-    const counts = labels.reduce<Record<string, number>>((acc, label) => {
-      acc[label] = (acc[label] ?? 0) + 1;
-      return acc;
-    }, {});
-
-    return refereeIds.map((id, index) => {
-      const baseLabel = labels[index];
-      const label =
-        counts[baseLabel] > 1 ? `${baseLabel} (${id.slice(0, 8)})` : baseLabel;
-      return { id, label };
-    });
-  }, [refereeIds, refereeNamesQuery.data]);
-
-  const refereeOptions = useMemo(
-    () => labeledReferees.map((item) => item.label),
-    [labeledReferees],
-  );
-  const refereeLabelToId = useMemo(
-    () =>
-      Object.fromEntries(
-        labeledReferees.map((item) => [item.label, item.id]),
-      ),
-    [labeledReferees],
-  );
-  const refereeIdToLabel = useMemo(
-    () =>
-      Object.fromEntries(
-        labeledReferees.map((item) => [item.id, item.label]),
-      ),
-    [labeledReferees],
+  const { refereeOptions, refereeLabelToId, refereeIdToLabel } = useRefereeOptions(
+    refereesQuery.data,
   );
 
   useEffect(() => {
