@@ -25,7 +25,7 @@ type Props = Readonly<{
 type TeamDetail = Readonly<{
   id: string;
   name: string;
-  sport: unknown | null;
+  sport: string | null;
   location: string | null;
   logoUrl: string | null;
 }>;
