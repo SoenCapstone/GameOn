@@ -7,7 +7,6 @@ import {
   StyleSheet,
 } from "react-native";
 import { useLocalSearchParams, useRouter } from "expo-router";
-import SegmentedControl from "@react-native-segmented-control/segmented-control";
 import { ContentArea } from "@/components/ui/content-area";
 import { getSportLogo } from "@/components/browse/utils";
 import { Button } from "@/components/ui/button";
@@ -23,6 +22,7 @@ import {
 import { BoardList } from "@/components/board/board-list";
 import { useDetailPageHandlers } from "@/hooks/use-detail-page-handlers";
 import { createScopedLog } from "@/utils/logger";
+import { Tabs } from "@/components/ui/tabs";
 
 export default function LeagueScreen() {
   const params = useLocalSearchParams<{ id?: string | string[] }>();
@@ -37,7 +37,9 @@ export default function LeagueScreen() {
 }
 
 function LeagueContent() {
-  const [tab, setTab] = useState<"board" | "matches">("board");
+  const [tab, setTab] = useState<"board" | "matches" | "standings" | "teams">(
+    "board",
+  );
   const router = useRouter();
   const log = createScopedLog("League Page");
 
@@ -74,14 +76,21 @@ function LeagueContent() {
     },
   );
 
-  const getTabFromSegmentValue = (value: string): "board" | "matches" => {
+  const getTabFromSegmentValue = (
+    value: string,
+  ): "board" | "matches" | "standings" | "teams" => {
     if (value === "Board") return "board";
-    return "matches";
+    if (value === "Matches") return "matches";
+    if (value === "Standings") return "standings";
+
+    return "teams";
   };
 
   const getSelectedIndex = (): number => {
     if (tab === "board") return 0;
-    return 1;
+    if (tab === "matches") return 1;
+    if (tab === "standings") return 2;
+    return 3;
   };
 
   return (
@@ -89,7 +98,7 @@ function LeagueContent() {
       <ContentArea
         scrollable
         paddingBottom={20}
-        segmentedControl
+        tabs
         backgroundProps={{ preset: "red" }}
         refreshControl={
           <RefreshControl
@@ -99,15 +108,14 @@ function LeagueContent() {
           />
         }
       >
-        <SegmentedControl
-          values={["Board", "Matches"]}
+        <Tabs
+          values={["Board", "Matches", "Standings", "Teams"]}
           selectedIndex={getSelectedIndex()}
           onValueChange={(value) => {
             const newTab = getTabFromSegmentValue(value);
             setTab(newTab);
             log.info("Tab changed", { tab: newTab });
           }}
-          style={{ height: 40 }}
         />
 
         {isLoading ? (

@@ -21,7 +21,7 @@ import { KeyboardAwareScrollView } from "react-native-keyboard-controller";
 interface ContentAreaProps {
   readonly children: ReactNode;
   readonly backgroundProps?: ComponentProps<typeof Background>;
-  readonly segmentedControl?: boolean;
+  readonly tabs?: boolean;
   readonly scrollable?: boolean;
   readonly paddingBottom?: number;
   readonly style?: StyleProp<ViewStyle>;
@@ -37,7 +37,7 @@ interface ContentAreaProps {
 export function ContentArea({
   children,
   backgroundProps,
-  segmentedControl,
+  tabs,
   scrollable,
   paddingBottom,
   style,
@@ -69,7 +69,7 @@ export function ContentArea({
         style,
       ]}
       {...(scrollable && refreshControl ? { refreshControl } : {})}
-      {...(segmentedControl ? { stickyHeaderIndices: [0] } : {})}
+      {...(tabs ? { stickyHeaderIndices: [0] } : {})}
     >
       {children}
     </Container>
