@@ -114,6 +114,20 @@ export const GO_LEAGUE_SERVICE_ROUTES = {
     buildRoute(VERSIONING.v1, SERVICE.LEAGUES, `${leagueId}/posts`),
   LEAGUE_POST: (leagueId: string, postId: string) =>
     buildRoute(VERSIONING.v1, SERVICE.LEAGUES, `${leagueId}/posts/${postId}`),
+  MATCHES: (leagueId: string) =>
+    buildRoute(VERSIONING.v1, SERVICE.LEAGUES, `${leagueId}/matches`),
+  CREATE_MATCH: (leagueId: string) =>
+    buildRoute(VERSIONING.v1, SERVICE.LEAGUES, `${leagueId}/matches/create-match`),
+  CANCEL_MATCH: (leagueId: string, matchId: string) =>
+    buildRoute(VERSIONING.v1, SERVICE.LEAGUES, `${leagueId}/matches/${matchId}/cancel`),
+  SCORE_MATCH: (leagueId: string, matchId: string) =>
+    buildRoute(VERSIONING.v1, SERVICE.LEAGUES, `${leagueId}/matches/${matchId}/score`),
+  ASSIGN_REFEREE: (leagueId: string, matchId: string) =>
+    buildRoute(
+      VERSIONING.v1,
+      SERVICE.LEAGUES,
+      `${leagueId}/matches/${matchId}/assign-referee`,
+    ),
 };
 
 const leagueInvitesBase = buildRoute(VERSIONING.v1, "league-invites");
