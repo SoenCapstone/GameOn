@@ -7,4 +7,8 @@ import java.util.List;
 
 public interface RefereeProfileRepository extends JpaRepository<RefereeProfile, String> {
     List<RefereeProfile> findByIsActive(boolean isActive);
+
+    RefereeProfile findByUserId(String userId);
+
+    boolean existsByUserId(String userId);
 }
