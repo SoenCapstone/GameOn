@@ -34,16 +34,6 @@ import { Card } from "@/components/ui/card";
 
 type LeagueTab = "board" | "matches" | "teams";
 
-const LEAGUE_TABS: readonly LeagueTab[] = ["board", "matches", "teams"] as const;
-
-const TAB_LABELS: Record<LeagueTab, string> = {
-  board: "Board",
-  matches: "Matches",
-  teams: "Teams",
-};
-
-type LeagueTab = "board" | "matches" | "teams";
-
 // NOTE: order matters (index mapping for SegmentedControl)
 const LEAGUE_TABS: readonly LeagueTab[] = ["board", "matches", "teams"] as const;
 
@@ -200,15 +190,6 @@ function LeagueContent() {
               }}
               onMatchPress={(matchId) => router.push(`/leagues/${id}/matches/${matchId}`)}
             />
-            )}
-
-            {tab === "teams" && (
-              <LeagueBrowserTeams
-                leagueId={id}
-                leagueTeams={leagueTeams ?? []}
-                teamsFetching={Boolean(isLeagueTeamsLoading)}
-                leagueTeamsError={leagueTeamsError}
-              />
             )}
 
             {tab === "teams" && (
