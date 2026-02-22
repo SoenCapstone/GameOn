@@ -1,4 +1,4 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useMemo } from "react";
 import {
   View,
   ActivityIndicator,
@@ -21,6 +21,13 @@ import { useTeamBoardPosts, useDeleteBoardPost } from "@/hooks/use-team-board";
 import { BoardList } from "@/components/board/board-list";
 import { errorToString } from "@/utils/error";
 import { createScopedLog } from "@/utils/logger";
+import { MatchListSections } from "@/components/matches/match-list-sections";
+import { useTeamMatches, useTeamsByIds } from "@/hooks/use-matches";
+import {
+  getMatchSection,
+  sortPastLatestFirst,
+  sortUpcomingFirst,
+} from "@/features/matches/utils";
 
 export default function Team() {
   const params = useLocalSearchParams<{ id?: string | string[] }>();
@@ -45,14 +52,13 @@ function TeamContent() {
     handleFollow,
     title,
     isMember,
+    isOwner,
     isActiveMember,
     role,
     team,
   } = useTeamDetailContext();
   const canManage =
-    (isActiveMember && role === "OWNER") ||
-    role === "COACH" ||
-    role === "MANAGER";
+    (isActiveMember && role === "OWNER") || role === "COACH" || role === "MANAGER";
   const log = createScopedLog("Team Page");
 
   const {
@@ -62,6 +68,58 @@ function TeamContent() {
   } = useTeamBoardPosts(id);
 
   const deletePostMutation = useDeleteBoardPost(id);
+
+  const {
+    data: matches = [],
+    isLoading: matchesLoading,
+    error: matchesError,
+    refetch: refetchMatches,
+  } = useTeamMatches(id);
+
+  const matchTeamIds = useMemo(
+    () =>
+      Array.from(
+        new Set(matches.flatMap((match) => [match.homeTeamId, match.awayTeamId])),
+      ),
+    [matches],
+  );
+  const matchTeamsQuery = useTeamsByIds(matchTeamIds);
+
+  const matchItems = useMemo(
+    () =>
+      matches.map((match) => {
+        const home = matchTeamsQuery.data?.[match.homeTeamId];
+        const away = matchTeamsQuery.data?.[match.awayTeamId];
+        const section = getMatchSection(
+          match.startTime,
+          match.endTime,
+          match.status,
+        );
+
+        return {
+          id: match.id,
+          homeName: home?.name ?? "Home Team",
+          awayName: away?.name ?? "Away Team",
+          homeLogoUrl: home?.logoUrl,
+          awayLogoUrl: away?.logoUrl,
+          sport: match.sport,
+          contextLabel: "Team Match",
+          status: match.status,
+          startTime: match.startTime,
+          section,
+          isPast: section === "past",
+        };
+      }),
+    [matchTeamsQuery.data, matches],
+  );
+
+  const currentMatches = sortUpcomingFirst(
+    matchItems.filter((match) => match.section === "current"),
+  );
+  const upcomingMatches = sortUpcomingFirst(
+    matchItems.filter((match) => match.section === "upcoming"),
+  );
+  const pastMatches = sortPastLatestFirst(matchItems.filter((match) => match.isPast));
 
   useTeamHeader({ title, id, isMember, onFollow: handleFollow });
 
@@ -111,15 +169,26 @@ function TeamContent() {
       if (tab === "board") {
         await refetchPosts();
         log.info("Board posts refreshed", { postCount: boardPosts.length });
-      } else {
-        log.info("Team data refreshed", { tab });
+      }
+      if (tab === "games") {
+        await Promise.all([refetchMatches(), matchTeamsQuery.refetch()]);
+        log.info("Team matches refreshed", { matchCount: matches.length });
       }
     } catch (err) {
       log.error("Refresh failed", { error: errorToString(err), tab });
     } finally {
       setRefreshing(false);
     }
-  }, [log, onRefresh, refetchPosts, tab, boardPosts.length]);
+  }, [
+    boardPosts.length,
+    log,
+    matchTeamsQuery,
+    matches.length,
+    onRefresh,
+    refetchMatches,
+    refetchPosts,
+    tab,
+  ]);
 
   return (
     <View style={{ flex: 1 }}>
@@ -161,9 +230,7 @@ function TeamContent() {
                 isLoading={postsLoading}
                 spaceName={team?.name ?? title}
                 spaceLogo={
-                  team?.logoUrl
-                    ? { uri: team.logoUrl }
-                    : getSportLogo(team?.sport)
+                  team?.logoUrl ? { uri: team.logoUrl } : getSportLogo(team?.sport)
                 }
                 onDeletePost={handleDeletePost}
                 canDelete={canManage}
@@ -172,9 +239,7 @@ function TeamContent() {
 
             {tab === "overview" && (
               <View>
-                <Text style={{ color: "white", padding: 16 }}>
-                  Overview content here
-                </Text>
+                <Text style={{ color: "white", padding: 16 }}>Overview content here</Text>
                 {canManage && (
                   <Button
                     type="custom"
@@ -186,14 +251,24 @@ function TeamContent() {
             )}
 
             {tab === "games" && (
-              <Text style={{ color: "white" }}>Games content here</Text>
+              <MatchListSections
+                current={currentMatches}
+                upcoming={upcomingMatches}
+                past={pastMatches}
+                isLoading={matchesLoading || matchTeamsQuery.isLoading}
+                errorText={matchesError ? "Could not load matches." : null}
+                onRetry={() => {
+                  refetchMatches();
+                  matchTeamsQuery.refetch();
+                }}
+                onMatchPress={(matchId) => router.push(`/teams/${id}/matches/${matchId}`)}
+              />
             )}
           </>
         )}
       </ContentArea>
 
-      {/* Create Post Button */}
-      {canManage && tab === "board" && (
+      {canManage && tab === "board" ? (
         <View
           style={{
             position: "absolute",
@@ -215,7 +290,23 @@ function TeamContent() {
             }
           />
         </View>
-      )}
+      ) : null}
+
+      {isOwner && tab === "games" ? (
+        <View
+          style={{
+            position: "absolute",
+            bottom: 20,
+            right: 20,
+          }}
+        >
+          <Button
+            type="custom"
+            icon="plus"
+            onPress={() => router.push(`/teams/${id}/matches/schedule`)}
+          />
+        </View>
+      ) : null}
     </View>
   );
 }
