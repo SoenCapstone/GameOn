@@ -1,10 +1,9 @@
 import React, { useCallback } from "react";
 import { ContentArea } from "@/components/ui/content-area";
-import { View, Text, RefreshControl, Alert } from "react-native";
+import { View, Text, RefreshControl, Alert, StyleSheet } from "react-native";
 import SegmentedControl from "@react-native-segmented-control/segmented-control";
 import { Card } from "@/components/ui/card";
 import { ButtonItem } from "@/components/form/button-item";
-import { styles, denyColor } from "@/components/teams/homepage-styles";
 import { AxiosInstance } from "axios";
 import { useAuth } from "@clerk/clerk-expo";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
@@ -21,6 +20,8 @@ import {
   LeagueInviteCard,
   LeaguePrivacy,
 } from "@/components/leagues/league-invite-utils";
+
+const denyColor = "rgba(255,255,255,0.75)";
 
 type TeamInviteCard = {
   kind: "team";
@@ -305,3 +306,32 @@ async function fetchUserNameMap(
   );
   return Object.fromEntries(entries);
 }
+
+const styles = StyleSheet.create({
+  container: {
+    alignItems: "center",
+  },
+  segmented: {
+    marginBottom: 16,
+    width: "90%",
+  },
+  cardWrap: {
+    width: "90%",
+    gap: 12,
+  },
+  teamName: {
+    color: "white",
+    fontSize: 16,
+    fontWeight: "700",
+  },
+  inviteText: {
+    color: "rgba(255,255,255,0.8)",
+    marginTop: 8,
+  },
+  actionsRow: {
+    flexDirection: "row",
+    gap: 12,
+    marginTop: 16,
+    justifyContent: "flex-end",
+  },
+});
