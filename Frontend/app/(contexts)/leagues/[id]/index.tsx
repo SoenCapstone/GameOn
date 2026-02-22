@@ -18,15 +18,15 @@ import {
 import { createScopedLog } from "@/utils/logger";
 import { errorToString } from "@/utils/error";
 
-type LeagueTab = "board" | "standings" | "browser";
+type LeagueTab = "board" | "standings" | "teams";
 
 // NOTE: order matters (this is used for index mapping)
-const LEAGUE_TABS: readonly LeagueTab[] = ["board", "standings", "browser"] as const;
+const LEAGUE_TABS: readonly LeagueTab[] = ["board", "standings", "teams"] as const;
 
 const TAB_LABELS: Record<LeagueTab, string> = {
   board: "Board",
   standings: "Standings",
-  browser: "Browse",
+  teams: "Teams",
 };
 
 export default function LeagueScreen() {
@@ -143,7 +143,7 @@ function LeagueContent() {
             </View>
           )}
 
-          {tab === "browser" && (
+          {tab === "teams" && (
             <LeagueBrowserTeams
               leagueId={id}
               leagueTeams={leagueTeams ?? []}
