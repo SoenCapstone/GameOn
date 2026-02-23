@@ -1,23 +1,16 @@
 package com.game.on.go_league_service.league.controller;
 
-import com.game.on.go_league_service.league.dto.RefInviteRequest;
-import com.game.on.go_league_service.league.dto.RefInviteResponse;
-import com.game.on.go_league_service.league.dto.RefereeProfileResponse;
-import com.game.on.go_league_service.league.dto.RefereeRegisterRequest;
+import com.game.on.go_league_service.league.dto.*;
+import com.game.on.go_league_service.league.model.RefereeProfile;
 import com.game.on.go_league_service.league.service.RefereeService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 @RestController
@@ -59,14 +52,51 @@ public class RefereeController {
     }
 
     @GetMapping("/referees/status")
-    public ResponseEntity<Boolean> isActiveReferee() {
+    public ResponseEntity<Map<String, Boolean>> getRefereeStatus() {
         boolean isReferee = refereeService.isReferee();
-        boolean isActive;
+        boolean isActive = false;
+
         if (isReferee) {
             isActive = refereeService.isActive();
-        } else {
-            return ResponseEntity.ok(isReferee);
         }
-        return ResponseEntity.ok(isActive);
+
+        Map<String, Boolean> status = Map.of(
+                "isReferee", isReferee,
+                "isActive", isActive
+        );
+
+        return ResponseEntity.ok(status);
     }
+
+    @GetMapping("/referees/profile")
+    public ResponseEntity<RefereeProfileResponse> getProfile() {
+        RefereeProfileResponse referee = refereeService.getByUserId();
+
+        return ResponseEntity.ok(referee);
+    }
+
+    @PutMapping("/referees/sports")
+    public ResponseEntity<Void> updateSports(
+            @Valid @RequestBody UpdateRefereeSportsRequest request
+    ) {
+        refereeService.updateSports(request.sports());
+        return ResponseEntity.noContent().build();
+    }
+
+    @PutMapping("/referees/regions")
+    public ResponseEntity<Void> updateRegions(
+            @Valid @RequestBody UpdateRefereeRegionsRequest request
+    ) {
+        refereeService.updateRegions(request.allowedRegions());
+        return ResponseEntity.noContent().build();
+    }
+
+    @PutMapping("/referees/status")
+    public ResponseEntity<Void> updateStatus(
+            @Valid @RequestBody UpdateRefereeStatusRequest request
+    ) {
+        refereeService.updateStatus(request.isActive());
+        return ResponseEntity.noContent().build();
+    }
+
 }
