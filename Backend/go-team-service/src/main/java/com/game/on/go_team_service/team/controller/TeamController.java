@@ -108,4 +108,9 @@ public class TeamController {
     public ResponseEntity<UUID> createPlay(@Valid @RequestBody List<PlayItemDTO> items) {
         return ResponseEntity.status(201).body(teamService.createPlay(items));
     }
+
+    @GetMapping("/{teamId}/plays/{playId}")
+    public List<PlayItemDTO> getPlay(@PathVariable UUID teamId, @PathVariable UUID playId) {
+        return teamService.getPlayItems(teamId, playId);
+    }
 }
