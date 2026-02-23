@@ -8,7 +8,9 @@ import { confirmLogout } from "@/components/user-profile/profile-utils";
 import { log } from "@/utils/logger";
 import { openPolicy } from "@/components/privacy-disclaimer/utils";
 import { images } from "@/constants/images";
-import { useState } from "react";
+import { useAxiosWithClerk } from "@/hooks/use-axios-clerk";
+import { GO_REFEREE_SERVICE_ROUTES } from "@/hooks/use-axios-clerk";
+import { useState, useEffect } from "react";
 import { Alert } from "react-native";
 
 
@@ -17,10 +19,76 @@ export default function Settings() {
   const { isLoaded, isSignedIn, user } = useUser();
   const { flags, toggleFlag } = useFeatureFlags();
   const [isReferee, setIsReferee] = useState(false);
+  const [isActive, setIsActive] = useState(false);
+
+  const axios = useAxiosWithClerk();
 
   const isDev = (user?.publicMetadata as { isDev?: boolean })?.isDev === true;
 
   const logout = confirmLogout(signOut, log);
+
+  useEffect(() => {
+  const checkRefereeStatus = async () => {
+    try {
+      const response = await axios.get(
+        GO_REFEREE_SERVICE_ROUTES.STATUS
+      );
+
+      setIsReferee(response.data.isReferee);
+      setIsActive(response.data.isActive);
+    } catch (error) {
+      log.error("Error checking referee status:", error);
+      setIsReferee(false);
+    }
+  };
+
+  if (isLoaded && isSignedIn) {
+    checkRefereeStatus();
+  }
+}, [isLoaded, isSignedIn, axios]);
+
+  const registerAsReferee = async () => {
+    try {
+      await axios.post(GO_REFEREE_SERVICE_ROUTES.REGISTER, {
+        sports: [""],
+        allowedRegions: ["Montreal"],
+        isActive: true,
+      });
+
+      setIsReferee(true);
+      setIsActive(true);
+
+      Alert.alert("Success", "You are now a referee!");
+    } catch (error) {
+      log.error("Error registering referee:", error);
+      Alert.alert("Error", "Could not register as referee.");
+    }
+  };
+
+  const toggleRefereeStatus = async () => {
+    if (isActive === null) return;
+
+    try {
+      const newStatus = !isActive;
+
+      await axios.put(GO_REFEREE_SERVICE_ROUTES.STATUS, {
+        isActive: newStatus,
+      });
+
+      setIsActive(newStatus);
+
+      Alert.alert(
+        newStatus ? "Resumed" : "Paused",
+        newStatus
+          ? "You are now active as a referee."
+          : "You are no longer accepting matches."
+      );
+    } catch (error) {
+      log.error("Error updating referee status:", error);
+      Alert.alert("Error", "Could not update referee status.");
+    }
+  };
+
 
   if (!user || !isLoaded || !isSignedIn) return null;
 
@@ -79,7 +147,7 @@ export default function Settings() {
                     { text: "Cancel", style: "cancel" },
                     {
                       text: "Continue",
-                      onPress: () => setIsReferee(true),
+                      onPress: registerAsReferee,
                     },
                   ]
                 );
@@ -102,11 +170,13 @@ export default function Settings() {
               />
             
 
-              <Form.Button
-                button="Pause Refereeing"
-                color={AccentColors.red}
-                onPress={() => setIsReferee(false)}
-              />
+              {isActive !== null && (
+                <Form.Button
+                  button={isActive ? "Pause Refereeing" : "Resume Refereeing"}
+                  color={isActive ? AccentColors.red : AccentColors.blue}
+                  onPress={toggleRefereeStatus}
+                />
+              )}
             </>
           )}
           </Form.Section>
