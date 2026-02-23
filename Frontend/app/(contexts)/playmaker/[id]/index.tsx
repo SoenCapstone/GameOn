@@ -6,7 +6,6 @@ import {
   Alert,
 } from "react-native";
 import { useLocalSearchParams, useNavigation } from "expo-router";
-
 import { ContentArea } from "@/components/ui/content-area";
 import {
   TeamDetailProvider,
@@ -22,6 +21,7 @@ import {
   GO_TEAM_SERVICE_ROUTES,
   useAxiosWithClerk,
 } from "@/hooks/use-axios-clerk";
+import { errorToString } from "@/utils/error";
 
 function toBackendPayload(shapes: Shape[]) {
   return shapes
@@ -108,20 +108,8 @@ function PlayMakerContent() {
       await api.post(route, payload);
 
       Alert.alert("Saved", "Your play was saved successfully.");
-    } catch (e: any) {
-      const status = e?.response?.status;
-
-      const backendMsg =
-        e?.response?.data?.message ||
-        e?.response?.data?.error ||
-        (typeof e?.response?.data === "string" ? e.response.data : null);
-
-      const msg =
-        backendMsg ||
-        e?.message ||
-        (status ? `Save failed (${status})` : "Save failed");
-
-      Alert.alert("Error", msg);
+    } catch (err) {
+      Alert.alert("Error while saving play:", errorToString(err));
     } finally {
       setSaving(false);
     }
