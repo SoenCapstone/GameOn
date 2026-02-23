@@ -42,8 +42,6 @@ export function useMessagesQuery(conversationId: string) {
       if (!lastPage.hasMore || !lastPage.messages.length) return undefined;
       return lastPage.messages[0].createdAt;
     },
-    staleTime: 5_000,
-    refetchOnWindowFocus: false,
     enabled: Boolean(conversationId),
   });
 }
