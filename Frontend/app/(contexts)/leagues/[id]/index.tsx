@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import {
   View,
   ActivityIndicator,
@@ -10,6 +10,7 @@ import { useLocalSearchParams, useRouter } from "expo-router";
 import { ContentArea } from "@/components/ui/content-area";
 import { getSportLogo } from "@/components/browse/utils";
 import { Button } from "@/components/ui/button";
+import { LeagueBrowserTeams } from "@/components/leagues/league-browser-teams";
 import { useLeagueHeader } from "@/hooks/use-team-league-header";
 import {
   LeagueDetailProvider,
@@ -24,10 +25,21 @@ import { useDetailPageHandlers } from "@/hooks/use-detail-page-handlers";
 import { createScopedLog } from "@/utils/logger";
 import { Tabs } from "@/components/ui/tabs";
 
+type LeagueTab = "board" | "matches" | "standings" | "teams";
+
+const LeagueTabs: readonly LeagueTab[] = ["board", "matches", "standings", "teams"] as const;
+
+const TabLabels: Record<LeagueTab, string> = {
+  board: "Board",
+  matches: "Matches",
+  standings: "Standings",
+  teams: "Teams",
+};
+
 export default function LeagueScreen() {
   const params = useLocalSearchParams<{ id?: string | string[] }>();
   const rawId = params.id;
-  const id = Array.isArray(rawId) ? rawId[0] : (rawId ?? "");
+  const id = Array.isArray(rawId) ? rawId[0] : rawId ?? "";
 
   return (
     <LeagueDetailProvider id={id}>
@@ -37,9 +49,7 @@ export default function LeagueScreen() {
 }
 
 function LeagueContent() {
-  const [tab, setTab] = useState<"board" | "matches" | "standings" | "teams">(
-    "board",
-  );
+  const [tab, setTab] = useState<LeagueTab>("board");
   const router = useRouter();
   const log = createScopedLog("League Page");
 
@@ -52,6 +62,9 @@ function LeagueContent() {
     isMember,
     isOwner,
     league,
+    leagueTeams,
+    isLeagueTeamsLoading,
+    leagueTeamsError,
   } = useLeagueDetailContext();
 
   const {
@@ -64,34 +77,17 @@ function LeagueContent() {
 
   useLeagueHeader({ title, id, isMember, isOwner, onFollow: handleFollow });
 
-  const { refreshing, handleDeletePost, handleRefresh } = useDetailPageHandlers(
-    {
-      id,
-      currentTab: tab,
-      boardPosts,
-      onRefresh,
-      refetchPosts,
-      deletePostMutation,
-      entityName: "League",
-    },
-  );
+  const { refreshing, handleDeletePost, handleRefresh } = useDetailPageHandlers({
+    id,
+    currentTab: tab,
+    boardPosts,
+    onRefresh,
+    refetchPosts,
+    deletePostMutation,
+    entityName: "League",
+  });
 
-  const getTabFromSegmentValue = (
-    value: string,
-  ): "board" | "matches" | "standings" | "teams" => {
-    if (value === "Board") return "board";
-    if (value === "Matches") return "matches";
-    if (value === "Standings") return "standings";
-
-    return "teams";
-  };
-
-  const getSelectedIndex = (): number => {
-    if (tab === "board") return 0;
-    if (tab === "matches") return 1;
-    if (tab === "standings") return 2;
-    return 3;
-  };
+  const selectedIndex = useMemo(() => LeagueTabs.indexOf(tab), [tab]);
 
   return (
     <View style={{ flex: 1 }}>
@@ -109,12 +105,13 @@ function LeagueContent() {
         }
       >
         <Tabs
-          values={["Board", "Matches", "Standings", "Teams"]}
-          selectedIndex={getSelectedIndex()}
+          values={LeagueTabs.map((t) => TabLabels[t])}
+          selectedIndex={selectedIndex}
           onValueChange={(value) => {
-            const newTab = getTabFromSegmentValue(value);
-            setTab(newTab);
-            log.info("Tab changed", { tab: newTab });
+            const index = LeagueTabs.findIndex((t) => TabLabels[t] === value);
+            const nextTab = index >= 0 ? LeagueTabs[index] : "board";
+            setTab(nextTab);
+            log.info("Tab changed", { tab: nextTab });
           }}
         />
 
@@ -148,19 +145,22 @@ function LeagueContent() {
                 </Text>
               </View>
             )}
+
+            {tab === "teams" && (
+              <LeagueBrowserTeams
+                leagueId={id}
+                leagueTeams={leagueTeams ?? []}
+                teamsFetching={Boolean(isLeagueTeamsLoading)}
+                leagueTeamsError={leagueTeamsError}
+              />
+            )}
           </>
         )}
       </ContentArea>
 
       {/* Create Post Button */}
       {isOwner && tab === "board" && (
-        <View
-          style={{
-            position: "absolute",
-            bottom: 20,
-            right: 20,
-          }}
-        >
+        <View style={styles.fabWrap}>
           <Button
             type="custom"
             icon="plus"
@@ -187,5 +187,10 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
     minHeight: 200,
+  },
+  fabWrap: {
+    position: "absolute",
+    bottom: 20,
+    right: 20,
   },
 });
