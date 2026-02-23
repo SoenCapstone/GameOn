@@ -10,12 +10,12 @@ import { createScopedLog } from "@/utils/logger";
 const log = createScopedLog("Team Detail");
 
 export type TeamDetailResponse = Readonly<{
-  id: string;
-  name: string;
+  id: string | null;
+  name: string | null;
   sport: string | null;
   location: string | null;
   logoUrl: string | null;
-  scope: string;
+  scope: string | null;
   privacy: "PRIVATE" | "PUBLIC";
   ownerUserId: string | null;
 }>;
