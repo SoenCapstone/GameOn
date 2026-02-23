@@ -1,11 +1,11 @@
 import { useState, useEffect } from "react";
-import { Option } from "@/components/ui/pickerModal";
 import {
+  Option,
   SCOPE_OPTIONS,
   SPORTS,
   CITIES,
   PickerType,
-} from "@/components/teams/team-form-constants";
+} from "@/constants/form-constants";
 
 export interface TeamFormData {
   teamName: string;

@@ -1,6 +1,6 @@
 import { renderHook, act } from "@testing-library/react-native";
 import { useTeamForm } from "@/hooks/use-team-form";
-import { SCOPE_OPTIONS } from "@/components/teams/team-form-constants";
+import { SCOPE_OPTIONS } from "@/constants/form-constants";
 
 interface TeamFormInitialData {
   readonly name: string;

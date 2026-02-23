@@ -17,11 +17,11 @@ function SpacesHeader() {
 
   const right =
     mode === "leagues" ? (
-      <Button type="custom" route="/leagues/create-league" icon="plus" />
+      <Button type="custom" route="/leagues/create" icon="plus" />
     ) : mode === "tournaments" ? (
       <Button type="custom" icon="plus" onPress={handleComingSoon} />
     ) : (
-      <Button type="custom" route="/teams/create-team" icon="plus" />
+      <Button type="custom" route="/teams/create" icon="plus" />
     );
 
   return (

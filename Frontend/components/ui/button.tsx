@@ -3,6 +3,7 @@ import { Href, router } from "expo-router";
 import React from "react";
 import { SFSymbols6_0 } from "sf-symbols-typescript";
 import { GlassView } from "expo-glass-effect";
+import { Image, type ImageSource } from "expo-image";
 import { IconSymbol } from "@/components/ui/icon-symbol";
 
 type ButtonProps =
@@ -14,28 +15,46 @@ type ButtonProps =
       onPress?: () => void;
       label?: string;
       loading?: boolean;
+      image?: ImageSource;
+      imageSize?: number;
+      iconSize?: number;
+      isInteractive?: boolean;
     };
 
 export function Button(props: ButtonProps) {
   const isLabel = props.type === "custom" && !!props.label;
+  const hasImage = props.type === "custom" && !!props.image;
   const iconName = props.type === "back" ? "chevron.left" : props.icon;
   const isLoading = props.type === "custom" && props.loading;
+  const iconSize = props.type === "custom" ? (props.iconSize ?? 26) : 26;
+  const imageSize = props.type === "custom" ? (props.imageSize ?? 36) : 36;
+  const isInteractive =
+    props.type === "custom" ? (props.isInteractive ?? true) : true;
 
-  const renderLabel = () => {
+  const renderContent = () => {
     if (isLoading) {
       return (
-        <ActivityIndicator style={styles.symbol} color="white" size="small" />
+        <ActivityIndicator style={styles.center} color="white" size="small" />
+      );
+    }
+    if (hasImage && props.type === "custom" && props.image) {
+      return (
+        <Image
+          source={props.image}
+          style={[styles.center, { width: imageSize, height: imageSize }]}
+          contentFit="contain"
+        />
       );
     }
     if (isLabel) {
-      return <Text style={styles.labelText}>{props.label}</Text>;
+      return <Text style={styles.label}>{props.label}</Text>;
     }
     return (
       <IconSymbol
         name={iconName as SFSymbols6_0}
-        size={26}
+        size={iconSize}
         color="white"
-        style={styles.symbol}
+        style={styles.center}
       />
     );
   };
@@ -43,22 +62,24 @@ export function Button(props: ButtonProps) {
   return (
     <Pressable
       style={styles.button}
+      disabled={!isInteractive}
       onPress={() => {
+        if (!isInteractive) return;
         if (props.type === "back") {
           router.back();
-        } else if (props.onPress) {
+        } else if (props.type === "custom" && props.onPress) {
           props.onPress();
-        } else if (props.route) {
+        } else if (props.type === "custom" && props.route) {
           router.push(props.route);
         }
       }}
     >
       <GlassView
         glassEffectStyle="regular"
-        isInteractive={true}
+        isInteractive={isInteractive}
         style={styles.glass}
       >
-        {renderLabel()}
+        {renderContent()}
       </GlassView>
     </Pressable>
   );
@@ -78,17 +99,10 @@ const styles = StyleSheet.create({
     alignSelf: "center",
     justifyContent: "center",
   },
-  glassLabel: {
-    height: 44,
-    borderRadius: 100,
-    backgroundColor: "transparent",
-    alignSelf: "center",
-    justifyContent: "center",
-  },
-  symbol: {
+  center: {
     alignSelf: "center",
   },
-  labelText: {
+  label: {
     color: "white",
     fontSize: 17,
     fontWeight: "500",
