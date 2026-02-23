@@ -1,15 +1,10 @@
 import React from "react";
-import {
-  View,
-  Text,
-  ActivityIndicator,
-  StyleSheet,
-  ImageSourcePropType,
-} from "react-native";
+import { View, Text, ActivityIndicator, StyleSheet } from "react-native";
 import { BoardPost } from "@/components/board/board-types";
 import { Post } from "@/components/board/post";
 import { LegendList } from "@legendapp/list";
 import { createScopedLog } from "@/utils/logger";
+import { ImageSource } from "expo-image";
 
 const log = createScopedLog("BoardList");
 
@@ -17,7 +12,7 @@ interface BoardListProps {
   posts: BoardPost[];
   isLoading: boolean;
   spaceName: string;
-  spaceLogo: ImageSourcePropType;
+  spaceLogo: ImageSource;
   onDeletePost?: (postId: string) => void;
   canDelete?: boolean;
 }

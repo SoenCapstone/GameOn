@@ -1,69 +1,33 @@
-import React, { useLayoutEffect } from "react";
-import {
-  View,
-  ActivityIndicator,
-  Pressable,
-  Text,
-  Alert,
-} from "react-native";
+import { useLayoutEffect, useState, useEffect } from "react";
+import { View, Text, ActivityIndicator, Alert } from "react-native";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useNavigation, StackActions } from "@react-navigation/native";
 import { ContentArea } from "@/components/ui/content-area";
 import { Header } from "@/components/header/header";
 import { Button } from "@/components/ui/button";
 import { PageTitle } from "@/components/header/page-title";
-import { TeamLogoSection } from "@/components/teams/logo-picker";
-import { TeamNameField } from "@/components/teams/name-field";
-import { TeamDetailsCard } from "@/components/teams/details-card";
-import PickerModal from "@/components/ui/pickerModal";
-import { useUpdateTeam, useDeleteTeam } from "@/hooks/use-team-league-settings";
-import { createScopedLog } from "@/utils/logger";
-import { errorToString } from "@/utils/error";
-import { useTeamForm } from "@/hooks/use-team-form";
-import { getPickerConfig } from "@/components/teams/team-form-constants";
+import { Form } from "@/components/form/form";
+import { AccentColors } from "@/constants/colors";
+import { images } from "@/constants/images";
 import {
   TeamDetailProvider,
   useTeamDetailContext,
 } from "@/contexts/team-detail-context";
 import { settingsStyles } from "@/constants/settings-styles";
-import { TeamVisibilityControl } from "@/components/teams/team-visibility-control";
-import PublicPaymentModal from "@/components/payments/public-payment-modal";
+import { useDeleteTeam, useUpdateTeam } from "@/hooks/use-team-league-settings";
+import { createScopedLog } from "@/utils/logger";
+import { errorToString } from "@/utils/error";
+import { usePayment, type PaymentEntityType } from "@/hooks/use-payment";
 import { useAxiosWithClerk } from "@/hooks/use-axios-clerk";
+import { formatAmount } from "@/utils/payment";
 
-const log = createScopedLog("Team Settings");
 const PUBLICATION_FEE_CENTS = 1500;
 
-function SettingsHeader({
-  onSave,
-  isSaveEnabled,
-  isSaving,
-}: {
-  readonly onSave: () => void;
-  readonly isSaveEnabled: boolean;
-  readonly isSaving: boolean;
-}) {
-  const isDisabled = !isSaveEnabled || isSaving;
-
+function TeamSettingsHeader() {
   return (
     <Header
       left={<Button type="back" />}
       center={<PageTitle title="Team Settings" />}
-      right={
-        <Pressable
-          onPress={() => !isDisabled && onSave()}
-          disabled={isDisabled}
-          style={{
-            backgroundColor: isSaveEnabled && !isSaving ? "#0052ff" : "#cccccc",
-            paddingHorizontal: 16,
-            paddingVertical: 8,
-            borderRadius: 999,
-          }}
-        >
-          <Text style={{ color: "#fff", fontSize: 16, fontWeight: "600" }}>
-            {isSaving ? "Saving..." : "Save"}
-          </Text>
-        </Pressable>
-      }
     />
   );
 }
@@ -79,45 +43,30 @@ export default function TeamSettingsScreen() {
   );
 }
 
+const log = createScopedLog("Team Settings");
+
 function TeamSettingsContent() {
   const navigation = useNavigation();
   const router = useRouter();
   const api = useAxiosWithClerk();
-  const { id, team, isLoading: teamLoading, isOwner } = useTeamDetailContext();
+  const { id, team, isLoading, isOwner } = useTeamDetailContext();
 
-  const [paymentVisible, setPaymentVisible] = React.useState(false);
-  const [pendingPayload, setPendingPayload] = React.useState<any | null>(null);
+  const [isPublic, setIsPublic] = useState(false);
 
-  const [hasPublicAccessLocal, setHasPublicAccessLocal] = React.useState(false);
-
-  React.useEffect(() => {
-    const purchased = (team?.privacy ?? "PRIVATE") === "PUBLIC";
-    setHasPublicAccessLocal(purchased);
+  useEffect(() => {
+    setIsPublic((team?.privacy ?? "PRIVATE") === "PUBLIC");
   }, [team?.privacy]);
 
-  const {
-    teamName,
-    setTeamName,
-    selectedSport,
-    setSelectedSport,
-    selectedScope,
-    setSelectedScope,
-    selectedCity,
-    setSelectedCity,
-    logoUri,
-    setLogoUri,
-    isPublic,
-    setIsPublic,
-    openPicker,
-    setOpenPicker,
-  } = useTeamForm({
-    initialData: team,
+  const { runPayment, isPaying } = usePayment({
+    api,
+    entityType: "TEAM" as PaymentEntityType,
+    entityId: id,
+    amount: PUBLICATION_FEE_CENTS,
   });
 
   const updateTeamMutation = useUpdateTeam(id, {
     onSuccess: () => {
       log.info("Team updated successfully");
-      router.back();
     },
     onError: (err) => {
       log.error("Update team failed", errorToString(err));
@@ -152,82 +101,64 @@ function TeamSettingsContent() {
     );
   };
 
-  const sportLabel = selectedSport?.label ?? "None";
-  const scopeLabel = selectedScope.label;
-  const cityLabel = selectedCity?.label ?? "City";
+  const handleRequestPurchase = () => {
+    if (!team) return;
+    const payload = {
+      name: team.name ?? "",
+      sport: team.sport ?? "",
+      scope: team.scope ?? "",
+      logoUrl: team.logoUrl ?? "",
+      location: team.location ?? "",
+      privacy: "PUBLIC" as const,
+    };
+    Alert.alert(
+      "Team Publication Payment",
+      `Amount: ${formatAmount(PUBLICATION_FEE_CENTS)}`,
+      [
+        { text: "Cancel", style: "cancel" },
+        {
+          text: "Pay & Continue",
+          onPress: () =>
+            runPayment(async () => {
+              updateTeamMutation.mutate(payload);
+              setIsPublic(true);
+            }),
+        },
+      ],
+    );
+  };
 
-  const hasChanges = team
-    ? teamName !== (team.name ?? "") ||
-      selectedSport?.label?.toLowerCase() !== team.sport?.toLowerCase() ||
-      selectedScope?.id?.toLowerCase() !== team.scope?.toLowerCase() ||
-      selectedCity?.label?.toLowerCase() !== team.location?.toLowerCase() ||
-      logoUri !== (team.logoUrl ?? "") ||
-      isPublic !== (team.privacy === "PUBLIC")
-    : false;
-
-  const pickerConfig = getPickerConfig(
-    setSelectedSport,
-    setSelectedScope,
-    setSelectedCity,
-  );
-  const currentConfig = openPicker ? pickerConfig[openPicker] : undefined;
+  const handleSetPrivate = () => {
+    if (!team) return;
+    const payload = {
+      name: team.name ?? "",
+      sport: team.sport ?? "",
+      scope: team.scope ?? "",
+      logoUrl: team.logoUrl ?? "",
+      location: team.location ?? "",
+      privacy: "PRIVATE" as const,
+    };
+    updateTeamMutation.mutate(payload);
+    setIsPublic(false);
+  };
 
   useLayoutEffect(() => {
-    const renderHeader = () => {
-      const handleUpdateTeam = () => {
-        if (!teamName.trim()) {
-          Alert.alert("Team update failed", "Team name is required");
-          return;
-        }
-
-        const payload = {
-          name: teamName.trim(),
-          sport: selectedSport?.id ?? "",
-          scope: selectedScope?.id ?? "",
-          logoUrl: logoUri ?? "",
-          location: selectedCity?.label ?? "",
-          privacy: isPublic ? "PUBLIC" : "PRIVATE",
-        } as const;
-
-        const wasPublic = (team?.privacy ?? "PRIVATE") === "PUBLIC";
-        const wantsPublic = payload.privacy === "PUBLIC";
-
-        if (!wasPublic && wantsPublic) {
-          setPendingPayload(payload);
-          setPaymentVisible(true);
-          return;
-        }
-
-        updateTeamMutation.mutate(payload);
-      };
-
-      return (
-        <SettingsHeader
-          onSave={handleUpdateTeam}
-          isSaveEnabled={hasChanges}
-          isSaving={updateTeamMutation.isPending}
-        />
-      );
-    };
-
     navigation.setOptions({
-      headerTitle: renderHeader,
+      headerTitle: TeamSettingsHeader,
     });
-  }, [
-    navigation,
-    hasChanges,
-    updateTeamMutation.isPending,
-    updateTeamMutation,
-    team,
-    teamName,
-    selectedSport,
-    selectedCity,
-    isPublic,
-    logoUri,
-    selectedScope,
-  ]);
+  }, [navigation]);
 
-  if (!isOwner) {
+  if (!team && !isLoading) {
+    return (
+      <ContentArea backgroundProps={{ preset: "red" }}>
+        <View style={settingsStyles.container}>
+          <Text style={settingsStyles.errorText}>Team not found</Text>
+        </View>
+      </ContentArea>
+    );
+  }
+
+  if (!isOwner && team) {
     return (
       <ContentArea backgroundProps={{ preset: "red" }}>
         <View style={settingsStyles.container}>
@@ -239,106 +170,64 @@ function TeamSettingsContent() {
     );
   }
 
-  if (!team) {
-    return (
-      <ContentArea backgroundProps={{ preset: "red" }}>
-        <View style={settingsStyles.container}>
-          <Text style={settingsStyles.errorText}>Team not found</Text>
-        </View>
-      </ContentArea>
-    );
-  }
-
   return (
     <ContentArea scrollable backgroundProps={{ preset: "red", mode: "form" }}>
-      {teamLoading && (
+      {isLoading && (
         <View style={settingsStyles.loadingOverlay}>
           <ActivityIndicator size="large" color="#fff" />
         </View>
       )}
 
-      <TeamLogoSection value={logoUri} onChange={setLogoUri} />
+      <Form accentColor={AccentColors.red}>
+        <Form.Section>
+          <Form.Profile
+            title={team?.name ?? "Team"}
+            subtitle={
+              team?.sport
+                ? `${team.sport.charAt(0).toUpperCase()}${team.sport.slice(1).toLowerCase()} Team`
+                : "Team"
+            }
+            image={team?.logoUrl ? { uri: team.logoUrl } : images.defaultLogo}
+            onPress={() => router.push(`/teams/${id}/settings/edit`)}
+            logo
+          />
+        </Form.Section>
 
-      <TeamNameField teamName={teamName} onChangeTeamName={setTeamName} />
-
-      <TeamDetailsCard
-        sportLabel={sportLabel}
-        scopeLabel={scopeLabel}
-        cityLabel={cityLabel}
-        onOpenPicker={setOpenPicker}
-      />
-
-      <TeamVisibilityControl
-        isPublic={isPublic}
-        hasPublicAccess={hasPublicAccessLocal}
-        onRequestPurchase={() => {
-          if (!teamName.trim()) {
-            Alert.alert("Team update failed", "Team name is required");
-            return;
+        <Form.Section
+          header="Visibility"
+          footer={
+            isPublic
+              ? "Private teams are not discoverable, cannot be followed by other users, and only members can see posts."
+              : "Public teams are discoverable, can be followed by other users, and can make public posts."
           }
+        >
+          {isPublic ? (
+            <Form.Button
+              button="Switch to a Private Team"
+              onPress={handleSetPrivate}
+              disabled={updateTeamMutation.isPending}
+            />
+          ) : (
+            <Form.Button
+              button={isPaying ? "Processing…" : "Switch to a Public Team"}
+              color={AccentColors.red}
+              onPress={handleRequestPurchase}
+              disabled={isPaying}
+            />
+          )}
+        </Form.Section>
 
-          const payload = {
-            name: teamName.trim(),
-            sport: selectedSport?.id ?? "",
-            scope: selectedScope?.id ?? "",
-            logoUrl: logoUri ?? "",
-            location: selectedCity?.label ?? "",
-            privacy: "PUBLIC",
-          } as const;
-
-          setPendingPayload(payload);
-          setPaymentVisible(true);
-        }}
-        onChangePublic={setIsPublic}
-      />
-
-      <Pressable
-        style={[
-          settingsStyles.deleteButton,
-          deleteTeamMutation.isPending && settingsStyles.deleteButtonDisabled,
-        ]}
-        onPress={handleDeleteTeam}
-        disabled={deleteTeamMutation.isPending}
-      >
-        <Text style={settingsStyles.deleteButtonText}>
-          {deleteTeamMutation.isPending ? "Deleting..." : "Delete Team"}
-        </Text>
-      </Pressable>
-
-      <PickerModal
-        visible={openPicker !== null}
-        title={currentConfig?.title ?? ""}
-        options={currentConfig?.options ?? []}
-        onClose={() => setOpenPicker(null)}
-        onSelect={(option) => {
-          if (!openPicker) return;
-          pickerConfig[openPicker].setter(option);
-          setOpenPicker(null);
-        }}
-      />
-
-      <PublicPaymentModal
-        visible={paymentVisible}
-        onClose={() => {
-          setPaymentVisible(false);
-          setPendingPayload(null);
-        }}
-        api={api}
-        entityType="TEAM"
-        entityId={id}
-        amount={PUBLICATION_FEE_CENTS}
-        onPaidSuccess={async () => {
-          if (!pendingPayload) return;
-
-          updateTeamMutation.mutate(pendingPayload);
-
-          setHasPublicAccessLocal(true);
-          setIsPublic(true);
-
-          setPendingPayload(null);
-          setPaymentVisible(false);
-        }}
-      />
+        <Form.Section>
+          <Form.Button
+            button={
+              deleteTeamMutation.isPending ? "Deleting..." : "Delete Team"
+            }
+            color={AccentColors.red}
+            onPress={handleDeleteTeam}
+            disabled={deleteTeamMutation.isPending}
+          />
+        </Form.Section>
+      </Form>
     </ContentArea>
   );
 }

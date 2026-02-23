@@ -6,6 +6,7 @@ import {
   updateConversationsWithMessage,
   buildMessagesFromPages,
   formatMessageTimestamp,
+  formatDateSeparator,
   MAX_MESSAGE_LENGTH,
 } from "@/features/messaging/utils";
 import type { InfiniteData } from "@tanstack/react-query";
@@ -386,5 +387,45 @@ describe("formatMessageTimestamp", () => {
 
     const result4 = formatMessageTimestamp("2024-01-01T00:00:00Z");
     expect(result4).toMatch(/\d{1,2}:\d{2}/);
+  });
+});
+
+describe("formatDateSeparator", () => {
+  beforeEach(() => {
+    jest.useFakeTimers();
+    jest.setSystemTime(new Date(2026, 1, 21, 12, 0, 0));
+  });
+
+  afterEach(() => {
+    jest.useRealTimers();
+  });
+
+  it("returns Today for messages from the current day", () => {
+    const result = formatDateSeparator(new Date(2026, 1, 21, 8, 15, 0));
+    expect(result).toBe("Today");
+  });
+
+  it("returns Yesterday for messages from one day before", () => {
+    const result = formatDateSeparator(new Date(2026, 1, 20, 23, 59, 0));
+    expect(result).toBe("Yesterday");
+  });
+
+  it("returns full weekday name for 2-6 days ago", () => {
+    const target = new Date(2026, 1, 18, 9, 0, 0);
+    const expected = Intl.DateTimeFormat(undefined, { weekday: "long" }).format(
+      target,
+    );
+    expect(formatDateSeparator(target)).toBe(expected);
+  });
+
+  it("returns short date format for older dates", () => {
+    const target = new Date(2026, 0, 10, 9, 0, 0);
+    const expected = Intl.DateTimeFormat(undefined, {
+      weekday: "short",
+      month: "short",
+      day: "numeric",
+    }).format(target);
+
+    expect(formatDateSeparator(target)).toBe(expected);
   });
 });
