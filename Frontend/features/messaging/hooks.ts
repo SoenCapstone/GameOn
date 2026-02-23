@@ -10,7 +10,7 @@ import {
   UserDirectoryEntry,
 } from "@/features/messaging/api";
 import { messagingKeys } from "@/features/messaging/query-keys";
-import { ConversationResponse, MessageHistoryResponse } from "./types";
+import { ConversationResponse, MessageHistoryResponse } from "@/features/messaging/types";
 import { sortConversations } from "@/features/messaging/utils";
 
 export const MESSAGES_PAGE_SIZE = 40;
@@ -42,6 +42,8 @@ export function useMessagesQuery(conversationId: string) {
       if (!lastPage.hasMore || !lastPage.messages.length) return undefined;
       return lastPage.messages[0].createdAt;
     },
+    staleTime: 5_000,
+    refetchOnWindowFocus: false,
     enabled: Boolean(conversationId),
   });
 }
