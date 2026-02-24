@@ -8,28 +8,28 @@ import { WELCOME_PATH } from "@/constants/navigation";
 export default function TabLayout() {
   return (
     <ClerkLoaded>
-      {(
+      {
         <SignedOut>
           <Redirect href={WELCOME_PATH} />
         </SignedOut>
-      )}
+      }
 
       <NativeTabs>
         <NativeTabs.Trigger name="home">
           <Label>Home</Label>
-          <Icon sf="text.rectangle.page" selectedColor={AccentColors.blue} />
+          <Icon sf="text.rectangle.page" selectedColor="white" />
         </NativeTabs.Trigger>
-        <NativeTabs.Trigger name="spaces">
-          <Label>Spaces</Label>
-          <Icon sf="circle.grid.2x2.fill" selectedColor={AccentColors.purple} />
+        <NativeTabs.Trigger name="explore">
+          <Label>Explore</Label>
+          <Icon sf="globe.europe.africa.fill" selectedColor="white" />
         </NativeTabs.Trigger>
         <NativeTabs.Trigger name="messages">
           <Label>Messages</Label>
-          <Icon sf="message.fill" selectedColor={AccentColors.green} />
+          <Icon sf="message.fill" selectedColor="white" />
         </NativeTabs.Trigger>
-        <NativeTabs.Trigger name="profile">
-          <Label>Profile</Label>
-          <Icon sf="person.fill" selectedColor={AccentColors.orange} />
+        <NativeTabs.Trigger name="spaces">
+          <Label>Spaces</Label>
+          <Icon sf="circle.grid.2x2.fill" selectedColor="white" />
         </NativeTabs.Trigger>
       </NativeTabs>
     </ClerkLoaded>
