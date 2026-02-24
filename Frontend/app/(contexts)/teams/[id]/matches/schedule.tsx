@@ -1,11 +1,10 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { Alert, Text, View } from "react-native";
+import { Alert, View } from "react-native";
 import { useLocalSearchParams, useNavigation, useRouter } from "expo-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { ContentArea } from "@/components/ui/content-area";
 import { Form } from "@/components/form/form";
 import { AccentColors } from "@/constants/colors";
-import { matchStyles } from "@/components/matches/match-styles";
 import { useTeamDetail } from "@/hooks/use-team-detail";
 import {
   GO_TEAM_SERVICE_ROUTES,
@@ -47,7 +46,6 @@ export default function ScheduleTeamMatchScreen() {
   const [venue, setVenue] = useState("");
   const [requiresReferee, setRequiresReferee] = useState(false);
   const [refereeUserId, setRefereeUserId] = useState("");
-  const [errors, setErrors] = useState<Record<string, string>>({});
 
   useEffect(() => {
     if (params.newVenue) {
@@ -88,9 +86,11 @@ export default function ScheduleTeamMatchScreen() {
   useEffect(() => {
     if (teamSearch.error) {
       log.error("Failed to load away teams for schedule", teamSearch.error);
+      Alert.alert("Load error", "Could not load teams. Please retry.");
     }
     if (refereesQuery.error) {
       log.error("Failed to load referees for team schedule", refereesQuery.error);
+      Alert.alert("Load error", "Could not load referees. Please retry.");
     }
   }, [refereesQuery.error, teamSearch.error]);
 
@@ -107,7 +107,12 @@ export default function ScheduleTeamMatchScreen() {
       nextErrors.refereeUserId = "Referee is required for official match";
     }
 
-    setErrors(nextErrors);
+    if (Object.keys(nextErrors).length > 0) {
+      const firstError = Object.values(nextErrors)[0];
+      if (firstError) {
+        Alert.alert("Invalid match details", firstError);
+      }
+    }
     return Object.keys(nextErrors).length === 0;
   }, [
     awayTeamId,
@@ -157,8 +162,8 @@ export default function ScheduleTeamMatchScreen() {
         err,
         "Only team owner can schedule matches",
       );
-      setErrors((prev) => ({ ...prev, form: message }));
       toast(message);
+      Alert.alert("Schedule failed", message);
       if (status === 0) {
         Alert.alert("Network error", message, [
           { text: "Cancel", style: "cancel" },
@@ -206,12 +211,6 @@ export default function ScheduleTeamMatchScreen() {
                 awayTeamOptions.length === 0
               }
             />
-            {errors.awayTeamId ? <Text style={matchStyles.errorInline}>{errors.awayTeamId}</Text> : null}
-            {teamSearch.error ? (
-              <Text style={matchStyles.errorInline}>
-                Could not load teams. Pull to retry.
-              </Text>
-            ) : null}
           </View>
         </Form.Section>
 
@@ -220,7 +219,6 @@ export default function ScheduleTeamMatchScreen() {
           startTimeValue={startTimeValue}
           endTimeValue={endTimeValue}
           venue={venue}
-          errors={errors}
           onDateChange={setDate}
           onStartTimeChange={setStartTimeValue}
           onEndTimeChange={setEndTimeValue}
@@ -253,19 +251,9 @@ export default function ScheduleTeamMatchScreen() {
                   refereeOptions.length === 0
                 }
               />
-              {errors.refereeUserId ? (
-                <Text style={matchStyles.errorInline}>{errors.refereeUserId}</Text>
-              ) : null}
-              {refereesQuery.error ? (
-                <Text style={matchStyles.errorInline}>
-                  Could not load referees. Pull to retry.
-                </Text>
-              ) : null}
             </View>
           ) : null}
         </Form.Section>
-
-        {errors.form ? <Text style={matchStyles.errorInline}>{errors.form}</Text> : null}
       </Form>
     </ContentArea>
   );
