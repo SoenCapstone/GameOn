@@ -6,28 +6,10 @@ import {
   SCOPE_OPTIONS,
   SPORTS,
 } from "@/constants/form-constants";
-
-export interface TeamFormData {
-  teamName: string;
-  selectedSport: Option | null;
-  selectedScope: Option;
-  selectedCity: Option | null;
-  selectedAllowedRegions: string[];
-  logoUri: string | null;
-  isPublic: boolean;
-  openPicker: PickerType | null;
-}
+import type { TeamDetailResponse } from "@/hooks/use-team-detail";
 
 interface UseTeamFormProps {
-  initialData?: {
-    name: string | null;
-    sport?: string | null;
-    scope?: string | null;
-    location?: string | null;
-    allowedRegions?: string[] |null;
-    logoUrl?: string |null;
-    privacy?: string | null;
-  };
+  initialData?: TeamDetailResponse;
 }
 
 export const useTeamForm = (props?: UseTeamFormProps) => {
