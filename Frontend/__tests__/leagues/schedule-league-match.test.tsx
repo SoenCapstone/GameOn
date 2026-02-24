@@ -121,6 +121,12 @@ jest.mock("@/hooks/use-axios-clerk", () => ({
   },
 }));
 
+jest.mock("@clerk/clerk-expo", () => ({
+  useAuth: () => ({
+    userId: "user-1",
+  }),
+}));
+
 jest.mock("@/components/sign-up/utils", () => ({
   toast: (message: string) => mockToast(message),
 }));
