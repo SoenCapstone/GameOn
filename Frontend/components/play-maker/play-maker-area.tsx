@@ -1,5 +1,6 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { View, ActivityIndicator } from "react-native";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import { PlayMakerBoard } from "@/components/play-maker/play-maker-board";
 import { ShapesTab } from "@/components/play-maker/shapes-tab";
 import type {
@@ -14,21 +15,52 @@ import { PlayerAssignmentPanel } from "./player-assignment-panel";
 import { useGetTeamMembers } from "@/hooks/use-get-team-members/use-get-team-members";
 import { useTeamDetailContext } from "@/contexts/team-detail-context";
 
+type PlayMakerAreaWithCallbackProps = PlayMakerAreaProps & {
+  onShapesChange?: (shapes: Shape[]) => void;
+};
+
 export const PlayMakerArea = ({
   styles,
   boardConfig: BoardConfig,
-}: PlayMakerAreaProps) => {
+  onShapesChange,
+}: PlayMakerAreaWithCallbackProps) => {
   const [selectedTool, setSelectedTool] = useState<ShapeTool>("person");
   const [selectedShapeId, setSelectedShapeId] = useState<string | null>(null);
   const [shapes, setShapes] = useState<Shape[]>([]);
 
   const { id: teamId } = useTeamDetailContext();
+  const storageKey = `playmaker:${teamId}`;
   const { data, isLoading } = useGetTeamMembers(teamId);
 
-  const renderedShapes = useRenderPlayMakerShapes(
-    shapes,
-    selectedShapeId,
-    (id) => setSelectedShapeId(id),
+  // LOAD (when page opens) — only set if there is actual saved content
+  useEffect(() => {
+    (async () => {
+      try {
+        const saved = await AsyncStorage.getItem(storageKey);
+        if (!saved) return;
+
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          setShapes(parsed);
+        }
+      } catch {
+        // ignore
+      }
+    })();
+  }, [storageKey]);
+
+  // Keep parent screen in sync with current shapes (used by Save button)
+  useEffect(() => {
+    onShapesChange?.(shapes);
+  }, [shapes, onShapesChange]);
+
+  // SAVE (whenever shapes change)
+  useEffect(() => {
+    AsyncStorage.setItem(storageKey, JSON.stringify(shapes)).catch(() => {});
+  }, [shapes, storageKey]);
+
+  const renderedShapes = useRenderPlayMakerShapes(shapes, selectedShapeId, (id) =>
+    setSelectedShapeId(id)
   );
 
   return (
@@ -46,7 +78,7 @@ export const PlayMakerArea = ({
               selectedTool,
               setShapes,
               selectedShapeId,
-              setSelectedShapeId,
+              setSelectedShapeId
             )
           }
         >
@@ -62,6 +94,7 @@ export const PlayMakerArea = ({
           selectedShapeId={selectedShapeId}
         />
       </View>
+
       {isLoading ? (
         <ActivityIndicator testID="team-loading" size="large" color="white" />
       ) : (
