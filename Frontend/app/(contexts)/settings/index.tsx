@@ -151,7 +151,6 @@ export default function Settings() {
             />
           )}
           {isReferee && (
-            <>
               <Form.Section
                 header="Referee Preferences"
               >
@@ -178,11 +177,9 @@ export default function Settings() {
                 />
             
               </Form.Section>
-            </>
           )}
           <Form.Link label="Terms and Privacy Policy" onPress={openPolicy} />
           {!isReferee && (
-            <>
               <Form.Button
                 button="Become a Referee"
                 onPress={() => {
@@ -199,7 +196,6 @@ export default function Settings() {
                   );
                 }}
               />
-            </>
           )}
             <Form.Button
               button="Sign Out"
