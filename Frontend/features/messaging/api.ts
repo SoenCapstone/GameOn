@@ -13,7 +13,7 @@ import {
   MessageResponse,
   SendMessagePayload,
   TeamConversationPayload,
-} from "./types";
+} from "@/features/messaging/types";
 
 const log = createScopedLog("MessagingAPI");
 
