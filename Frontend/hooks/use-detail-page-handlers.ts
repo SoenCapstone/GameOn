@@ -75,7 +75,15 @@ export function useDetailPageHandlers({
     } finally {
       setRefreshing(false);
     }
-  }, [log, onRefresh, refetchPosts, currentTab, boardPosts.length, entityName, onMatchesRefresh]);
+  }, [
+    log,
+    onRefresh,
+    refetchPosts,
+    currentTab,
+    boardPosts.length,
+    entityName,
+    onMatchesRefresh,
+  ]);
 
   return {
     refreshing,

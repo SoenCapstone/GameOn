@@ -66,7 +66,7 @@ function TeamContent() {
 
   const deletePostMutation = useDeleteBoardPost(id);
 
-   const {
+  const {
     data: matches = [],
     isLoading: matchesLoading,
     isFetching: matchesFetching,
@@ -75,7 +75,8 @@ function TeamContent() {
   } = useTeamMatches(id);
 
   const teamIds = useMemo(
-    () => Array.from(new Set(matches.flatMap((m) => [m.homeTeamId, m.awayTeamId]))),
+    () =>
+      Array.from(new Set(matches.flatMap((m) => [m.homeTeamId, m.awayTeamId]))),
     [matches],
   );
   const teamsQuery = useTeamsByIds(teamIds);
@@ -85,10 +86,11 @@ function TeamContent() {
     [matches, teamsQuery.data],
   );
 
-  const { current: currentMatches, upcoming: upcomingMatches, past: pastMatches } = useMemo(
-    () => splitMatchSections(matchItems),
-    [matchItems],
-  );
+  const {
+    current: currentMatches,
+    upcoming: upcomingMatches,
+    past: pastMatches,
+  } = useMemo(() => splitMatchSections(matchItems), [matchItems]);
 
   useTeamHeader({ title, id, isMember, onFollow: handleFollow });
 
@@ -181,7 +183,9 @@ function TeamContent() {
                 isLoading={matchesLoading || teamsQuery.isLoading}
                 errorText={matchesError ? "Could not load matches." : null}
                 onRetry={handleMatchesRefresh}
-                onMatchPress={(matchId) => router.push(`/teams/${id}/matches/${matchId}`)}
+                onMatchPress={(matchId) =>
+                  router.push(`/teams/${id}/matches/${matchId}`)
+                }
               />
             )}
             {tab === "overview" && (
@@ -202,7 +206,7 @@ function TeamContent() {
         )}
       </ContentArea>
 
-      {canManage && tab === "board" && (
+      {canManage && tab === "board" ? (
         <View style={styles.fab}>
           <Button
             type="custom"
@@ -219,7 +223,7 @@ function TeamContent() {
             }
           />
         </View>
-      )}
+      ) : null}
 
       {isOwner && tab === "matches" ? (
         <View style={styles.fab}>
