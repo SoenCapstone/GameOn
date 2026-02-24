@@ -1,4 +1,4 @@
-import React, { useCallback } from "react";
+import { useCallback, useState } from "react";
 import { ContentArea } from "@/components/ui/content-area";
 import { View, Text, RefreshControl, Alert } from "react-native";
 import SegmentedControl from "@react-native-segmented-control/segmented-control";
@@ -19,7 +19,6 @@ import { errorToString } from "@/utils/error";
 import {
   fetchLeagueInvitesWithDetails,
   LeagueInviteCard,
-  LeaguePrivacy,
 } from "@/components/leagues/league-invite-utils";
 
 type TeamInviteCard = {
@@ -44,7 +43,7 @@ type TeamInviteResponse = {
 };
 
 export default function Home() {
-  const [tab, setTab] = React.useState<"updates" | "spectating">("updates");
+  const [tab, setTab] = useState<"updates" | "spectating">("updates");
   const api = useAxiosWithClerk();
   const queryClient = useQueryClient();
   const { userId } = useAuth();
@@ -132,9 +131,7 @@ export default function Home() {
         return;
       }
 
-      if (maybe.leaguePrivacy === LeaguePrivacy.PRIVATE) {
-        respondLeagueInviteMutation.mutate({ invitationId: inviteId, isAccepted: true });
-      }
+      respondLeagueInviteMutation.mutate({ invitationId: inviteId, isAccepted: true });
     },
     [invites, respondLeagueInviteMutation],
   );
