@@ -312,7 +312,7 @@ public class RefereeService {
     public boolean isActive() {
         String userId = userProvider.clerkUserId();
         RefereeProfile referee = refereeProfileRepository.findByUserId(userId)
-                .orElseThrow(() -> new RuntimeException("Referee not found"));
+                .orElseThrow(() -> new NotFoundException("Referee not found"));
         return referee.isActive();
     }
 
@@ -320,7 +320,7 @@ public class RefereeService {
     public RefereeProfileResponse getByUserId() {
         String userId = userProvider.clerkUserId();
         RefereeProfile referee = refereeProfileRepository.findByUserId(userId)
-                .orElseThrow(() -> new RuntimeException("Referee not found"));
+                .orElseThrow(() -> new NotFoundException("Referee not found"));
         Hibernate.initialize(referee.getSports());
         Hibernate.initialize(referee.getAllowedRegions());
 
@@ -341,7 +341,7 @@ public class RefereeService {
         String userId = userProvider.clerkUserId();
 
         RefereeProfile referee = refereeProfileRepository.findByUserId(userId)
-                .orElseThrow(() -> new RuntimeException("Referee not found"));
+                .orElseThrow(() -> new NotFoundException("Referee not found"));
         if (sports != null) {
             referee.setSports(normalizeList(sports));
             refereeProfileRepository.save(referee);
@@ -352,7 +352,7 @@ public class RefereeService {
         String userId = userProvider.clerkUserId();
 
         var referee = refereeProfileRepository.findByUserId(userId)
-                .orElseThrow(() -> new RuntimeException("Referee not found"));
+                .orElseThrow(() -> new NotFoundException("Referee not found"));
         if (regions != null) {
             referee.setAllowedRegions(normalizeList(regions));
             refereeProfileRepository.save(referee);
@@ -362,7 +362,7 @@ public class RefereeService {
     public void updateStatus(boolean isActive) {
         String userId = userProvider.clerkUserId();
         var referee = refereeProfileRepository.findByUserId(userId)
-                .orElseThrow(() -> new RuntimeException("Referee not found"));
+                .orElseThrow(() -> new NotFoundException("Referee not found"));
 
 
         referee.setActive(isActive);

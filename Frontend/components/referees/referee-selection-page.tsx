@@ -8,24 +8,27 @@ import { Button } from "@/components/ui/button";
 import { useRouter, useNavigation } from "expo-router";
 
 interface RefereeSelectionPageProps {
-  title: string;
-  availableItems: string[];
-  selectedItems: string[];
-  toggleItem: (item: string) => void;
-  saveItems: () => Promise<void>;
-  canSave: boolean;
-  loading: boolean;
+  readonly title: string;
+  readonly availableItems: readonly string[];
+  readonly selectedItems: readonly string[];
+  readonly setSelectedItems: (items: string[]) => void;
+  readonly saveItems: () => Promise<void>;
+  readonly canSave: boolean;
+  readonly loading: boolean;
 }
 
-export default function RefereeSelectionPage({
-  title,
-  availableItems,
-  selectedItems,
-  toggleItem,
-  saveItems,
-  canSave,
-  loading,
-}: RefereeSelectionPageProps) {
+export default function RefereeSelectionPage(
+  props: Readonly<RefereeSelectionPageProps>
+  ) {
+    const {
+      title,
+      availableItems,
+      selectedItems,
+      setSelectedItems,
+      saveItems,
+      canSave,
+      loading,
+    } = props;
   const router = useRouter();
   const navigation = useNavigation();
 
@@ -57,15 +60,12 @@ export default function RefereeSelectionPage({
   return (
     <ContentArea scrollable backgroundProps={{ preset: "orange", mode: "form" }}>
       <Form accentColor={AccentColors.orange}>
-        <Form.Section header={title}>
-          {availableItems.map((item) => (
-            <Form.Switch 
-              key={item}
-              label={item} 
-              value={selectedItems.includes(item)} 
-              onValueChange={() => toggleItem(item)} 
-            />
-          ))}
+        <Form.Section>
+          <Form.Multiselect
+            options={availableItems}
+            selected={selectedItems}
+            onSelected={setSelectedItems}
+          />
         </Form.Section>
       </Form>
     </ContentArea>

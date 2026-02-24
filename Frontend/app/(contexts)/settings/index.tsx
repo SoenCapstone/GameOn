@@ -8,8 +8,7 @@ import { confirmLogout } from "@/components/user-profile/profile-utils";
 import { log } from "@/utils/logger";
 import { openPolicy } from "@/components/privacy-disclaimer/utils";
 import { images } from "@/constants/images";
-import { useAxiosWithClerk } from "@/hooks/use-axios-clerk";
-import { GO_REFEREE_SERVICE_ROUTES } from "@/hooks/use-axios-clerk";
+import { useAxiosWithClerk, GO_REFEREE_SERVICE_ROUTES } from "@/hooks/use-axios-clerk";
 import { useState, useEffect } from "react";
 import { Alert } from "react-native";
 
@@ -89,6 +88,25 @@ export default function Settings() {
     }
   };
 
+  const [sports, setSports] = useState<string[]>([]);
+  const [regions, setRegions] = useState<string[]>([]);
+  useEffect(() => {
+    if (!isReferee) return;
+
+    const fetchProfile = async () => {
+      try {
+        const response = await axios.get(GO_REFEREE_SERVICE_ROUTES.PROFILE);
+
+        setSports(response.data.sports || []);
+        setRegions(response.data.allowedRegions || []);
+      } catch (error) {
+        console.error("Failed to load referee preferences:", error);
+      }
+    };
+
+    fetchProfile();
+  }, [axios, isReferee]);
+
 
   if (!user || !isLoaded || !isSignedIn) return null;
 
@@ -132,61 +150,62 @@ export default function Settings() {
               onPress={() => router.push("/_sitemap")}
             />
           )}
-          <Form.Section
-            header="Referee"
-            footer="Referees help keep games fair and running smoothly."
-          >
-          {!isReferee ? (
-            <Form.Button
-              button="Become a Referee"
-              onPress={() => {
-                Alert.alert(
-                  "Become a Referee?",
-                  "Referees help keep games fair and running smoothly.",
-                  [
-                    { text: "Cancel", style: "cancel" },
-                    {
-                      text: "Continue",
-                      onPress: registerAsReferee,
-                    },
-                  ]
-                );
-              }}
-            />
-          ) : (
+          {isReferee && (
             <>
-              <Form.Button
-                button="Sports"
-                onPress={() => {
-                  router.push("/settings/referee-sports");}
-                }
-              />
+              <Form.Section
+                header="Referee Preferences"
+              >
+                <Form.Link
+                  label="Sports"
+                  preview= {sports.length > 0 ? sports : ["None selected"]}
+                  onPress={() => {
+                    router.push("/settings/referee-sports");}
+                  }
+                />
 
-              <Form.Button
-                button="Regions"
-                onPress={() => {
-                  router.push("/settings/referee-regions");}
-                }
-              />
-            
+                <Form.Link
+                  label="Regions"
+                  preview = {regions.length > 0 ? regions : ["None selected"]}
+                  onPress={() => {
+                    router.push("/settings/referee-regions");}
+                  }
+                />
 
-              {isActive !== null && (
                 <Form.Button
                   button={isActive ? "Pause Refereeing" : "Resume Refereeing"}
-                  color={isActive ? AccentColors.red : AccentColors.blue}
+                  color={isActive ? AccentColors.red : AccentColors.orange}
                   onPress={toggleRefereeStatus}
                 />
-              )}
+            
+              </Form.Section>
             </>
           )}
-          </Form.Section>
-
           <Form.Link label="Terms and Privacy Policy" onPress={openPolicy} />
-          <Form.Button
-            button="Sign Out"
-            color={AccentColors.red}
-            onPress={() => logout()}
-          />
+          {!isReferee && (
+            <>
+              <Form.Button
+                button="Become a Referee"
+                onPress={() => {
+                  Alert.alert(
+                    "Become a Referee?",
+                    "Referees help keep games fair and running smoothly.",
+                    [
+                      { text: "Cancel", style: "cancel" },
+                      {
+                        text: "Continue",
+                        onPress: registerAsReferee,
+                      },
+                    ]
+                  );
+                }}
+              />
+            </>
+          )}
+            <Form.Button
+              button="Sign Out"
+              color={AccentColors.red}
+              onPress={() => logout()}
+            /> 
         </Form.Section>
       </Form>
     </ContentArea>
