@@ -1,17 +1,17 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { Text, View, Alert } from "react-native";
+import { View, Alert } from "react-native";
 import { useLocalSearchParams, useNavigation, useRouter } from "expo-router";
 import { useQueryClient } from "@tanstack/react-query";
 import { ContentArea } from "@/components/ui/content-area";
 import { Form } from "@/components/form/form";
 import { AccentColors } from "@/constants/colors";
-import { matchStyles } from "@/components/matches/match-styles";
 import {
   useCreateLeagueMatch,
   useLeagueTeams,
   useReferees,
   useTeamsByIds,
 } from "@/hooks/use-matches";
+import { useLeagueDetail } from "@/hooks/use-league-detail";
 import { buildStartEndIso, isValidTimeRange } from "@/features/matches/utils";
 import { toast } from "@/components/sign-up/utils";
 import { createScopedLog } from "@/utils/logger";
@@ -38,7 +38,6 @@ export default function ScheduleLeagueMatchScreen() {
   const [startTimeValue, setStartTimeValue] = useState(new Date());
   const [endTimeValue, setEndTimeValue] = useState(new Date(Date.now() + 60 * 60 * 1000));
   const [venue, setVenue] = useState("");
-  const [errors, setErrors] = useState<Record<string, string>>({});
 
   useEffect(() => {
     if (params.newVenue) {
@@ -46,6 +45,7 @@ export default function ScheduleLeagueMatchScreen() {
     }
   }, [params.newVenue]);
 
+  const { league } = useLeagueDetail(leagueId);
   const { data: leagueTeams = [] } = useLeagueTeams(leagueId);
   const teamIds = useMemo(() => leagueTeams.map((item) => item.teamId), [leagueTeams]);
   const teamsQuery = useTeamsByIds(teamIds);
@@ -57,7 +57,7 @@ export default function ScheduleLeagueMatchScreen() {
     [teamIds, teamsQuery.data],
   );
 
-  const refereesQuery = useReferees({ active: true });
+  const refereesQuery = useReferees({ active: true, sport: league?.sport ?? undefined });
   const createMutation = useCreateLeagueMatch(leagueId);
 
   const teamNameToId = useMemo(
@@ -65,6 +65,18 @@ export default function ScheduleLeagueMatchScreen() {
     [teams],
   );
   const teamOptions = teams.map((team) => team.name);
+  const homeTeamOptions = useMemo(() => {
+    if (!awayTeamId) return teamOptions;
+    return teams
+      .filter((team) => team.id !== awayTeamId || team.id === homeTeamId)
+      .map((team) => team.name);
+  }, [awayTeamId, homeTeamId, teamOptions, teams]);
+  const awayTeamOptions = useMemo(() => {
+    if (!homeTeamId) return teamOptions;
+    return teams
+      .filter((team) => team.id !== homeTeamId || team.id === awayTeamId)
+      .map((team) => team.name);
+  }, [awayTeamId, homeTeamId, teamOptions, teams]);
   const { refereeOptions, refereeLabelToId, refereeIdToLabel } = useRefereeOptions(
     refereesQuery.data,
   );
@@ -72,9 +84,11 @@ export default function ScheduleLeagueMatchScreen() {
   useEffect(() => {
     if (teamsQuery.error) {
       log.error("Failed to load league teams for schedule", teamsQuery.error);
+      Alert.alert("Load error", "Could not load teams. Please retry.");
     }
     if (refereesQuery.error) {
       log.error("Failed to load referees for schedule", refereesQuery.error);
+      Alert.alert("Load error", "Could not load referees. Please retry.");
     }
   }, [refereesQuery.error, teamsQuery.error]);
 
@@ -94,7 +108,12 @@ export default function ScheduleLeagueMatchScreen() {
     }
     if (!refereeUserId) nextErrors.refereeUserId = "Referee is required";
 
-    setErrors(nextErrors);
+    if (Object.keys(nextErrors).length > 0) {
+      const firstError = Object.values(nextErrors)[0];
+      if (firstError) {
+        Alert.alert("Invalid match details", firstError);
+      }
+    }
     return Object.keys(nextErrors).length === 0;
   }, [
     awayTeamId,
@@ -136,8 +155,8 @@ export default function ScheduleLeagueMatchScreen() {
       router.replace(`/leagues/${leagueId}`);
     } catch (err: any) {
       const { status, message } = getScheduleApiErrorMessage(err, "You must be league admin");
-      setErrors((prev) => ({ ...prev, form: message }));
       toast(message);
+      Alert.alert("Schedule failed", message);
       if (status === 0) {
         Alert.alert("Network error", message, [
           { text: "Cancel", style: "cancel" },
@@ -174,30 +193,25 @@ export default function ScheduleLeagueMatchScreen() {
           <View>
             <Form.Menu
               label="Home Team"
-              options={teamOptions}
+              options={homeTeamOptions}
               value={teams.find((team) => team.id === homeTeamId)?.name ?? "Select"}
               onValueChange={(value) => setHomeTeamId(teamNameToId[value])}
               disabled={
                 createMutation.isPending || teamsQuery.isLoading || teamOptions.length === 0
               }
             />
-            {errors.homeTeamId ? <Text style={matchStyles.errorInline}>{errors.homeTeamId}</Text> : null}
-            {teamsQuery.error ? (
-              <Text style={matchStyles.errorInline}>Could not load teams. Pull to retry.</Text>
-            ) : null}
           </View>
 
           <View>
             <Form.Menu
               label="Away Team"
-              options={teamOptions}
+              options={awayTeamOptions}
               value={teams.find((team) => team.id === awayTeamId)?.name ?? "Select"}
               onValueChange={(value) => setAwayTeamId(teamNameToId[value])}
               disabled={
                 createMutation.isPending || teamsQuery.isLoading || teamOptions.length === 0
               }
             />
-            {errors.awayTeamId ? <Text style={matchStyles.errorInline}>{errors.awayTeamId}</Text> : null}
           </View>
         </Form.Section>
 
@@ -206,7 +220,6 @@ export default function ScheduleLeagueMatchScreen() {
           startTimeValue={startTimeValue}
           endTimeValue={endTimeValue}
           venue={venue}
-          errors={errors}
           onDateChange={setDate}
           onStartTimeChange={setStartTimeValue}
           onEndTimeChange={setEndTimeValue}
@@ -232,18 +245,8 @@ export default function ScheduleLeagueMatchScreen() {
                 refereeOptions.length === 0
               }
             />
-            {errors.refereeUserId ? (
-              <Text style={matchStyles.errorInline}>{errors.refereeUserId}</Text>
-            ) : null}
-            {refereesQuery.error ? (
-              <Text style={matchStyles.errorInline}>
-                Could not load referees. Pull to retry.
-              </Text>
-            ) : null}
           </View>
         </Form.Section>
-
-        {errors.form ? <Text style={matchStyles.errorInline}>{errors.form}</Text> : null}
       </Form>
     </ContentArea>
   );

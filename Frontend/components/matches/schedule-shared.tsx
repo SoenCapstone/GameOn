@@ -1,10 +1,9 @@
 import { useLayoutEffect } from "react";
-import { Text, View } from "react-native";
+import { View } from "react-native";
 import { Header } from "@/components/header/header";
 import { PageTitle } from "@/components/header/page-title";
 import { Button } from "@/components/ui/button";
 import { Form } from "@/components/form/form";
-import { matchStyles } from "@/components/matches/match-styles";
 
 export function getScheduleApiErrorMessage(err: any, forbiddenMessage: string) {
   const status = err?.response?.status;
@@ -50,7 +49,6 @@ export function MatchDetailsSection(props: {
   readonly startTimeValue: Date;
   readonly endTimeValue: Date;
   readonly venue: string;
-  readonly errors: Record<string, string>;
   readonly onDateChange: (date: Date) => void;
   readonly onStartTimeChange: (date: Date) => void;
   readonly onEndTimeChange: (date: Date) => void;
@@ -62,7 +60,6 @@ export function MatchDetailsSection(props: {
     startTimeValue,
     endTimeValue,
     venue,
-    errors,
     onDateChange,
     onStartTimeChange,
     onEndTimeChange,
@@ -82,7 +79,6 @@ export function MatchDetailsSection(props: {
             if (selectedDate) onDateChange(selectedDate);
           }}
         />
-        {errors.date ? <Text style={matchStyles.errorInline}>{errors.date}</Text> : null}
       </View>
 
       <View>
@@ -95,7 +91,6 @@ export function MatchDetailsSection(props: {
             if (selectedDate) onStartTimeChange(selectedDate);
           }}
         />
-        {errors.startTime ? <Text style={matchStyles.errorInline}>{errors.startTime}</Text> : null}
       </View>
 
       <View>
@@ -108,8 +103,6 @@ export function MatchDetailsSection(props: {
             if (selectedDate) onEndTimeChange(selectedDate);
           }}
         />
-        {errors.endTime ? <Text style={matchStyles.errorInline}>{errors.endTime}</Text> : null}
-        {errors.timeRange ? <Text style={matchStyles.errorInline}>{errors.timeRange}</Text> : null}
       </View>
 
       <Form.Input label="Venue" placeholder="Optional" value={venue} onChangeText={onVenueChange} />

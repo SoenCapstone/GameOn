@@ -142,28 +142,48 @@ export function useCreateLeagueMatch(leagueId: string) {
       matchLocation?: string;
       refereeUserId: string;
     }) => {
-      const createResp = await api.post(
-        GO_LEAGUE_SERVICE_ROUTES.CREATE_MATCH(leagueId),
-        {
-          homeTeamId: payload.homeTeamId,
-          awayTeamId: payload.awayTeamId,
-          startTime: payload.startTime,
-          endTime: payload.endTime,
-          matchLocation: payload.matchLocation,
-          requiresReferee: true,
-        },
-      );
+      let created: LeagueMatch | null = null;
+      try {
+        const createResp = await api.post(
+          GO_LEAGUE_SERVICE_ROUTES.CREATE_MATCH(leagueId),
+          {
+            homeTeamId: payload.homeTeamId,
+            awayTeamId: payload.awayTeamId,
+            startTime: payload.startTime,
+            endTime: payload.endTime,
+            matchLocation: payload.matchLocation,
+            requiresReferee: true,
+          },
+        );
 
-      const created = createResp.data as LeagueMatch;
+        created = createResp.data as LeagueMatch;
 
-      await api.post(
-        GO_LEAGUE_SERVICE_ROUTES.ASSIGN_REFEREE(leagueId, created.id),
-        {
-          refereeUserId: payload.refereeUserId,
-        },
-      );
+        await api.post(
+          GO_LEAGUE_SERVICE_ROUTES.ASSIGN_REFEREE(leagueId, created.id),
+          {
+            refereeUserId: payload.refereeUserId,
+          },
+        );
 
-      return created;
+        return created;
+      } catch (err) {
+        // League matches require referee assignment at creation time.
+        // If referee assignment fails after create, cancel the created match to avoid partial success.
+        if (created?.id) {
+          try {
+            await api.post(GO_LEAGUE_SERVICE_ROUTES.CANCEL_MATCH(leagueId, created.id), {
+              reason: "Auto-cancelled: referee assignment failed at creation",
+            });
+          } catch (cancelErr) {
+            log.error("Failed to auto-cancel league match after referee assignment error", {
+              leagueId,
+              matchId: created.id,
+              cancelErr,
+            });
+          }
+        }
+        throw err;
+      }
     },
   });
 }
