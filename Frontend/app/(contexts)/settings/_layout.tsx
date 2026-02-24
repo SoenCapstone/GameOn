@@ -29,6 +29,20 @@ export default function SettingsLayout() {
           headerTransparent: true,
         }}
       />
+      <Stack.Screen
+        name="referee-regions"
+        options={{
+          headerBackVisible: false,
+          headerTransparent: true,
+        }}
+      />
+      <Stack.Screen
+        name="referee-sports"
+        options={{
+          headerBackVisible: false,
+          headerTransparent: true,
+        }}
+      />
     </Stack>
   );
 }
