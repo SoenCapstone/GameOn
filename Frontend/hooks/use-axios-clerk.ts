@@ -44,6 +44,7 @@ enum SERVICE {
   TEAMS = "teams",
   LEAGUES = "leagues",
   MESSAGING = "messaging",
+  REFEREES = "referees"
 }
 
 const buildRoute = (version: string, service: string, path?: string) => {
@@ -67,12 +68,17 @@ export const GO_TEAM_SERVICE_ROUTES = {
     buildRoute(VERSIONING.v1, SERVICE.TEAMS, `${teamId}/logo`),
   GET_TEAM_MEMBERS: (teamId: string) =>
     buildRoute(VERSIONING.v1, SERVICE.TEAMS, `${teamId}/members`),
+
   REMOVE_TEAM_MEMBER: (teamId: string, userId: string) =>
     buildRoute(VERSIONING.v1, SERVICE.TEAMS, `${teamId}/delete/${userId}`),
+
   CREATE_INVITE: buildRoute(VERSIONING.v1, SERVICE.TEAMS, "create-invite"),
+
   TEAM_INVITES: (teamId: string) =>
     buildRoute(VERSIONING.v1, SERVICE.TEAMS, `invites/${teamId}`),
+
   USER_INVITES: buildRoute(VERSIONING.v1, SERVICE.TEAMS, "invites"),
+
   TEAM_POSTS: (teamId: string) =>
     buildRoute(VERSIONING.v1, SERVICE.TEAMS, `${teamId}/posts`),
   TEAM_POST: (teamId: string, postId: string) =>
@@ -81,6 +87,10 @@ export const GO_TEAM_SERVICE_ROUTES = {
     buildRoute(VERSIONING.v1, SERVICE.TEAMS, `${teamId}/matches`),
   CREATE_MATCH_INVITE: (teamId: string) =>
     buildRoute(VERSIONING.v1, SERVICE.TEAMS, `${teamId}/matches/create-invite`),
+
+
+  CREATE_PLAY: (teamId: string) =>
+    buildRoute(VERSIONING.v1, SERVICE.TEAMS, `${teamId}/play-maker`),
 };
 
 export const GO_LEAGUE_SERVICE_ROUTES = {
@@ -163,4 +173,11 @@ export const GO_MATCH_ROUTES = {
 export const GO_REFEREE_ROUTES = {
   ALL: buildRoute(VERSIONING.v1, "referees"),
   MY_INVITES: buildRoute(VERSIONING.v1, "ref-invites"),
+};
+export const GO_REFEREE_SERVICE_ROUTES = {
+  STATUS: buildRoute(VERSIONING.v1, SERVICE.REFEREES, "status"),
+  REGISTER: buildRoute(VERSIONING.v1, SERVICE.REFEREES, "register"),
+  UPDATE_SPORTS: buildRoute(VERSIONING.v1, SERVICE.REFEREES, "sports"),
+  UPDATE_REGIONS: buildRoute(VERSIONING.v1, SERVICE.REFEREES, "regions"),
+  PROFILE: buildRoute(VERSIONING.v1, SERVICE.REFEREES, "profile"),
 };

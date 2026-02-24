@@ -6,7 +6,6 @@ import {
   StyleSheet,
   RefreshControl,
 } from "react-native";
-import SegmentedControl from "@react-native-segmented-control/segmented-control";
 import { LegendList } from "@legendapp/list";
 import { ContentArea } from "@/components/ui/content-area";
 import { InfoCard } from "@/components/info-card";
@@ -17,6 +16,7 @@ import type {
   Modes,
   SearchModeConfig,
 } from "@/components/browse/constants";
+import { Tabs } from "@/components/ui/tabs";
 
 type Props = {
   readonly logScope: string;
@@ -148,12 +148,12 @@ export function SearchResultsScreen({
 
   if (!selectedMode) return null;
 
-  const showSegmentedControl = !q && !searchActive;
+  const showTabs = !q && !searchActive;
 
   return (
     <ContentArea
       scrollable
-      segmentedControl={showSegmentedControl}
+      tabs={showTabs}
       paddingBottom={60}
       backgroundProps={
         backgroundPreset ? { preset: backgroundPreset } : undefined
@@ -166,15 +166,14 @@ export function SearchResultsScreen({
         />
       }
     >
-      {showSegmentedControl && (
-        <SegmentedControl
+      {showTabs && (
+        <Tabs
           values={modes.map((m) => m.label)}
           selectedIndex={modes.findIndex((m) => m.key === selectedMode.key)}
           onValueChange={(value) => {
             const next = modes.find((m) => m.label === value);
             if (next) setMode(next.key);
           }}
-          style={{ height: 40 }}
         />
       )}
 

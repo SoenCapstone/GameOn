@@ -1,16 +1,14 @@
 import { Stack } from "expo-router";
-import "react-native-reanimated";
-import React from "react";
 import { Header } from "@/components/header/header";
 import { PageTitle } from "@/components/header/page-title";
-import { Button } from "@/components/ui/button";
 import { useSearch } from "@/contexts/search-context";
+import { Logo } from "@/components/header/logo";
 
 const browseHeader = () => (
-  <Header left={<Button type="back" />} center={<PageTitle title="Browse" />} />
+  <Header left={<Logo />} center={<PageTitle title="Explore" />} />
 );
 
-export default function BrowseLayout() {
+export default function ExploreLayout() {
   const { setQuery, setSearchActive } = useSearch();
 
   return (
@@ -23,7 +21,7 @@ export default function BrowseLayout() {
           headerTransparent: true,
           headerSearchBarOptions: {
             hideNavigationBar: false,
-            placement: "automatic",
+            placement: "integrated",
             onChangeText: (event) => {
               const text = event.nativeEvent.text || "";
               setQuery(text);

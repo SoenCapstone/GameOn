@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import {
   View,
   ActivityIndicator,
@@ -6,7 +6,6 @@ import {
   StyleSheet,
 } from "react-native";
 import { useLocalSearchParams, useRouter } from "expo-router";
-import SegmentedControl from "@react-native-segmented-control/segmented-control";
 import { ContentArea } from "@/components/ui/content-area";
 import { getSportLogo } from "@/components/browse/utils";
 import { Button } from "@/components/ui/button";
@@ -31,15 +30,16 @@ import {
   splitMatchSections,
 } from "@/features/matches/utils";
 import { Card } from "@/components/ui/card";
+import { Tabs } from "@/components/ui/tabs";
 
-type LeagueTab = "board" | "matches" | "teams";
+type LeagueTab = "board" | "matches" | "standings" | "teams";
 
-// NOTE: order matters (index mapping for SegmentedControl)
-const LEAGUE_TABS: readonly LeagueTab[] = ["board", "matches", "teams"] as const;
+const LeagueTabs: readonly LeagueTab[] = ["board", "matches", "standings", "teams"] as const;
 
-const TAB_LABELS: Record<LeagueTab, string> = {
+const TabLabels: Record<LeagueTab, string> = {
   board: "Board",
   matches: "Matches",
+  standings: "Standings",
   teams: "Teams",
 };
 
@@ -120,14 +120,14 @@ function LeagueContent() {
     entityName: "League",
   });
 
-  const selectedIndex = useMemo(() => LEAGUE_TABS.indexOf(tab), [tab]);
+  const selectedIndex = useMemo(() => LeagueTabs.indexOf(tab), [tab]);
 
   return (
     <View style={{ flex: 1 }}>
       <ContentArea
         scrollable
         paddingBottom={20}
-        segmentedControl
+        tabs
         backgroundProps={{ preset: "red" }}
         refreshControl={
           <RefreshControl
@@ -142,16 +142,15 @@ function LeagueContent() {
           />
         }
       >
-        <SegmentedControl
-          values={LEAGUE_TABS.map((t) => TAB_LABELS[t])}
+        <Tabs
+          values={LeagueTabs.map((t) => TabLabels[t])}
           selectedIndex={selectedIndex}
-          onChange={(event) => {
-            const index = event.nativeEvent.selectedSegmentIndex;
-            const nextTab = LEAGUE_TABS[index] ?? "board";
+          onValueChange={(value) => {
+            const index = LeagueTabs.findIndex((t) => TabLabels[t] === value);
+            const nextTab = index >= 0 ? LeagueTabs[index] : "board";
             setTab(nextTab);
             log.info("Tab changed", { tab: nextTab });
           }}
-          style={{ height: 40 }}
         />
 
         {isLoading ? (
