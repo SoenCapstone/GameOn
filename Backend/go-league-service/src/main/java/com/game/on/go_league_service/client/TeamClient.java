@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
+import java.util.List;
 import java.util.UUID;
 
 @FeignClient(
@@ -36,4 +37,7 @@ public interface TeamClient {
 
     @PostMapping("/api/v1/matches/{matchId}/assign-referee")
     void assignReferee(@PathVariable UUID matchId);
+
+    @GetMapping("/api/v1/teams/{teamId}/matches")
+    List<TeamMatchDetailResponse> getAllTeamMatch(@PathVariable UUID teamId);
 }
