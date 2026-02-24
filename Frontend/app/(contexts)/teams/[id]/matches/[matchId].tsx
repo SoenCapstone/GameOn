@@ -35,11 +35,12 @@ export default function TeamMatchDetailsScreen() {
     );
   }
 
-  const canCancel =
+  const canCancel = Boolean(
     !isPast &&
-    ((homeTeam?.ownerUserId && homeTeam.ownerUserId === userId) ||
-      (awayTeam?.ownerUserId && awayTeam.ownerUserId === userId)) &&
-    match.status !== "CANCELLED";
+      ((homeTeam?.ownerUserId && homeTeam.ownerUserId === userId) ||
+        (awayTeam?.ownerUserId && awayTeam.ownerUserId === userId)) &&
+      match.status !== "CANCELLED"
+  );
 
   return (
     <MatchDetailsContent

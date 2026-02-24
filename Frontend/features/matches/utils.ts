@@ -104,7 +104,7 @@ export function filterPendingTeamInvitesForOwner(
   );
 }
 
-type MatchCardItem = {
+export type MatchCardItem = {
   id: string;
   homeName: string;
   awayName: string;

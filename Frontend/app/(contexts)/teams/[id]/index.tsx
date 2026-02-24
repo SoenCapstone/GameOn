@@ -1,5 +1,6 @@
 import React, { useMemo, useState } from "react";
 import { ActivityIndicator, RefreshControl, StyleSheet, Text, View } from "react-native";
+import { ImageSource } from "expo-image";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import SegmentedControl from "@react-native-segmented-control/segmented-control";
 import { ContentArea } from "@/components/ui/content-area";
@@ -12,6 +13,7 @@ import {
 } from "@/contexts/team-detail-context";
 import { useTeamBoardPosts, useDeleteBoardPost } from "@/hooks/use-team-board";
 import { BoardList } from "@/components/board/board-list";
+import type { BoardPost } from "@/components/board/board-types";
 import { useDetailPageHandlers } from "@/hooks/use-detail-page-handlers";
 import { MatchListSections } from "@/components/matches/match-list-sections";
 import { useTeamMatches, useTeamsByIds } from "@/hooks/use-matches";
@@ -19,6 +21,7 @@ import {
   buildMatchCards,
   splitMatchSections,
 } from "@/features/matches/utils";
+import type { MatchCardItem } from "@/features/matches/utils";
 
 type TeamTab = "board" | "overview" | "games";
 const TEAM_SEGMENT_VALUES = ["Board", "Overview", "Games"] as const;
@@ -44,17 +47,17 @@ function getTeamSegmentIndex(tab: TeamTab): number {
 
 type TeamTabContentProps = {
   readonly tab: TeamTab;
-  readonly boardPosts: readonly any[];
+  readonly boardPosts: readonly BoardPost[];
   readonly postsLoading: boolean;
   readonly teamName: string;
-  readonly teamLogo: any;
+  readonly teamLogo: ImageSource;
   readonly handleDeletePost: (postId: string) => void;
   readonly canManage: boolean;
   readonly id: string;
   readonly router: ReturnType<typeof useRouter>;
-  readonly currentMatches: readonly any[];
-  readonly upcomingMatches: readonly any[];
-  readonly pastMatches: readonly any[];
+  readonly currentMatches: readonly MatchCardItem[];
+  readonly upcomingMatches: readonly MatchCardItem[];
+  readonly pastMatches: readonly MatchCardItem[];
   readonly matchesLoading: boolean;
   readonly teamsLoading: boolean;
   readonly matchesError: unknown;
@@ -84,7 +87,7 @@ function TeamTabContent(props: Readonly<TeamTabContentProps>) {
   if (tab === "board") {
     return (
       <BoardList
-        posts={boardPosts}
+        posts={[...boardPosts]}
         isLoading={postsLoading}
         spaceName={teamName}
         spaceLogo={teamLogo}
@@ -111,9 +114,9 @@ function TeamTabContent(props: Readonly<TeamTabContentProps>) {
 
   return (
     <MatchListSections
-      current={currentMatches}
-      upcoming={upcomingMatches}
-      past={pastMatches}
+      current={[...currentMatches]}
+      upcoming={[...upcomingMatches]}
+      past={[...pastMatches]}
       isLoading={matchesLoading || teamsLoading}
       errorText={matchesError ? "Could not load matches." : null}
       onRetry={onRetryMatches}
