@@ -1,4 +1,4 @@
-import React, { useCallback } from "react";
+import { useCallback, useState } from "react";
 import { ContentArea } from "@/components/ui/content-area";
 import { View, Text, RefreshControl, Alert, StyleSheet } from "react-native";
 import { Card } from "@/components/ui/card";
@@ -17,7 +17,6 @@ import { errorToString } from "@/utils/error";
 import {
   fetchLeagueInvitesWithDetails,
   LeagueInviteCard,
-  LeaguePrivacy,
 } from "@/components/leagues/league-invite-utils";
 import { Tabs } from "@/components/ui/tabs";
 
@@ -162,12 +161,7 @@ export default function Home() {
         return;
       }
 
-      if (maybe.leaguePrivacy === LeaguePrivacy.PRIVATE) {
-        respondLeagueInviteMutation.mutate({
-          invitationId: inviteId,
-          isAccepted: true,
-        });
-      }
+      respondLeagueInviteMutation.mutate({ invitationId: inviteId, isAccepted: true });
     },
     [invites, respondLeagueInviteMutation],
   );
@@ -340,28 +334,3 @@ async function fetchUserNameMap(api: AxiosInstance, userIds: string[]) {
   );
   return Object.fromEntries(entries);
 }
-
-const styles = StyleSheet.create({
-  segmented: {
-    height: 40,
-  },
-  cardWrap: {
-    width: "90%",
-    gap: 12,
-  },
-  teamName: {
-    color: "white",
-    fontSize: 16,
-    fontWeight: "700",
-  },
-  inviteText: {
-    color: "rgba(255,255,255,0.8)",
-    marginTop: 8,
-  },
-  actionsRow: {
-    flexDirection: "row",
-    gap: 12,
-    marginTop: 16,
-    justifyContent: "flex-end",
-  },
-});

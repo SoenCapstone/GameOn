@@ -10,12 +10,14 @@ import { createScopedLog } from "@/utils/logger";
 const log = createScopedLog("Team Detail");
 
 export type TeamDetailResponse = Readonly<{
-  id: string;
-  name: string;
+  id: string | null;
+  name: string | null;
   sport: string | null;
   location: string | null;
   logoUrl: string | null;
-  ownerUserId?: string | null;
+  scope: string | null;
+  privacy: "PRIVATE" | "PUBLIC";
+  ownerUserId: string | null;
 }>;
 
 export function teamDetailQueryOptions(
@@ -44,28 +46,29 @@ export function useTeamDetail(id: string) {
   const api = useAxiosWithClerk();
   const { userId } = useAuth();
 
-  const { data: team, isLoading, refetch } = useQuery(
-    teamDetailQueryOptions(api, id),
-  );
+  const {
+    data: team,
+    isLoading,
+    refetch,
+  } = useQuery(teamDetailQueryOptions(api, id));
 
-
- const { data: membership } = useQuery({
-     queryKey: ["team-membership", id, userId],
-     queryFn: async () => {
-       try {
-         const resp = await api.get(
-           `${GO_TEAM_SERVICE_ROUTES.ALL}/${id}/memberships/me`,
-         );
-         return resp.data;
-       } catch (err) {
-         log.info("User is not a member of this team:", err);
-         return null;
-       }
-     },
-     enabled: Boolean(id) && Boolean(userId),
-     retry: false,
-     refetchOnWindowFocus: false,
-   });
+  const { data: membership } = useQuery({
+    queryKey: ["team-membership", id, userId],
+    queryFn: async () => {
+      try {
+        const resp = await api.get(
+          `${GO_TEAM_SERVICE_ROUTES.ALL}/${id}/memberships/me`,
+        );
+        return resp.data;
+      } catch (err) {
+        log.info("User is not a member of this team:", err);
+        return null;
+      }
+    },
+    enabled: Boolean(id) && Boolean(userId),
+    retry: false,
+    refetchOnWindowFocus: false,
+  });
 
   const handleFollow = useCallback(() => {
     log.info(`User with id ${userId} has followed team with id ${id}`);
@@ -84,21 +87,11 @@ export function useTeamDetail(id: string) {
   const title = team?.name ?? (id ? `Team ${id}` : "Team");
   const isOwner = Boolean(userId && team && team.ownerUserId === userId);
 
-  // membership is unknown shape (from API), so keep these safely optional:
-  const mem = membership as
-    | {
-        status?: string;
-        role?: string | null;
-        joinedAt?: string | null;
-      }
-    | null
-    | undefined;
-
-  const isMember = Boolean(mem);
-  const isActiveMember = mem?.status === "ACTIVE";
-  const role = mem?.role;
-  const memStatus = mem?.status;
-  const joinedAt = mem?.joinedAt;
+  const isMember = Boolean(membership);
+  const isActiveMember = membership?.status === "ACTIVE";
+  const role = membership?.role;
+  const memStatus = membership?.status;
+  const joinedAt = membership?.joinedAt;
 
   return {
     team,
