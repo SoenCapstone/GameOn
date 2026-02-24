@@ -156,7 +156,7 @@ export default function Settings() {
               >
                 <Form.Link
                   label="Sports"
-                  preview= {sports.length > 0 ? sports : ["None selected"]}
+                  preview= {sports}
                   onPress={() => {
                     router.push("/settings/referee-sports");}
                   }
@@ -164,7 +164,7 @@ export default function Settings() {
 
                 <Form.Link
                   label="Regions"
-                  preview = {regions.length > 0 ? regions : ["None selected"]}
+                  preview = {regions}
                   onPress={() => {
                     router.push("/settings/referee-regions");}
                   }
@@ -172,12 +172,13 @@ export default function Settings() {
 
                 <Form.Button
                   button={isActive ? "Pause Refereeing" : "Resume Refereeing"}
-                  color={isActive ? AccentColors.red : AccentColors.orange}
+                  color={isActive ? AccentColors.red : undefined}
                   onPress={toggleRefereeStatus}
                 />
             
               </Form.Section>
           )}
+          <Form.Section>
           <Form.Link label="Terms and Privacy Policy" onPress={openPolicy} />
           {!isReferee && (
               <Form.Button
@@ -202,6 +203,7 @@ export default function Settings() {
               color={AccentColors.red}
               onPress={() => logout()}
             /> 
+        </Form.Section>
         </Form.Section>
       </Form>
     </ContentArea>

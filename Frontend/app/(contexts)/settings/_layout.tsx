@@ -10,19 +10,6 @@ const settingsHeader = () => (
     center={<PageTitle title="Settings" />}
   />
 );
-const refereeSportsHeader = () => (
-  <Header
-    left={<Button type="back" />}
-    center={<PageTitle title="Sports" />}
-  />
-);
-
-const refereeRegionsHeader = () => (
-  <Header
-    left={<Button type="back" />}
-    center={<PageTitle title="Regions" />}
-  />
-);
 
 export default function SettingsLayout() {
   return (
@@ -46,7 +33,6 @@ export default function SettingsLayout() {
         name="referee-regions"
         options={{
           headerBackVisible: false,
-          headerTitle: refereeRegionsHeader,
           headerTransparent: true,
         }}
       />
@@ -54,7 +40,6 @@ export default function SettingsLayout() {
         name="referee-sports"
         options={{
           headerBackVisible: false,
-          headerTitle: refereeSportsHeader,
           headerTransparent: true,
         }}
       />
