@@ -10,28 +10,29 @@ import React, {
 } from "react";
 import { useAuth } from "@clerk/clerk-expo";
 import { useAxiosWithClerk } from "@/hooks/use-axios-clerk";
-import { useQueryClient } from "@tanstack/react-query";
-import { MessagingSocket, SocketState } from "./socket";
+import { useQueryClient, InfiniteData } from "@tanstack/react-query";
+import { MessagingSocket, SocketState } from "@/features/messaging/socket";
 import {
   createDirectConversation,
   createTeamConversation,
   sendMessageFallback,
-} from "./api";
-import { messagingKeys } from "./query-keys";
+} from "@/features/messaging/api";
+import { messagingKeys } from "@/features/messaging/query-keys";
 import {
   ConversationResponse,
   DirectConversationPayload,
   MessageResponse,
   TeamConversationPayload,
-} from "./types";
+  MessageHistoryResponse,
+} from "@/features/messaging/types";
 import {
   appendMessageToPages,
   sortConversations,
   updateConversationsWithMessage,
   validateMessageContent,
-} from "./utils";
+} from "@/features/messaging/utils";
 import { createScopedLog } from "@/utils/logger";
-import { useConversationsQuery } from "./hooks";
+import { useConversationsQuery } from "@/features/messaging/hooks";
 
 const log = createScopedLog("MessagingProvider");
 
@@ -88,7 +89,7 @@ export const MessagingProvider = ({ children }: PropsWithChildren) => {
     (message: MessageResponse) => {
       queryClient.setQueryData(
         messagingKeys.messages(message.conversationId),
-        (existing) => appendMessageToPages(existing, message),
+        (existing: InfiniteData<MessageHistoryResponse> | undefined) => appendMessageToPages(existing, message),
       );
       queryClient.setQueryData(
         messagingKeys.conversations(userId),
@@ -96,7 +97,7 @@ export const MessagingProvider = ({ children }: PropsWithChildren) => {
           updateConversationsWithMessage(existing, message),
       );
     },
-    [queryClient],
+    [queryClient, userId],
   );
 
   useEffect(() => {
@@ -106,9 +107,18 @@ export const MessagingProvider = ({ children }: PropsWithChildren) => {
       onStateChange: setSocketState,
     });
     socketRef.current = socket;
-    socket.connect().catch((err) => log.error("Socket connect failed", err));
     return () => socket.disconnect();
   }, [handleIncoming]);
+
+  useEffect(() => {
+    if (!userId) {
+      socketRef.current?.disconnect();
+      return;
+    }
+    socketRef.current
+      ?.connect()
+      .catch((err) => log.error("Socket connect failed", err));
+  }, [userId]);
 
   const ensureTopicSubscription = useCallback((conversationId: string) => {
     socketRef.current?.ensureConversationSubscription(conversationId);
@@ -158,7 +168,7 @@ export const MessagingProvider = ({ children }: PropsWithChildren) => {
         ensureTopicSubscription(response.id);
       }
     },
-    [ensureTopicSubscription, queryClient],
+    [ensureTopicSubscription, queryClient, userId],
   );
 
   const startDirectConversation = useCallback(
@@ -180,11 +190,15 @@ export const MessagingProvider = ({ children }: PropsWithChildren) => {
   );
 
   const reconnect = useCallback(() => {
+    if (!userId) {
+      socketRef.current?.disconnect();
+      return;
+    }
     socketRef.current?.disconnect();
     socketRef.current?.connect().catch((err) =>
       log.error("Reconnection failed", err),
     );
-  }, []);
+  }, [userId]);
 
   const value = useMemo<MessagingContextValue>(
     () => ({
