@@ -111,11 +111,8 @@ export default function Settings() {
   if (!user || !isLoaded || !isSignedIn) return null;
 
   return (
-    <ContentArea
-      scrollable
-      backgroundProps={{ preset: "orange", mode: "form" }}
-    >
-      <Form accentColor={AccentColors.orange}>
+    <ContentArea scrollable backgroundProps={{ preset: "blue", mode: "form" }}>
+      <Form accentColor={AccentColors.blue}>
         <Form.Section>
           <Form.Profile
             title={user.fullName!}

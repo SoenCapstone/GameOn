@@ -58,11 +58,8 @@ export default function EditProfile() {
   if (!isLoaded || !isSignedIn) return null;
 
   return (
-    <ContentArea
-      scrollable
-      backgroundProps={{ preset: "orange", mode: "form" }}
-    >
-      <Form accentColor={AccentColors.orange}>
+    <ContentArea scrollable backgroundProps={{ preset: "blue", mode: "form" }}>
+      <Form accentColor={AccentColors.blue}>
         <Form.Section>
           <Form.Image
             image={image ?? images.defaultProfile}
