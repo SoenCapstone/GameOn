@@ -18,6 +18,23 @@ jest.mock("expo-image-picker", () => ({
   launchImageLibraryAsync: jest.fn(),
 }));
 
+jest.mock("expo-image-manipulator", () => {
+  const mockContext = {
+    crop: jest.fn().mockReturnThis(),
+    renderAsync: jest.fn().mockResolvedValue({
+      saveAsync: jest.fn().mockResolvedValue({ uri: "file:///cropped.jpg" }),
+      release: jest.fn(),
+    }),
+    release: jest.fn(),
+  };
+  return {
+    ImageManipulator: {
+      manipulate: jest.fn(() => mockContext),
+    },
+    SaveFormat: { JPEG: "jpeg", PNG: "png", WEBP: "webp" },
+  };
+});
+
 jest.mock("expo-file-system", () => ({
   File: jest.fn(),
 }));
