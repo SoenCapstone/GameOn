@@ -44,7 +44,7 @@ type TeamInviteResponse = {
 };
 
 export default function Home() {
-  const [tab, setTab] = React.useState<"updates" | "following">("updates");
+  const [tab, setTab] = useState<"updates" | "following">("updates");
   const api = useAxiosWithClerk();
   const queryClient = useQueryClient();
   const { userId } = useAuth();
@@ -161,7 +161,10 @@ export default function Home() {
         return;
       }
 
-      respondLeagueInviteMutation.mutate({ invitationId: inviteId, isAccepted: true });
+      respondLeagueInviteMutation.mutate({
+        invitationId: inviteId,
+        isAccepted: true,
+      });
     },
     [invites, respondLeagueInviteMutation],
   );
@@ -334,3 +337,32 @@ async function fetchUserNameMap(api: AxiosInstance, userIds: string[]) {
   );
   return Object.fromEntries(entries);
 }
+
+const styles = StyleSheet.create({
+  container: {
+    alignItems: "center",
+  },
+  segmented: {
+    marginBottom: 16,
+    width: "90%",
+  },
+  cardWrap: {
+    width: "90%",
+    gap: 12,
+  },
+  teamName: {
+    color: "white",
+    fontSize: 16,
+    fontWeight: "700",
+  },
+  inviteText: {
+    color: "rgba(255,255,255,0.8)",
+    marginTop: 8,
+  },
+  actionsRow: {
+    flexDirection: "row",
+    gap: 12,
+    marginTop: 16,
+    justifyContent: "flex-end",
+  },
+});
