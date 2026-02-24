@@ -1,5 +1,11 @@
 import React, { useMemo, useState } from "react";
-import { ActivityIndicator, RefreshControl, StyleSheet, Text, View } from "react-native";
+import {
+  ActivityIndicator,
+  RefreshControl,
+  StyleSheet,
+  Text,
+  View,
+} from "react-native";
 import { ImageSource } from "expo-image";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import SegmentedControl from "@react-native-segmented-control/segmented-control";
@@ -17,10 +23,7 @@ import type { BoardPost } from "@/components/board/board-types";
 import { useDetailPageHandlers } from "@/hooks/use-detail-page-handlers";
 import { MatchListSections } from "@/components/matches/match-list-sections";
 import { useTeamMatches, useTeamsByIds } from "@/hooks/use-matches";
-import {
-  buildMatchCards,
-  splitMatchSections,
-} from "@/features/matches/utils";
+import { buildMatchCards, splitMatchSections } from "@/features/matches/utils";
 import type { MatchCardItem } from "@/features/matches/utils";
 
 type TeamTab = "board" | "overview" | "games";
@@ -100,7 +103,9 @@ function TeamTabContent(props: Readonly<TeamTabContentProps>) {
   if (tab === "overview") {
     return (
       <View>
-        <Text style={{ color: "white", padding: 16 }}>Overview content here</Text>
+        <Text style={{ color: "white", padding: 16 }}>
+          Overview content here
+        </Text>
         {canManage ? (
           <Button
             type="custom"
@@ -154,12 +159,16 @@ function TeamContent() {
   } = useTeamDetailContext();
 
   const canManage =
-    (isActiveMember && role === "OWNER") || role === "COACH" || role === "MANAGER";
+    isActiveMember &&
+    (role === "OWNER" || role === "COACH" || role === "MANAGER");
 
   useTeamHeader({ title, id, isMember, onFollow: handleFollow });
 
-  const { data: boardPosts = [], isLoading: postsLoading, refetch: refetchPosts } =
-    useTeamBoardPosts(id);
+  const {
+    data: boardPosts = [],
+    isLoading: postsLoading,
+    refetch: refetchPosts,
+  } = useTeamBoardPosts(id);
   const deletePostMutation = useDeleteBoardPost(id);
 
   const {
@@ -171,7 +180,8 @@ function TeamContent() {
   } = useTeamMatches(id);
 
   const teamIds = useMemo(
-    () => Array.from(new Set(matches.flatMap((m) => [m.homeTeamId, m.awayTeamId]))),
+    () =>
+      Array.from(new Set(matches.flatMap((m) => [m.homeTeamId, m.awayTeamId]))),
     [matches],
   );
   const teamsQuery = useTeamsByIds(teamIds);
@@ -181,20 +191,23 @@ function TeamContent() {
     [matches, teamsQuery.data],
   );
 
-  const { current: currentMatches, upcoming: upcomingMatches, past: pastMatches } = useMemo(
-    () => splitMatchSections(matchItems),
-    [matchItems],
-  );
+  const {
+    current: currentMatches,
+    upcoming: upcomingMatches,
+    past: pastMatches,
+  } = useMemo(() => splitMatchSections(matchItems), [matchItems]);
 
-  const { refreshing, handleDeletePost, handleRefresh } = useDetailPageHandlers({
-    id,
-    currentTab: tab,
-    boardPosts,
-    onRefresh,
-    refetchPosts,
-    deletePostMutation,
-    entityName: "Team",
-  });
+  const { refreshing, handleDeletePost, handleRefresh } = useDetailPageHandlers(
+    {
+      id,
+      currentTab: tab,
+      boardPosts,
+      onRefresh,
+      refetchPosts,
+      deletePostMutation,
+      entityName: "Team",
+    },
+  );
 
   const handleMatchesRefresh = useMemo(
     () => async () => {
@@ -245,7 +258,9 @@ function TeamContent() {
           boardPosts={boardPosts}
           postsLoading={postsLoading}
           teamName={team?.name ?? title}
-          teamLogo={team?.logoUrl ? { uri: team.logoUrl } : getSportLogo(team?.sport)}
+          teamLogo={
+            team?.logoUrl ? { uri: team.logoUrl } : getSportLogo(team?.sport)
+          }
           handleDeletePost={handleDeletePost}
           canManage={canManage}
           id={id}
