@@ -33,18 +33,9 @@ export function MenuPicker({
 }: Readonly<MenuPickerProps>) {
   const anchorRef = useRef<View>(null);
   const { showActionSheetWithOptions } = useActionSheet();
-  const hasOptions = options.length > 0;
-  const selectedIndex = options.indexOf(value);
-  let safeSelectedIndex: number | undefined;
-  if (selectedIndex >= 0) {
-    safeSelectedIndex = selectedIndex;
-  } else if (hasOptions) {
-    safeSelectedIndex = 0;
-  }
-  const isDisabled = disabled || !hasOptions;
 
   const onPress = () => {
-    if (isDisabled) return;
+    if (disabled) return;
 
     showActionSheetWithOptions(
       {
@@ -60,33 +51,34 @@ export function MenuPicker({
     );
   };
 
-  const getIconColor = (pressed: boolean) => {
-    if (isDisabled) return "rgba(235,235,245,0.35)";
-    if (pressed) return "rgba(235,235,245,0.7)";
-    return "rgba(235,235,245,0.6)";
-  };
-
   if (isRunningInExpoGo) {
     return (
       <Pressable
         ref={anchorRef}
         style={styles.button}
         onPress={onPress}
-        disabled={isDisabled}
+        disabled={disabled}
       >
         {({ pressed }) => {
-          const iconColor = getIconColor(pressed);
+          let iconColor: string;
+          if (disabled) {
+            iconColor = "rgba(235,235,245,0.35)";
+          } else if (pressed) {
+            iconColor = "rgba(235,235,245,0.7)";
+          } else {
+            iconColor = "rgba(235,235,245,0.6)";
+          }
 
           return (
             <>
               <Text
                 style={[
                   styles.value,
-                  isDisabled && styles.valueDisabled,
+                  disabled && styles.valueDisabled,
                   pressed && { color: "rgba(235,235,245,0.7)" },
                 ]}
               >
-                {hasOptions ? value : "No options"}
+                {value}
               </Text>
               <Ionicons name="chevron-expand" size={16} color={iconColor} />
             </>
@@ -102,16 +94,16 @@ export function MenuPicker({
         <Picker
           modifiers={[
             fixedSize({ horizontal: true, vertical: true }),
-            disabledModifier(isDisabled),
-            opacity(isDisabled ? 0.5 : 1),
+            disabledModifier(disabled),
+            opacity(disabled ? 0.5 : 1),
           ]}
-          options={hasOptions ? [...options] : ["No options"]}
-          selectedIndex={safeSelectedIndex ?? 0}
+          options={[...options]}
+          selectedIndex={options.indexOf(value)}
           onOptionSelected={(event) =>
-            hasOptions ? onValueChange(options[event.nativeEvent.index]) : null
+            onValueChange(options[event.nativeEvent.index])
           }
           variant="menu"
-          color={isDisabled ? "rgba(235,235,245,0.35)" : "rgba(235,235,245,0.6)"}
+          color={disabled ? "rgba(235,235,245,0.35)" : "rgba(235,235,245,0.6)"}
         />
       </Host>
     </View>
