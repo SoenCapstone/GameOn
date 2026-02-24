@@ -11,12 +11,16 @@ export function useRefereeSelection({ fetchRoute, updateRoute, fieldKey }: UseRe
   const axios = useAxiosWithClerk();
   const [selectedItems, setSelectedItems] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
+  const [initialized, setInitialized] = useState(false);
 
   useEffect(() => {
   const fetchData = async () => {
     try {
       const response = await axios.get(fetchRoute);
-      setSelectedItems(prev => prev.length ? prev : response.data[fieldKey] || []);
+      if (!initialized) {
+          setSelectedItems(response.data[fieldKey] || []);
+          setInitialized(true);
+        }
     } catch (error) {
       console.error(`Failed to load ${fieldKey}:`, error);
     } finally {
@@ -24,13 +28,8 @@ export function useRefereeSelection({ fetchRoute, updateRoute, fieldKey }: UseRe
     }
   };
   fetchData();
-}, [axios, fetchRoute, fieldKey]);
+}, [axios, fetchRoute, fieldKey, initialized]);
 
-  const toggleItem = useCallback((item: string) => {
-  setSelectedItems((prev) =>
-    prev.includes(item) ? prev.filter((i) => i !== item) : [...prev, item]
-  );
-}, []);
 
   const canSave = selectedItems.length > 0;
 
@@ -41,5 +40,5 @@ export function useRefereeSelection({ fetchRoute, updateRoute, fieldKey }: UseRe
     await axios.put(updateRoute, { [fieldKey]: selectedItems });
   }, [axios, selectedItems, updateRoute, fieldKey, canSave]);
 
-  return { selectedItems, toggleItem, saveItems, loading, canSave };
+  return { selectedItems, setSelectedItems, saveItems, loading, canSave };
 }

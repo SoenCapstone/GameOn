@@ -1,9 +1,9 @@
-import RefereeSelectionPage from "@/components/referees/RefereeSelectionPage";
+import RefereeSelectionPage from "@/components/referees/referee-selection-page";
 import { useRefereeSelection } from "@/hooks/use-referee-selection";
 import { GO_REFEREE_SERVICE_ROUTES } from "@/hooks/use-axios-clerk";
 
 export default function RefereeSports() {
-  const { selectedItems, toggleItem, saveItems, loading, canSave } = useRefereeSelection({
+  const { selectedItems, setSelectedItems, saveItems, loading, canSave } = useRefereeSelection({
     fetchRoute: GO_REFEREE_SERVICE_ROUTES.PROFILE,
     updateRoute: GO_REFEREE_SERVICE_ROUTES.UPDATE_SPORTS,
     fieldKey: "sports",
@@ -13,7 +13,7 @@ export default function RefereeSports() {
     title="Sports"
     availableItems={["Soccer", "Basketball", "Volleyball"]}
     selectedItems={selectedItems}
-    toggleItem={toggleItem}
+    setSelectedItems={setSelectedItems}
     saveItems={saveItems}
     canSave={canSave}
     loading={loading}
