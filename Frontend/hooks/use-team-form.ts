@@ -20,13 +20,13 @@ export interface TeamFormData {
 
 interface UseTeamFormProps {
   initialData?: {
-    name: string;
-    sport?: string;
-    scope?: string;
-    location?: string;
-    allowedRegions?: string[];
-    logoUrl?: string;
-    privacy?: string;
+    name: string | null;
+    sport?: string | null;
+    scope?: string | null;
+    location?: string | null;
+    allowedRegions?: string[] |null;
+    logoUrl?: string |null;
+    privacy?: string | null;
   };
 }
 

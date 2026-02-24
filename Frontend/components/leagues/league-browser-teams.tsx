@@ -5,7 +5,6 @@ import { useQueries } from "@tanstack/react-query";
 import { useAxiosWithClerk } from "@/hooks/use-axios-clerk";
 import {
   teamDetailQueryOptions,
-  type TeamDetailResponse,
 } from "@/hooks/use-team-detail";
 import { InfoCard } from "@/components/info-card";
 import type { ImageSource } from "expo-image";
@@ -49,7 +48,7 @@ export function LeagueBrowserTeams({
   const detailsError = teamQueries.find((q) => q.error)?.error;
 
   const teamDetailsMap = useMemo(() => {
-    const entries: [string, TeamDetailResponse][] = teamQueries.map(
+    const entries = teamQueries.map(
       (q, idx) => {
         const teamId = teamIds[idx] ?? "";
         const data = q.data ?? null;
@@ -63,11 +62,11 @@ export function LeagueBrowserTeams({
               sport: null,
               location: null,
               logoUrl: null,
-            },
-          ];
+            } as const,
+          ] as const;
         }
 
-        if (data) return [teamId, data];
+        if (data) return [teamId, data] as const;
 
         return [
           teamId,
@@ -77,8 +76,8 @@ export function LeagueBrowserTeams({
             sport: null,
             location: null,
             logoUrl: null,
-          },
-        ];
+          } as const,
+        ] as const;
       },
     );
 
