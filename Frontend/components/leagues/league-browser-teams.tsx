@@ -43,7 +43,7 @@ export function LeagueBrowserTeams({
     queries: teamIds.map((teamId) => teamDetailQueryOptions(api, teamId)),
   });
 
-  const detailsFetching = teamQueries.some((q) => q.isFetching);
+  const detailsFetching = teamQueries.some((q) => q.isLoading);
   const detailsError = teamQueries.find((q) => q.error)?.error;
 
   const teamDetailsMap = useMemo(() => {
@@ -83,7 +83,7 @@ export function LeagueBrowserTeams({
     return Object.fromEntries(entries.filter(([k]) => Boolean(k)));
   }, [teamQueries, teamIds]);
 
-  const isBusy = teamsFetching || detailsFetching;
+  const isLoading = teamsFetching || detailsFetching;
 
   if (leagueTeamsError || detailsError) {
     return (
@@ -94,7 +94,7 @@ export function LeagueBrowserTeams({
     );
   }
 
-  if (!isBusy && leagueTeams.length === 0) {
+  if (!isLoading && leagueTeams.length === 0) {
     return (
       <View style={styles.section}>
         <Text style={styles.title}>Teams</Text>
@@ -104,45 +104,63 @@ export function LeagueBrowserTeams({
   }
 
   return (
-    <View style={styles.wrap}>
-      {isBusy && <ActivityIndicator size="small" color="#fff" />}
+    <>
+      {isLoading ? (
+        <View style={styles.container}>
+          <ActivityIndicator size="small" color="#fff" />
+        </View>
+      ) : (
+        <View style={styles.list}>
+          {leagueTeams.map((t) => {
+            const details = teamDetailsMap?.[t.teamId];
+            const title = details?.name ?? "Team";
 
-      <View style={styles.list}>
-        {leagueTeams.map((t) => {
-          const details = teamDetailsMap?.[t.teamId];
-          const title = details?.name ?? "Team";
+            const location = details?.location ?? "";
+            const subtitle =
+              location.trim().length > 0 ? location : "Unknown location";
 
-          const location = details?.location ?? "";
-          const subtitle =
-            location.trim().length > 0 ? location : "Unknown location";
+            const image: ImageSource = details?.logoUrl
+              ? { uri: details.logoUrl }
+              : getSportLogo(details?.sport);
 
-          const image: ImageSource = details?.logoUrl
-            ? { uri: details.logoUrl }
-            : getSportLogo(details?.sport);
-
-          return (
-            <InfoCard
-              key={t.id}
-              title={title}
-              subtitle={subtitle}
-              image={image}
-              onPress={() => router.push(`/teams/${t.teamId}`)}
-            />
-          );
-        })}
-      </View>
-    </View>
+            return (
+              <InfoCard
+                key={t.id}
+                title={title}
+                subtitle={subtitle}
+                image={image}
+                onPress={() => router.push(`/teams/${t.teamId}`)}
+              />
+            );
+          })}
+        </View>
+      )}
+    </>
   );
 }
 
 const styles = StyleSheet.create({
-  section: { paddingTop: 14, paddingBottom: 14 },
-  title: { color: "#fff", fontSize: 18, fontWeight: "700", marginBottom: 6 },
-  text: { color: "#fff", fontSize: 14 },
-
-  wrap: { paddingTop: 14, paddingBottom: 14 },
-
+  section: {
+    paddingTop: 14,
+    paddingBottom: 14,
+  },
+  title: {
+    color: "#fff",
+    fontSize: 18,
+    fontWeight: "700",
+    marginBottom: 6,
+  },
+  text: {
+    color: "#fff",
+    fontSize: 14,
+  },
   list: {
-    gap: 16,
+    gap: 14,
+  },
+  container: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    minHeight: 200,
   },
 });
