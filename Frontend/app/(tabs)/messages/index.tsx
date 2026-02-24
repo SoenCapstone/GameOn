@@ -135,7 +135,7 @@ export default function Messages() {
 
   useEffect(() => {
     listRef.current?.scrollToIndex({ index: 0, animated: true });
-  }, [listData.length]);
+  }, [listData]);
 
   const openConversation = (id: string) => router.push(`/messages/${id}`);
 
