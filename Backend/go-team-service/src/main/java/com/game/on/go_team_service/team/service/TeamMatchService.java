@@ -1,5 +1,6 @@
 package com.game.on.go_team_service.team.service;
 
+import com.game.on.go_team_service.client.LeagueClient;
 import com.game.on.go_team_service.config.CurrentUserProvider;
 import com.game.on.go_team_service.exception.BadRequestException;
 import com.game.on.go_team_service.exception.ConflictException;
@@ -42,6 +43,7 @@ public class TeamMatchService {
     private final TeamMatchInviteRepository teamMatchInviteRepository;
     private final TeamMatchScoreRepository teamMatchScoreRepository;
     private final CurrentUserProvider userProvider;
+    private final LeagueClient leagueClient;
 
     @Transactional
     public TeamMatchResponse createMatchInvite(UUID teamId, TeamMatchCreateRequest request) {
@@ -64,6 +66,10 @@ public class TeamMatchService {
         String matchSport = resolveMatchSport(request.sport(), homeTeam, awayTeam);
         validateRegions(homeTeam, awayTeam, request.matchRegion());
         validateTimes(request.startTime(), request.endTime());
+
+        if(checkHasSchedulingConflicts(homeTeam.getId(), awayTeam.getId(), request.startTime(), request.endTime())) {
+            throw new ConflictException("Unable to create invite, another match is booked during this time.");
+        }
 
         TeamMatch match = TeamMatch.builder()
                 .matchType(TeamMatchType.TEAM_MATCH)
@@ -245,6 +251,36 @@ public class TeamMatchService {
         if (startTime == null || endTime == null || !startTime.isBefore(endTime)) {
             throw new BadRequestException("startTime must be before endTime");
         }
+    }
+
+    private boolean checkHasSchedulingConflicts(UUID homeTeam, UUID awayTeam, OffsetDateTime startTime, OffsetDateTime endTime) {
+        var allTeamMatches = teamMatchRepository.findByHomeTeamIdOrAwayTeamIdOrderByStartTimeDesc(homeTeam, homeTeam);
+        allTeamMatches.addAll(teamMatchRepository.findByHomeTeamIdOrAwayTeamIdOrderByStartTimeDesc(awayTeam, awayTeam));
+
+        for(var match : allTeamMatches) {
+            boolean isBetweenStartAndEndTime = (match.getStartTime().isAfter(startTime) && match.getStartTime().isBefore(endTime))
+                    || (match.getEndTime().isAfter(startTime) && match.getEndTime().isBefore(endTime));
+            boolean isConfirmed = match.getStatus() == TeamMatchStatus.CONFIRMED;
+
+            if(isBetweenStartAndEndTime && isConfirmed) {
+                return true;
+            }
+        }
+
+        var allLeagueMatches = leagueClient.getLeagueMatchesForTeam(homeTeam);
+        allLeagueMatches.addAll(leagueClient.getLeagueMatchesForTeam(awayTeam));
+
+        for(var match : allLeagueMatches) {
+            boolean isBetweenStartAndEndTime = (match.startTime().isAfter(startTime) && match.startTime().isBefore(endTime))
+                    || (match.endTime().isAfter(startTime) && match.endTime().isBefore(endTime));
+            boolean isConfirmed = match.status().equalsIgnoreCase("confirmed");
+
+            if(isBetweenStartAndEndTime && isConfirmed) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     private String resolveMatchSport(String requestedSport, Team homeTeam, Team awayTeam) {
