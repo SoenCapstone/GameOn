@@ -134,9 +134,9 @@ describe("ContentArea", () => {
     expect(contentContainerStyle.gap).toBe(14);
   });
 
-  it("applies stickyHeaderIndices when segmentedControl is true", () => {
+  it("applies stickyHeaderIndices when tabs is true", () => {
     const { UNSAFE_getByType } = render(
-      <ContentArea backgroundProps={{ preset: "blue" }} segmentedControl={true}>
+      <ContentArea backgroundProps={{ preset: "blue" }} tabs={true}>
         <Text>Content</Text>
       </ContentArea>,
     );
@@ -145,12 +145,9 @@ describe("ContentArea", () => {
     expect(view.props.stickyHeaderIndices).toEqual([0]);
   });
 
-  it("does not apply stickyHeaderIndices when segmentedControl is false", () => {
+  it("does not apply stickyHeaderIndices when tabs is false", () => {
     const { UNSAFE_getByType } = render(
-      <ContentArea
-        backgroundProps={{ preset: "blue" }}
-        segmentedControl={false}
-      >
+      <ContentArea backgroundProps={{ preset: "blue" }} tabs={false}>
         <Text>Content</Text>
       </ContentArea>,
     );
@@ -159,7 +156,7 @@ describe("ContentArea", () => {
     expect(view.props.stickyHeaderIndices).toBeUndefined();
   });
 
-  it("does not apply stickyHeaderIndices when segmentedControl is not set", () => {
+  it("does not apply stickyHeaderIndices when tabs is not set", () => {
     const { UNSAFE_getByType } = render(
       <ContentArea backgroundProps={{ preset: "blue" }}>
         <Text>Content</Text>

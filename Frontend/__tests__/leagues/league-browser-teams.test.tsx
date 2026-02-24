@@ -22,12 +22,12 @@ jest.mock("@/hooks/use-team-detail", () => ({
   }),
 }));
 
-const mockGetSportLogo = jest.fn(() => ({ uri: "sport-logo" }));
+const mockGetSportLogo = jest.fn((_sport?: string) => ({ uri: "sport-logo" }));
 jest.mock("@/components/browse/utils", () => ({
-  getSportLogo: (...args: any[]) => mockGetSportLogo(...args),
+  getSportLogo: (sport: string) => mockGetSportLogo(sport),
 }));
 
-const mockInfoCard = jest.fn(() => null);
+const mockInfoCard = jest.fn((_props: any) => null);
 jest.mock("@/components/info-card", () => ({
   InfoCard: (props: any) => {
     mockInfoCard(props);
