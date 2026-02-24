@@ -1,6 +1,5 @@
 import React from "react";
 import { NativeTabs, Label, Icon } from "expo-router/unstable-native-tabs";
-import { AccentColors } from "@/constants/colors";
 import { ClerkLoaded, SignedOut } from "@clerk/clerk-expo";
 import { Redirect } from "expo-router";
 import { WELCOME_PATH } from "@/constants/navigation";
