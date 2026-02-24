@@ -19,7 +19,10 @@ import {
   fetchLeagueInvitesWithDetails,
   LeagueInviteCard,
 } from "@/components/leagues/league-invite-utils";
-import { RefereeMatchInviteCard, TeamMatchInviteCard } from "@/features/matches/types";
+import {
+  RefereeMatchInviteCard,
+  TeamMatchInviteCard,
+} from "@/features/matches/types";
 import {
   fetchIncomingRefereeInvites,
   fetchIncomingTeamMatchInvites,
@@ -147,7 +150,8 @@ export default function Home() {
     },
     onSuccess: async (_data, variables) => {
       const cacheKey = ["user-updates", userId];
-      const currentInvites = queryClient.getQueryData<InviteCard[]>(cacheKey) ?? [];
+      const currentInvites =
+        queryClient.getQueryData<InviteCard[]>(cacheKey) ?? [];
       queryClient.setQueryData<InviteCard[]>(
         cacheKey,
         currentInvites.filter(
@@ -181,7 +185,8 @@ export default function Home() {
     },
     onSuccess: async (_data, variables) => {
       const cacheKey = ["user-updates", userId];
-      const currentInvites = queryClient.getQueryData<InviteCard[]>(cacheKey) ?? [];
+      const currentInvites =
+        queryClient.getQueryData<InviteCard[]>(cacheKey) ?? [];
       queryClient.setQueryData<InviteCard[]>(
         cacheKey,
         currentInvites.filter(
@@ -192,7 +197,9 @@ export default function Home() {
             ),
         ),
       );
-      await queryClient.invalidateQueries({ queryKey: ["user-updates", userId] });
+      await queryClient.invalidateQueries({
+        queryKey: ["user-updates", userId],
+      });
       Alert.alert(
         variables.isAccepted ? "Invite accepted" : "Invite declined",
         variables.isAccepted
@@ -266,14 +273,22 @@ export default function Home() {
             <Text style={styles.teamName}>{invite.teamName}</Text>
             <Text style={styles.inviteText}>
               You received an invite
-              {invite.inviterName ? ` from ${invite.inviterName}` : ""} to join {invite.teamName}.
+              {invite.inviterName ? ` from ${invite.inviterName}` : ""} to join{" "}
+              {invite.teamName}.
             </Text>
             <View style={styles.actionsRow}>
               <View style={styles.actionButton}>
-                <ButtonItem button="Accept" onPress={() => handleAccept(invite.id)} />
+                <ButtonItem
+                  button="Accept"
+                  onPress={() => handleAccept(invite.id)}
+                />
               </View>
               <View style={styles.actionButton}>
-                <ButtonItem button="Decline" color={denyColor} onPress={() => handleDeny(invite.id)} />
+                <ButtonItem
+                  button="Decline"
+                  color={denyColor}
+                  onPress={() => handleDeny(invite.id)}
+                />
               </View>
             </View>
           </>
@@ -358,14 +373,22 @@ export default function Home() {
         <>
           <Text style={styles.teamName}>{invite.leagueName}</Text>
           <Text style={styles.inviteText}>
-            You received an invite to join {invite.leagueName} with {invite.teamName}.
+            You received an invite to join {invite.leagueName} with{" "}
+            {invite.teamName}.
           </Text>
           <View style={styles.actionsRow}>
             <View style={styles.actionButton}>
-              <ButtonItem button="Accept" onPress={() => handleAcceptLeague(invite.id)} />
+              <ButtonItem
+                button="Accept"
+                onPress={() => handleAcceptLeague(invite.id)}
+              />
             </View>
             <View style={styles.actionButton}>
-              <ButtonItem button="Decline" color={denyColor} onPress={() => handleDenyLeague(invite.id)} />
+              <ButtonItem
+                button="Decline"
+                color={denyColor}
+                onPress={() => handleDenyLeague(invite.id)}
+              />
             </View>
           </View>
         </>
@@ -403,19 +426,19 @@ export default function Home() {
         }}
       />
 
-        {tab === "updates" ? (
-          <View style={styles.cardWrap}>
-            {invites.length === 0 ? (
-              <Text style={styles.inviteText}>No pending invitations.</Text>
-            ) : (
-              invites.map((invite) => (
-                <Card key={invite.id}>{renderInviteContent(invite)}</Card>
-              ))
-            )}
-          </View>
-        ) : (
-          <View />
-        )}
+      {tab === "updates" ? (
+        <View style={styles.cardWrap}>
+          {invites.length === 0 ? (
+            <Text style={styles.inviteText}>No pending invitations.</Text>
+          ) : (
+            invites.map((invite) => (
+              <Card key={invite.id}>{renderInviteContent(invite)}</Card>
+            ))
+          )}
+        </View>
+      ) : (
+        <View />
+      )}
     </ContentArea>
   );
 }
@@ -425,13 +448,19 @@ async function fetchUpdatesWithDetails(api: AxiosInstance, userId: string) {
     await Promise.all([
       fetchTeamInvitesWithDetails(api).catch(() => []),
       fetchLeagueInvitesWithDetails(api).catch(() => []),
-      (userId ? fetchIncomingTeamMatchInvites(api, userId) : Promise.resolve([])).catch(
-        () => [],
-      ),
+      (userId
+        ? fetchIncomingTeamMatchInvites(api, userId)
+        : Promise.resolve([])
+      ).catch(() => []),
       fetchIncomingRefereeInvites(api).catch(() => []),
     ]);
 
-  return [...teamInvites, ...leagueInvites, ...teamMatchInvites, ...refereeInvites];
+  return [
+    ...teamInvites,
+    ...leagueInvites,
+    ...teamMatchInvites,
+    ...refereeInvites,
+  ];
 }
 
 async function fetchTeamInvitesWithDetails(api: AxiosInstance) {
