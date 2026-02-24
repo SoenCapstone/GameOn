@@ -22,7 +22,7 @@ spring:
             - id: go-league-referees
               uri: lb://go-league-service
               predicates:
-                - Path=/api/v1/referees/**,/api/v1/matches/*/ref-invite/**,/api/v1/matches/*/ref-invite
+                - Path=/api/v1/referees/**,/api/v1/ref-invites/**,/api/v1/matches/*/ref-invite/**,/api/v1/matches/*/ref-invite
             - id: go-league-invite-service
               uri: lb://go-league-service
               predicates:

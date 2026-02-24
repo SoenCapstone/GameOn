@@ -57,4 +57,9 @@ public class RefereeController {
     public ResponseEntity<RefInviteResponse> declineRefInvite(@PathVariable UUID matchId) {
         return ResponseEntity.ok(refereeService.declineRefInvite(matchId));
     }
+
+    @GetMapping("/ref-invites")
+    public ResponseEntity<List<RefInviteResponse>> listMyPendingRefInvites() {
+        return ResponseEntity.ok(refereeService.listMyPendingRefInvites());
+    }
 }
