@@ -10,7 +10,7 @@ import {
   UserDirectoryEntry,
 } from "@/features/messaging/api";
 import { messagingKeys } from "@/features/messaging/query-keys";
-import { ConversationResponse, MessageHistoryResponse } from "./types";
+import { ConversationResponse, MessageHistoryResponse } from "@/features/messaging/types";
 import { sortConversations } from "@/features/messaging/utils";
 
 export const MESSAGES_PAGE_SIZE = 40;

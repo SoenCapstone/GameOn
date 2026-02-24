@@ -10,7 +10,6 @@ import { useLocalSearchParams, useRouter } from "expo-router";
 import { ContentArea } from "@/components/ui/content-area";
 import { Button } from "@/components/ui/button";
 import { getSportLogo } from "@/components/browse/utils";
-import SegmentedControl from "@react-native-segmented-control/segmented-control";
 import { useTeamHeader } from "@/hooks/use-team-league-header";
 import {
   TeamDetailProvider,
@@ -20,6 +19,7 @@ import { useTeamBoardPosts, useDeleteBoardPost } from "@/hooks/use-team-board";
 import { BoardList } from "@/components/board/board-list";
 import { useDetailPageHandlers } from "@/hooks/use-detail-page-handlers";
 import { createScopedLog } from "@/utils/logger";
+import { Tabs } from "@/components/ui/tabs";
 
 export default function Team() {
   const params = useLocalSearchParams<{ id?: string | string[] }>();
@@ -34,7 +34,7 @@ export default function Team() {
 }
 
 function TeamContent() {
-  const [tab, setTab] = useState<"board" | "overview" | "games">("board");
+  const [tab, setTab] = useState<"board" | "matches" | "overview">("board");
   const router = useRouter();
   const log = createScopedLog("Team Page");
 
@@ -78,15 +78,15 @@ function TeamContent() {
 
   const getTabFromSegmentValue = (
     value: string,
-  ): "board" | "overview" | "games" => {
+  ): "board" | "matches" | "overview" => {
     if (value === "Board") return "board";
     if (value === "Overview") return "overview";
-    return "games";
+    return "matches";
   };
 
   const getSelectedIndex = (): number => {
     if (tab === "board") return 0;
-    if (tab === "overview") return 1;
+    if (tab === "matches") return 1;
     return 2;
   };
 
@@ -95,7 +95,7 @@ function TeamContent() {
       <ContentArea
         scrollable
         paddingBottom={20}
-        segmentedControl
+        tabs
         backgroundProps={{ preset: "red" }}
         refreshControl={
           <RefreshControl
@@ -105,15 +105,14 @@ function TeamContent() {
           />
         }
       >
-        <SegmentedControl
-          values={["Board", "Overview", "Games"]}
+        <Tabs
+          values={["Board", "Matches", "Overview"]}
           selectedIndex={getSelectedIndex()}
           onValueChange={(value) => {
             const newTab = getTabFromSegmentValue(value);
             setTab(newTab);
             log.info("Tab changed", { tab: newTab });
           }}
-          style={{ height: 40 }}
         />
 
         {isLoading ? (
@@ -138,7 +137,9 @@ function TeamContent() {
                 canDelete={canManage}
               />
             )}
-
+            {tab === "matches" && (
+              <Text style={{ color: "white" }}>Games content here</Text>
+            )}
             {tab === "overview" && (
               <View>
                 <Text style={{ color: "white", padding: 16 }}>
@@ -152,10 +153,6 @@ function TeamContent() {
                   />
                 )}
               </View>
-            )}
-
-            {tab === "games" && (
-              <Text style={{ color: "white" }}>Games content here</Text>
             )}
           </>
         )}

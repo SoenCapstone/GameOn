@@ -19,6 +19,7 @@ type ButtonProps =
       imageSize?: number;
       iconSize?: number;
       isInteractive?: boolean;
+      circle?: boolean;
     };
 
 export function Button(props: ButtonProps) {
@@ -30,6 +31,7 @@ export function Button(props: ButtonProps) {
   const imageSize = props.type === "custom" ? (props.imageSize ?? 36) : 36;
   const isInteractive =
     props.type === "custom" ? (props.isInteractive ?? true) : true;
+  const isCircle = props.type === "custom" && props.circle;
 
   const renderContent = () => {
     if (isLoading) {
@@ -41,7 +43,11 @@ export function Button(props: ButtonProps) {
       return (
         <Image
           source={props.image}
-          style={[styles.center, { width: imageSize, height: imageSize }]}
+          style={[
+            styles.center,
+            { width: imageSize, height: imageSize },
+            isCircle && styles.circle,
+          ]}
           contentFit="contain"
         />
       );
@@ -102,6 +108,7 @@ const styles = StyleSheet.create({
   center: {
     alignSelf: "center",
   },
+  circle: { borderRadius: 100 },
   label: {
     color: "white",
     fontSize: 17,

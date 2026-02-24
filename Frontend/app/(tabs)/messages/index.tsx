@@ -7,7 +7,6 @@ import {
   Text,
   View,
 } from "react-native";
-import SegmentedControl from "@react-native-segmented-control/segmented-control";
 import { LegendList } from "@legendapp/list";
 import { useNavigation, useRouter } from "expo-router";
 import { Header } from "@/components/header/header";
@@ -22,6 +21,7 @@ import {
   useUserDirectory,
 } from "@/features/messaging/hooks";
 import { Chat, type ChatItem } from "@/components/messages/chat";
+import { Tabs } from "@/components/ui/tabs";
 
 function MessagesHeader({
   socketState,
@@ -119,7 +119,7 @@ export default function Messages() {
         }
         const imageUrl =
           isGroup && conversation.teamId
-            ? teamLogoMap.get(conversation.teamId) ?? null
+            ? (teamLogoMap.get(conversation.teamId) ?? null)
             : null;
         return {
           id: conversation.id,
@@ -135,7 +135,7 @@ export default function Messages() {
 
   useEffect(() => {
     listRef.current?.scrollToIndex({ index: 0, animated: true });
-  }, [listData.length]);
+  }, [listData]);
 
   const openConversation = (id: string) => router.push(`/messages/${id}`);
 
@@ -144,7 +144,7 @@ export default function Messages() {
   return (
     <ContentArea
       scrollable
-      segmentedControl
+      tabs
       backgroundProps={{ preset: "green" }}
       refreshControl={
         <RefreshControl
@@ -154,7 +154,7 @@ export default function Messages() {
         />
       }
     >
-      <SegmentedControl
+      <Tabs
         values={["All", "Direct", "Groups"]}
         selectedIndex={selectedIndex}
         onValueChange={(value) => {
@@ -162,7 +162,6 @@ export default function Messages() {
           else if (value === "Direct") setFilter("direct");
           else setFilter("group");
         }}
-        style={styles.segmented}
       />
 
       {isLoading || isRefetching ? (
@@ -194,12 +193,9 @@ export default function Messages() {
 }
 
 const styles = StyleSheet.create({
-  segmented: {
-    height: 40,
-  },
   listContent: {
-    marginTop: 8,
-    paddingHorizontal: 14,
+    marginTop: 4,
+    paddingHorizontal: 8,
   },
   separator: {
     height: StyleSheet.hairlineWidth,

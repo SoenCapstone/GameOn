@@ -18,6 +18,10 @@ public class Play {
     @Column(nullable = false)
     private UUID id;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "team_id", nullable = false)
+    private Team team;
+
     @OneToMany(mappedBy = "play", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<PlayNode> nodes;
 
