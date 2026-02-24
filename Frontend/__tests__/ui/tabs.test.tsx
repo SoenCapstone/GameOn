@@ -71,7 +71,7 @@ describe("Tabs", () => {
     const glassViews = UNSAFE_getAllByType(View).filter(
       (node) =>
         node.props?.isInteractive === true &&
-        Object.prototype.hasOwnProperty.call(node.props, "tintColor"),
+        Object.hasOwn(node.props, "tintColor"),
     );
 
     expect(glassViews).toHaveLength(3);
