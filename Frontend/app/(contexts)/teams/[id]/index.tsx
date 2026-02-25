@@ -22,6 +22,7 @@ import { BoardList } from "@/components/board/board-list";
 import { errorToString } from "@/utils/error";
 import { createScopedLog } from "@/utils/logger";
 import { Card } from "@/components/ui/card";
+import { useTeamOverview } from "@/hooks/use-team-overview";
 
 export default function Team() {
   const params = useLocalSearchParams<{ id?: string | string[] }>();
@@ -63,6 +64,14 @@ function TeamContent() {
   } = useTeamBoardPosts(id);
 
   const deletePostMutation = useDeleteBoardPost(id);
+
+
+  const {
+    data: overview,
+    isLoading: overviewLoading,
+    error: overviewError,
+    refetch: refetchOverview,
+  } = useTeamOverview(id);
 
   useTeamHeader({ title, id, isMember, onFollow: handleFollow });
 
@@ -112,6 +121,9 @@ function TeamContent() {
       if (tab === "board") {
         await refetchPosts();
         log.info("Board posts refreshed", { postCount: boardPosts.length });
+      } else if (tab === "overview") {
+        await refetchOverview();
+        log.info("Overview refreshed");
       } else {
         log.info("Team data refreshed", { tab });
       }
@@ -120,7 +132,25 @@ function TeamContent() {
     } finally {
       setRefreshing(false);
     }
-  }, [log, onRefresh, refetchPosts, tab, boardPosts.length]);
+  }, [
+    log,
+    onRefresh,
+    refetchPosts,
+    refetchOverview,
+    tab,
+    boardPosts.length,
+  ]);
+
+
+  const tiles =
+    overview?.tiles?.length
+      ? overview.tiles
+      : [
+          { key: "points" as const, label: "Points" },
+          { key: "matches" as const, label: "Matches" },
+          { key: "streak" as const, label: "Streak" },
+          { key: "minutes" as const, label: "Minutes" },
+        ];
 
   return (
     <View style={{ flex: 1 }}>
@@ -173,26 +203,54 @@ function TeamContent() {
 
             {tab === "overview" && (
               <View style={styles.overviewWrap}>
+                {/* lightweight load/error display for the mocked endpoint */}
+                {overviewLoading && (
+                  <ActivityIndicator
+                    size="small"
+                    color="#fff"
+                    style={{ marginTop: 6 }}
+                  />
+                )}
+                {overviewError && (
+                  <Text style={{ color: "rgba(255,255,255,0.85)", marginTop: 6 }}>
+                    {errorToString(overviewError)}
+                  </Text>
+                )}
+
                 {/* Season Card */}
                 <Card>
                   <View style={styles.cardFill}>
                     <View style={styles.glassInner}>
                       <View style={styles.seasonHeader}>
-                        <Text style={styles.seasonTitle}>Season 2026</Text>
-                        <View style={styles.skelRecord} />
+                        <Text style={styles.seasonTitle}>
+                          {overview?.seasonLabel ?? "Season 2026"}
+                        </Text>
+
+
+                        {overview?.record ? (
+                          <Text style={styles.recordText}>{overview.record}</Text>
+                        ) : (
+                          <View style={styles.skelRecord} />
+                        )}
                       </View>
 
                       <View style={styles.tilesGrid}>
-                        {["Points", "Matches", "Streak", "Minutes"].map(
-                          (label) => (
-                            <View key={label} style={styles.statTile}>
-                              <View style={styles.statTileBox}>
+                        {tiles.map((tile) => (
+                          <View key={tile.key} style={styles.statTile}>
+                            <View style={styles.statTileBox}>
+
+                              {tile.value !== undefined ? (
+                                <Text style={styles.statValue}>
+                                  {String(tile.value)}
+                                </Text>
+                              ) : (
                                 <View style={styles.skelNum} />
-                                <Text style={styles.statLabel}>{label}</Text>
-                              </View>
+                              )}
+
+                              <Text style={styles.statLabel}>{tile.label}</Text>
                             </View>
-                          ),
-                        )}
+                          </View>
+                        ))}
                       </View>
                     </View>
                   </View>
@@ -206,7 +264,14 @@ function TeamContent() {
                         <Text style={styles.rosterTitle}>Roster</Text>
                         <View style={styles.rosterTotalWrap}>
                           <Text style={styles.rosterTotalLabel}>Total</Text>
-                          <View style={styles.skelRosterTotal} />
+
+                          {overview?.rosterCounts?.total !== undefined ? (
+                            <Text style={styles.rosterTotalValue}>
+                              {String(overview.rosterCounts.total)}
+                            </Text>
+                          ) : (
+                            <View style={styles.skelRosterTotal} />
+                          )}
                         </View>
                       </View>
 
@@ -217,29 +282,50 @@ function TeamContent() {
                           <View style={styles.rolePill}>
                             <Text style={styles.rolePillText}>Owner</Text>
                           </View>
-                          <View style={styles.skelCount} />
+
+                          {overview?.rosterCounts?.owner !== undefined ? (
+                            <Text style={styles.rosterCountValue}>
+                              {String(overview.rosterCounts.owner)}
+                            </Text>
+                          ) : (
+                            <View style={styles.skelCount} />
+                          )}
                         </View>
 
                         <View style={styles.rosterItem}>
                           <View style={styles.rolePill}>
                             <Text style={styles.rolePillText}>Manager</Text>
                           </View>
-                          <View style={styles.skelCount} />
+
+                          {overview?.rosterCounts?.manager !== undefined ? (
+                            <Text style={styles.rosterCountValue}>
+                              {String(overview.rosterCounts.manager)}
+                            </Text>
+                          ) : (
+                            <View style={styles.skelCount} />
+                          )}
                         </View>
 
                         <View style={styles.rosterItem}>
                           <View style={styles.rolePill}>
                             <Text style={styles.rolePillText}>Players</Text>
                           </View>
-                          <View style={styles.skelCount} />
+
+                          {overview?.rosterCounts?.players !== undefined ? (
+                            <Text style={styles.rosterCountValue}>
+                              {String(overview.rosterCounts.players)}
+                            </Text>
+                          ) : (
+                            <View style={styles.skelCount} />
+                          )}
                         </View>
                       </View>
                     </View>
                   </View>
                 </Card>
 
-                {/* Team Performance (universal + abbreviated labels) */}
-                <TeamPerformanceCardPlaceholder />
+                <TeamPerformanceCardPlaceholder performance={overview?.performance} />
+
 
                 {canManage && (
                   <Button
@@ -289,8 +375,28 @@ function TeamContent() {
 /**
  * UNIVERSAL placeholder: layout only, no sport-specific metric names.
  */
-function TeamPerformanceCardPlaceholder() {
-  const LABELS = ["OFF", "DEF", "DIS"]; // universal buckets
+function TeamPerformanceCardPlaceholder(props: {
+  performance?: {
+    off?: number;
+    def?: number;
+    dis?: number;
+    inf?: number;
+  };
+}) {
+  const LABELS: Array<{ key: "off" | "def" | "dis"; label: string }> = [
+    { key: "off", label: "OFF" },
+    { key: "def", label: "DEF" },
+    { key: "dis", label: "DIS" },
+  ];
+
+  const perf = props.performance;
+
+  const clampPct = (n: number) => {
+    if (Number.isNaN(n)) return 0;
+    if (n < 0) return 0;
+    if (n > 100) return 100;
+    return n;
+  };
 
   return (
     <Card>
@@ -299,26 +405,39 @@ function TeamPerformanceCardPlaceholder() {
           <Text style={styles.performanceTitle}>Team Performance</Text>
 
           <View style={styles.performanceList}>
-            {LABELS.map((label) => (
-              <View key={label} style={styles.performanceRow}>
-                <Text style={styles.perfLabel}>{label}</Text>
+            {LABELS.map(({ key, label }) => {
+              const value = perf?.[key];
+              const hasValue = value !== undefined;
+              const pct = hasValue ? clampPct(Number(value)) : 55;
 
-                <View style={styles.perfTrack}>
-                  <View style={styles.skelPerfFill} />
+              return (
+                <View key={label} style={styles.performanceRow}>
+                  <Text style={styles.perfLabel}>{label}</Text>
+
+                  <View style={styles.perfTrack}>
+                    <View style={[styles.skelPerfFill, { width: `${pct}%` }]} />
+                  </View>
+
+                  {hasValue ? (
+                    <Text style={styles.perfValueText}>{String(value)}</Text>
+                  ) : (
+                    <View style={styles.skelPerfValue} />
+                  )}
                 </View>
-
-                <View style={styles.skelPerfValue} />
-              </View>
-            ))}
+              );
+            })}
           </View>
 
-          {/* Divider (optional but looks nicer) */}
           <View style={styles.rosterDivider} />
 
-          {/* INF footer */}
           <View style={styles.perfFooterRow}>
             <Text style={styles.perfFooterLabel}>INF</Text>
-            <View style={styles.skelPerfFooter} />
+
+            {perf?.inf !== undefined ? (
+              <Text style={styles.perfFooterValueText}>{String(perf.inf)}</Text>
+            ) : (
+              <View style={styles.skelPerfFooter} />
+            )}
           </View>
         </View>
       </View>
@@ -364,6 +483,13 @@ const styles = StyleSheet.create({
     letterSpacing: 0.5,
   },
 
+  recordText: {
+    marginTop: 6,
+    color: "rgba(255,255,255,0.8)",
+    fontSize: 12,
+    fontWeight: "600",
+  },
+
   tilesGrid: {
     marginTop: 12,
     flexDirection: "row",
@@ -384,6 +510,12 @@ const styles = StyleSheet.create({
     backgroundColor: "rgba(255,255,255,0.06)",
     borderWidth: 1,
     borderColor: "rgba(255,255,255,0.10)",
+  },
+
+  statValue: {
+    color: "white",
+    fontSize: 18,
+    fontWeight: "800",
   },
 
   statLabel: {
@@ -424,6 +556,12 @@ const styles = StyleSheet.create({
     fontSize: 11,
   },
 
+  rosterTotalValue: {
+    color: "white",
+    fontSize: 16,
+    fontWeight: "800",
+  },
+
   rosterDivider: {
     height: 1,
     backgroundColor: "rgba(255,255,255,0.12)",
@@ -439,6 +577,12 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
+  },
+
+  rosterCountValue: {
+    color: "rgba(255,255,255,0.95)",
+    fontSize: 13,
+    fontWeight: "800",
   },
 
   rolePill: {
@@ -501,6 +645,14 @@ const styles = StyleSheet.create({
     marginRight: 10,
   },
 
+  perfValueText: {
+    color: "rgba(255,255,255,0.9)",
+    fontSize: 12,
+    fontWeight: "800",
+    minWidth: 22,
+    textAlign: "right",
+  },
+
   perfFooterRow: {
     flexDirection: "row",
     alignItems: "center",
@@ -516,12 +668,10 @@ const styles = StyleSheet.create({
     letterSpacing: 1,
   },
 
-  /* ---------------- Actions ---------------- */
-
-  fabWrap: {
-    position: "absolute",
-    bottom: 20,
-    right: 20,
+  perfFooterValueText: {
+    color: "rgba(255,255,255,0.9)",
+    fontSize: 12,
+    fontWeight: "800",
   },
 
   /* ---------------- Skeleton / Placeholder ---------------- */
