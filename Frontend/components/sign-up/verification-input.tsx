@@ -9,22 +9,35 @@ import { useClerk } from "@clerk/clerk-expo";
 import { styles } from "@/components/sign-up/styles";
 import { completeVerificationAndUpsert } from "@/components/sign-up/utils";
 import { useUpsertUser } from "@/components/sign-up/hooks/use-insert-clerk-to-be";
-import { User, SetActiveFn } from "@/components/sign-up/models";
+import {
+  User,
+  SetActiveFn,
+  SignUpResourceType,
+} from "@/components/sign-up/models";
 import { LabeledInput } from "@/components/auth/labeled-input";
 import { WelcomeAuthButton } from "@/components/auth/welcome-auth-button";
 
-export const VerificationInput: React.FC<{
+type VerificationInputProps = {
   otpCode: string;
   setOtpCode: React.Dispatch<React.SetStateAction<string>>;
   setActive: SetActiveFn;
   values: User;
   isLoaded: boolean;
-  signUp: any;
-}> = ({ otpCode, setOtpCode, setActive, values, isLoaded, signUp }) => {
+  signUp: SignUpResourceType | undefined;
+};
+
+export const VerificationInput: React.FC<VerificationInputProps> = ({
+  otpCode,
+  setOtpCode,
+  setActive,
+  values,
+  isLoaded,
+  signUp,
+}) => {
   const upsertUser = useUpsertUser();
   const clerk = useClerk();
 
-  const deleteUserOnError = async () => {
+  const deleteUserOnError = async (): Promise<void> => {
     await clerk.user?.delete();
   };
 

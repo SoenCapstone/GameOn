@@ -1,4 +1,5 @@
 import * as Yup from "yup";
+import type { SignInResource } from "@clerk/types";
 import {
   VALIDATION_EMAIL_FORMAT_MESSAGE_FORMAT,
   VALIDATION_EMAIL_FORMAT_MESSAGE_REQUIRED,
@@ -24,24 +25,28 @@ export const SignInSchema = Yup.object({
 
 export const login = async (
   values: UserSignIn,
-  signIn: any,
+  signIn: SignInResource,
   setActive: SetActiveFn,
   isLoaded: boolean,
-) => {
+): Promise<void> => {
   if (!isLoaded) return;
 
   try {
     const result = await signIn.create({
-      identifier: values?.emailAddress,
-      password: values?.password,
+      identifier: values.emailAddress,
+      password: values.password,
     });
 
     if (result.status === EMAIL_VERIFICATION_STATUS) {
+      if (!result.createdSessionId) {
+        log.info("Session ID not created");
+        return;
+      }
       await setActive({ session: result.createdSessionId });
     } else {
       log.info("Additional verification required:", result);
     }
-  } catch (err) {
+  } catch (err: unknown) {
     toast(humanizeClerkError(err));
   }
 };

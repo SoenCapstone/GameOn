@@ -35,7 +35,7 @@ export default function EditProfile() {
 
   const handleSave = useCallback(async () => {
     await handleSaveProfile({
-      user,
+      user: user ?? null,
       firstName,
       lastName,
       email,

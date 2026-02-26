@@ -1,4 +1,7 @@
 import { Alert, ToastAndroid, Platform } from "react-native";
+import type { FormikErrors, FormikTouched } from "formik";
+import type { ClerkAPIError } from "@clerk/types";
+import * as Yup from "yup";
 import {
   VALIDATION_FIRST_NAME_MESSAGE_LENGTH,
   VALIDATION_FIRST_NAME_MESSAGE_REQUIRED,
@@ -18,17 +21,18 @@ import {
   SetActiveFn,
   SignUpInputLabel,
   User,
+  SignUpResourceType,
+  UpsertUserMutation,
 } from "@/components/sign-up/models";
-import type { FormikErrors, FormikTouched } from "formik";
-import * as Yup from "yup";
 
 export const displayFormikError = (
-  touched: FormikTouched<any>,
-  errors: FormikErrors<any>,
+  touched: FormikTouched<User>,
+  errors: FormikErrors<User>,
   inputLabel: SignUpInputLabel,
-) => {
-  return touched?.[inputLabel.field] && errors?.[inputLabel.field]
-    ? errors?.[inputLabel.field]
+): string | undefined => {
+  const fieldKey = inputLabel.field as keyof User;
+  return touched?.[fieldKey] && errors?.[fieldKey]
+    ? (errors[fieldKey] as string)
     : undefined;
 };
 
@@ -58,9 +62,14 @@ export const SignUpSchema = Yup.object({
     }),
 });
 
-export const humanizeClerkError = (err: any) => {
+type ClerkErrorResponse = {
+  errors?: ClerkAPIError[];
+};
+
+export const humanizeClerkError = (err: unknown): string => {
   try {
-    const json = typeof err === "string" ? JSON.parse(err) : err;
+    const json =
+      typeof err === "string" ? JSON.parse(err) : (err as ClerkErrorResponse);
     const first = json?.errors?.[0];
     return first?.message || "Something went wrong";
   } catch {
@@ -68,7 +77,7 @@ export const humanizeClerkError = (err: any) => {
   }
 };
 
-export const toast = (msg: string) => {
+export const toast = (msg: string): void => {
   if (Platform.OS === "android") ToastAndroid.show(msg, ToastAndroid.SHORT);
   else Alert.alert(msg);
 };
@@ -76,10 +85,10 @@ export const toast = (msg: string) => {
 export const startClerkSignUp = async (
   values: User,
   isLoaded: boolean,
-  signUp: any,
+  signUp: SignUpResourceType | undefined,
   setPendingVerification: React.Dispatch<React.SetStateAction<boolean>>,
-) => {
-  if (!isLoaded) {
+): Promise<void> => {
+  if (!isLoaded || !signUp) {
     return;
   }
 
@@ -92,7 +101,7 @@ export const startClerkSignUp = async (
     });
     await signUp.prepareEmailAddressVerification({ strategy: "email_code" });
     setPendingVerification(true);
-  } catch (e: any) {
+  } catch (e: unknown) {
     Alert.alert("Sign up failed", humanizeClerkError(e));
   }
 };
@@ -101,12 +110,12 @@ export const completeVerificationAndUpsert = async (
   values: User,
   isLoaded: boolean,
   otpCode: string,
-  signUp: any,
+  signUp: SignUpResourceType | undefined,
   setActive: SetActiveFn,
-  upsertUser: any,
+  upsertUser: UpsertUserMutation,
   deleteUserOnError: () => Promise<void>,
-) => {
-  if (!isLoaded) {
+): Promise<void> => {
+  if (!isLoaded || !signUp) {
     return;
   }
   try {
@@ -115,11 +124,20 @@ export const completeVerificationAndUpsert = async (
     });
 
     if (attempt.status === EMAIL_VERIFICATION_STATUS) {
+      if (!attempt.createdSessionId) {
+        Alert.alert("Verification incomplete", "Session could not be created.");
+        return;
+      }
+
       await setActive({ session: attempt.createdSessionId });
 
       try {
+        if (!attempt.createdUserId) {
+          throw new Error("User ID not created");
+        }
+
         await upsertUser.mutateAsync({
-          id: attempt?.createdUserId,
+          id: attempt.createdUserId,
           email: values.emailAddress,
           firstname: values.firstname,
           lastname: values.lastname,
@@ -135,7 +153,7 @@ export const completeVerificationAndUpsert = async (
         "Please complete the required steps.",
       );
     }
-  } catch (e: any) {
+  } catch (e: unknown) {
     Alert.alert("Verification failed", humanizeClerkError(e));
   }
 };
