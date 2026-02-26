@@ -123,7 +123,7 @@ export const CLEAR_SHAPES_BUTTON_CONFIG = [
   {
     tool: "Undo",
     size: 22,
-    xml: UNDO_SVG.replace(/currentColor/g, COLOR_WHITE),
+    xml: UNDO_SVG.replaceAll("currentColor", COLOR_WHITE),
     onPress: (
       shapes: Shape[],
       setShapes: React.Dispatch<React.SetStateAction<Shape[]>>,
@@ -133,7 +133,7 @@ export const CLEAR_SHAPES_BUTTON_CONFIG = [
   {
     tool: "Delete",
     size: 22,
-    xml: REMOVE_CURRENT.replace(/currentColor/g, COLOR_WHITE),
+    xml: REMOVE_CURRENT.replaceAll("currentColor", COLOR_WHITE),
     onPress: (
       shapes: Shape[],
       setShapes: React.Dispatch<React.SetStateAction<Shape[]>>,
@@ -143,7 +143,7 @@ export const CLEAR_SHAPES_BUTTON_CONFIG = [
   {
     tool: "Reset",
     size: 22,
-    xml: CLEAR_ALL_SVG.replace(/currentColor/g, COLOR_WHITE),
+    xml: CLEAR_ALL_SVG.replaceAll("currentColor", COLOR_WHITE),
     onPress: (
       shapes: Shape[],
       setShapes: React.Dispatch<React.SetStateAction<Shape[]>>,
