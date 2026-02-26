@@ -32,10 +32,10 @@ const RefereeContext = createContext<RefereeContextValue | undefined>(
 );
 
 type RefereeProviderProps = {
-  children: ReactNode;
+  readonly children: ReactNode;
 };
 
-export function RefereeProvider({ children }: RefereeProviderProps) {
+export function RefereeProvider({ children }: Readonly<RefereeProviderProps>) {
   const axios = useAxiosWithClerk();
 
   const [isReferee, setIsReferee] = useState<boolean | null>(null);
