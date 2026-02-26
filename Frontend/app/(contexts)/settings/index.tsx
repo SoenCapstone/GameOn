@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { ContentArea } from "@/components/ui/content-area";
 import { AccentColors } from "@/constants/colors";
 import { Form } from "@/components/form/form";
@@ -30,10 +30,13 @@ export default function Settings() {
 
   const logout = confirmLogout(signOut, log);
 
+  const refreshRef = useRef(refresh);
+  refreshRef.current = refresh;
+
   useEffect(() => {
     if (!isLoaded || !isSignedIn) return;
 
-    refresh().catch((error) => {
+    refreshRef.current().catch((error) => {
       log.error("Failed to refresh referee data", error);
     });
   }, [isLoaded, isSignedIn]);
