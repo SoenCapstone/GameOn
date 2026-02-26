@@ -1,11 +1,15 @@
 import { useState, useEffect, useCallback } from "react";
 import { useAxiosWithClerk } from "@/hooks/use-axios-clerk";
+import { createScopedLog } from "@/utils/logger";
+import { errorToString } from "@/utils/error";
 
 interface UseRefereeSelectionParams {
   fetchRoute: string;
   updateRoute: string;
   fieldKey: string;
 }
+
+const log = createScopedLog("Use Referee Selection");
 
 export function useRefereeSelection({ fetchRoute, updateRoute, fieldKey }: UseRefereeSelectionParams) {
   const axios = useAxiosWithClerk();
@@ -22,7 +26,7 @@ export function useRefereeSelection({ fetchRoute, updateRoute, fieldKey }: UseRe
           setInitialized(true);
         }
     } catch (error) {
-      console.error(`Failed to load ${fieldKey}:`, error);
+      log.error(`Failed to load ${fieldKey}:`, errorToString(error));
     } finally {
       setLoading(false);
     }

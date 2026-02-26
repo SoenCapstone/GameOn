@@ -1,6 +1,9 @@
 import { Alert } from "react-native";
 import * as ImagePicker from "expo-image-picker";
 import * as ImageManipulator from "expo-image-manipulator";
+import { createScopedLog } from "@/utils/logger";
+
+const log = createScopedLog("Image Picker");
 
 export const pickImage = async (
   setImage: (img: { uri: string; mimeType?: string }) => void,
@@ -54,7 +57,7 @@ export const pickImage = async (
     }
   } catch (err: unknown) {
     const message = err instanceof Error ? err.message : "Unknown error";
-    console.error("Image picker error:", message);
+    log.error("Image picker error:", message);
     Alert.alert("Error", "Failed to pick image: " + message);
   }
 };

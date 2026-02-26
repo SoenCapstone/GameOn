@@ -40,10 +40,10 @@ jest.mock("expo-file-system", () => ({
 }));
 
 jest.mock("@/utils/logger", () => ({
-  createScopedLog: () => ({
+  createScopedLog: jest.fn(() => ({
     info: jest.fn(),
     error: jest.fn(),
-  }),
+  })),
 }));
 
 const mockFile = File as jest.MockedClass<typeof File>;
@@ -274,7 +274,6 @@ describe("handleSaveProfile", () => {
   });
 
   it("handles errors during profile or image update", async () => {
-    let consoleSpy = jest.spyOn(console, "error").mockImplementation();
 
     const error = new Error("Network error");
     mockUser.update.mockRejectedValue(error);
@@ -288,14 +287,12 @@ describe("handleSaveProfile", () => {
       router: mockRouter,
     });
 
-    expect(consoleSpy).toHaveBeenCalledWith("Fetch error:", "Network error");
     expect(mockAlert).toHaveBeenCalledWith(
       "Error",
       "Failed to update profile: Network error",
     );
     expect(mockRouter.back).toHaveBeenCalled();
 
-    consoleSpy.mockRestore();
     jest.clearAllMocks();
 
     const imageError = new Error("Image upload failed");
@@ -305,7 +302,6 @@ describe("handleSaveProfile", () => {
       base64: jest.fn().mockResolvedValue("base64string"),
     };
     mockFile.mockImplementation(() => mockFileInstance as any);
-    consoleSpy = jest.spyOn(console, "error").mockImplementation();
 
     await handleSaveProfile({
       user: mockUser,
@@ -322,7 +318,6 @@ describe("handleSaveProfile", () => {
     );
     expect(mockRouter.back).toHaveBeenCalled();
 
-    consoleSpy.mockRestore();
   });
 });
 
@@ -507,7 +502,6 @@ describe("pickImage", () => {
   });
 
   it("handles errors during permission or image picker operations", async () => {
-    let consoleSpy = jest.spyOn(console, "error").mockImplementation();
 
     const permissionError = new Error("Permission error");
     (
@@ -516,10 +510,6 @@ describe("pickImage", () => {
 
     await pickImage(mockSetImage);
 
-    expect(consoleSpy).toHaveBeenCalledWith(
-      "Image picker error:",
-      "Permission error",
-    );
     expect(mockAlert).toHaveBeenCalledWith(
       "Error",
       "Failed to pick image: Permission error",
@@ -535,21 +525,15 @@ describe("pickImage", () => {
     (ImagePicker.launchImageLibraryAsync as jest.Mock).mockRejectedValue(
       pickerError,
     );
-    consoleSpy = jest.spyOn(console, "error").mockImplementation();
 
     await pickImage(mockSetImage);
 
-    expect(consoleSpy).toHaveBeenCalledWith(
-      "Image picker error:",
-      "Picker crashed",
-    );
     expect(mockAlert).toHaveBeenCalledWith(
       "Error",
       "Failed to pick image: Picker crashed",
     );
     expect(mockSetImage).not.toHaveBeenCalled();
 
-    consoleSpy.mockRestore();
   });
 });
 

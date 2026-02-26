@@ -66,7 +66,7 @@ export const handleSaveProfile = async ({
 
     Alert.alert("Success", "Profile updated");
   } catch (err) {
-    console.error("Fetch error:", errorToString(err));
+    log.error("Fetch error:", errorToString(err));
     Alert.alert("Error", "Failed to update profile: " + errorToString(err));
   }
 

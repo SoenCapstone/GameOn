@@ -105,7 +105,7 @@ export default function Settings() {
           setRegions([]);
           return;
         }
-        console.error("Failed to load referee preferences:", error);
+        log.error("Failed to load referee preferences:", error);
       }
     };
 
