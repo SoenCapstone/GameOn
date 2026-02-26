@@ -26,9 +26,11 @@ export default function Edit() {
   const router = useRouter();
   const navigation = useNavigation();
 
-  const [firstName, setFirstName] = useState(user?.firstName!);
-  const [lastName, setLastName] = useState(user?.lastName!);
-  const [email] = useState<string>(user?.primaryEmailAddress?.emailAddress!);
+  const [firstName, setFirstName] = useState(user?.firstName ?? "");
+  const [lastName, setLastName] = useState(user?.lastName ?? "");
+  const [email] = useState<string>(
+    user?.primaryEmailAddress?.emailAddress ?? "",
+  );
   const [image, setImage] = useState<
     { uri: string; mimeType?: string } | number | null
   >(user?.hasImage ? { uri: user.imageUrl } : null);
