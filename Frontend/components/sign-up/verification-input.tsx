@@ -6,13 +6,12 @@ import {
   Keyboard,
 } from "react-native";
 import { useClerk } from "@clerk/clerk-expo";
+import type { SignUpResource, SetActive } from "@clerk/types";
 import { styles } from "@/components/sign-up/styles";
 import { completeVerificationAndUpsert } from "@/components/sign-up/utils";
 import { useUpsertUser } from "@/components/sign-up/hooks/use-insert-clerk-to-be";
 import {
   User,
-  SetActiveFn,
-  SignUpResourceType,
 } from "@/components/sign-up/models";
 import { LabeledInput } from "@/components/auth/labeled-input";
 import { WelcomeAuthButton } from "@/components/auth/welcome-auth-button";
@@ -20,10 +19,10 @@ import { WelcomeAuthButton } from "@/components/auth/welcome-auth-button";
 type VerificationInputProps = {
   otpCode: string;
   setOtpCode: React.Dispatch<React.SetStateAction<string>>;
-  setActive: SetActiveFn;
+  setActive: SetActive;
   values: User;
   isLoaded: boolean;
-  signUp: SignUpResourceType | undefined;
+  signUp: SignUpResource | undefined;
 };
 
 export const VerificationInput: React.FC<VerificationInputProps> = ({

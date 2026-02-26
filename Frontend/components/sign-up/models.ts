@@ -1,6 +1,5 @@
 import React from "react";
 import { StyleProp, ViewStyle } from "react-native";
-import type { SignUpResource, SetActive } from "@clerk/types";
 
 export type User = {
   firstname: string;
@@ -35,10 +34,6 @@ export type SignUpInputLabel = {
   secureTextEntry?: boolean;
   rightIcon?: boolean;
 };
-
-export type SetActiveFn = SetActive;
-
-export type SignUpResourceType = SignUpResource;
 
 export type UpsertUserMutation = {
   mutateAsync: (payload: {

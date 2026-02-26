@@ -1,6 +1,6 @@
 import { Alert, ToastAndroid, Platform } from "react-native";
 import type { FormikErrors, FormikTouched } from "formik";
-import type { ClerkAPIError } from "@clerk/types";
+import type { ClerkAPIError , SignUpResource, SetActive } from "@clerk/types";
 import * as Yup from "yup";
 import {
   VALIDATION_FIRST_NAME_MESSAGE_LENGTH,
@@ -18,10 +18,8 @@ import {
   SIGN_UP_BACKEND_ERROR_MESSAGE,
 } from "@/components/sign-up/constants";
 import {
-  SetActiveFn,
   SignUpInputLabel,
   User,
-  SignUpResourceType,
   UpsertUserMutation,
 } from "@/components/sign-up/models";
 
@@ -85,7 +83,7 @@ export const toast = (msg: string): void => {
 export const startClerkSignUp = async (
   values: User,
   isLoaded: boolean,
-  signUp: SignUpResourceType | undefined,
+  signUp: SignUpResource | undefined,
   setPendingVerification: React.Dispatch<React.SetStateAction<boolean>>,
 ): Promise<void> => {
   if (!isLoaded || !signUp) {
@@ -110,8 +108,8 @@ export const completeVerificationAndUpsert = async (
   values: User,
   isLoaded: boolean,
   otpCode: string,
-  signUp: SignUpResourceType | undefined,
-  setActive: SetActiveFn,
+  signUp: SignUpResource | undefined,
+  setActive: SetActive,
   upsertUser: UpsertUserMutation,
   deleteUserOnError: () => Promise<void>,
 ): Promise<void> => {
