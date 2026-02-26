@@ -3,6 +3,7 @@ import {
   useCallback,
   useContext,
   useEffect,
+  useRef,
   ReactNode,
   useMemo,
   useState,
@@ -12,6 +13,7 @@ import {
   GO_REFEREE_SERVICE_ROUTES,
 } from "@/hooks/use-axios-clerk";
 import { log } from "@/utils/logger";
+import { useAuth } from "@clerk/clerk-expo";
 
 type RefereeContextValue = {
   isReferee: boolean | null;
@@ -36,6 +38,7 @@ type RefereeProviderProps = {
 };
 
 export function RefereeProvider({ children }: Readonly<RefereeProviderProps>) {
+  const { isLoaded, isSignedIn } = useAuth();
   const axios = useAxiosWithClerk();
 
   const [isReferee, setIsReferee] = useState<boolean | null>(null);
@@ -82,11 +85,16 @@ export function RefereeProvider({ children }: Readonly<RefereeProviderProps>) {
     }
   }, [axios, fetchProfile]);
 
+  const fetchStatusRef = useRef(fetchStatus);
+  fetchStatusRef.current = fetchStatus;
+
   useEffect(() => {
-    fetchStatus().catch((error) => {
+    if (!isLoaded || !isSignedIn) return;
+
+    fetchStatusRef.current().catch((error) => {
       log.error("Failed to fetch referee status", error);
     });
-  }, []);
+  }, [isLoaded, isSignedIn]);
 
   const registerAsReferee = useCallback(async () => {
     try {
