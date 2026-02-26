@@ -96,26 +96,11 @@ export const useRenderPlayMakerShapes = (
         const isSelected = "id" in s && s.id === selectedShapeId;
         switch (s.type) {
           case "person":
-            return renderers.person(
-              s as Extract<Shape, { type: "person" }>,
-              isSelected,
-              selectedShapeId,
-              onSelect,
-            );
+            return renderers.person(s, isSelected, selectedShapeId, onSelect);
           case "arrow":
-            return renderers.arrow(
-              s as Extract<Shape, { type: "arrow" }>,
-              isSelected,
-              selectedShapeId,
-              onSelect,
-            );
+            return renderers.arrow(s, isSelected, selectedShapeId, onSelect);
           case "select":
-            return renderers.select(
-              s as Extract<Shape, { type: "select" }>,
-              isSelected,
-              selectedShapeId,
-              onSelect,
-            );
+            return renderers.select(s, isSelected, selectedShapeId, onSelect);
           default:
             return null;
         }

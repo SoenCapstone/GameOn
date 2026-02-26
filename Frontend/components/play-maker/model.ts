@@ -7,7 +7,7 @@ import {
   REMOVE_CURRENT,
   COLOR_WHITE,
   SELECT_SVG,
-} from "./play-maker-icon/constants";
+} from "@/components/play-maker/play-maker-icon/constants";
 import { ViewStyle } from "react-native";
 
 export type BoardConfigProps = {
@@ -105,17 +105,17 @@ export const SELECT_SHAPE_BUTTON_CONFIG: {
   {
     tool: "select",
     size: 22,
-    xml: SELECT_SVG.replace(/currentColor/g, COLOR_WHITE),
+    xml: SELECT_SVG.replaceAll("currentColor", COLOR_WHITE),
   },
   {
     tool: "person",
     size: 22,
-    xml: PERSON_SVG.replace(/currentColor/g, COLOR_WHITE),
+    xml: PERSON_SVG.replaceAll("currentColor", COLOR_WHITE),
   },
   {
     tool: "arrow",
     size: 22,
-    xml: LINE_SVG.replace(/currentColor/g, COLOR_WHITE),
+    xml: LINE_SVG.replaceAll("currentColor", COLOR_WHITE),
   },
 ];
 
