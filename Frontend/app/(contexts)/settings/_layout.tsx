@@ -2,7 +2,6 @@ import { Stack } from "expo-router";
 import { Header } from "@/components/header/header";
 import { PageTitle } from "@/components/header/page-title";
 import { Button } from "@/components/ui/button";
-import React from "react";
 
 const settingsHeader = () => (
   <Header
@@ -23,21 +22,21 @@ export default function SettingsLayout() {
         }}
       />
       <Stack.Screen
-        name="edit-profile"
+        name="profile/edit"
         options={{
           headerBackVisible: false,
           headerTransparent: true,
         }}
       />
       <Stack.Screen
-        name="referee-regions"
+        name="referee/regions"
         options={{
           headerBackVisible: false,
           headerTransparent: true,
         }}
       />
       <Stack.Screen
-        name="referee-sports"
+        name="referee/sports"
         options={{
           headerBackVisible: false,
           headerTransparent: true,

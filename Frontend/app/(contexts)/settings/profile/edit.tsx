@@ -21,7 +21,7 @@ function EditProfileHeader({ onSave }: Readonly<{ onSave: () => void }>) {
   );
 }
 
-export default function EditProfile() {
+export default function Edit() {
   const { isLoaded, isSignedIn, user } = useUser();
   const router = useRouter();
   const navigation = useNavigation();
