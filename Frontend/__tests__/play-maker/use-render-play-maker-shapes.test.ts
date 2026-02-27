@@ -40,7 +40,7 @@ describe("useRenderPlayMakerShapes", () => {
 
     const root = result.current[0] as React.ReactElement;
     const children = (root.props as { children: React.ReactElement[] })
-      .children as React.ReactElement[];
+      .children;
 
     const hitRect = children.find((child) => child?.type === SvgRect);
     expect(hitRect).toBeTruthy();
@@ -92,7 +92,7 @@ describe("useRenderPlayMakerShapes", () => {
 
     const root = result.current[0] as React.ReactElement;
     const children = (root.props as { children: React.ReactElement[] })
-      .children as React.ReactElement[];
+      .children;
 
     const line = children.find((c) => c?.type === Line);
     const path = children.find((c) => c?.type === Path);

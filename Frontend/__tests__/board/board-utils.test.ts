@@ -39,9 +39,7 @@ describe("board-utils", () => {
           return Promise.reject(new Error("Unknown URL"));
         }),
       } as {
-        get: (
-          url: string,
-        ) =>
+        get: (url: string) =>
           | Promise<{
               data: {
                 firstname: string;

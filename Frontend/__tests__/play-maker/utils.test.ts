@@ -132,10 +132,10 @@ describe("play-maker utils", () => {
 
       addArrowBetweenShapes("p1", "p2", shapes, setState);
 
-      const next = getState() as Shape[];
+      const next = getState();
       expect(next).toHaveLength(3);
 
-      const arrow = next[2] as Shape;
+      const arrow = next[2];
       expect(arrow.id).toBe("arrow-id");
       expect(arrow.type).toBe("arrow");
       expect(arrow.from).toMatchObject({ id: "p1", x: 10, y: 20, size: 28 });
@@ -186,7 +186,7 @@ describe("play-maker utils", () => {
 
       assignPlayerToShape("member-1", "p2", shapes, setState);
 
-      const next = getState() as Shape[];
+      const next = getState();
       expect(next.find((s) => s.id === "p2")?.associatedPlayerId).toBe(
         "member-1",
       );
