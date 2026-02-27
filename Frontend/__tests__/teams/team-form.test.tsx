@@ -9,7 +9,8 @@ jest.mock("@/components/form/form", () => {
   const { View } = jest.requireActual("react-native");
   return {
     Form: {
-      Section: ({ children }: { children?: React.ReactNode }) => ReactMock.createElement(View, null, children),
+      Section: ({ children }: { children?: React.ReactNode }) =>
+        ReactMock.createElement(View, null, children),
       Image: jest.fn(() => null),
       Input: jest.fn(() => null),
       Menu: jest.fn(() => null),
@@ -76,13 +77,25 @@ describe("TeamForm", () => {
     let imageProps = (Form.Image as jest.Mock).mock.calls[0][0];
     expect(imageProps.image).toEqual({ uri: "https://cdn/uploaded.png" });
 
-    rerender(<TeamForm values={baseValues} logo={{ pickedLogo: null }} onChange={onChange} />);
+    rerender(
+      <TeamForm
+        values={baseValues}
+        logo={{ pickedLogo: null }}
+        onChange={onChange}
+      />,
+    );
     imageProps = (Form.Image as jest.Mock).mock.calls[1][0];
     expect(imageProps.image).toBe("default-logo");
   });
 
   it("wires image/button actions and handles menu selection rules", () => {
-    render(<TeamForm values={baseValues} logo={{ pickedLogo: null }} onChange={onChange} />);
+    render(
+      <TeamForm
+        values={baseValues}
+        logo={{ pickedLogo: null }}
+        onChange={onChange}
+      />,
+    );
 
     const imageProps = (Form.Image as jest.Mock).mock.calls[0][0];
     imageProps.onPress();
@@ -96,9 +109,9 @@ describe("TeamForm", () => {
     inputProps.onChangeText("Updated Team");
     expect(onChange.onTeamNameChange).toHaveBeenCalledWith("Updated Team");
 
-    const menuCalls = ((Form.Menu as jest.Mock).mock.calls as [Record<string, unknown>][]).map(
-      ([props]) => props,
-    );
+    const menuCalls = (
+      (Form.Menu as jest.Mock).mock.calls as [Record<string, unknown>][]
+    ).map(([props]) => props);
     const sportMenu = menuCalls.find((x) => x.label === "Sport");
     const scopeMenu = menuCalls.find((x) => x.label === "Scope");
     const cityMenu = menuCalls.find((x) => x.label === "Location");

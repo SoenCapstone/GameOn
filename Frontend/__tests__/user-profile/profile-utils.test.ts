@@ -58,17 +58,17 @@ describe("handleSaveProfile", () => {
     jest.clearAllMocks();
     mockAlert = jest.spyOn(Alert, "alert");
 
-      mockUser = {
-        update: jest.fn().mockResolvedValue(undefined),
-        setProfileImage: jest.fn().mockResolvedValue(undefined),
-        hasImage: false,
-        id: "mock-id",
-        externalId: "mock-external-id",
-        primaryEmailAddressId: "mock-email-id",
-        primaryEmailAddress: undefined,
-        // Add all required UserResource fields as unknown
-        ...Object.fromEntries(Array(60).fill(["field", undefined]))
-      } as unknown as import("@clerk/types").UserResource;
+    mockUser = {
+      update: jest.fn().mockResolvedValue(undefined),
+      setProfileImage: jest.fn().mockResolvedValue(undefined),
+      hasImage: false,
+      id: "mock-id",
+      externalId: "mock-external-id",
+      primaryEmailAddressId: "mock-email-id",
+      primaryEmailAddress: undefined,
+      // Add all required UserResource fields as unknown
+      ...Object.fromEntries(Array(60).fill(["field", undefined])),
+    } as unknown as import("@clerk/types").UserResource;
 
     mockRouter = {
       back: jest.fn(),
@@ -285,7 +285,6 @@ describe("handleSaveProfile", () => {
   });
 
   it("handles errors during profile or image update", async () => {
-
     const error = new Error("Network error");
     (mockUser.update as jest.Mock).mockRejectedValue(error);
 
@@ -307,8 +306,8 @@ describe("handleSaveProfile", () => {
     jest.clearAllMocks();
 
     const imageError = new Error("Image upload failed");
-      (mockUser.setProfileImage as jest.Mock).mockRejectedValue(imageError);
-      (mockUser.update as jest.Mock).mockResolvedValue(undefined);
+    (mockUser.setProfileImage as jest.Mock).mockRejectedValue(imageError);
+    (mockUser.update as jest.Mock).mockResolvedValue(undefined);
     const mockFileInstance = {
       base64: jest.fn().mockResolvedValue("base64string"),
     };
@@ -328,7 +327,6 @@ describe("handleSaveProfile", () => {
       "Failed to update profile: Image upload failed",
     );
     expect(mockRouter.back).toHaveBeenCalled();
-
   });
 });
 
@@ -513,7 +511,6 @@ describe("pickImage", () => {
   });
 
   it("handles errors during permission or image picker operations", async () => {
-
     const permissionError = new Error("Permission error");
     (
       ImagePicker.requestMediaLibraryPermissionsAsync as jest.Mock
@@ -544,7 +541,6 @@ describe("pickImage", () => {
       "Failed to pick image: Picker crashed",
     );
     expect(mockSetImage).not.toHaveBeenCalled();
-
   });
 });
 

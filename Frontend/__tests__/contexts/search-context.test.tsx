@@ -48,7 +48,11 @@ describe("SearchProvider", () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
-    mockUseTeamLeagueResults.mockReturnValue(mockTeamLeagueResults as unknown as ReturnType<typeof useTeamLeagueResults>);
+    mockUseTeamLeagueResults.mockReturnValue(
+      mockTeamLeagueResults as unknown as ReturnType<
+        typeof useTeamLeagueResults
+      >,
+    );
   });
 
   it("provides initial context values", () => {
@@ -265,7 +269,11 @@ describe("useSearch", () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
-    mockUseTeamLeagueResults.mockReturnValue(mockTeamLeagueResults as unknown as ReturnType<typeof useTeamLeagueResults>);
+    mockUseTeamLeagueResults.mockReturnValue(
+      mockTeamLeagueResults as unknown as ReturnType<
+        typeof useTeamLeagueResults
+      >,
+    );
   });
 
   it("throws error when used outside provider", () => {

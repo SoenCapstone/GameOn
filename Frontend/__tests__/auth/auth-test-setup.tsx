@@ -3,7 +3,8 @@ import { Alert } from "react-native";
 export const mockAlert = jest.fn();
 
 jest.mock("expo-linear-gradient", () => ({
-  LinearGradient: ({ children }: { children?: React.ReactNode }) => children ?? null,
+  LinearGradient: ({ children }: { children?: React.ReactNode }) =>
+    children ?? null,
 }));
 
 jest.mock("@expo/vector-icons", () => ({
@@ -109,11 +110,13 @@ jest.mock("@/components/auth/password-visibility-toggle", () => ({
 }));
 
 jest.mock("@/components/ui/content-area", () => ({
-  ContentArea: ({ children }: { children?: React.ReactNode }) => children ?? null,
+  ContentArea: ({ children }: { children?: React.ReactNode }) =>
+    children ?? null,
 }));
 
 jest.mock("@/components/ui/background", () => ({
-  Background: ({ children }: { children?: React.ReactNode }) => children ?? null,
+  Background: ({ children }: { children?: React.ReactNode }) =>
+    children ?? null,
 }));
 
 export const setupAuthTestHooks = () => {

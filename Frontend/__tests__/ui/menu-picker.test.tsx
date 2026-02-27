@@ -30,8 +30,13 @@ jest.mock("@expo/ui/swift-ui", () => {
   const ReactMock = jest.requireActual("react");
   const { View } = jest.requireActual("react-native");
   return {
-    Host: ({ children, ...props }: { children: React.ReactNode; [key: string]: unknown }) =>
-      ReactMock.createElement(View, props, children),
+    Host: ({
+      children,
+      ...props
+    }: {
+      children: React.ReactNode;
+      [key: string]: unknown;
+    }) => ReactMock.createElement(View, props, children),
     Picker: jest.fn((props: Record<string, unknown>) =>
       ReactMock.createElement(View, { testID: "swift-picker", ...props }),
     ),
@@ -124,7 +129,10 @@ describe("MenuPicker", () => {
     pickerCall.onOptionSelected({ nativeEvent: { index: 0 } });
     expect(onValueChange).toHaveBeenCalledWith("Owner");
 
-    expect(fixedSize).toHaveBeenCalledWith({ horizontal: true, vertical: true });
+    expect(fixedSize).toHaveBeenCalledWith({
+      horizontal: true,
+      vertical: true,
+    });
     expect(disabledModifier).toHaveBeenCalledWith(true);
     expect(opacity).toHaveBeenCalledWith(0.5);
   });

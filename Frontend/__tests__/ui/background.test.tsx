@@ -59,7 +59,11 @@ describe("Background component", () => {
   });
 
   it("uses the default color (blue) when neither preset nor color are provided", () => {
-    const UntypedBackground = Background as React.ComponentType<{ preset?: string; color?: string; mode?: string }>;
+    const UntypedBackground = Background as React.ComponentType<{
+      preset?: string;
+      color?: string;
+      mode?: string;
+    }>;
     render(<UntypedBackground />);
 
     expect(MockedLinearGradient).toHaveBeenCalledWith(

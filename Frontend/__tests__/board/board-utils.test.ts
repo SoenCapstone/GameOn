@@ -39,7 +39,17 @@ describe("board-utils", () => {
           return Promise.reject(new Error("Unknown URL"));
         }),
       } as {
-        get: (url: string) => Promise<{ data: { firstname: string; lastname: string; email?: string } | null }> | Promise<never>;
+        get: (
+          url: string,
+        ) =>
+          | Promise<{
+              data: {
+                firstname: string;
+                lastname: string;
+                email?: string;
+              } | null;
+            }>
+          | Promise<never>;
       };
 
       const log = { error: jest.fn() };

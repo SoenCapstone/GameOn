@@ -232,7 +232,7 @@ describe("startClerkSignUp", () => {
   const mockSignUp: MockSignUp = {
     create: jest.fn(),
     prepareEmailAddressVerification: jest.fn(),
-    status: 'pending',
+    status: "pending",
     requiredFields: [],
     optionalFields: [],
     missingFields: [],
@@ -313,7 +313,7 @@ describe("completeVerificationAndUpsert", () => {
     create: jest.fn(),
     prepareEmailAddressVerification: jest.fn(),
     attemptEmailAddressVerification: jest.fn(),
-    status: 'pending',
+    status: "pending",
     requiredFields: [],
     optionalFields: [],
     missingFields: [],
@@ -338,7 +338,7 @@ describe("completeVerificationAndUpsert", () => {
       mockSignUp as unknown as SignUpResource,
       mockSetActive,
       mockUpsertUser,
-      jest.fn()
+      jest.fn(),
     );
     expect(mockSignUp.attemptEmailAddressVerification).not.toHaveBeenCalled();
   });
@@ -361,7 +361,7 @@ describe("completeVerificationAndUpsert", () => {
       mockSignUp as unknown as SignUpResource,
       mockSetActive,
       mockUpsertUser,
-      jest.fn()
+      jest.fn(),
     );
 
     expect(mockSignUp.attemptEmailAddressVerification).toHaveBeenCalledWith({
@@ -390,7 +390,7 @@ describe("completeVerificationAndUpsert", () => {
       mockSignUp as unknown as SignUpResource,
       mockSetActive,
       mockUpsertUser,
-      jest.fn()
+      jest.fn(),
     );
 
     expect(mockAlert).toHaveBeenCalledWith(
@@ -414,7 +414,7 @@ describe("completeVerificationAndUpsert", () => {
       mockSignUp as unknown as SignUpResource,
       mockSetActive,
       mockUpsertUser,
-      jest.fn()
+      jest.fn(),
     );
 
     expect(mockAlert).toHaveBeenCalledWith(
@@ -542,7 +542,9 @@ describe("login", () => {
     jest.spyOn(log, "createScopedLog").mockReturnValue({ info: jest.fn() });
     const loginUtils = jest.requireActual("@/components/sign-in/utils");
     await loginUtils.login(values, mockSignIn, mockSetActive, true);
-    expect(log.createScopedLog("Sign In Utils").info).toHaveBeenCalledWith("Session ID not created");
+    expect(log.createScopedLog("Sign In Utils").info).toHaveBeenCalledWith(
+      "Session ID not created",
+    );
     expect(mockSetActive).not.toHaveBeenCalled();
   });
 });

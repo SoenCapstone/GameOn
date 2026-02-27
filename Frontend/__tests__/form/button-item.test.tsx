@@ -8,8 +8,13 @@ jest.mock("expo-blur", () => {
   const ReactMock = jest.requireActual("react");
   const { View } = jest.requireActual("react-native");
   return {
-      BlurView: ({ children, ...props }: { children?: React.ReactNode; [key: string]: unknown }) =>
-        ReactMock.createElement(View, props, children),
+    BlurView: ({
+      children,
+      ...props
+    }: {
+      children?: React.ReactNode;
+      [key: string]: unknown;
+    }) => ReactMock.createElement(View, props, children),
   };
 });
 
@@ -43,9 +48,7 @@ describe("ButtonItem", () => {
   });
 
   it("renders icon variant with explicit color", () => {
-    render(
-      <ButtonItem icon="star.fill" color="#FF5500" onPress={jest.fn()} />,
-    );
+    render(<ButtonItem icon="star.fill" color="#FF5500" onPress={jest.fn()} />);
 
     const call = (IconSymbol as jest.Mock).mock.calls[0][0];
     expect(call.name).toBe("star.fill");

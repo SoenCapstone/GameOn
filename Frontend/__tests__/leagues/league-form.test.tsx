@@ -9,7 +9,8 @@ jest.mock("@/components/form/form", () => {
   const { View } = jest.requireActual("react-native");
   return {
     Form: {
-      Section: ({ children }: Record<string, unknown>) => ReactMock.createElement(View, null, children),
+      Section: ({ children }: Record<string, unknown>) =>
+        ReactMock.createElement(View, null, children),
       Image: jest.fn(() => null),
       Input: jest.fn(() => null),
       Menu: jest.fn(() => null),
@@ -74,13 +75,25 @@ describe("LeagueForm", () => {
     imageProps = (Form.Image as jest.Mock).mock.calls[1][0];
     expect(imageProps.image).toEqual({ uri: "https://cdn/uploaded.png" });
 
-    rerender(<LeagueForm values={baseValues} logo={{ pickedLogo: null }} onChange={onChange} />);
+    rerender(
+      <LeagueForm
+        values={baseValues}
+        logo={{ pickedLogo: null }}
+        onChange={onChange}
+      />,
+    );
     imageProps = (Form.Image as jest.Mock).mock.calls[2][0];
     expect(imageProps.image).toBe("default-logo");
   });
 
   it("wires actions and applies menu/input behaviors", () => {
-    render(<LeagueForm values={baseValues} logo={{ pickedLogo: null }} onChange={onChange} />);
+    render(
+      <LeagueForm
+        values={baseValues}
+        logo={{ pickedLogo: null }}
+        onChange={onChange}
+      />,
+    );
 
     const imageProps = (Form.Image as jest.Mock).mock.calls[0][0];
     imageProps.onPress();
@@ -93,12 +106,18 @@ describe("LeagueForm", () => {
     const inputCalls = (Form.Input as jest.Mock).mock.calls.map(
       ([props]: [Record<string, unknown>]) => props,
     );
-    const nameInput = inputCalls.find((x: Record<string, unknown>) => x.label === "Name");
-    const regionInput = inputCalls.find((x: Record<string, unknown>) => x.label === "Region");
+    const nameInput = inputCalls.find(
+      (x: Record<string, unknown>) => x.label === "Name",
+    );
+    const regionInput = inputCalls.find(
+      (x: Record<string, unknown>) => x.label === "Region",
+    );
 
     if (nameInput && typeof nameInput.onChangeText === "function") {
       (nameInput.onChangeText as (val: string) => void)("Updated League");
-      expect(onChange.onLeagueNameChange).toHaveBeenCalledWith("Updated League");
+      expect(onChange.onLeagueNameChange).toHaveBeenCalledWith(
+        "Updated League",
+      );
     }
     if (regionInput) {
       expect(regionInput.editable).toBe(false);
@@ -108,9 +127,15 @@ describe("LeagueForm", () => {
     const menuCalls = (Form.Menu as jest.Mock).mock.calls.map(
       ([props]: [Record<string, unknown>]) => props,
     );
-    const sportMenu = menuCalls.find((x: Record<string, unknown>) => x.label === "Sport");
-    const levelMenu = menuCalls.find((x: Record<string, unknown>) => x.label === "Level");
-    const locationMenu = menuCalls.find((x: Record<string, unknown>) => x.label === "Location");
+    const sportMenu = menuCalls.find(
+      (x: Record<string, unknown>) => x.label === "Sport",
+    );
+    const levelMenu = menuCalls.find(
+      (x: Record<string, unknown>) => x.label === "Level",
+    );
+    const locationMenu = menuCalls.find(
+      (x: Record<string, unknown>) => x.label === "Location",
+    );
 
     if (sportMenu && typeof sportMenu.onValueChange === "function") {
       (sportMenu.onValueChange as (val: string) => void)("None");

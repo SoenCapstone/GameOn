@@ -30,31 +30,27 @@ describe("LeagueDetailProvider", () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
-    mockUseLeagueDetail.mockReturnValue(mockLeagueDetail as unknown as ReturnType<typeof useLeagueDetail>);
+    mockUseLeagueDetail.mockReturnValue(
+      mockLeagueDetail as unknown as ReturnType<typeof useLeagueDetail>,
+    );
   });
 
   it("calls useLeagueDetail with provided id", () => {
-    renderHook(
-      () => useLeagueDetailContext(),
-      {
-        wrapper: ({ children }) => (
-          <LeagueDetailProvider id="league-456">{children}</LeagueDetailProvider>
-        ),
-      },
-    );
+    renderHook(() => useLeagueDetailContext(), {
+      wrapper: ({ children }) => (
+        <LeagueDetailProvider id="league-456">{children}</LeagueDetailProvider>
+      ),
+    });
 
     expect(mockUseLeagueDetail).toHaveBeenCalledWith("league-456");
   });
 
   it("provides context value with all properties", () => {
-    const { result } = renderHook(
-      () => useLeagueDetailContext(),
-      {
-        wrapper: ({ children }) => (
-          <LeagueDetailProvider id="league-123">{children}</LeagueDetailProvider>
-        ),
-      },
-    );
+    const { result } = renderHook(() => useLeagueDetailContext(), {
+      wrapper: ({ children }) => (
+        <LeagueDetailProvider id="league-123">{children}</LeagueDetailProvider>
+      ),
+    });
 
     expect(result.current.id).toBe("league-123");
     expect(result.current.league).toBeDefined();
@@ -63,14 +59,11 @@ describe("LeagueDetailProvider", () => {
   });
 
   it("updates context when useLeagueDetail hook changes", () => {
-    const { result, rerender } = renderHook(
-      () => useLeagueDetailContext(),
-      {
-        wrapper: ({ children }) => (
-          <LeagueDetailProvider id="league-123">{children}</LeagueDetailProvider>
-        ),
-      },
-    );
+    const { result, rerender } = renderHook(() => useLeagueDetailContext(), {
+      wrapper: ({ children }) => (
+        <LeagueDetailProvider id="league-123">{children}</LeagueDetailProvider>
+      ),
+    });
 
     const firstValue = result.current;
 
@@ -100,14 +93,11 @@ describe("LeagueDetailProvider", () => {
       isOwner: false,
     } as unknown as ReturnType<typeof useLeagueDetail>);
 
-    const { result } = renderHook(
-      () => useLeagueDetailContext(),
-      {
-        wrapper: ({ children }) => (
-          <LeagueDetailProvider id="league-123">{children}</LeagueDetailProvider>
-        ),
-      },
-    );
+    const { result } = renderHook(() => useLeagueDetailContext(), {
+      wrapper: ({ children }) => (
+        <LeagueDetailProvider id="league-123">{children}</LeagueDetailProvider>
+      ),
+    });
 
     expect(result.current.isLoading).toBe(true);
     expect(result.current.league).toBeNull();
@@ -124,14 +114,11 @@ describe("LeagueDetailProvider", () => {
       isOwner: false,
     } as unknown as ReturnType<typeof useLeagueDetail>);
 
-    const { result } = renderHook(
-      () => useLeagueDetailContext(),
-      {
-        wrapper: ({ children }) => (
-          <LeagueDetailProvider id="league-123">{children}</LeagueDetailProvider>
-        ),
-      },
-    );
+    const { result } = renderHook(() => useLeagueDetailContext(), {
+      wrapper: ({ children }) => (
+        <LeagueDetailProvider id="league-123">{children}</LeagueDetailProvider>
+      ),
+    });
 
     expect(result.current.league).toBeNull();
     expect(result.current.title).toBe("League");
@@ -154,18 +141,17 @@ describe("useLeagueDetailContext", () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
-    mockUseLeagueDetail.mockReturnValue(mockLeagueDetail as unknown as ReturnType<typeof useLeagueDetail>);
+    mockUseLeagueDetail.mockReturnValue(
+      mockLeagueDetail as unknown as ReturnType<typeof useLeagueDetail>,
+    );
   });
 
   it("returns context value when used inside provider", () => {
-    const { result } = renderHook(
-      () => useLeagueDetailContext(),
-      {
-        wrapper: ({ children }) => (
-          <LeagueDetailProvider id="league-123">{children}</LeagueDetailProvider>
-        ),
-      },
-    );
+    const { result } = renderHook(() => useLeagueDetailContext(), {
+      wrapper: ({ children }) => (
+        <LeagueDetailProvider id="league-123">{children}</LeagueDetailProvider>
+      ),
+    });
 
     expect(result.current).toBeDefined();
     expect(result.current.id).toBe("league-123");
@@ -201,16 +187,15 @@ describe("useLeagueDetailContext", () => {
       isOwner: false,
     };
 
-    mockUseLeagueDetail.mockReturnValue(complexLeagueData as unknown as ReturnType<typeof useLeagueDetail>);
-
-    const { result } = renderHook(
-      () => useLeagueDetailContext(),
-      {
-        wrapper: ({ children }) => (
-          <LeagueDetailProvider id="league-123">{children}</LeagueDetailProvider>
-        ),
-      },
+    mockUseLeagueDetail.mockReturnValue(
+      complexLeagueData as unknown as ReturnType<typeof useLeagueDetail>,
     );
+
+    const { result } = renderHook(() => useLeagueDetailContext(), {
+      wrapper: ({ children }) => (
+        <LeagueDetailProvider id="league-123">{children}</LeagueDetailProvider>
+      ),
+    });
 
     expect(result.current.league).toEqual(complexLeagueData.league);
     expect(result.current.league?.teams).toHaveLength(2);

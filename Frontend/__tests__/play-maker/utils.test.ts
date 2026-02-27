@@ -19,10 +19,16 @@ jest.mock("@/components/play-maker/model", () => {
     ...actual,
     SHAPE_CONFIG: {
       person: {
-        create: ({ id, x, y }: { id: string; x: number; y: number }) => ({ id, type: "person", x, y, size: 28 }),
+        create: ({ id, x, y }: { id: string; x: number; y: number }) => ({
+          id,
+          type: "person",
+          x,
+          y,
+          size: 28,
+        }),
       },
       select: {
-        create: () => null, 
+        create: () => null,
       },
       arrow: {
         create: () => null,
@@ -36,7 +42,10 @@ const mockedRandomUUID = Crypto.randomUUID as jest.Mock;
 function makeSetState<T>(initial: T) {
   let state = initial;
   const setState = jest.fn((updater: ((prev: T) => T) | T) => {
-    state = typeof updater === "function" ? (updater as (prev: T) => T)(state) : updater;
+    state =
+      typeof updater === "function"
+        ? (updater as (prev: T) => T)(state)
+        : updater;
   });
   return { getState: () => state, setState };
 }
@@ -103,7 +112,9 @@ describe("play-maker utils", () => {
 
       addShapeAt(10, 20, "select", setState, setSelected);
 
-      expect(getState()).toEqual([{ id: "p1", type: "person", x: 1, y: 2, size: 28 }]);
+      expect(getState()).toEqual([
+        { id: "p1", type: "person", x: 1, y: 2, size: 28 },
+      ]);
       expect(setSelected).toHaveBeenCalledWith(null);
     });
   });
@@ -146,7 +157,12 @@ describe("play-maker utils", () => {
 
     it("does nothing if from/to is an arrow (not an endpoint)", () => {
       const shapes: Shape[] = [
-        { id: "a1", type: "arrow", from: { id: "f1", x: 0, y: 0 }, to: { id: "t1", x: 1, y: 1 } },
+        {
+          id: "a1",
+          type: "arrow",
+          from: { id: "f1", x: 0, y: 0 },
+          to: { id: "t1", x: 1, y: 1 },
+        },
         { id: "p2", type: "person", x: 10, y: 20, size: 28 },
       ];
 
@@ -171,12 +187,18 @@ describe("play-maker utils", () => {
       assignPlayerToShape("member-1", "p2", shapes, setState);
 
       const next = getState() as Shape[];
-      expect(next.find((s) => s.id === "p2")?.associatedPlayerId).toBe("member-1");
-      expect(next.find((s) => s.id === "p1")?.associatedPlayerId).toBeUndefined();
+      expect(next.find((s) => s.id === "p2")?.associatedPlayerId).toBe(
+        "member-1",
+      );
+      expect(
+        next.find((s) => s.id === "p1")?.associatedPlayerId,
+      ).toBeUndefined();
     });
 
     it("does nothing if selectedShapeId is null", () => {
-      const shapes: Shape[] = [{ id: "p1", type: "person", x: 0, y: 0, size: 28 }];
+      const shapes: Shape[] = [
+        { id: "p1", type: "person", x: 0, y: 0, size: 28 },
+      ];
       const { getState, setState } = makeSetState<Shape[]>(shapes);
 
       assignPlayerToShape("member-1", null, shapes, setState);
@@ -189,7 +211,12 @@ describe("play-maker utils", () => {
   describe("isArrowSelectedOnBoard", () => {
     it("returns true if selectedShapeId points to an arrow", () => {
       const shapes: Shape[] = [
-        { id: "a1", type: "arrow", from: { id: "f1", x: 0, y: 0 }, to: { id: "t1", x: 1, y: 1 } },
+        {
+          id: "a1",
+          type: "arrow",
+          from: { id: "f1", x: 0, y: 0 },
+          to: { id: "t1", x: 1, y: 1 },
+        },
       ];
 
       expect(isArrowSelectedOnBoard(shapes, "a1", null)).toBe(true);
@@ -197,14 +224,21 @@ describe("play-maker utils", () => {
 
     it("returns true if hitId points to an arrow", () => {
       const shapes: Shape[] = [
-        { id: "a1", type: "arrow", from: { id: "f1", x: 0, y: 0 }, to: { id: "t1", x: 1, y: 1 } },
+        {
+          id: "a1",
+          type: "arrow",
+          from: { id: "f1", x: 0, y: 0 },
+          to: { id: "t1", x: 1, y: 1 },
+        },
       ];
 
       expect(isArrowSelectedOnBoard(shapes, null, "a1")).toBe(true);
     });
 
     it("returns false if neither selectedShapeId nor hitId is an arrow id", () => {
-      const shapes: Shape[] = [{ id: "p1", type: "person", x: 0, y: 0, size: 28 }];
+      const shapes: Shape[] = [
+        { id: "p1", type: "person", x: 0, y: 0, size: 28 },
+      ];
       expect(isArrowSelectedOnBoard(shapes, "p1", "p1")).toBe(false);
     });
   });
@@ -218,15 +252,7 @@ describe("play-maker utils", () => {
       const { getState, setState } = makeSetState<Shape[]>(shapes);
       const setSelected = jest.fn();
 
-      scanBoard(
-        getState(),
-        100,
-        100,
-        "select",
-        setState,
-        null,
-        setSelected
-      );
+      scanBoard(getState(), 100, 100, "select", setState, null, setSelected);
 
       expect(setSelected).toHaveBeenCalledWith("p1");
       expect(setState).not.toHaveBeenCalled(); // no new shapes added
@@ -238,15 +264,7 @@ describe("play-maker utils", () => {
       const { getState, setState } = makeSetState<Shape[]>([]);
       const setSelected = jest.fn();
 
-      scanBoard(
-        getState(),
-        10,
-        20,
-        "person",
-        setState,
-        null,
-        setSelected
-      );
+      scanBoard(getState(), 10, 20, "person", setState, null, setSelected);
 
       expect(getState()).toHaveLength(1);
       expect(setSelected).toHaveBeenCalledWith("new-id");
@@ -263,15 +281,7 @@ describe("play-maker utils", () => {
       const { getState, setState } = makeSetState<Shape[]>(shapes);
       const setSelected = jest.fn();
 
-      scanBoard(
-        getState(),
-        200,
-        200,
-        "arrow",
-        setState,
-        "p1",
-        setSelected
-      );
+      scanBoard(getState(), 200, 200, "arrow", setState, "p1", setSelected);
 
       expect(getState()).toHaveLength(3);
       expect(setSelected).toHaveBeenCalledWith("p2");

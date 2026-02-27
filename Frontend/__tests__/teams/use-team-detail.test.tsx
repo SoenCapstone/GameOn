@@ -23,7 +23,9 @@ jest.mock("@clerk/clerk-expo", () => ({
   useAuth: jest.fn(),
 }));
 
-const mockedUseAxiosWithClerk = useAxiosWithClerk as jest.MockedFunction<typeof useAxiosWithClerk>;
+const mockedUseAxiosWithClerk = useAxiosWithClerk as jest.MockedFunction<
+  typeof useAxiosWithClerk
+>;
 const mockedUseAuth = useAuth as jest.MockedFunction<typeof useAuth>;
 
 let queryClient: QueryClient;
@@ -90,7 +92,7 @@ describe("useTeamDetail", () => {
 
   function mockGetRequest(
     teamData: Record<string, unknown>,
-    membershipData: Record<string, unknown> | null = null
+    membershipData: Record<string, unknown> | null = null,
   ) {
     mockApi.get.mockImplementation((url: string) => {
       if (url.includes("memberships/me")) {
@@ -101,7 +103,11 @@ describe("useTeamDetail", () => {
   }
 
   it("returns initial loading state", async () => {
-    mockGetRequest({ id: "team-1", name: "Test Team", ownerUserId: "user-123" });
+    mockGetRequest({
+      id: "team-1",
+      name: "Test Team",
+      ownerUserId: "user-123",
+    });
 
     const { result } = renderHook(() => useTeamDetail("team-1"), {
       wrapper: createWrapper(),

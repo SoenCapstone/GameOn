@@ -33,7 +33,11 @@ jest.mock("@/components/info-card", () => {
     jest.requireActual("react-native").TouchableOpacity;
   const mockText = jest.requireActual("react-native").Text;
   return {
-    InfoCard: (props: { title: string; subtitle: string; onPress?: () => void }) =>
+    InfoCard: (props: {
+      title: string;
+      subtitle: string;
+      onPress?: () => void;
+    }) =>
       mockReact.createElement(
         mockTouchableOpacity,
         { testID: `info-card-${props.title}`, onPress: props.onPress },
@@ -62,7 +66,10 @@ jest.mock("@/components/ui/tabs", () => {
     jest.requireActual("react-native").TouchableOpacity;
   const mockText = jest.requireActual("react-native").Text;
   return {
-    Tabs: (props: { values: string[]; onValueChange?: (value: string) => void }) => {
+    Tabs: (props: {
+      values: string[];
+      onValueChange?: (value: string) => void;
+    }) => {
       const { values, onValueChange } = props;
       return mockReact.createElement(
         mockView,

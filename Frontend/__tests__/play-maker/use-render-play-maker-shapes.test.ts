@@ -8,13 +8,12 @@ jest.mock("@/components/play-maker/play-maker-icon/icon-container", () => ({
   IconContainer: (props: { [key: string]: unknown }) => null,
 }));
 
-
 describe("useRenderPlayMakerShapes", () => {
   it("returns empty array when shapes is empty", () => {
     const onSelect = jest.fn();
 
     const { result } = renderHook<React.ReactElement[], unknown>(() =>
-      useRenderPlayMakerShapes([], null, onSelect)
+      useRenderPlayMakerShapes([], null, onSelect),
     );
 
     expect(result.current).toEqual([]);
@@ -34,19 +33,25 @@ describe("useRenderPlayMakerShapes", () => {
     ];
 
     const { result } = renderHook<React.ReactElement[], unknown>(() =>
-      useRenderPlayMakerShapes(shapes, null, onSelect)
+      useRenderPlayMakerShapes(shapes, null, onSelect),
     );
 
     expect(result.current).toHaveLength(1);
 
     const root = result.current[0] as React.ReactElement;
-    const children = (root.props as { children: React.ReactElement[] }).children as React.ReactElement[];
+    const children = (root.props as { children: React.ReactElement[] })
+      .children as React.ReactElement[];
 
     const hitRect = children.find((child) => child?.type === SvgRect);
     expect(hitRect).toBeTruthy();
 
     act(() => {
-      if (hitRect && typeof hitRect.props === "object" && hitRect.props && "onPress" in hitRect.props) {
+      if (
+        hitRect &&
+        typeof hitRect.props === "object" &&
+        hitRect.props &&
+        "onPress" in hitRect.props
+      ) {
         (hitRect.props as { onPress: () => void }).onPress();
       }
     });
@@ -61,7 +66,7 @@ describe("useRenderPlayMakerShapes", () => {
     const shapes: Shape[] = [{ type: "arrow", id: "a1" }];
 
     const { result } = renderHook<React.ReactElement[], unknown>(() =>
-      useRenderPlayMakerShapes(shapes, null, onSelect)
+      useRenderPlayMakerShapes(shapes, null, onSelect),
     );
 
     expect(result.current).toEqual([]);
@@ -80,13 +85,14 @@ describe("useRenderPlayMakerShapes", () => {
     ];
 
     const { result } = renderHook<React.ReactElement[], unknown>(() =>
-      useRenderPlayMakerShapes(shapes, null, onSelect)
+      useRenderPlayMakerShapes(shapes, null, onSelect),
     );
 
     expect(result.current).toHaveLength(1);
 
     const root = result.current[0] as React.ReactElement;
-    const children = (root.props as { children: React.ReactElement[] }).children as React.ReactElement[];
+    const children = (root.props as { children: React.ReactElement[] })
+      .children as React.ReactElement[];
 
     const line = children.find((c) => c?.type === Line);
     const path = children.find((c) => c?.type === Path);

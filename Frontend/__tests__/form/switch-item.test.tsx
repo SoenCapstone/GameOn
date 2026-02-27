@@ -8,8 +8,14 @@ jest.mock("expo-blur", () => {
   const ReactMock = jest.requireActual("react");
   const { View } = jest.requireActual("react-native");
   return {
-    BlurView: jest.fn(({ children, ...props }: { children?: React.ReactNode; [key: string]: unknown }) =>
-      ReactMock.createElement(View, props, children),
+    BlurView: jest.fn(
+      ({
+        children,
+        ...props
+      }: {
+        children?: React.ReactNode;
+        [key: string]: unknown;
+      }) => ReactMock.createElement(View, props, children),
     ),
   };
 });
@@ -26,7 +32,11 @@ describe("SwitchItem", () => {
 
   it("uses accent-derived trackColor by default", () => {
     const { UNSAFE_getByType } = render(
-      <SwitchItem label="Notifications" value={true} onValueChange={jest.fn()} />,
+      <SwitchItem
+        label="Notifications"
+        value={true}
+        onValueChange={jest.fn()}
+      />,
     );
 
     const toggle = UNSAFE_getByType(Switch);

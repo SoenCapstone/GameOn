@@ -63,7 +63,13 @@ jest.mock("@/components/privacy-disclaimer/privacy-disclaimer", () => ({
 }));
 
 jest.mock("@/components/ui/content-area", () => ({
-  ContentArea: ({ children, style }: { children?: React.ReactNode; style?: ViewStyle }) => {
+  ContentArea: ({
+    children,
+    style,
+  }: {
+    children?: React.ReactNode;
+    style?: ViewStyle;
+  }) => {
     const { View } = jest.requireActual("react-native");
     return <View style={style}>{children}</View>;
   },

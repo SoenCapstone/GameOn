@@ -9,10 +9,16 @@ import { useTeamDetail } from "@/hooks/use-team-detail";
 jest.mock("@/hooks/use-get-team-members/use-get-team-members");
 jest.mock("@/hooks/use-render-play-maker-shapes");
 jest.mock("@/components/play-maker/play-maker-board", () => ({
-  PlayMakerBoard: ({ children }: { children?: React.ReactNode }) => <>{children}</>,
+  PlayMakerBoard: ({ children }: { children?: React.ReactNode }) => (
+    <>{children}</>
+  ),
 }));
-jest.mock("@/components/play-maker/shapes-tab", () => ({ ShapesTab: () => null }));
-jest.mock("@/components/play-maker/clear-shapes-button", () => ({ ClearShapesButton: () => null }));
+jest.mock("@/components/play-maker/shapes-tab", () => ({
+  ShapesTab: () => null,
+}));
+jest.mock("@/components/play-maker/clear-shapes-button", () => ({
+  ClearShapesButton: () => null,
+}));
 
 let lastPanelProps: Record<string, unknown> | undefined = undefined;
 jest.mock("@/components/play-maker/player-assignment-panel", () => ({
@@ -22,8 +28,13 @@ jest.mock("@/components/play-maker/player-assignment-panel", () => ({
   },
 }));
 
-const mockedUseGetTeamMembers = useGetTeamMembers as jest.MockedFunction<typeof useGetTeamMembers>;
-const mockedUseRenderPlayMakerShapes = useRenderPlayMakerShapes as jest.MockedFunction<typeof useRenderPlayMakerShapes>;
+const mockedUseGetTeamMembers = useGetTeamMembers as jest.MockedFunction<
+  typeof useGetTeamMembers
+>;
+const mockedUseRenderPlayMakerShapes =
+  useRenderPlayMakerShapes as jest.MockedFunction<
+    typeof useRenderPlayMakerShapes
+  >;
 
 const makeProps = () => ({
   styles: {
@@ -61,9 +72,13 @@ const renderWithTeam = (ui: React.ReactElement, teamId = "team-123") => {
     joinedAt: null,
   };
   return render(
-    <TeamDetailContext.Provider value={teamDetailValue as ReturnType<typeof useTeamDetail> & { id: string }}>
+    <TeamDetailContext.Provider
+      value={
+        teamDetailValue as ReturnType<typeof useTeamDetail> & { id: string }
+      }
+    >
       {ui}
-    </TeamDetailContext.Provider>
+    </TeamDetailContext.Provider>,
   );
 };
 
@@ -110,13 +125,15 @@ describe("PlayMakerArea", () => {
   });
 
   it("renders PlayerAssignmentPanel when not loading and passes props", () => {
-    const data = [{
-      id: "1",
-      name: "Alice",
-      email: "alice@example.com",
-      firstname: "Alice",
-      lastname: "Smith",
-    }];
+    const data = [
+      {
+        id: "1",
+        name: "Alice",
+        email: "alice@example.com",
+        firstname: "Alice",
+        lastname: "Smith",
+      },
+    ];
 
     mockedUseGetTeamMembers.mockReturnValue({
       data,
@@ -147,7 +164,9 @@ describe("PlayMakerArea", () => {
       promise: Promise.resolve([]),
     });
 
-    const { queryByTestId } = renderWithTeam(<PlayMakerArea {...makeProps()} />);
+    const { queryByTestId } = renderWithTeam(
+      <PlayMakerArea {...makeProps()} />,
+    );
     expect(queryByTestId("team-loading")).toBeNull();
     expect(lastPanelProps).toBeDefined();
     expect(lastPanelProps?.data).toBe(data);

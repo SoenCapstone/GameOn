@@ -45,7 +45,9 @@ function createQueryClient() {
 function createWrapper() {
   queryClient = createQueryClient();
 
-  return function Wrapper({ children }: PropsWithChildren<Record<string, unknown>>) {
+  return function Wrapper({
+    children,
+  }: PropsWithChildren<Record<string, unknown>>) {
     return (
       <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
     );
@@ -62,7 +64,9 @@ describe("useLeagueDetail", () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
-    mockedUseAxiosWithClerk.mockReturnValue(mockApi as unknown as AxiosInstance);
+    mockedUseAxiosWithClerk.mockReturnValue(
+      mockApi as unknown as AxiosInstance,
+    );
     mockedUseAuth.mockReturnValue({
       isLoaded: true,
       isSignedIn: true,
@@ -77,7 +81,7 @@ describe("useLeagueDetail", () => {
       signOut: jest.fn(),
       getToken: jest.fn(),
     });
-    
+
     mockApi.get.mockImplementation((url: string) => {
       if (url.includes("memberships/me")) {
         return Promise.resolve({ data: [] });
@@ -106,7 +110,11 @@ describe("useLeagueDetail", () => {
   }
 
   it("returns initial loading state", async () => {
-    mockGetRequest({ id: "league-1", name: "Test League", ownerUserId: "user-123" });
+    mockGetRequest({
+      id: "league-1",
+      name: "Test League",
+      ownerUserId: "user-123",
+    });
 
     const { result } = renderHook(() => useLeagueDetail("league-1"), {
       wrapper: createWrapper(),
@@ -448,7 +456,7 @@ describe("useLeagueDetail", () => {
     const delayedResponse = new Promise((resolve) => {
       setTimeout(() => resolve({ data: leagueData }), 100);
     });
-    
+
     mockApi.get.mockImplementation(() => delayedResponse);
 
     const { result } = renderHook(() => useLeagueDetail("league-1"), {
@@ -522,7 +530,7 @@ describe("useLeagueDetail", () => {
   it("handles different league structures", async () => {
     await cleanup();
     queryClient = createQueryClient();
-    
+
     const leagueData = {
       id: "league-1",
       name: "Complex League",
@@ -550,7 +558,7 @@ describe("useLeagueDetail", () => {
   it("handles multiple sequential refreshes", async () => {
     await cleanup();
     queryClient = createQueryClient();
-    
+
     const leagueData = {
       id: "league-1",
       name: "Test League",

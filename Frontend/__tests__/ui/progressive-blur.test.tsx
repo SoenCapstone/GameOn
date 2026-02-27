@@ -8,8 +8,14 @@ import { LinearGradient } from "expo-linear-gradient";
 jest.mock("@react-native-masked-view/masked-view", () => {
   const ReactMock = jest.requireActual("react");
   const { View } = jest.requireActual("react-native");
-  return jest.fn(({ children, ...props }: { children: React.ReactNode; [key: string]: unknown }) =>
-    ReactMock.createElement(View, props, children),
+  return jest.fn(
+    ({
+      children,
+      ...props
+    }: {
+      children: React.ReactNode;
+      [key: string]: unknown;
+    }) => ReactMock.createElement(View, props, children),
   );
 });
 

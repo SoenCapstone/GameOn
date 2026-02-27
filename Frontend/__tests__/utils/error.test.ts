@@ -87,5 +87,4 @@ describe("errorToString", () => {
     const out = errorToString(a);
     expect(out).toBe(String(a));
   });
-
 });

@@ -6,8 +6,10 @@ import { PlayMakerBoard } from "@/components/play-maker/play-maker-board";
 jest.mock(
   "@/components/play-maker/play-maker-board-configurations/play-maker-default-board",
   () => ({
-    DefaultBoard: ({ children }: { children?: React.ReactNode }) => <>{children}</>,
-  })
+    DefaultBoard: ({ children }: { children?: React.ReactNode }) => (
+      <>{children}</>
+    ),
+  }),
 );
 
 describe("PlayMakerBoard", () => {
@@ -19,7 +21,7 @@ describe("PlayMakerBoard", () => {
         selectedShapeId={null}
       >
         <Text>Child</Text>
-      </PlayMakerBoard>
+      </PlayMakerBoard>,
     );
 
     expect(getByText("Child")).toBeTruthy();
@@ -36,7 +38,7 @@ describe("PlayMakerBoard", () => {
         selectedShapeId={null}
       >
         <Text>Child</Text>
-      </PlayMakerBoard>
+      </PlayMakerBoard>,
     );
 
     fireEvent.press(getByTestId("playmaker-board-pressable"), {
@@ -55,7 +57,7 @@ describe("PlayMakerBoard", () => {
         selectedShapeId={null}
       >
         <Text>Child</Text>
-      </PlayMakerBoard>
+      </PlayMakerBoard>,
     );
 
     fireEvent.press(getByTestId("playmaker-board-pressable"), {

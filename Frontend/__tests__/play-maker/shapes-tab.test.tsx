@@ -21,7 +21,7 @@ describe("ShapesTab", () => {
     const onSelectTool = jest.fn();
 
     const { getByText } = render(
-      <ShapesTab selectedTool={"person"} onSelectTool={onSelectTool} />
+      <ShapesTab selectedTool={"person"} onSelectTool={onSelectTool} />,
     );
 
     expect(getByText("person")).toBeTruthy();
@@ -32,7 +32,7 @@ describe("ShapesTab", () => {
     const onSelectTool = jest.fn();
 
     const { getByTestId } = render(
-      <ShapesTab selectedTool={"person"} onSelectTool={onSelectTool} />
+      <ShapesTab selectedTool={"person"} onSelectTool={onSelectTool} />,
     );
 
     fireEvent.press(getByTestId("shape-tool-arrow"));

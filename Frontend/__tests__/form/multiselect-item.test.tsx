@@ -8,8 +8,14 @@ jest.mock("expo-blur", () => {
   const ReactMock = jest.requireActual("react");
   const { View } = jest.requireActual("react-native");
   return {
-    BlurView: jest.fn(({ children, ...props }: { children?: React.ReactNode; [key: string]: unknown }) =>
-      ReactMock.createElement(View, props, children),
+    BlurView: jest.fn(
+      ({
+        children,
+        ...props
+      }: {
+        children?: React.ReactNode;
+        [key: string]: unknown;
+      }) => ReactMock.createElement(View, props, children),
     ),
   };
 });

@@ -83,7 +83,9 @@ describe("use-league-board", () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
-    mockedUseAxiosWithClerk.mockReturnValue(mockApi as unknown as AxiosInstance);
+    mockedUseAxiosWithClerk.mockReturnValue(
+      mockApi as unknown as AxiosInstance,
+    );
 
     mockApi.get.mockReset().mockResolvedValue({ data: {} });
     mockApi.post.mockReset().mockResolvedValue({ data: {} });

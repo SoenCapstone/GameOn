@@ -25,10 +25,20 @@ type LeagueResult = {
   logo: string;
   league: string;
 };
-type TeamResultsHook = () => { data: TeamResult[]; isLoading: boolean; error: unknown };
-type LeagueResultsHook = () => { data: LeagueResult[]; isLoading: boolean; error: unknown };
-const useTeamResults = utils.useTeamResults as unknown as jest.MockedFunction<TeamResultsHook>;
-const useLeagueResults = utils.useLeagueResults as unknown as jest.MockedFunction<LeagueResultsHook>;
+type TeamResultsHook = () => {
+  data: TeamResult[];
+  isLoading: boolean;
+  error: unknown;
+};
+type LeagueResultsHook = () => {
+  data: LeagueResult[];
+  isLoading: boolean;
+  error: unknown;
+};
+const useTeamResults =
+  utils.useTeamResults as unknown as jest.MockedFunction<TeamResultsHook>;
+const useLeagueResults =
+  utils.useLeagueResults as unknown as jest.MockedFunction<LeagueResultsHook>;
 
 function TestComp({ query }: Readonly<{ query: string }>) {
   const { data } = useTeamLeagueResults(query);

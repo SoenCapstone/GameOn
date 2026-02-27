@@ -6,8 +6,13 @@ jest.mock("expo-blur", () => {
   const ReactMock = jest.requireActual("react");
   const { View } = jest.requireActual("react-native");
   return {
-      BlurView: ({ children, ...props }: { children?: React.ReactNode; [key: string]: unknown }) =>
-        ReactMock.createElement(View, props, children),
+    BlurView: ({
+      children,
+      ...props
+    }: {
+      children?: React.ReactNode;
+      [key: string]: unknown;
+    }) => ReactMock.createElement(View, props, children),
   };
 });
 
@@ -15,8 +20,8 @@ jest.mock("expo-image", () => {
   const ReactMock = jest.requireActual("react");
   const { View } = jest.requireActual("react-native");
   return {
-      Image: (props: { [key: string]: unknown }) =>
-        ReactMock.createElement(View, { testID: "expo-image", ...props }),
+    Image: (props: { [key: string]: unknown }) =>
+      ReactMock.createElement(View, { testID: "expo-image", ...props }),
   };
 });
 
@@ -24,7 +29,8 @@ describe("IconItem", () => {
   it("renders all icons and updates selected state when an icon is pressed", () => {
     const { UNSAFE_root, toJSON } = render(<IconItem />);
     const pressables = UNSAFE_root.findAll(
-      (node: { props: { onPress?: unknown } }) => typeof node.props.onPress === "function",
+      (node: { props: { onPress?: unknown } }) =>
+        typeof node.props.onPress === "function",
     );
 
     expect(pressables).toHaveLength(5);

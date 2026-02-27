@@ -1,12 +1,18 @@
 import React from "react";
 import { render, fireEvent, waitFor } from "@testing-library/react-native";
-import { mockAlert, setupAuthTestHooks } from "@/__tests__/auth/auth-test-setup";
+import {
+  mockAlert,
+  setupAuthTestHooks,
+} from "@/__tests__/auth/auth-test-setup";
 import SignUpScreen from "@/app/(auth)/sign-up";
 
 jest.mock("react-native-keyboard-controller", () => {
   const { ScrollView } = jest.requireActual("react-native");
   return {
-    KeyboardAwareScrollView: ({ children, ...props }: React.PropsWithChildren<Record<string, unknown>>) => (
+    KeyboardAwareScrollView: ({
+      children,
+      ...props
+    }: React.PropsWithChildren<Record<string, unknown>>) => (
       <ScrollView {...props}>{children}</ScrollView>
     ),
   };

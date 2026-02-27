@@ -15,10 +15,16 @@ jest.mock("@react-navigation/native", () => ({
   useNavigation: () => ({ setOptions: mockSetOptions }),
 }));
 
-const mockPost: jest.Mock<Promise<{ data: { id: string; slug: string } }>, [unknown, { name: string; sport: string; location: string; privacy: string }]> = jest.fn(
-  async (_arg1: unknown, _arg2: { name: string; sport: string; location: string; privacy: string }) => ({
+const mockPost: jest.Mock<
+  Promise<{ data: { id: string; slug: string } }>,
+  [unknown, { name: string; sport: string; location: string; privacy: string }]
+> = jest.fn(
+  async (
+    _arg1: unknown,
+    _arg2: { name: string; sport: string; location: string; privacy: string },
+  ) => ({
     data: { id: "team-1", slug: "test-team" },
-  })
+  }),
 );
 
 jest.mock("@/hooks/use-axios-clerk", () => ({
@@ -77,7 +83,8 @@ function renderScreen() {
 }
 
 function getCreateButton() {
-  const opts = mockSetOptions.mock.calls[mockSetOptions.mock.calls.length - 1]?.[0];
+  const opts =
+    mockSetOptions.mock.calls[mockSetOptions.mock.calls.length - 1]?.[0];
   const Header = opts?.headerTitle;
   if (!Header || typeof Header !== "function")
     throw new Error("headerTitle not set");
@@ -114,7 +121,10 @@ describe("CreateTeamScreen", () => {
 
     await waitFor(() => expect(mockPost).toHaveBeenCalled());
 
-    const [, payload] = mockPost.mock.calls[0] as [unknown, { name: string; sport: string; location: string; privacy: string }];
+    const [, payload] = mockPost.mock.calls[0] as [
+      unknown,
+      { name: string; sport: string; location: string; privacy: string },
+    ];
     expect(payload).toMatchObject({
       name: "My Team",
       sport: "soccer",

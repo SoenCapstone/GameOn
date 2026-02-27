@@ -76,7 +76,9 @@ test("attaches interceptor and sets Authorization header when token exists", asy
   const config: Record<string, unknown> = { headers: {} };
   await (saved as (cfg: Record<string, unknown>) => Promise<void>)(config);
 
-  expect((config.headers as Record<string, unknown>).Authorization).toBe(`${AXIOS_BEARER} token-123`);
+  expect((config.headers as Record<string, unknown>).Authorization).toBe(
+    `${AXIOS_BEARER} token-123`,
+  );
 });
 
 test("attaches interceptor and does not set Authorization when no token", async () => {
@@ -95,7 +97,9 @@ test("attaches interceptor and does not set Authorization when no token", async 
   const saved = axiosMock.__getSavedOnFulfilled();
   const config: Record<string, unknown> = { headers: {} };
   await (saved as (cfg: Record<string, unknown>) => Promise<void>)(config);
-  expect((config.headers as Record<string, unknown>).Authorization).toBeUndefined();
+  expect(
+    (config.headers as Record<string, unknown>).Authorization,
+  ).toBeUndefined();
 });
 
 test("returns rejected promise when interceptor fails", async () => {
@@ -112,7 +116,9 @@ test("returns rejected promise when interceptor fails", async () => {
   const savedRejected = axiosMock.__getSavedOnRejected();
   const error = new Error("interceptor error");
 
-  await expect((savedRejected as (err: Error) => Promise<never>)(error)).rejects.toThrow("interceptor error");
+  await expect(
+    (savedRejected as (err: Error) => Promise<never>)(error),
+  ).rejects.toThrow("interceptor error");
 });
 
 describe("Route Builders", () => {

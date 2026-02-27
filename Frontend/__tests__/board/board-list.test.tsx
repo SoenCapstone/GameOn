@@ -8,21 +8,28 @@ jest.mock("react-native-context-menu-view", () => {
   const { View: MockView } = jest.requireActual("react-native");
   return {
     __esModule: true,
-    default: ({ children, ...props }: { children?: React.ReactNode; [key: string]: unknown }) =>
-      mockReact.createElement(MockView, props, children),
+    default: ({
+      children,
+      ...props
+    }: {
+      children?: React.ReactNode;
+      [key: string]: unknown;
+    }) => mockReact.createElement(MockView, props, children),
   };
 });
 
-const mockPost = jest.fn((props: { post: BoardPost; [key: string]: unknown }) => {
-  const { post } = props;
-  return React.createElement(
-    "Text",
-    {
-      testID: `post-${post.id}`,
-    },
-    post.body,
-  );
-});
+const mockPost = jest.fn(
+  (props: { post: BoardPost; [key: string]: unknown }) => {
+    const { post } = props;
+    return React.createElement(
+      "Text",
+      {
+        testID: `post-${post.id}`,
+      },
+      post.body,
+    );
+  },
+);
 
 jest.mock("@/components/board/post", () => ({
   Post: (props: { post: BoardPost; [key: string]: unknown }) => mockPost(props),
@@ -39,7 +46,10 @@ jest.mock("@legendapp/list", () => {
       onContentSizeChange,
     }: {
       data: unknown[];
-      renderItem: (args: { item: unknown; index: number }) => React.ReactElement;
+      renderItem: (args: {
+        item: unknown;
+        index: number;
+      }) => React.ReactElement;
       keyExtractor?: (item: unknown, index: number) => string | number;
       ListEmptyComponent?: React.ReactElement;
       onContentSizeChange?: () => void;

@@ -37,7 +37,7 @@ describe("ClearShapesButton", () => {
         setShapes={setShapes}
         shapes={shapes}
         selectedShapeId={selectedShapeId}
-      />
+      />,
     );
 
     expect(getByText("Undo")).toBeTruthy();
