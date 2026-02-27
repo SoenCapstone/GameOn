@@ -3,7 +3,7 @@ import { log, createScopedLog } from "@/utils/logger";
 describe("logger module behavior", () => {
   afterEach(() => {
     delete process.env.EXPO_PUBLIC_LOG_LEVEL;
-    delete (globalThis as any).__DEV__;
+    delete (globalThis as Record<string, unknown>).__DEV__;
     jest.restoreAllMocks();
   });
 

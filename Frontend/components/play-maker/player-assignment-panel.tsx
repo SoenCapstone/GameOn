@@ -1,7 +1,7 @@
 import { Text, Pressable, StyleSheet, View, ScrollView } from "react-native";
 import { Card } from "@/components/ui/card";
-import { PlayerAssignmentPanelProps } from "./model";
-import { assignPlayerToShape } from "./utils";
+import { PlayerAssignmentPanelProps } from "@/components/play-maker/model";
+import { assignPlayerToShape } from "@/components/play-maker/utils";
 
 export const PlayerAssignmentPanel = ({
   data,

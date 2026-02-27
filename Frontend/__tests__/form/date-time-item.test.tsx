@@ -6,19 +6,24 @@ import { useAccentColor } from "@/contexts/accent-color-context";
 
 jest.mock("expo-blur", () => {
   const ReactMock = jest.requireActual("react");
-  const { View } = require("react-native");
+  const { View } = jest.requireActual("react-native");
   return {
-    BlurView: ({ children, ...props }: any) =>
-      ReactMock.createElement(View, props, children),
+    BlurView: ({
+      children,
+      ...props
+    }: {
+      children?: React.ReactNode;
+      [key: string]: unknown;
+    }) => ReactMock.createElement(View, props, children),
   };
 });
 
 jest.mock("@react-native-community/datetimepicker", () => {
   const ReactMock = jest.requireActual("react");
-  const { View } = require("react-native");
+  const { View } = jest.requireActual("react-native");
   return {
     __esModule: true,
-    default: jest.fn((props: any) =>
+    default: jest.fn((props: { [key: string]: unknown }) =>
       ReactMock.createElement(View, { testID: "date-time-picker", ...props }),
     ),
   };
@@ -37,12 +42,10 @@ describe("DateTimeItem", () => {
   it("uses context accent color when picker accent is not provided", () => {
     render(
       <DateTimeItem
-        {...({
-          label: "Starts",
-          value: new Date("2025-01-01T00:00:00.000Z"),
-          mode: "date",
-          onChange: jest.fn(),
-        } as any)}
+        label="Starts"
+        value={new Date("2025-01-01T00:00:00.000Z")}
+        mode="date"
+        onChange={jest.fn()}
       />,
     );
 
@@ -53,13 +56,11 @@ describe("DateTimeItem", () => {
   it("prefers picker accentColor when provided", () => {
     render(
       <DateTimeItem
-        {...({
-          label: "Starts",
-          value: new Date("2025-01-01T00:00:00.000Z"),
-          mode: "date",
-          onChange: jest.fn(),
-          accentColor: "#FF00FF",
-        } as any)}
+        label="Starts"
+        value={new Date("2025-01-01T00:00:00.000Z")}
+        mode="date"
+        onChange={jest.fn()}
+        accentColor="#FF00FF"
       />,
     );
 

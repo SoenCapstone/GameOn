@@ -81,7 +81,7 @@ describe("useUpdateTeam", () => {
     mockPatch = jest.fn();
     mockUseAxiosWithClerk.mockReturnValue({
       patch: mockPatch,
-    } as any);
+    } as unknown as ReturnType<typeof useAxiosWithClerk>);
   });
 
   afterEach(() => {
@@ -230,7 +230,7 @@ describe("useDeleteTeam", () => {
     mockDelete = jest.fn();
     mockUseAxiosWithClerk.mockReturnValue({
       delete: mockDelete,
-    } as any);
+    } as unknown as ReturnType<typeof useAxiosWithClerk>);
   });
 
   afterEach(() => {
@@ -419,7 +419,7 @@ describe("useUpdateLeague", () => {
     mockPatch = jest.fn();
     mockUseAxiosWithClerk.mockReturnValue({
       patch: mockPatch,
-    } as any);
+    } as unknown as ReturnType<typeof useAxiosWithClerk>);
   });
 
   afterEach(() => {
@@ -569,7 +569,7 @@ describe("useDeleteLeague", () => {
     mockDelete = jest.fn();
     mockUseAxiosWithClerk.mockReturnValue({
       delete: mockDelete,
-    } as any);
+    } as unknown as ReturnType<typeof useAxiosWithClerk>);
   });
 
   afterEach(() => {

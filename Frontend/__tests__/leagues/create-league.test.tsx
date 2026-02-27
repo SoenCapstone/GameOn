@@ -15,9 +15,17 @@ jest.mock("@react-navigation/native", () => ({
   useNavigation: () => ({ setOptions: mockSetOptions }),
 }));
 
-const mockPost: jest.Mock<any, any> = jest.fn(async () => ({
-  data: { id: "league-1", slug: "test-league" },
-}));
+const mockPost: jest.Mock<
+  Promise<{ data: { id: string; slug: string } }>,
+  [unknown, { name: string; sport: string; privacy: string }]
+> = jest.fn(
+  async (
+    _arg1: unknown,
+    _arg2: { name: string; sport: string; privacy: string },
+  ) => ({
+    data: { id: "league-1", slug: "test-league" },
+  }),
+);
 
 jest.mock("@/hooks/use-axios-clerk", () => ({
   useAxiosWithClerk: () => ({
@@ -31,7 +39,7 @@ jest.mock("@/hooks/use-axios-clerk", () => ({
 }));
 
 jest.mock("@/components/ui/content-area", () => ({
-  ContentArea: ({ children }: any) => children,
+  ContentArea: ({ children }: { children?: React.ReactNode }) => children,
 }));
 
 const mockSetLeagueName = jest.fn();
@@ -92,9 +100,9 @@ function getCreateButton() {
 }
 
 describe("CreateLeagueScreen", () => {
+  const { useLeagueForm } = jest.requireMock("@/hooks/use-league-form");
   beforeEach(() => {
     jest.clearAllMocks();
-    const { useLeagueForm } = require("@/hooks/use-league-form");
     (useLeagueForm as jest.Mock).mockImplementation(() =>
       defaultLeagueFormState(),
     );
@@ -117,7 +125,7 @@ describe("CreateLeagueScreen", () => {
   });
 
   it("creates league with PRIVATE privacy by default", async () => {
-    const { useLeagueForm } = require("@/hooks/use-league-form");
+    const { useLeagueForm } = jest.requireMock("@/hooks/use-league-form");
     (useLeagueForm as jest.Mock).mockReturnValue({
       ...defaultLeagueFormState(),
       leagueName: "My League",
@@ -129,7 +137,10 @@ describe("CreateLeagueScreen", () => {
 
     await waitFor(() => expect(mockPost).toHaveBeenCalled());
 
-    const [, payload] = mockPost.mock.calls[0] as any[];
+    const [, payload] = mockPost.mock.calls[0] as [
+      unknown,
+      { name: string; sport: string; privacy: string },
+    ];
     expect(payload).toMatchObject({
       name: "My League",
       sport: "soccer",
@@ -138,7 +149,7 @@ describe("CreateLeagueScreen", () => {
   });
 
   it("navigates back after successful creation", async () => {
-    const { useLeagueForm } = require("@/hooks/use-league-form");
+    const { useLeagueForm } = jest.requireMock("@/hooks/use-league-form");
     (useLeagueForm as jest.Mock).mockReturnValue({
       ...defaultLeagueFormState(),
       leagueName: "My League",
