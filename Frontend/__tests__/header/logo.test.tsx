@@ -3,17 +3,23 @@ import { render } from "@testing-library/react-native";
 import { Logo } from "@/components/header/logo";
 
 jest.mock("expo-glass-effect", () => {
-  const React = require("react");
-  const { View } = require("react-native");
-  const GlassView = ({ children, ...props }: any) =>
-    React.createElement(View, props, children);
+  const React = jest.requireActual("react");
+  const { View } = jest.requireActual("react-native");
+  const GlassView = ({
+    children,
+    ...props
+  }: {
+    children?: React.ReactNode;
+    [key: string]: unknown;
+  }) => React.createElement(View, props, children);
   return { GlassView };
 });
 
 jest.mock("expo-image", () => {
-  const React = require("react");
-  const { Image } = require("react-native");
-  const ExpoImage = (props: any) => React.createElement(Image, props);
+  const React = jest.requireActual("react");
+  const { Image } = jest.requireActual("react-native");
+  const ExpoImage = (props: { [key: string]: unknown }) =>
+    React.createElement(Image, props);
   return { Image: ExpoImage };
 });
 

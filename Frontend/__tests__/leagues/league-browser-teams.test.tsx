@@ -12,11 +12,11 @@ jest.mock("@/hooks/use-axios-clerk", () => ({
 
 const mockUseQueries = jest.fn();
 jest.mock("@tanstack/react-query", () => ({
-  useQueries: (args: any) => mockUseQueries(args),
+  useQueries: (args: unknown[]) => mockUseQueries(args),
 }));
 
 jest.mock("@/hooks/use-team-detail", () => ({
-  teamDetailQueryOptions: (_api: any, teamId: string) => ({
+  teamDetailQueryOptions: (_api: unknown, teamId: string) => ({
     queryKey: ["team", teamId],
     queryFn: jest.fn(),
   }),
@@ -27,9 +27,9 @@ jest.mock("@/components/browse/utils", () => ({
   getSportLogo: (sport: string) => mockGetSportLogo(sport),
 }));
 
-const mockInfoCard = jest.fn((_props: any) => null);
+const mockInfoCard = jest.fn((_props: Record<string, unknown>) => null);
 jest.mock("@/components/info-card", () => ({
-  InfoCard: (props: any) => {
+  InfoCard: (props: Record<string, unknown>) => {
     mockInfoCard(props);
     return null;
   },

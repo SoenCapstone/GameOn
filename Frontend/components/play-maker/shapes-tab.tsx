@@ -1,6 +1,6 @@
 import { View, Text, Pressable, StyleSheet } from "react-native";
-import { SELECT_SHAPE_BUTTON_CONFIG, ShapesTabProps } from "./model";
-import { IconContainer } from "./play-maker-icon/icon-container";
+import { SELECT_SHAPE_BUTTON_CONFIG, ShapesTabProps } from "@/components/play-maker/model";
+import { IconContainer } from "@/components/play-maker/play-maker-icon/icon-container";
 
 export const ShapesTab = ({ selectedTool, onSelectTool }: ShapesTabProps) => {
   return (

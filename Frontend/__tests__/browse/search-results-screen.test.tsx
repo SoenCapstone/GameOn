@@ -18,7 +18,7 @@ jest.mock("@/components/ui/content-area", () => {
   const mockReact = jest.requireActual("react");
   const mockView = jest.requireActual("react-native").View;
   return {
-    ContentArea: (props: any) =>
+    ContentArea: (props: { children?: React.ReactNode }) =>
       mockReact.createElement(
         mockView,
         { testID: "content-area" },
@@ -33,7 +33,11 @@ jest.mock("@/components/info-card", () => {
     jest.requireActual("react-native").TouchableOpacity;
   const mockText = jest.requireActual("react-native").Text;
   return {
-    InfoCard: (props: any) =>
+    InfoCard: (props: {
+      title: string;
+      subtitle: string;
+      onPress?: () => void;
+    }) =>
       mockReact.createElement(
         mockTouchableOpacity,
         { testID: `info-card-${props.title}`, onPress: props.onPress },
@@ -47,7 +51,7 @@ jest.mock("@legendapp/list", () => {
   const mockReact = jest.requireActual("react");
   const mockFlatList = jest.requireActual("react-native").FlatList;
   return {
-    LegendList: (props: any) =>
+    LegendList: (props: React.ComponentProps<typeof mockFlatList>) =>
       mockReact.createElement(mockFlatList, {
         testID: "legend-list",
         ...props,
@@ -62,7 +66,10 @@ jest.mock("@/components/ui/tabs", () => {
     jest.requireActual("react-native").TouchableOpacity;
   const mockText = jest.requireActual("react-native").Text;
   return {
-    Tabs: (props: any) => {
+    Tabs: (props: {
+      values: string[];
+      onValueChange?: (value: string) => void;
+    }) => {
       const { values, onValueChange } = props;
       return mockReact.createElement(
         mockView,
@@ -145,7 +152,23 @@ const defaultModes = [
   },
 ];
 
-const defaultSearchContext = {
+interface SearchContextMock {
+  query: string;
+  results: SearchResult[];
+  markRendered: jest.Mock;
+  notifyModeChange: jest.Mock;
+  activeMode: "teams" | "leagues" | "tournaments" | undefined;
+  setActiveMode: jest.Mock;
+  searchActive: boolean;
+  isLoading: boolean;
+  teamError: string | null;
+  leagueError: string | null;
+  refetch: jest.Mock;
+  setQuery: jest.Mock;
+  setSearchActive: jest.Mock;
+}
+
+const defaultSearchContext: SearchContextMock = {
   query: "",
   results: mockResults,
   markRendered: jest.fn(),
@@ -159,12 +182,15 @@ const defaultSearchContext = {
   refetch: jest.fn().mockResolvedValue(undefined),
   setQuery: jest.fn(),
   setSearchActive: jest.fn(),
-} as any;
+};
 
 describe("SearchResultsScreen", () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    mockedUseSearch.mockReturnValue(defaultSearchContext);
+    mockedUseSearch.mockReturnValue({
+      ...defaultSearchContext,
+      activeMode: "teams",
+    });
   });
 
   it("renders default teams mode and switches to leagues", () => {
@@ -192,6 +218,7 @@ describe("SearchResultsScreen", () => {
     mockedUseSearch.mockReturnValue({
       ...defaultSearchContext,
       query: "team 1",
+      activeMode: "teams",
     });
 
     const onResultPress = jest.fn();
@@ -249,6 +276,7 @@ describe("SearchResultsScreen", () => {
     mockedUseSearch.mockReturnValue({
       ...defaultSearchContext,
       isLoading: true,
+      activeMode: "teams",
     });
 
     const onResultPress = jest.fn();
@@ -295,6 +323,7 @@ describe("SearchResultsScreen", () => {
       query: "test",
       teamError: "Failed to fetch teams",
       leagueError: "Failed to fetch leagues",
+      activeMode: "teams",
     });
 
     rerender(
@@ -316,6 +345,7 @@ describe("SearchResultsScreen", () => {
       ...defaultSearchContext,
       searchActive: true,
       query: "",
+      activeMode: "teams",
     });
 
     const onResultPress = jest.fn();
@@ -341,6 +371,7 @@ describe("SearchResultsScreen", () => {
       ...defaultSearchContext,
       notifyModeChange,
       setActiveMode,
+      activeMode: "teams",
     });
 
     const onResultPress = jest.fn();
@@ -370,6 +401,7 @@ describe("SearchResultsScreen", () => {
     mockedUseSearch.mockReturnValue({
       ...defaultSearchContext,
       markRendered,
+      activeMode: "teams",
     });
 
     const onResultPress = jest.fn();

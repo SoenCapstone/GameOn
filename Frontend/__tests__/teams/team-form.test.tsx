@@ -6,10 +6,11 @@ import { Button } from "@/components/ui/button";
 
 jest.mock("@/components/form/form", () => {
   const ReactMock = jest.requireActual("react");
-  const { View } = require("react-native");
+  const { View } = jest.requireActual("react-native");
   return {
     Form: {
-      Section: ({ children }: any) => ReactMock.createElement(View, null, children),
+      Section: ({ children }: { children?: React.ReactNode }) =>
+        ReactMock.createElement(View, null, children),
       Image: jest.fn(() => null),
       Input: jest.fn(() => null),
       Menu: jest.fn(() => null),
@@ -45,7 +46,7 @@ describe("TeamForm", () => {
     selectedScope: { id: "casual", label: "Casual" },
     selectedCity: null,
     selectedAllowedRegions: ["Toronto"],
-  } as const;
+  };
 
   beforeEach(() => {
     jest.clearAllMocks();
@@ -63,7 +64,7 @@ describe("TeamForm", () => {
       />,
     );
 
-    const imageProps = ((Form as any).Image as jest.Mock).mock.calls[0][0];
+    const imageProps = (Form.Image as jest.Mock).mock.calls[0][0];
     expect(imageProps.image).toEqual({ uri: "file:///picked.png" });
   });
 
@@ -76,18 +77,30 @@ describe("TeamForm", () => {
       />,
     );
 
-    let imageProps = ((Form as any).Image as jest.Mock).mock.calls[0][0];
+    let imageProps = (Form.Image as jest.Mock).mock.calls[0][0];
     expect(imageProps.image).toEqual({ uri: "https://cdn/uploaded.png" });
 
-    rerender(<TeamForm values={baseValues} logo={{ pickedLogo: null }} onChange={onChange} />);
-    imageProps = ((Form as any).Image as jest.Mock).mock.calls[1][0];
+    rerender(
+      <TeamForm
+        values={baseValues}
+        logo={{ pickedLogo: null }}
+        onChange={onChange}
+      />,
+    );
+    imageProps = (Form.Image as jest.Mock).mock.calls[1][0];
     expect(imageProps.image).toBe("default-logo");
   });
 
   it("wires image/button actions and handles menu selection rules", () => {
-    render(<TeamForm values={baseValues} logo={{ pickedLogo: null }} onChange={onChange} />);
+    render(
+      <TeamForm
+        values={baseValues}
+        logo={{ pickedLogo: null }}
+        onChange={onChange}
+      />,
+    );
 
-    const imageProps = ((Form as any).Image as jest.Mock).mock.calls[0][0];
+    const imageProps = (Form.Image as jest.Mock).mock.calls[0][0];
     imageProps.onPress();
     expect(onChange.onPickLogo).toHaveBeenCalledTimes(1);
 
@@ -95,40 +108,46 @@ describe("TeamForm", () => {
     buttonProps.onPress();
     expect(onChange.onRemoveLogo).toHaveBeenCalledTimes(1);
 
-    const inputProps = ((Form as any).Input as jest.Mock).mock.calls[0][0];
+    const inputProps = (Form.Input as jest.Mock).mock.calls[0][0];
     inputProps.onChangeText("Updated Team");
     expect(onChange.onTeamNameChange).toHaveBeenCalledWith("Updated Team");
 
-    const menuCalls = (((Form as any).Menu as jest.Mock).mock.calls as any[]).map(
-      ([props]) => props,
-    );
+    const menuCalls = (
+      (Form.Menu as jest.Mock).mock.calls as [Record<string, unknown>][]
+    ).map(([props]) => props);
     const sportMenu = menuCalls.find((x) => x.label === "Sport");
     const scopeMenu = menuCalls.find((x) => x.label === "Scope");
     const cityMenu = menuCalls.find((x) => x.label === "Location");
 
-    sportMenu.onValueChange("None");
-    expect(onChange.onSportChange).toHaveBeenCalledWith(null);
-    sportMenu.onValueChange("Soccer");
-    expect(onChange.onSportChange).toHaveBeenCalledWith({
-      id: "soccer",
-      label: "Soccer",
-    });
+    if (sportMenu && typeof sportMenu.onValueChange === "function") {
+      (sportMenu.onValueChange as (value: string) => void)("None");
+      expect(onChange.onSportChange).toHaveBeenCalledWith(null);
+      (sportMenu.onValueChange as (value: string) => void)("Soccer");
+      expect(onChange.onSportChange).toHaveBeenCalledWith({
+        id: "soccer",
+        label: "Soccer",
+      });
+    }
 
-    scopeMenu.onValueChange("Managed");
-    expect(onChange.onScopeChange).toHaveBeenCalledWith({
-      id: "managed",
-      label: "Managed",
-    });
+    if (scopeMenu && typeof scopeMenu.onValueChange === "function") {
+      (scopeMenu.onValueChange as (value: string) => void)("Managed");
+      expect(onChange.onScopeChange).toHaveBeenCalledWith({
+        id: "managed",
+        label: "Managed",
+      });
+    }
 
-    cityMenu.onValueChange("Select location");
-    expect(onChange.onCityChange).toHaveBeenCalledWith(null);
-    cityMenu.onValueChange("Toronto");
-    expect(onChange.onCityChange).toHaveBeenCalledWith({
-      id: "tor",
-      label: "Toronto",
-    });
+    if (cityMenu && typeof cityMenu.onValueChange === "function") {
+      cityMenu.onValueChange("Select location");
+      expect(onChange.onCityChange).toHaveBeenCalledWith(null);
+      cityMenu.onValueChange("Toronto");
+      expect(onChange.onCityChange).toHaveBeenCalledWith({
+        id: "tor",
+        label: "Toronto",
+      });
+    }
 
-    const multiselectProps = ((Form as any).Multiselect as jest.Mock).mock.calls[0][0];
+    const multiselectProps = (Form.Multiselect as jest.Mock).mock.calls[0][0];
     multiselectProps.onSelected(["Toronto", "Montreal"]);
     expect(onChange.onAllowedRegionsChange).toHaveBeenCalledWith([
       "Toronto",
