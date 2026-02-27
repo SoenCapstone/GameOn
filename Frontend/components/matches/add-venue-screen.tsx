@@ -1,5 +1,5 @@
 import { useLayoutEffect, useState } from "react";
-import { useNavigation, useRouter } from "expo-router";
+import { RelativePathString, useNavigation, useRouter } from "expo-router";
 import { Button } from "@/components/ui/button";
 import { ContentArea } from "@/components/ui/content-area";
 import { Form } from "@/components/form/form";
@@ -8,7 +8,7 @@ import { PROVINCE_OPTIONS } from "@/features/matches/utils";
 
 interface AddVenueScreenProps {
   readonly entityId: string;
-  readonly schedulePathname: "/leagues/[id]/matches/schedule" | "/teams/[id]/matches/schedule";
+  readonly schedulePathname: RelativePathString;
 }
 
 export function AddVenueScreen({
@@ -26,7 +26,9 @@ export function AddVenueScreen({
   );
   const [postalCode, setPostalCode] = useState("");
 
-  const canSave = Boolean(name.trim() && street.trim() && city.trim() && postalCode.trim());
+  const canSave = Boolean(
+    name.trim() && street.trim() && city.trim() && postalCode.trim(),
+  );
   const handleSave = () => {
     if (!canSave) return;
     router.replace({
@@ -45,14 +47,31 @@ export function AddVenueScreen({
     <ContentArea scrollable backgroundProps={{ preset: "red", mode: "form" }}>
       <Form accentColor={AccentColors.red}>
         <Form.Section>
-          <Form.Input label="Name" value={name} onChangeText={setName} placeholder="Venue name" />
-          <Form.Input label="Street" value={street} onChangeText={setStreet} placeholder="Street" />
-          <Form.Input label="City" value={city} onChangeText={setCity} placeholder="City" />
+          <Form.Input
+            label="Name"
+            value={name}
+            onChangeText={setName}
+            placeholder="Venue name"
+          />
+          <Form.Input
+            label="Street"
+            value={street}
+            onChangeText={setStreet}
+            placeholder="Street"
+          />
+          <Form.Input
+            label="City"
+            value={city}
+            onChangeText={setCity}
+            placeholder="City"
+          />
           <Form.Menu
             label="Province"
             options={[...PROVINCE_OPTIONS]}
             value={province}
-            onValueChange={(value) => setProvince(value as (typeof PROVINCE_OPTIONS)[number])}
+            onValueChange={(value) =>
+              setProvince(value as (typeof PROVINCE_OPTIONS)[number])
+            }
           />
           <Form.Input
             label="Postal code"
@@ -63,7 +82,12 @@ export function AddVenueScreen({
           />
         </Form.Section>
         <Form.Section>
-          <Button type="custom" label="Save" isInteractive={canSave} onPress={handleSave} />
+          <Button
+            type="custom"
+            label="Save"
+            isInteractive={canSave}
+            onPress={handleSave}
+          />
         </Form.Section>
       </Form>
     </ContentArea>

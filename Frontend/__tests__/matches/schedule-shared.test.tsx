@@ -4,6 +4,7 @@ import {
   getScheduleApiErrorMessage,
   MatchDetailsSection,
 } from "@/components/matches/schedule-shared";
+import { AxiosError } from "axios";
 jest.mock("expo-router", () => ({}));
 jest.mock("@react-navigation/native", () => ({}));
 jest.mock("react-native-svg", () => ({}));
@@ -37,21 +38,48 @@ jest.mock("@/components/form/form", () => {
 
 describe("getScheduleApiErrorMessage", () => {
   it("returns network error when no response", () => {
-    const result = getScheduleApiErrorMessage({}, "Forbidden!");
+    const fakeError = {
+      isAxiosError: true,
+      toJSON: () => ({}),
+      name: "AxiosError",
+      message: "",
+    };
+    const result = getScheduleApiErrorMessage(
+      fakeError as AxiosError<{ message?: string }> | undefined,
+      "Forbidden!",
+    );
     expect(result).toEqual({
       status: 0,
       message: "Network error. Please retry.",
     });
   });
   it("returns forbidden message when status is 403", () => {
-    const err = { response: { status: 403 } };
-    const result = getScheduleApiErrorMessage(err, "Forbidden!");
+    const err = {
+      isAxiosError: true,
+      toJSON: () => ({}),
+      name: "AxiosError",
+      message: "",
+      response: { status: 403 },
+    };
+    const result = getScheduleApiErrorMessage(
+      err as AxiosError<{ message?: string }> | undefined,
+      "Forbidden!",
+    );
     expect(result.status).toBe(403);
     expect(result.message).toBe("Forbidden!");
   });
   it("returns default message otherwise", () => {
-    const err = { response: { status: 500, data: { message: "fail" } } };
-    const result = getScheduleApiErrorMessage(err, "Forbidden!");
+    const err = {
+      isAxiosError: true,
+      toJSON: () => ({}),
+      name: "AxiosError",
+      message: "",
+      response: { status: 500, data: { message: "fail" } },
+    };
+    const result = getScheduleApiErrorMessage(
+      err as AxiosError<{ message?: string }> | undefined,
+      "Forbidden!",
+    );
     expect(result.status).toBe(500);
     expect(result.message).toBe("fail");
   });
