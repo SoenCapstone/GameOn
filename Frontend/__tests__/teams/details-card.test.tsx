@@ -1,6 +1,7 @@
 import React from "react";
 import { render, fireEvent } from "@testing-library/react-native";
 import { TeamDetailsCard } from "@/components/teams/details-card";
+import { ViewStyle } from "react-native";
 
 describe("TeamDetailsCard", () => {
   let mockOnOpenPicker: jest.Mock;
@@ -17,7 +18,7 @@ describe("TeamDetailsCard", () => {
         scopeLabel="Recreational"
         cityLabel="Toronto"
         onOpenPicker={mockOnOpenPicker}
-      />
+      />,
     );
 
     expect(getByText1("Details")).toBeTruthy();
@@ -34,7 +35,7 @@ describe("TeamDetailsCard", () => {
         scopeLabel=""
         cityLabel=""
         onOpenPicker={mockOnOpenPicker}
-      />
+      />,
     );
 
     expect(getByText2("Sports")).toBeTruthy();
@@ -49,7 +50,7 @@ describe("TeamDetailsCard", () => {
         scopeLabel="Recreational"
         cityLabel="Toronto"
         onOpenPicker={mockOnOpenPicker}
-      />
+      />,
     );
 
     const rows = [
@@ -73,7 +74,7 @@ describe("TeamDetailsCard", () => {
         scopeLabel="Recreational"
         cityLabel="Toronto"
         onOpenPicker={mockOnOpenPicker}
-      />
+      />,
     );
 
     fireEvent.press(getByText("Soccer ⌵"));
@@ -103,7 +104,7 @@ describe("TeamDetailsCard", () => {
         scopeLabel="Division 2"
         cityLabel="Area 51"
         onOpenPicker={mockOnOpenPicker}
-      />
+      />,
     );
 
     expect(getByText2("5v5 Soccer ⌵")).toBeTruthy();
@@ -116,7 +117,7 @@ describe("TeamDetailsCard", () => {
         scopeLabel="  Recreational  "
         cityLabel="  Toronto  "
         onOpenPicker={mockOnOpenPicker}
-      />
+      />,
     );
 
     expect(getByText3("  Soccer   ⌵")).toBeTruthy();
@@ -135,7 +136,7 @@ describe("TeamDetailsCard", () => {
         scopeLabel="Recreational"
         cityLabel="Toronto"
         onOpenPicker={mockOnOpenPicker}
-      />
+      />,
     );
 
     expect(getByText1(`${longSport} ⌵`)).toBeTruthy();
@@ -146,7 +147,7 @@ describe("TeamDetailsCard", () => {
         scopeLabel={longScope}
         cityLabel="Toronto"
         onOpenPicker={mockOnOpenPicker}
-      />
+      />,
     );
 
     expect(getByText2(`${longScope} ⌵`)).toBeTruthy();
@@ -157,7 +158,7 @@ describe("TeamDetailsCard", () => {
         scopeLabel="Recreational"
         cityLabel={longCity}
         onOpenPicker={mockOnOpenPicker}
-      />
+      />,
     );
 
     expect(getByText3(`${longCity} ⌵`)).toBeTruthy();
@@ -168,7 +169,7 @@ describe("TeamDetailsCard", () => {
         scopeLabel="Semi-Pro"
         cityLabel="New York, NY"
         onOpenPicker={mockOnOpenPicker}
-      />
+      />,
     );
 
     expect(getByText4("Soccer & Basketball ⌵")).toBeTruthy();
@@ -181,7 +182,7 @@ describe("TeamDetailsCard", () => {
         scopeLabel="レクリエーション"
         cityLabel="東京"
         onOpenPicker={mockOnOpenPicker}
-      />
+      />,
     );
 
     expect(getByText5("サッカー ⌵")).toBeTruthy();
@@ -217,7 +218,7 @@ describe("TeamDetailsCard", () => {
         scopeLabel="Recreational"
         cityLabel="Toronto"
         onOpenPicker={mockOnOpenPicker}
-      />
+      />,
     );
 
     const labels = getAllByText(/Sports|Scope|Location/);
@@ -237,13 +238,14 @@ describe("TeamDetailsCard", () => {
         scopeLabel=""
         cityLabel=""
         onOpenPicker={mockOnOpenPicker}
-      />
+      />,
     );
 
     getByText("Sports").parent?.parent?.children.find(
-      (child: any) => child.props.style === undefined || Array.isArray(child.props.style)
+      (child: { props: { style?: ViewStyle } }) =>
+        child.props.style === undefined || Array.isArray(child.props.style),
     );
-    
+
     expect(getByText("Sports")).toBeTruthy();
     expect(getByText("Scope")).toBeTruthy();
     expect(getByText("Location")).toBeTruthy();
@@ -256,7 +258,7 @@ describe("TeamDetailsCard", () => {
         scopeLabel="Recreational"
         cityLabel="Toronto"
         onOpenPicker={mockOnOpenPicker}
-      />
+      />,
     );
 
     expect(mockOnOpenPicker).not.toHaveBeenCalled();

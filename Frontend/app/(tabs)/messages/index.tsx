@@ -1,4 +1,11 @@
-import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
+import {
+  ComponentRef,
+  useEffect,
+  useLayoutEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import { ContentArea } from "@/components/ui/content-area";
 import {
   ActivityIndicator,
@@ -53,7 +60,7 @@ export default function Messages() {
   const { data: users } = useUserDirectory();
   const { data: myTeams } = useMyTeams();
   const [filter, setFilter] = useState<"all" | "direct" | "group">("all");
-  const listRef = useRef<any>(null);
+  const listRef = useRef<ComponentRef<typeof LegendList>>(null);
 
   const plusRoute =
     filter === "group" ? "/messages/new/group" : "/messages/new/message";

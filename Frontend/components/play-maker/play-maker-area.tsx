@@ -11,7 +11,7 @@ import type {
 import { scanBoard } from "@/components/play-maker/utils";
 import { useRenderPlayMakerShapes } from "@/hooks/use-render-play-maker-shapes";
 import { ClearShapesButton } from "@/components/play-maker/clear-shapes-button";
-import { PlayerAssignmentPanel } from "./player-assignment-panel";
+import { PlayerAssignmentPanel } from "@/components/play-maker/player-assignment-panel";
 import { useGetTeamMembers } from "@/hooks/use-get-team-members/use-get-team-members";
 import { useTeamDetailContext } from "@/contexts/team-detail-context";
 

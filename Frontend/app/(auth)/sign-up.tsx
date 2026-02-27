@@ -8,7 +8,7 @@ import {
   displayFormikError,
 } from "@/components/sign-up/utils";
 import { LabeledInput } from "@/components/auth/labeled-input";
-import { User, SignUpInputLabel } from "@/components/sign-up/models";
+import { User } from "@/components/sign-up/models";
 import { VerificationInput } from "@/components/sign-up/verification-input";
 import { useSignUp } from "@clerk/clerk-expo";
 import {
@@ -64,36 +64,30 @@ export default function SignUpScreen() {
                   showsVerticalScrollIndicator={false}
                 >
                   <View style={{ gap: 20 }}>
-                    {signUpInputLabels(showPassword).map(
-                      (inputLabel: SignUpInputLabel) => (
-                        <LabeledInput
-                          key={inputLabel.field}
-                          label={inputLabel.label}
-                          placeholder={inputLabel.placeholder}
-                          value={
-                            values?.[inputLabel.field as keyof typeof values]
-                          }
-                          onChangeText={handleChange(inputLabel.field)}
-                          onBlur={() => handleBlur(inputLabel.field)}
-                          keyboardType={inputLabel.keyboardType}
-                          autoCapitalize={inputLabel?.autoCapitalize}
-                          secureTextEntry={inputLabel.secureTextEntry}
-                          rightIcon={
-                            inputLabel.rightIcon && (
-                              <PasswordVisibilityToggle
-                                showPassword={showPassword}
-                                setShowPassword={setShowPassword}
-                              />
-                            )
-                          }
-                          error={displayFormikError(
-                            touched,
-                            errors,
-                            inputLabel,
-                          )}
-                        />
-                      ),
-                    )}
+                    {signUpInputLabels(showPassword).map((inputLabel) => (
+                      <LabeledInput
+                        key={inputLabel.field}
+                        label={inputLabel.label}
+                        placeholder={inputLabel.placeholder}
+                        value={
+                          values?.[inputLabel.field as keyof typeof values]
+                        }
+                        onChangeText={handleChange(inputLabel.field)}
+                        onBlur={() => handleBlur(inputLabel.field)}
+                        keyboardType={inputLabel.keyboardType}
+                        autoCapitalize={inputLabel?.autoCapitalize}
+                        secureTextEntry={inputLabel.secureTextEntry}
+                        rightIcon={
+                          inputLabel.rightIcon && (
+                            <PasswordVisibilityToggle
+                              showPassword={showPassword}
+                              setShowPassword={setShowPassword}
+                            />
+                          )
+                        }
+                        error={displayFormikError(touched, errors, inputLabel)}
+                      />
+                    ))}
                     <SignUpDatePicker />
                   </View>
                 </KeyboardAwareScrollView>

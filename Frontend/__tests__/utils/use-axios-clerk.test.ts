@@ -19,9 +19,9 @@ jest.mock("@clerk/clerk-expo", () => ({
 }));
 
 jest.mock("axios", () => {
-  let savedOnFulfilled: any = null;
-  let savedOnRejected: any = null;
-  const mockUseLocal = (onFulfilled: any, onRejected: any) => {
+  let savedOnFulfilled: unknown = null;
+  let savedOnRejected: unknown = null;
+  const mockUseLocal = (onFulfilled: unknown, onRejected: unknown) => {
     savedOnFulfilled = onFulfilled;
     savedOnRejected = onRejected;
     return 1;
@@ -61,7 +61,11 @@ test("attaches interceptor and sets Authorization header when token exists", asy
 
   render(React.createElement(TestComp));
 
-  const axiosMock = axios as any;
+  const axiosMock = axios as unknown as {
+    create: jest.Mock;
+    __getSavedOnFulfilled: () => unknown;
+    __getSavedOnRejected: () => unknown;
+  };
   expect(axiosMock.create).toHaveBeenCalledWith({
     baseURL: process.env.EXPO_PUBLIC_API_BASE_URL,
   });
@@ -69,10 +73,12 @@ test("attaches interceptor and sets Authorization header when token exists", asy
   const saved = axiosMock.__getSavedOnFulfilled();
   expect(typeof saved).toBe("function");
 
-  const config: any = { headers: {} };
-  await saved(config);
+  const config: Record<string, unknown> = { headers: {} };
+  await (saved as (cfg: Record<string, unknown>) => Promise<void>)(config);
 
-  expect(config.headers.Authorization).toBe(`${AXIOS_BEARER} token-123`);
+  expect((config.headers as Record<string, unknown>).Authorization).toBe(
+    `${AXIOS_BEARER} token-123`,
+  );
 });
 
 test("attaches interceptor and does not set Authorization when no token", async () => {
@@ -81,13 +87,19 @@ test("attaches interceptor and does not set Authorization when no token", async 
 
   render(React.createElement(TestComp));
 
-  const axiosMock = axios as any;
+  const axiosMock = axios as unknown as {
+    create: jest.Mock;
+    __getSavedOnFulfilled: () => unknown;
+    __getSavedOnRejected: () => unknown;
+  };
   expect(axiosMock.create).toHaveBeenCalled();
 
   const saved = axiosMock.__getSavedOnFulfilled();
-  const config: any = { headers: {} };
-  await saved(config);
-  expect(config.headers.Authorization).toBeUndefined();
+  const config: Record<string, unknown> = { headers: {} };
+  await (saved as (cfg: Record<string, unknown>) => Promise<void>)(config);
+  expect(
+    (config.headers as Record<string, unknown>).Authorization,
+  ).toBeUndefined();
 });
 
 test("returns rejected promise when interceptor fails", async () => {
@@ -96,11 +108,17 @@ test("returns rejected promise when interceptor fails", async () => {
 
   render(React.createElement(TestComp));
 
-  const axiosMock = axios as any;
+  const axiosMock = axios as unknown as {
+    create: jest.Mock;
+    __getSavedOnFulfilled: () => unknown;
+    __getSavedOnRejected: () => unknown;
+  };
   const savedRejected = axiosMock.__getSavedOnRejected();
   const error = new Error("interceptor error");
 
-  await expect(savedRejected(error)).rejects.toThrow("interceptor error");
+  await expect(
+    (savedRejected as (err: Error) => Promise<never>)(error),
+  ).rejects.toThrow("interceptor error");
 });
 
 describe("Route Builders", () => {
@@ -205,7 +223,11 @@ describe("Route Builders", () => {
     mockUseAuth.mockReturnValue({ getToken });
 
     const { rerender } = render(React.createElement(TestComp));
-    const axiosMock = axios as any;
+    const axiosMock = axios as unknown as {
+      create: jest.Mock;
+      __getSavedOnFulfilled: () => unknown;
+      __getSavedOnRejected: () => unknown;
+    };
     const callCount1 = axiosMock.create.mock.calls.length;
 
     rerender(React.createElement(TestComp));

@@ -12,6 +12,7 @@ import {
   fetchUserNameMap,
   mapToFrontendPost,
 } from "@/components/board/board-utils";
+import { AxiosInstance } from "axios";
 
 jest.mock("@/hooks/use-axios-clerk", () => ({
   useAxiosWithClerk: jest.fn(),
@@ -82,7 +83,9 @@ describe("use-team-board", () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
-    mockedUseAxiosWithClerk.mockReturnValue(mockApi as any);
+    mockedUseAxiosWithClerk.mockReturnValue(
+      mockApi as unknown as AxiosInstance,
+    );
 
     mockApi.get.mockReset().mockResolvedValue({ data: {} });
     mockApi.post.mockReset().mockResolvedValue({ data: {} });

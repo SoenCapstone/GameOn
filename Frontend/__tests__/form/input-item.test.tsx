@@ -4,10 +4,17 @@ import { InputItem } from "@/components/form/input-item";
 
 jest.mock("expo-blur", () => {
   const ReactMock = jest.requireActual("react");
-  const { View } = require("react-native");
+  const { View } = jest.requireActual("react-native");
   return {
-    BlurView: ({ children, ...props }: any) =>
-      ReactMock.createElement(View, props, children),
+    BlurView: jest.fn(
+      ({
+        children,
+        ...props
+      }: {
+        children?: React.ReactNode;
+        [key: string]: unknown;
+      }) => ReactMock.createElement(View, props, children),
+    ),
   };
 });
 
