@@ -3,7 +3,8 @@ import { Alert } from "react-native";
 export const mockAlert = jest.fn();
 
 jest.mock("expo-linear-gradient", () => ({
-  LinearGradient: ({ children }: any) => children ?? null,
+  LinearGradient: ({ children }: { children?: React.ReactNode }) =>
+    children ?? null,
 }));
 
 jest.mock("@expo/vector-icons", () => ({
@@ -11,7 +12,7 @@ jest.mock("@expo/vector-icons", () => ({
 }));
 
 jest.mock("expo-router", () => ({
-  Link: ({ children }: any) => children ?? null,
+  Link: ({ children }: { children?: React.ReactNode }) => children ?? null,
   router: {
     push: jest.fn(),
     replace: jest.fn(),
@@ -46,7 +47,7 @@ jest.mock("@/constants/auth-layout", () => ({
 }));
 
 jest.mock("@/components/auth/labeled-input", () => {
-  const { Text, TextInput, View } = require("react-native");
+  const { View, Text, TextInput } = jest.requireActual("react-native");
   return {
     LabeledInput: ({
       label,
@@ -59,7 +60,18 @@ jest.mock("@/components/auth/labeled-input", () => {
       autoCapitalize,
       error,
       testID,
-    }: any) => (
+    }: {
+      label?: string;
+      placeholder?: string;
+      value?: string;
+      onChangeText?: (text: string) => void;
+      onBlur?: () => void;
+      secureTextEntry?: boolean;
+      keyboardType?: import("react-native").KeyboardTypeOptions;
+      autoCapitalize?: "none" | "sentences" | "words" | "characters";
+      error?: string;
+      testID?: string;
+    }) => (
       <View>
         <Text>{label}</Text>
         <TextInput
@@ -79,14 +91,13 @@ jest.mock("@/components/auth/labeled-input", () => {
 });
 
 jest.mock("@/components/auth/submit-auth-button", () => {
-  const { TouchableOpacity, Text } = require("react-native");
-  const { useFormikContext } = require("formik");
-
+  const { TouchableOpacity, Text } = jest.requireActual("react-native");
+  const { useFormikContext } = jest.requireActual("formik");
   return {
-    SubmitAuthButton: ({ actionMessage }: any) => {
+    SubmitAuthButton: ({ actionMessage }: { actionMessage?: string }) => {
       const { handleSubmit } = useFormikContext();
       return (
-        <TouchableOpacity onPress={handleSubmit} testID="submit-button">
+        <TouchableOpacity onPress={() => handleSubmit()} testID="submit-button">
           <Text>{actionMessage}</Text>
         </TouchableOpacity>
       );
@@ -99,11 +110,13 @@ jest.mock("@/components/auth/password-visibility-toggle", () => ({
 }));
 
 jest.mock("@/components/ui/content-area", () => ({
-  ContentArea: ({ children }: any) => children ?? null,
+  ContentArea: ({ children }: { children?: React.ReactNode }) =>
+    children ?? null,
 }));
 
 jest.mock("@/components/ui/background", () => ({
-  Background: ({ children }: any) => children ?? null,
+  Background: ({ children }: { children?: React.ReactNode }) =>
+    children ?? null,
 }));
 
 export const setupAuthTestHooks = () => {

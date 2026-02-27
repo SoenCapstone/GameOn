@@ -4,10 +4,61 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { useGetTeamMembers } from "@/hooks/use-get-team-members/use-get-team-members";
 import { useAxiosWithClerk } from "@/hooks/use-axios-clerk";
 import { fetchTeamMembers } from "@/hooks/use-get-team-members/utils";
+import { AxiosInstance } from "axios";
+import { TeamMember } from "@/hooks/use-get-team-members/model";
 
 jest.mock("@/hooks/use-axios-clerk", () => ({
+  GO_TEAM_SERVICE_ROUTES: {
+    GET_TEAM_MEMBERS: (teamId: string) => `/teams/${teamId}/members`,
+  },
   useAxiosWithClerk: jest.fn(),
 }));
+
+describe("fetchTeamMembers", () => {
+  it("maps members and uses id fallback", async () => {
+    const teamId = "team-abc";
+    const members = [
+      { id: "1", userId: "u1", firstname: "Bob" },
+      { id: undefined, userId: "u2", firstname: "Alice" },
+    ];
+    const api = {
+      get: jest.fn().mockResolvedValue({ data: members }),
+    } as unknown as AxiosInstance;
+    const { fetchTeamMembers } = jest.requireActual(
+      "@/hooks/use-get-team-members/utils",
+    );
+    const result = await fetchTeamMembers(teamId, api);
+    expect(api.get).toHaveBeenCalledWith(expect.any(String));
+    expect(result).toEqual([
+      { id: "1", userId: "u1", firstname: "Bob" },
+      { id: "u2", userId: "u2", firstname: "Alice" },
+    ]);
+  });
+
+  it("returns empty array if data is missing", async () => {
+    const teamId = "team-empty";
+    const api = {
+      get: jest.fn().mockResolvedValue({ data: undefined }),
+    } as unknown as AxiosInstance;
+    const { fetchTeamMembers } = jest.requireActual(
+      "@/hooks/use-get-team-members/utils",
+    );
+    const result = await fetchTeamMembers(teamId, api);
+    expect(result).toEqual([]);
+  });
+
+  it("returns empty array if data is empty", async () => {
+    const teamId = "team-empty";
+    const api = {
+      get: jest.fn().mockResolvedValue({ data: [] }),
+    } as unknown as AxiosInstance;
+    const { fetchTeamMembers } = jest.requireActual(
+      "@/hooks/use-get-team-members/utils",
+    );
+    const result = await fetchTeamMembers(teamId, api);
+    expect(result).toEqual([]);
+  });
+});
 
 jest.mock("@/hooks/use-get-team-members/utils", () => ({
   fetchTeamMembers: jest.fn(),
@@ -54,14 +105,14 @@ describe("useGetTeamMembers", () => {
 
   it("calls fetchTeamMembers with teamId and clerk axios client and returns data", async () => {
     const teamId = "team-123";
-    const api = { get: jest.fn() } as any;
+    const api = { get: jest.fn() } as { get: jest.Mock };
 
-    mockedUseAxiosWithClerk.mockReturnValue(api);
+    mockedUseAxiosWithClerk.mockReturnValue(api as unknown as AxiosInstance);
 
     const members = [
-      { id: "1", name: "Alice" },
-      { id: "2", name: "Bob" },
-    ] as any;
+      { id: "1", firstname: "Bob" },
+      { id: "2", firstname: "Alice" },
+    ] as TeamMember[];
 
     mockedFetchTeamMembers.mockResolvedValue(members);
 
@@ -81,9 +132,9 @@ describe("useGetTeamMembers", () => {
 
   it("exposes error when fetchTeamMembers rejects", async () => {
     const teamId = "team-err";
-    const api = {} as any;
+    const api = {} as { [key: string]: unknown };
 
-    mockedUseAxiosWithClerk.mockReturnValue(api);
+    mockedUseAxiosWithClerk.mockReturnValue(api as unknown as AxiosInstance);
 
     const err = new Error("boom");
     mockedFetchTeamMembers.mockRejectedValue(err);
@@ -102,10 +153,10 @@ describe("useGetTeamMembers", () => {
 
   it("uses the expected queryKey", async () => {
     const teamId = "team-key";
-    const api = {} as any;
+    const api = {} as { [key: string]: unknown };
 
-    mockedUseAxiosWithClerk.mockReturnValue(api);
-    mockedFetchTeamMembers.mockResolvedValue([] as any);
+    mockedUseAxiosWithClerk.mockReturnValue(api as unknown as AxiosInstance);
+    mockedFetchTeamMembers.mockResolvedValue([] as const);
 
     const { result } = renderHook(() => useGetTeamMembers(teamId), {
       wrapper: createWrapper(),

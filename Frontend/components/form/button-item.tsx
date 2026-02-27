@@ -21,7 +21,7 @@ export function ButtonItem({
   const accentColor = useAccentColor();
   const buttonColor = color ?? accentColor;
   return (
-    <BlurView style={styles.item}>
+    <BlurView tint="systemUltraThinMaterialDark" style={styles.item}>
       {label !== undefined && <Text style={styles.label}>{label}</Text>}
       <Pressable {...pressableProps} style={styles.pressable}>
         {({ pressed }) => (

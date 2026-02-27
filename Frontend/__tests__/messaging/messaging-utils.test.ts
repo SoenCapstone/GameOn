@@ -1,4 +1,4 @@
-import { 
+import {
   validateMessageContent,
   sortConversations,
   insertMessageOrdered,
@@ -215,10 +215,7 @@ describe("appendMessageToPages", () => {
   it("appends to last page and does not modify non-last pages", () => {
     const msg1 = createMessage("msg-1");
     const data: InfiniteData<MessageHistoryResponse> = {
-      pages: [
-        createPage([msg1]),
-        createPage([createMessage("msg-2")]),
-      ],
+      pages: [createPage([msg1]), createPage([createMessage("msg-2")])],
       pageParams: [undefined, null],
     };
     const incoming = createMessage("msg-3");
@@ -251,7 +248,10 @@ describe("appendMessageToPages", () => {
 });
 
 describe("updateConversationsWithMessage", () => {
-  const createMessage = (id: string, conversationId: string): MessageResponse => ({
+  const createMessage = (
+    id: string,
+    conversationId: string,
+  ): MessageResponse => ({
     id,
     content: "test",
     createdAt: "2024-01-01T10:00:00Z",
@@ -319,8 +319,14 @@ describe("buildMessagesFromPages", () => {
 
     const data: InfiniteData<MessageHistoryResponse> = {
       pages: [
-        { messages: [createMessage("msg-1"), createMessage("msg-2")], hasMore: false },
-        { messages: [createMessage("msg-3"), createMessage("msg-4")], hasMore: false },
+        {
+          messages: [createMessage("msg-1"), createMessage("msg-2")],
+          hasMore: false,
+        },
+        {
+          messages: [createMessage("msg-3"), createMessage("msg-4")],
+          hasMore: false,
+        },
       ],
       pageParams: [undefined, null],
     };
@@ -332,7 +338,10 @@ describe("buildMessagesFromPages", () => {
 
   it("handles undefined and empty messages arrays in pages", () => {
     const data1: InfiniteData<MessageHistoryResponse> = {
-      pages: [{ messages: [createMessage("msg-1")], hasMore: false }, { messages: [], hasMore: false }],
+      pages: [
+        { messages: [createMessage("msg-1")], hasMore: false },
+        { messages: [], hasMore: false },
+      ],
       pageParams: [undefined, null],
     };
     const result1 = buildMessagesFromPages(data1);
@@ -340,7 +349,10 @@ describe("buildMessagesFromPages", () => {
     expect(result1[0].id).toBe("msg-1");
 
     const data2: InfiniteData<MessageHistoryResponse> = {
-      pages: [{ messages: [], hasMore: false }, { messages: [], hasMore: false }],
+      pages: [
+        { messages: [], hasMore: false },
+        { messages: [], hasMore: false },
+      ],
       pageParams: [undefined, null],
     };
     const result2 = buildMessagesFromPages(data2);

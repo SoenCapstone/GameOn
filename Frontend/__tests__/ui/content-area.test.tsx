@@ -20,7 +20,7 @@ jest.mock("@/components/ui/background", () => ({
 }));
 
 jest.mock("react-native-keyboard-controller", () => {
-  const { ScrollView } = require("react-native");
+  const { ScrollView } = jest.requireActual("react-native");
   return {
     KeyboardAwareScrollView: ScrollView,
   };
