@@ -17,12 +17,12 @@ jest.mock("expo-router", () => ({
 }));
 
 jest.mock("@/components/ui/content-area", () => ({
-  ContentArea: ({ children }: any) => children,
+  ContentArea: ({ children }: { children: React.ReactNode }) => children,
 }));
 
 jest.mock("@/components/header/header", () => ({
-  Header: ({ right }: any) => {
-    const ReactMock = require("react");
+  Header: ({ right }: { right: React.ReactNode }) => {
+    const ReactMock = jest.requireActual("react");
     return ReactMock.createElement(ReactMock.Fragment, null, right);
   },
 }));
@@ -32,32 +32,64 @@ jest.mock("@/components/header/page-title", () => ({
 }));
 
 jest.mock("@/components/ui/button", () => ({
-  Button: ({ label, onPress, isInteractive = true }: any) => {
-    const ReactMock = require("react");
-    const { Pressable, Text } = require("react-native");
+  Button: ({
+    label,
+    onPress,
+    isInteractive = true,
+  }: {
+    label: string;
+    onPress: () => void;
+    isInteractive?: boolean;
+  }) => {
+    const ReactMock = jest.requireActual("react");
+    const { Pressable, Text } = jest.requireActual("react-native");
     return ReactMock.createElement(
       Pressable,
-      { accessibilityRole: "button", onPress: isInteractive ? onPress : undefined },
+      {
+        accessibilityRole: "button",
+        onPress: isInteractive ? onPress : undefined,
+      },
       ReactMock.createElement(Text, null, label),
     );
   },
 }));
 
 jest.mock("@/components/form/form", () => {
-  const ReactMock = require("react");
-  const { View, Text, TextInput, Pressable } = require("react-native");
+  const ReactMock = jest.requireActual("react");
+  const { View, Text, TextInput, Pressable } =
+    jest.requireActual("react-native");
   const idPart = (input: string) => input.replaceAll(" ", "-").toLowerCase();
 
-  const Form = ({ children }: any) => ReactMock.createElement(View, null, children);
-  Form.Section = ({ children }: any) => ReactMock.createElement(View, null, children);
-  Form.Input = ({ label, value, onChangeText }: any) =>
+  const Form = ({ children }: { children: React.ReactNode }) =>
+    ReactMock.createElement(View, null, children);
+  Form.Section = ({ children }: { children: React.ReactNode }) =>
+    ReactMock.createElement(View, null, children);
+  Form.Input = ({
+    label,
+    value,
+    onChangeText,
+  }: {
+    label: string;
+    value: string;
+    onChangeText: (text: string) => void;
+  }) =>
     ReactMock.createElement(
       View,
       null,
       ReactMock.createElement(Text, null, label),
       ReactMock.createElement(TextInput, { value, onChangeText }),
     );
-  Form.Menu = ({ label, options = [], value, onValueChange }: any) =>
+  Form.Menu = ({
+    label,
+    options = [],
+    value,
+    onValueChange,
+  }: {
+    label: string;
+    options?: string[];
+    value: string;
+    onValueChange: (option: string) => void;
+  }) =>
     ReactMock.createElement(
       View,
       null,
@@ -75,14 +107,23 @@ jest.mock("@/components/form/form", () => {
         ),
       ),
     );
-  Form.DateTime = ({ label }: any) => ReactMock.createElement(Text, null, label);
-  Form.Link = ({ label, onPress }: any) =>
+  Form.DateTime = ({ label }: { label: string }) =>
+    ReactMock.createElement(Text, null, label);
+  Form.Link = ({ label, onPress }: { label: string; onPress: () => void }) =>
     ReactMock.createElement(
       Pressable,
       { onPress },
       ReactMock.createElement(Text, null, label),
     );
-  Form.Switch = ({ label, value, onValueChange }: any) =>
+  Form.Switch = ({
+    label,
+    value,
+    onValueChange,
+  }: {
+    label: string;
+    value: boolean;
+    onValueChange: (value: boolean) => void;
+  }) =>
     ReactMock.createElement(
       Pressable,
       {
@@ -138,7 +179,8 @@ jest.mock("@/utils/logger", () => ({
 }));
 
 function getScheduleButton() {
-  const latestOptions = mockSetOptions.mock.calls[mockSetOptions.mock.calls.length - 1]?.[0];
+  const latestOptions =
+    mockSetOptions.mock.calls[mockSetOptions.mock.calls.length - 1]?.[0];
   const HeaderTitle = latestOptions?.headerTitle;
   if (!HeaderTitle || typeof HeaderTitle !== "function") {
     throw new Error("headerTitle not set");
@@ -152,7 +194,10 @@ describe("ScheduleTeamMatchScreen", () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
-    mockCreateTeamMatch.mockResolvedValue({ match: { id: "m1" }, refereeInviteSent: true });
+    mockCreateTeamMatch.mockResolvedValue({
+      match: { id: "m1" },
+      refereeInviteSent: true,
+    });
     mockApiGet.mockImplementation((url: string) => {
       if (url === "/teams") {
         return Promise.resolve({
@@ -165,7 +210,9 @@ describe("ScheduleTeamMatchScreen", () => {
         });
       }
       if (url === "/users/ref-1") {
-        return Promise.resolve({ data: { firstname: "John", lastname: "Ref" } });
+        return Promise.resolve({
+          data: { firstname: "John", lastname: "Ref" },
+        });
       }
       return Promise.resolve({ data: {} });
     });
@@ -201,7 +248,7 @@ describe("ScheduleTeamMatchScreen", () => {
         homeTeamId: "team-1",
         awayTeamId: "team-2",
         requiresReferee: false,
-      }),
+      }) as unknown,
     );
     expect(mockReplace).toHaveBeenCalledWith("/teams/team-1");
     expect(mockToast).toHaveBeenCalledWith("Match scheduled");
@@ -234,7 +281,7 @@ describe("ScheduleTeamMatchScreen", () => {
         awayTeamId: "team-2",
         requiresReferee: true,
         refereeUserId: "ref-1",
-      }),
+      }) as unknown,
     );
   });
 });
