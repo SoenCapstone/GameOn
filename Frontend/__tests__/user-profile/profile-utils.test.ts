@@ -66,8 +66,7 @@ describe("handleSaveProfile", () => {
       externalId: "mock-external-id",
       primaryEmailAddressId: "mock-email-id",
       primaryEmailAddress: undefined,
-      // Add all required UserResource fields as unknown
-      ...Object.fromEntries(Array(60).fill(["field", undefined])),
+      ...Object.fromEntries(new Array(60).fill(["field", undefined])),
     } as unknown as import("@clerk/types").UserResource;
 
     mockRouter = {

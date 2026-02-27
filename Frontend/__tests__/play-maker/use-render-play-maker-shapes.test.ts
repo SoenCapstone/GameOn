@@ -1,7 +1,7 @@
 import React from "react";
 import { renderHook, act } from "@testing-library/react-native";
 import { Rect as SvgRect, Line, Path } from "react-native-svg";
-import { useRenderPlayMakerShapes } from "@/hooks/use-render-play-maker-shapes"; // adjust path
+import { useRenderPlayMakerShapes } from "@/hooks/use-render-play-maker-shapes";
 import { Shape } from "@/components/play-maker/model";
 
 jest.mock("@/components/play-maker/play-maker-icon/icon-container", () => ({

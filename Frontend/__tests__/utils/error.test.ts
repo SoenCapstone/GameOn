@@ -85,6 +85,6 @@ describe("errorToString", () => {
     const a: Record<string, unknown> = { foo: 1 };
     a.self = a;
     const out = errorToString(a);
-    expect(out).toBe(String(a));
+    expect(out).toBe("[object Object]");
   });
 });
