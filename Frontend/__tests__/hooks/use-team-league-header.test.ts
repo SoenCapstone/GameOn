@@ -22,7 +22,7 @@ jest.mock("expo-router", () => ({
 jest.mock("@/components/teams/team-detail-header", () => {
   const mockReact = jest.requireActual("react");
   return {
-    TeamDetailHeader: jest.fn((props: any) =>
+    TeamDetailHeader: jest.fn((props: { [key: string]: unknown }) =>
       mockReact.createElement("View", {
         testID: "team-detail-header",
         ...props,
@@ -34,7 +34,7 @@ jest.mock("@/components/teams/team-detail-header", () => {
 jest.mock("@/components/leagues/league-detail-header", () => {
   const mockReact = jest.requireActual("react");
   return {
-    LeagueDetailHeader: jest.fn((props: any) =>
+    LeagueDetailHeader: jest.fn((props: { [key: string]: unknown }) =>
       mockReact.createElement("View", {
         testID: "league-detail-header",
         ...props,
@@ -54,7 +54,7 @@ describe("useTeamHeader", () => {
     jest.clearAllMocks();
     mockedUseNavigation.mockReturnValue({
       setOptions: mockSetOptions,
-    } as any);
+    } as unknown as ReturnType<typeof useNavigation>);
   });
 
   it("sets navigation options with TeamDetailHeader", () => {
@@ -154,7 +154,7 @@ describe("useTeamHeader", () => {
 
     mockedUseNavigation.mockReturnValue({
       setOptions: mockSetOptions1,
-    } as any);
+    } as unknown as ReturnType<typeof useNavigation>);
 
     const { rerender } = renderHook(
       () =>
@@ -172,7 +172,7 @@ describe("useTeamHeader", () => {
 
     mockedUseNavigation.mockReturnValue({
       setOptions: mockSetOptions2,
-    } as any);
+    } as unknown as ReturnType<typeof useNavigation>);
 
     rerender({});
 
@@ -187,7 +187,7 @@ describe("useLeagueHeader", () => {
     jest.clearAllMocks();
     mockedUseNavigation.mockReturnValue({
       setOptions: mockSetOptions,
-    } as any);
+    } as unknown as ReturnType<typeof useNavigation>);
   });
 
   it("sets navigation options with LeagueDetailHeader", () => {
@@ -311,7 +311,7 @@ describe("useLeagueHeader", () => {
 
     mockedUseNavigation.mockReturnValue({
       setOptions: mockSetOptions1,
-    } as any);
+    } as unknown as ReturnType<typeof useNavigation>);
 
     const { rerender } = renderHook(
       () =>
@@ -329,7 +329,7 @@ describe("useLeagueHeader", () => {
 
     mockedUseNavigation.mockReturnValue({
       setOptions: mockSetOptions2,
-    } as any);
+    } as unknown as ReturnType<typeof useNavigation>);
 
     rerender({});
 

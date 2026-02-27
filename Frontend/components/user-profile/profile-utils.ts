@@ -1,11 +1,12 @@
 import { Alert } from "react-native";
-import { createScopedLog } from "@/utils/logger";
+import { createScopedLog, LoggerProps } from "@/utils/logger";
 import { File } from "expo-file-system";
+import { errorToString } from "@/utils/error";
+import { UserResource } from "@clerk/types";
 
 const log = createScopedLog("Profile");
-
 interface HandleSaveParams {
-  user: any;
+  user: UserResource | null;
   firstName: string;
   lastName: string;
   email: string;
@@ -64,9 +65,9 @@ export const handleSaveProfile = async ({
     }
 
     Alert.alert("Success", "Profile updated");
-  } catch (err: any) {
-    console.error("Fetch error:", err.message);
-    Alert.alert("Error", "Failed to update profile: " + err.message);
+  } catch (err) {
+    log.error("Fetch error:", errorToString(err));
+    Alert.alert("Error", "Failed to update profile: " + errorToString(err));
   }
 
   log.info("Updated Profile:", { firstName, lastName, email, image });
@@ -74,7 +75,7 @@ export const handleSaveProfile = async ({
   router.back();
 };
 
-export const confirmLogout = (signOut: () => void, log: any) => {
+export const confirmLogout = (signOut: () => void, log: LoggerProps) => {
   return () => {
     Alert.alert(
       "Sign Out",

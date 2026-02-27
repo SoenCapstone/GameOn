@@ -9,6 +9,8 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { useTeamDetail } from "@/hooks/use-team-detail";
 import { useAxiosWithClerk } from "@/hooks/use-axios-clerk";
 import { useAuth } from "@clerk/clerk-expo";
+import { AxiosInstance } from "axios";
+import { JwtPayload } from "@clerk/types";
 
 jest.mock("@/hooks/use-axios-clerk", () => ({
   useAxiosWithClerk: jest.fn(),
@@ -46,20 +48,33 @@ function createWrapper() {
 }
 
 describe("useTeamDetail", () => {
-  const mockApi = {
-    get: jest.fn(),
-    post: jest.fn(),
-    put: jest.fn(),
-    delete: jest.fn(),
-  };
+  let mockApi: jest.Mocked<AxiosInstance>;
 
   beforeEach(() => {
     jest.clearAllMocks();
-    mockedUseAxiosWithClerk.mockReturnValue(mockApi as any);
+    mockApi = {
+      get: jest.fn(),
+      post: jest.fn(),
+      put: jest.fn(),
+      delete: jest.fn(),
+      // ...other AxiosInstance methods if needed
+    } as unknown as jest.Mocked<AxiosInstance>;
+    mockedUseAxiosWithClerk.mockReturnValue(mockApi);
     mockedUseAuth.mockReturnValue({
       userId: "user-123",
-    } as any);
-    
+      isLoaded: true,
+      isSignedIn: true,
+      sessionId: "session-123",
+      sessionClaims: {} as JwtPayload,
+      actor: null,
+      orgId: "org-123",
+      orgRole: "member",
+      orgSlug: null,
+      has: jest.fn(),
+      signOut: jest.fn(),
+      getToken: jest.fn(),
+    });
+
     mockApi.get.mockImplementation((url: string) => {
       if (url.includes("memberships/me")) {
         return Promise.resolve({ data: null });
@@ -75,7 +90,10 @@ describe("useTeamDetail", () => {
     }
   });
 
-  function mockGetRequest(teamData: any, membershipData: any = null) {
+  function mockGetRequest(
+    teamData: Record<string, unknown>,
+    membershipData: Record<string, unknown> | null = null,
+  ) {
     mockApi.get.mockImplementation((url: string) => {
       if (url.includes("memberships/me")) {
         return Promise.resolve({ data: membershipData });
@@ -85,7 +103,11 @@ describe("useTeamDetail", () => {
   }
 
   it("returns initial loading state", async () => {
-    mockGetRequest({ id: "team-1", name: "Test Team", ownerUserId: "user-123" });
+    mockGetRequest({
+      id: "team-1",
+      name: "Test Team",
+      ownerUserId: "user-123",
+    });
 
     const { result } = renderHook(() => useTeamDetail("team-1"), {
       wrapper: createWrapper(),
@@ -99,13 +121,12 @@ describe("useTeamDetail", () => {
   });
 
   it("fetches team data successfully", async () => {
-    const teamData = {
+    const teamData: Record<string, unknown> = {
       id: "team-1",
       name: "Test Team",
       ownerUserId: "user-123",
       subtitle: "Soccer Team",
     };
-
     mockApi.get.mockResolvedValue({ data: teamData });
 
     const { result } = renderHook(() => useTeamDetail("team-1"), {
@@ -132,12 +153,11 @@ describe("useTeamDetail", () => {
   });
 
   it("determines isOwner correctly when user is owner", async () => {
-    const teamData = {
+    const teamData: Record<string, unknown> = {
       id: "team-1",
       name: "Test Team",
       ownerUserId: "user-123",
     };
-
     mockApi.get.mockResolvedValue({ data: teamData });
 
     const { result } = renderHook(() => useTeamDetail("team-1"), {
@@ -156,12 +176,11 @@ describe("useTeamDetail", () => {
   });
 
   it("determines isOwner correctly when user is not owner", async () => {
-    const teamData = {
+    const teamData: Record<string, unknown> = {
       id: "team-1",
       name: "Test Team",
       ownerUserId: "user-456",
     };
-
     mockApi.get.mockResolvedValue({ data: teamData });
 
     const { result } = renderHook(() => useTeamDetail("team-1"), {
@@ -176,11 +195,10 @@ describe("useTeamDetail", () => {
   });
 
   it("handles missing team name gracefully", async () => {
-    const teamData = {
+    const teamData: Record<string, unknown> = {
       id: "team-1",
       ownerUserId: "user-123",
     };
-
     mockApi.get.mockResolvedValue({ data: teamData });
 
     const { result } = renderHook(() => useTeamDetail("team-1"), {
@@ -225,12 +243,11 @@ describe("useTeamDetail", () => {
   });
 
   it("refreshes data when onRefresh is called", async () => {
-    const teamData = {
+    const teamData: Record<string, unknown> = {
       id: "team-1",
       name: "Test Team",
       ownerUserId: "user-123",
     };
-
     mockApi.get.mockResolvedValue({ data: teamData });
 
     const { result } = renderHook(() => useTeamDetail("team-1"), {
@@ -303,7 +320,18 @@ describe("useTeamDetail", () => {
   it("isOwner is false when userId is null", async () => {
     mockedUseAuth.mockReturnValue({
       userId: null,
-    } as any);
+      isLoaded: true,
+      isSignedIn: false,
+      sessionId: null,
+      sessionClaims: null,
+      actor: null,
+      orgId: null,
+      orgRole: null,
+      orgSlug: null,
+      has: jest.fn(),
+      signOut: jest.fn(),
+      getToken: jest.fn(),
+    });
 
     const teamData = {
       id: "team-1",
@@ -379,19 +407,17 @@ describe("useTeamDetail", () => {
   });
 
   it("returns isActiveMember as true when user is a team member", async () => {
-    const teamData = {
+    const teamData: Record<string, unknown> = {
       id: "team-1",
       name: "Test Team",
       ownerUserId: "user-456",
     };
-
-    const membershipData = {
+    const membershipData: Record<string, unknown> = {
       userId: "user-123",
       role: "PLAYER",
       status: "ACTIVE",
       joinedAt: "2024-01-15T10:00:00Z",
     };
-
     mockGetRequest(teamData, membershipData);
 
     const { result } = renderHook(() => useTeamDetail("team-1"), {
@@ -406,12 +432,11 @@ describe("useTeamDetail", () => {
   });
 
   it("returns isActiveMember as false when user is not a team member", async () => {
-    const teamData = {
+    const teamData: Record<string, unknown> = {
       id: "team-1",
       name: "Test Team",
       ownerUserId: "user-456",
     };
-
     mockGetRequest(teamData, null);
 
     const { result } = renderHook(() => useTeamDetail("team-1"), {

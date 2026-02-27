@@ -4,7 +4,9 @@ import { Post } from "@/components/board/post";
 import { BoardPost } from "@/components/board/board-types";
 import * as runtime from "@/utils/runtime";
 
-const runtimeAny = runtime as any;
+const runtimeAny = runtime as typeof runtime & {
+  __setExpoGo: (value: boolean) => void;
+};
 
 const mockShowActionSheet = jest.fn();
 
@@ -13,28 +15,46 @@ jest.mock("react-native", () => {
   const RN = jest.requireActual("react-native/jest/mock");
   return {
     ...RN,
-    View: ({ children, ...props }: any) =>
-      ReactMock.createElement("View", props, children),
-    Text: ({ children, ...props }: any) =>
-      ReactMock.createElement("Text", props, children),
+    View: ({
+      children,
+      ...props
+    }: {
+      children?: React.ReactNode;
+      [key: string]: unknown;
+    }) => ReactMock.createElement("View", props, children),
+    Text: ({
+      children,
+      ...props
+    }: {
+      children?: React.ReactNode;
+      [key: string]: unknown;
+    }) => ReactMock.createElement("Text", props, children),
     StyleSheet: {
-      create: (styles: any) => styles,
-      flatten: (style: any) => style,
+      create: (styles: Record<string, unknown>) => styles,
+      flatten: (style: unknown) => style,
     },
-    Pressable: ({ children, onLongPress, ref }: any) =>
+    Pressable: ({
+      children,
+      onLongPress,
+      ref,
+    }: {
+      children?: React.ReactNode;
+      onLongPress?: () => void;
+      ref?: React.Ref<unknown>;
+    }) =>
       ReactMock.createElement(
         "View",
         { testID: "pressable", onLongPress, ref },
         children,
       ),
-    findNodeHandle: (ref: any) => ref?.current ?? undefined,
+    findNodeHandle: (ref: { current?: unknown }) => ref?.current ?? undefined,
   };
 });
 
 jest.mock("expo-image", () => {
   const ReactMock = jest.requireActual("react");
   return {
-    Image: (props: any) =>
+    Image: (props: { [key: string]: unknown }) =>
       ReactMock.createElement("View", { testID: "expo-image", ...props }),
   };
 });
@@ -57,13 +77,23 @@ jest.mock("react-native-context-menu-view", () => {
   const ReactMock = jest.requireActual("react");
   return {
     __esModule: true,
-    default: ({ children, onPress, actions }: any) =>
+    default: ({
+      children,
+      onPress,
+      actions,
+    }: {
+      children?: React.ReactNode;
+      onPress?: (event: { nativeEvent: { name: string | undefined } }) => void;
+      actions?: { title: string }[];
+    }) =>
       ReactMock.createElement(
         "View",
         {
           testID: "context-menu",
           onPress: (actionName?: string) =>
-            onPress?.({ nativeEvent: { name: actionName || actions?.[0]?.title } }),
+            onPress?.({
+              nativeEvent: { name: actionName || actions?.[0]?.title },
+            }),
         },
         children,
       ),
@@ -73,7 +103,7 @@ jest.mock("react-native-context-menu-view", () => {
 jest.mock("@/components/ui/card", () => {
   const ReactMock = jest.requireActual("react");
   return {
-    Card: ({ children }: any) =>
+    Card: ({ children }: { children?: React.ReactNode }) =>
       ReactMock.createElement("View", { testID: "card" }, children),
   };
 });
