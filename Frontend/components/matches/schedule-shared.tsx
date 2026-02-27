@@ -4,24 +4,42 @@ import { Header } from "@/components/header/header";
 import { PageTitle } from "@/components/header/page-title";
 import { Button } from "@/components/ui/button";
 import { Form } from "@/components/form/form";
+import type { AxiosError } from "axios";
+import { NavigationProp, NavigationState } from "@react-navigation/native";
 
-export function getScheduleApiErrorMessage(err: any, forbiddenMessage: string) {
+export function getScheduleApiErrorMessage(
+  err: AxiosError<{ message?: string }> | undefined,
+  forbiddenMessage: string,
+) {
   const status = err?.response?.status;
-  const message = err?.response?.data?.message ?? "Could not schedule the match.";
+  const message =
+    err?.response?.data?.message ?? "Could not schedule the match.";
 
-  if (!err?.response) return { status: 0, message: "Network error. Please retry." };
+  if (!err?.response)
+    return { status: 0, message: "Network error. Please retry." };
   if (status === 403) return { status, message: forbiddenMessage };
   return { status, message };
 }
 
 export function useScheduleHeader(params: {
-  navigation: any;
+  navigation: Omit<
+    NavigationProp<ReactNavigation.RootParamList>,
+    "getState"
+  > & {
+    getState(): NavigationState | undefined;
+  };
   title?: string;
   onSubmit: () => void;
   isPending: boolean;
   isValid: boolean;
 }) {
-  const { navigation, title = "Schedule a Match", onSubmit, isPending, isValid } = params;
+  const {
+    navigation,
+    title = "Schedule a Match",
+    onSubmit,
+    isPending,
+    isValid,
+  } = params;
 
   useLayoutEffect(() => {
     navigation.setOptions({
@@ -105,7 +123,12 @@ export function MatchDetailsSection(props: {
         />
       </View>
 
-      <Form.Input label="Venue" placeholder="Optional" value={venue} onChangeText={onVenueChange} />
+      <Form.Input
+        label="Venue"
+        placeholder="Optional"
+        value={venue}
+        onChangeText={onVenueChange}
+      />
       <Form.Link label="Add Venue" onPress={onAddVenue} />
     </Form.Section>
   );

@@ -21,6 +21,7 @@ import {
   MatchDetailsSection,
   useScheduleHeader,
 } from "@/components/matches/schedule-shared";
+import { AxiosError } from "axios";
 
 const log = createScopedLog("Schedule League Match");
 
@@ -36,7 +37,9 @@ export default function ScheduleLeagueMatchScreen() {
   const [refereeUserId, setRefereeUserId] = useState("");
   const [date, setDate] = useState(new Date());
   const [startTimeValue, setStartTimeValue] = useState(new Date());
-  const [endTimeValue, setEndTimeValue] = useState(new Date(Date.now() + 60 * 60 * 1000));
+  const [endTimeValue, setEndTimeValue] = useState(
+    new Date(Date.now() + 60 * 60 * 1000),
+  );
   const [venue, setVenue] = useState("");
 
   useEffect(() => {
@@ -47,7 +50,10 @@ export default function ScheduleLeagueMatchScreen() {
 
   const { league } = useLeagueDetail(leagueId);
   const { data: leagueTeams = [] } = useLeagueTeams(leagueId);
-  const teamIds = useMemo(() => leagueTeams.map((item) => item.teamId), [leagueTeams]);
+  const teamIds = useMemo(
+    () => leagueTeams.map((item) => item.teamId),
+    [leagueTeams],
+  );
   const teamsQuery = useTeamsByIds(teamIds);
   const teams = useMemo(
     () =>
@@ -57,7 +63,10 @@ export default function ScheduleLeagueMatchScreen() {
     [teamIds, teamsQuery.data],
   );
 
-  const refereesQuery = useReferees({ active: true, sport: league?.sport ?? undefined });
+  const refereesQuery = useReferees({
+    active: true,
+    sport: league?.sport ?? undefined,
+  });
   const createMutation = useCreateLeagueMatch(leagueId);
 
   const teamNameToId = useMemo(
@@ -77,9 +86,8 @@ export default function ScheduleLeagueMatchScreen() {
       .filter((team) => team.id !== homeTeamId || team.id === awayTeamId)
       .map((team) => team.name);
   }, [awayTeamId, homeTeamId, teamOptions, teams]);
-  const { refereeOptions, refereeLabelToId, refereeIdToLabel } = useRefereeOptions(
-    refereesQuery.data,
-  );
+  const { refereeOptions, refereeLabelToId, refereeIdToLabel } =
+    useRefereeOptions(refereesQuery.data);
 
   useEffect(() => {
     if (teamsQuery.error) {
@@ -150,11 +158,16 @@ export default function ScheduleLeagueMatchScreen() {
         refereeUserId,
       });
 
-      await queryClient.invalidateQueries({ queryKey: ["league-matches", leagueId] });
+      await queryClient.invalidateQueries({
+        queryKey: ["league-matches", leagueId],
+      });
       toast("Match scheduled");
       router.replace(`/leagues/${leagueId}`);
-    } catch (err: any) {
-      const { status, message } = getScheduleApiErrorMessage(err, "You must be league admin");
+    } catch (err) {
+      const { status, message } = getScheduleApiErrorMessage(
+        err as AxiosError<{ message?: string }>,
+        "You must be league admin",
+      );
       toast(message);
       Alert.alert("Schedule failed", message);
       if (status === 0) {
@@ -194,10 +207,14 @@ export default function ScheduleLeagueMatchScreen() {
             <Form.Menu
               label="Home Team"
               options={homeTeamOptions}
-              value={teams.find((team) => team.id === homeTeamId)?.name ?? "Select"}
+              value={
+                teams.find((team) => team.id === homeTeamId)?.name ?? "Select"
+              }
               onValueChange={(value) => setHomeTeamId(teamNameToId[value])}
               disabled={
-                createMutation.isPending || teamsQuery.isLoading || teamOptions.length === 0
+                createMutation.isPending ||
+                teamsQuery.isLoading ||
+                teamOptions.length === 0
               }
             />
           </View>
@@ -206,10 +223,14 @@ export default function ScheduleLeagueMatchScreen() {
             <Form.Menu
               label="Away Team"
               options={awayTeamOptions}
-              value={teams.find((team) => team.id === awayTeamId)?.name ?? "Select"}
+              value={
+                teams.find((team) => team.id === awayTeamId)?.name ?? "Select"
+              }
               onValueChange={(value) => setAwayTeamId(teamNameToId[value])}
               disabled={
-                createMutation.isPending || teamsQuery.isLoading || teamOptions.length === 0
+                createMutation.isPending ||
+                teamsQuery.isLoading ||
+                teamOptions.length === 0
               }
             />
           </View>
@@ -225,10 +246,7 @@ export default function ScheduleLeagueMatchScreen() {
           onEndTimeChange={setEndTimeValue}
           onVenueChange={setVenue}
           onAddVenue={() =>
-            router.push({
-              pathname: "/leagues/[id]/matches/add-venue",
-              params: { id: leagueId },
-            })
+            router.push(`/leagues/${leagueId}/matches/add-venue`)
           }
         />
 
@@ -237,8 +255,14 @@ export default function ScheduleLeagueMatchScreen() {
             <Form.Menu
               label="Choose Referee"
               options={refereeOptions}
-              value={refereeUserId ? refereeIdToLabel[refereeUserId] ?? refereeUserId : "Select"}
-              onValueChange={(value) => setRefereeUserId(refereeLabelToId[value] ?? value)}
+              value={
+                refereeUserId
+                  ? (refereeIdToLabel[refereeUserId] ?? refereeUserId)
+                  : "Select"
+              }
+              onValueChange={(value) =>
+                setRefereeUserId(refereeLabelToId[value] ?? value)
+              }
               disabled={
                 createMutation.isPending ||
                 refereesQuery.isLoading ||
