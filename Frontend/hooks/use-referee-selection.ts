@@ -1,48 +1,27 @@
-import { useState, useEffect, useCallback } from "react";
-import { useAxiosWithClerk } from "@/hooks/use-axios-clerk";
-import { createScopedLog } from "@/utils/logger";
-import { errorToString } from "@/utils/error";
+import { useState, useCallback } from "react";
 
 interface UseRefereeSelectionParams {
-  fetchRoute: string;
-  updateRoute: string;
-  fieldKey: string;
+  initialItems: string[];
+  onSave: (items: string[]) => Promise<void>;
 }
 
-const log = createScopedLog("Use Referee Selection");
-
-export function useRefereeSelection({ fetchRoute, updateRoute, fieldKey }: UseRefereeSelectionParams) {
-  const axios = useAxiosWithClerk();
-  const [selectedItems, setSelectedItems] = useState<string[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [initialized, setInitialized] = useState(false);
-
-  useEffect(() => {
-  const fetchData = async () => {
-    try {
-      const response = await axios.get(fetchRoute);
-      if (!initialized) {
-          setSelectedItems(response.data[fieldKey] || []);
-          setInitialized(true);
-        }
-    } catch (error) {
-      log.error(`Failed to load ${fieldKey}:`, errorToString(error));
-    } finally {
-      setLoading(false);
-    }
-  };
-  fetchData();
-}, [axios, fetchRoute, fieldKey, initialized]);
-
+export function useRefereeSelection({
+  initialItems,
+  onSave,
+}: UseRefereeSelectionParams) {
+  const [selectedItems, setSelectedItems] = useState<string[]>(initialItems);
+  const [saving, setSaving] = useState(false);
 
   const canSave = selectedItems.length > 0;
 
   const saveItems = useCallback(async () => {
-    if (!canSave) {
-      throw new Error(`Select at least one ${fieldKey}`);
+    setSaving(true);
+    try {
+      await onSave(selectedItems);
+    } finally {
+      setSaving(false);
     }
-    await axios.put(updateRoute, { [fieldKey]: selectedItems });
-  }, [axios, selectedItems, updateRoute, fieldKey, canSave]);
+  }, [onSave, selectedItems]);
 
-  return { selectedItems, setSelectedItems, saveItems, loading, canSave };
+  return { selectedItems, setSelectedItems, saveItems, saving, canSave };
 }
