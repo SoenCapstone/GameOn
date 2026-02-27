@@ -12,7 +12,6 @@ jest.mock("expo-blur", () => ({}));
 
 // Mock Form.DateTime, Form.Section, Form.Input, Form.Link to avoid undefined errors
 jest.mock("@/components/form/form", () => {
-  const React = jest.requireActual("react");
   const { View } = jest.requireActual("react-native");
   return {
     Form: {
