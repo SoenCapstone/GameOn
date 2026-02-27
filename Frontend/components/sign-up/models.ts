@@ -17,11 +17,11 @@ export type LabeledInputProps = {
   value?: string;
   onChangeText: (t: string) => void;
   onBlur?: () => void;
-  keyboardType?: any;
+  keyboardType?: "default" | "email-address" | "numeric" | "phone-pad" | "number-pad" | "decimal-pad";
   autoCapitalize?: "none" | "sentences" | "words" | "characters";
   secureTextEntry?: boolean;
   rightIcon?: React.ReactNode;
-  error?: any;
+  error?: string;
   style?: StyleProp<ViewStyle>;
 };
 
@@ -30,9 +30,17 @@ export type SignUpInputLabel = {
   placeholder: string;
   field: string;
   autoCapitalize?: "none" | "sentences" | "words" | "characters";
-  keyboardType?: any;
+  keyboardType?: "default" | "email-address" | "numeric" | "phone-pad" | "number-pad" | "decimal-pad";
   secureTextEntry?: boolean;
-  rightIcon?: any;
+  rightIcon?: boolean;
 };
 
-export type SetActiveFn = (params: { session: string }) => Promise<void>;
+export type UpsertUserMutation = {
+  mutateAsync: (payload: {
+    id: string;
+    email: string;
+    firstname: string;
+    lastname: string;
+  }) => Promise<void>;
+  isPending?: boolean;
+};

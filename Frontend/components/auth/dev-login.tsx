@@ -4,6 +4,10 @@ import { useSignIn } from "@clerk/clerk-expo";
 import { login } from "@/components/sign-in/utils";
 import { initialSignInValue } from "@/components/sign-in/constants";
 import { styles } from "@/components/sign-in/styles";
+import { createScopedLog } from "@/utils/logger";
+import { errorToString } from "@/utils/error";
+
+const log = createScopedLog("Dev Login");
 
 export const DevTools = () => {
   const { signIn, setActive, isLoaded } = useSignIn();
@@ -17,7 +21,7 @@ export const DevTools = () => {
     if (!email || !password) {
       const msg =
         "Dev login blocked: Missing EXPO_PUBLIC_DEV_LOGIN_EMAIL or EXPO_PUBLIC_DEV_LOGIN_PASSWORD in your .env file.";
-      console.warn(msg);
+      log.warn(msg);
       Alert.alert("Dev Login Error", msg);
       return;
     }
@@ -31,7 +35,7 @@ export const DevTools = () => {
     try {
       await login(values, signIn, setActive, isLoaded);
     } catch (e) {
-      console.error("Dev login failed:", e);
+      log.error("Dev login failed:", errorToString(e));
     }
   };
 

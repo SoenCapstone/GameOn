@@ -6,6 +6,10 @@ import { Header } from "@/components/header/header";
 import { PageTitle } from "@/components/header/page-title";
 import { Button } from "@/components/ui/button";
 import { useRouter, useNavigation } from "expo-router";
+import { createScopedLog } from "@/utils/logger";
+import { errorToString } from "@/utils/error";
+
+const log =createScopedLog("Referee Selection Page");
 
 interface RefereeSelectionPageProps {
   readonly title: string;
@@ -41,7 +45,7 @@ export default function RefereeSelectionPage(
       await saveItems();
       router.back();
     } catch (error) {
-      console.error(`Failed to update ${title.toLowerCase()}:`, error);
+      log.error(`Failed to update ${title.toLowerCase()}:`, errorToString(error));
       alert(`Failed to update ${title.toLowerCase()}`);
     }
   }, [canSave, saveItems, router, title]);
