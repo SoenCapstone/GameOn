@@ -6,22 +6,22 @@ import * as runtime from "@/utils/runtime";
 
 jest.mock("expo-blur", () => {
   const ReactMock = jest.requireActual("react");
-  const { View } = require("react-native");
+  const { View } = jest.requireActual("react-native");
   return {
-    BlurView: ({ children, ...props }: any) =>
-      ReactMock.createElement(View, props, children),
+      BlurView: ({ children, ...props }: { children?: React.ReactNode; [key: string]: unknown }) =>
+        ReactMock.createElement(View, props, children),
   };
 });
 
 jest.mock("@expo/ui/swift-ui", () => {
   const ReactMock = jest.requireActual("react");
-  const { View } = require("react-native");
+  const { View } = jest.requireActual("react-native");
   return {
-    Host: ({ children, ...props }: any) =>
-      ReactMock.createElement(View, props, children),
-    ColorPicker: jest.fn((props: any) =>
-      ReactMock.createElement(View, { testID: "color-picker", ...props }),
-    ),
+      Host: ({ children, ...props }: { children?: React.ReactNode; [key: string]: unknown }) =>
+        ReactMock.createElement(View, props, children),
+      ColorPicker: jest.fn((props: { value: string; supportsOpacity?: boolean }) =>
+        ReactMock.createElement(View, { testID: "color-picker", ...props }),
+      ),
   };
 });
 
@@ -37,7 +37,7 @@ jest.mock("@/utils/runtime", () => {
   };
 });
 
-const runtimeAny = runtime as any;
+const runtimeAny = runtime as typeof runtime & { __setExpoGo: (value: boolean) => void };
 
 describe("ColorItem", () => {
   beforeEach(() => {
@@ -60,7 +60,7 @@ describe("ColorItem", () => {
 
   it("renders ColorPicker branch outside Expo Go", () => {
     runtimeAny.__setExpoGo(false);
-    render(<ColorItem {...({ label: "Color", value: "#00FF00" } as any)} />);
+    render(<ColorItem label="Color" value="#00FF00" />);
 
     const call = (ColorPicker as jest.Mock).mock.calls[0][0];
     expect(call.value).toBe("#00FF00");

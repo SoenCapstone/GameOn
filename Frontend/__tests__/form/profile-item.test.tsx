@@ -5,9 +5,9 @@ import { BlurView } from "expo-blur";
 
 jest.mock("expo-blur", () => {
   const ReactMock = jest.requireActual("react");
-  const { View } = require("react-native");
+  const { View } = jest.requireActual("react-native");
   return {
-    BlurView: jest.fn(({ children, ...props }: any) =>
+    BlurView: jest.fn(({ children, ...props }: { children?: React.ReactNode; [key: string]: unknown }) =>
       ReactMock.createElement(View, props, children),
     ),
   };
@@ -15,10 +15,11 @@ jest.mock("expo-blur", () => {
 
 jest.mock("expo-image", () => {
   const ReactMock = jest.requireActual("react");
-  const { View } = require("react-native");
+  const { View } = jest.requireActual("react-native");
   return {
-    Image: (props: any) =>
+    Image: jest.fn((props: { [key: string]: unknown }) =>
       ReactMock.createElement(View, { testID: "expo-image", ...props }),
+    ),
   };
 });
 

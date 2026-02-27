@@ -82,7 +82,7 @@ describe("fetchTeamResults", () => {
     const fakeApi = {
       get: mockedAxios.get,
       defaults: { headers: { common: {} } },
-    } as any;
+    } as unknown as import("axios").AxiosInstance;
     const results = await fetchTeamResults(fakeApi, "Test");
     expect(results.items).toHaveLength(1);
     expect(results.items[0]).toMatchObject({
@@ -99,7 +99,7 @@ describe("fetchTeamResults", () => {
     const fakeApi = {
       get: mockedAxios.get,
       defaults: { headers: { common: {} } },
-    } as any;
+    } as unknown as import("axios").AxiosInstance;
     await fetchTeamResults(fakeApi, "", true);
     const callArgs = mockedAxios.get.mock.calls[0];
     expect(callArgs[1]!.params).toMatchObject({ size: "50", my: true });
@@ -110,7 +110,7 @@ describe("fetchTeamResults", () => {
     const fakeApi = {
       get: mockedAxios.get,
       defaults: { headers: { common: {} } },
-    } as any;
+    } as unknown as import("axios").AxiosInstance;
     await fetchTeamResults(fakeApi, "Test", false, "Basketball");
     const callArgs = mockedAxios.get.mock.calls[0];
     expect(callArgs[1]!.params).toMatchObject({
@@ -125,7 +125,7 @@ describe("fetchTeamResults", () => {
     const fakeApi = {
       get: mockedAxios.get,
       defaults: { headers: { common: {} } },
-    } as any;
+    } as unknown as import("axios").AxiosInstance;
 
     await expect(fetchTeamResults(fakeApi, "fail")).rejects.toThrow("boom");
     const logMock = createScopedLog as jest.MockedFunction<
@@ -170,7 +170,7 @@ describe("fetchLeagueResults", () => {
     const fakeApi = {
       get: mockedAxios.get,
       defaults: { headers: { common: {} } },
-    } as any;
+    } as unknown as import("axios").AxiosInstance;
     await fetchLeagueResults(fakeApi, "League", true);
     const callArgs = mockedAxios.get.mock.calls[0];
     expect(callArgs[1]!.params).toMatchObject({
@@ -185,7 +185,7 @@ describe("fetchLeagueResults", () => {
     const fakeApi = {
       get: mockedAxios.get,
       defaults: { headers: { common: {} } },
-    } as any;
+    } as unknown as import("axios").AxiosInstance;
 
     await expect(fetchLeagueResults(fakeApi, "fail")).rejects.toThrow(
       "league error",

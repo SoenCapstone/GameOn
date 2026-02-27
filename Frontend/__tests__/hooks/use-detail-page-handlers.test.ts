@@ -63,7 +63,7 @@ describe("useDetailPageHandlers", () => {
 
       const alertCall = (Alert.alert as jest.Mock).mock.calls[0];
       const deleteButton = alertCall[2].find(
-        (btn: any) => btn.text === "Delete",
+        (btn: { text: string; style?: string; onPress?: () => void }) => btn.text === "Delete",
       );
 
       await act(async () => {
@@ -87,7 +87,7 @@ describe("useDetailPageHandlers", () => {
 
       const alertCall = (Alert.alert as jest.Mock).mock.calls[0];
       const deleteButton = alertCall[2].find(
-        (btn: any) => btn.text === "Delete",
+        (btn: { text: string; style?: string; onPress?: () => void }) => btn.text === "Delete",
       );
 
       await act(async () => {

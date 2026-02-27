@@ -1,8 +1,9 @@
 import React from "react";
 import { render } from "@testing-library/react-native";
-import { ClearShapesButton } from "../../components/play-maker/clear-shapes-button";
+import { ClearShapesButton } from "@/components/play-maker/clear-shapes-button";
+import { Shape } from "@/components/play-maker/model";
 
-jest.mock("../../components/play-maker/play-maker-icon/icon-container", () => ({
+jest.mock("@/components/play-maker/play-maker-icon/icon-container", () => ({
   IconContainer: () => null,
 }));
 
@@ -28,7 +29,7 @@ describe("ClearShapesButton", () => {
 
   it("renders labels and triggers config onPress for each button", () => {
     const setShapes = jest.fn();
-    const shapes = [{ id: "s1" }] as any;
+    const shapes = [{ id: "s1" }] as Shape[];
     const selectedShapeId = "s1";
 
     const { getByText } = render(

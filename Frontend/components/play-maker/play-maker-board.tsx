@@ -1,6 +1,6 @@
 import { View, StyleSheet, Pressable } from "react-native";
-import { PlayMakerBoardProps } from "./model";
-import { DefaultBoard } from "./play-maker-board-configurations/play-maker-default-board";
+import { PlayMakerBoardProps } from "@/components/play-maker/model";
+import { DefaultBoard } from "@/components/play-maker/play-maker-board-configurations/play-maker-default-board";
 
 export const PlayMakerBoard = ({
   onBoardPress,

@@ -6,9 +6,9 @@ import { Image } from "expo-image";
 
 jest.mock("expo-glass-effect", () => {
   const ReactMock = jest.requireActual("react");
-  const { View } = require("react-native");
+  const { View } = jest.requireActual("react-native");
   return {
-    GlassView: jest.fn(({ children, ...props }: any) =>
+    GlassView: jest.fn(({ children, ...props }: { children?: React.ReactNode; [key: string]: unknown }) =>
       ReactMock.createElement(View, props, children),
     ),
   };
@@ -16,9 +16,9 @@ jest.mock("expo-glass-effect", () => {
 
 jest.mock("expo-image", () => {
   const ReactMock = jest.requireActual("react");
-  const { View } = require("react-native");
+  const { View } = jest.requireActual("react-native");
   return {
-    Image: jest.fn((props: any) =>
+    Image: jest.fn((props: { [key: string]: unknown }) =>
       ReactMock.createElement(View, { testID: "expo-image", ...props }),
     ),
   };
@@ -38,12 +38,12 @@ describe("ImageItem", () => {
     const glassCall = (GlassView as jest.Mock).mock.calls[0][0];
     expect(glassCall.isInteractive).toBe(true);
 
-    const imageCall = (Image as jest.Mock).mock.calls[0][0];
+    const imageCall = (Image as unknown as jest.Mock).mock.calls[0][0];
     expect(imageCall.style.width).toBe(160);
     expect(imageCall.style.height).toBe(160);
 
     const pressable = UNSAFE_root.find(
-      (node) => typeof node.props.onPress === "function",
+      (node: { props: { onPress?: unknown } }) => typeof node.props.onPress === "function",
     );
     fireEvent.press(pressable);
     expect(onPress).toHaveBeenCalledTimes(1);
@@ -52,7 +52,7 @@ describe("ImageItem", () => {
   it("uses logo image sizing when logo is true", () => {
     render(<ImageItem image={{ uri: "https://example.com/logo.png" }} logo={true} />);
 
-    const imageCall = (Image as jest.Mock).mock.calls[0][0];
+    const imageCall = (Image as unknown as jest.Mock).mock.calls[0][0];
     expect(imageCall.style.width).toBe(110);
     expect(imageCall.style.height).toBe(110);
   });

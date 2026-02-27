@@ -2,6 +2,7 @@ import {
   fetchUserNameMap,
   mapToFrontendPost,
 } from "@/components/board/board-utils";
+import { AxiosInstance } from "axios";
 
 jest.mock("@/hooks/use-axios-clerk", () => ({
   GO_USER_SERVICE_ROUTES: {
@@ -37,12 +38,14 @@ describe("board-utils", () => {
           }
           return Promise.reject(new Error("Unknown URL"));
         }),
-      } as any;
+      } as {
+        get: (url: string) => Promise<{ data: { firstname: string; lastname: string; email?: string } | null }> | Promise<never>;
+      };
 
       const log = { error: jest.fn() };
 
       const result = await fetchUserNameMap(
-        api,
+        api as unknown as AxiosInstance,
         ["user-1", "user-2", "user-3", "user-4", "user-5"],
         log,
       );

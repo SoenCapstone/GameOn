@@ -8,12 +8,12 @@ jest.mock("react-native-context-menu-view", () => {
   const { View: MockView } = jest.requireActual("react-native");
   return {
     __esModule: true,
-    default: ({ children, ...props }: any) =>
+    default: ({ children, ...props }: { children?: React.ReactNode; [key: string]: unknown }) =>
       mockReact.createElement(MockView, props, children),
   };
 });
 
-const mockPost = jest.fn((props: any) => {
+const mockPost = jest.fn((props: { post: BoardPost; [key: string]: unknown }) => {
   const { post } = props;
   return React.createElement(
     "Text",
@@ -25,7 +25,7 @@ const mockPost = jest.fn((props: any) => {
 });
 
 jest.mock("@/components/board/post", () => ({
-  Post: (props: any) => mockPost(props),
+  Post: (props: { post: BoardPost; [key: string]: unknown }) => mockPost(props),
 }));
 
 jest.mock("@legendapp/list", () => {
@@ -37,9 +37,15 @@ jest.mock("@legendapp/list", () => {
       keyExtractor,
       ListEmptyComponent,
       onContentSizeChange,
-    }: any) => {
+    }: {
+      data: unknown[];
+      renderItem: (args: { item: unknown; index: number }) => React.ReactElement;
+      keyExtractor?: (item: unknown, index: number) => string | number;
+      ListEmptyComponent?: React.ReactElement;
+      onContentSizeChange?: () => void;
+    }) => {
       const items = data?.length
-        ? data.map((item: any, index: number) => {
+        ? data.map((item, index) => {
             const key = keyExtractor ? keyExtractor(item, index) : index;
             return mockReact.cloneElement(renderItem({ item, index }), { key });
           })
@@ -60,7 +66,7 @@ jest.mock("@legendapp/list", () => {
 jest.mock("expo-glass-effect", () => {
   const mockReact = jest.requireActual("react");
   return {
-    GlassView: ({ children }: any) => {
+    GlassView: ({ children }: { children?: React.ReactNode }) => {
       return mockReact.createElement("View", null, children);
     },
   };

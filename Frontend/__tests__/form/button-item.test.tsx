@@ -6,10 +6,10 @@ import { IconSymbol } from "@/components/ui/icon-symbol";
 
 jest.mock("expo-blur", () => {
   const ReactMock = jest.requireActual("react");
-  const { View } = require("react-native");
+  const { View } = jest.requireActual("react-native");
   return {
-    BlurView: ({ children, ...props }: any) =>
-      ReactMock.createElement(View, props, children),
+      BlurView: ({ children, ...props }: { children?: React.ReactNode; [key: string]: unknown }) =>
+        ReactMock.createElement(View, props, children),
   };
 });
 
@@ -44,7 +44,7 @@ describe("ButtonItem", () => {
 
   it("renders icon variant with explicit color", () => {
     render(
-      <ButtonItem icon={"star.fill" as any} color="#FF5500" onPress={jest.fn()} />,
+      <ButtonItem icon="star.fill" color="#FF5500" onPress={jest.fn()} />,
     );
 
     const call = (IconSymbol as jest.Mock).mock.calls[0][0];

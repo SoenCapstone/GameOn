@@ -7,7 +7,7 @@ jest.mock("expo-glass-effect", () => {
   const React = jest.requireActual("react");
   const { View } = jest.requireActual("react-native");
   return {
-    GlassView: ({ children, ...props }: any) =>
+    GlassView: ({ children, ...props }: { children: React.ReactNode; [key: string]: unknown }) =>
       React.createElement(View, props, children),
   };
 });

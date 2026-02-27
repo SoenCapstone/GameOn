@@ -7,17 +7,17 @@ import { LinearGradient } from "expo-linear-gradient";
 
 jest.mock("@react-native-masked-view/masked-view", () => {
   const ReactMock = jest.requireActual("react");
-  const { View } = require("react-native");
-  return jest.fn(({ children, ...props }: any) =>
+  const { View } = jest.requireActual("react-native");
+  return jest.fn(({ children, ...props }: { children: React.ReactNode; [key: string]: unknown }) =>
     ReactMock.createElement(View, props, children),
   );
 });
 
 jest.mock("expo-blur", () => {
   const ReactMock = jest.requireActual("react");
-  const { View } = require("react-native");
+  const { View } = jest.requireActual("react-native");
   return {
-    BlurView: jest.fn((props: any) =>
+    BlurView: jest.fn((props: Record<string, unknown>) =>
       ReactMock.createElement(View, { testID: "blur-view", ...props }),
     ),
   };
@@ -25,9 +25,9 @@ jest.mock("expo-blur", () => {
 
 jest.mock("expo-linear-gradient", () => {
   const ReactMock = jest.requireActual("react");
-  const { View } = require("react-native");
+  const { View } = jest.requireActual("react-native");
   return {
-    LinearGradient: jest.fn((props: any) =>
+    LinearGradient: jest.fn((props: Record<string, unknown>) =>
       ReactMock.createElement(View, { testID: "linear-gradient", ...props }),
     ),
   };

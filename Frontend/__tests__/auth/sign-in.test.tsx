@@ -1,11 +1,11 @@
 import React from "react";
 import { render, fireEvent, waitFor } from "@testing-library/react-native";
 import { mockAlert, setupAuthTestHooks } from "@/__tests__/auth/auth-test-setup";
-
+import SignInScreen from "@/app/(auth)/sign-in";
 jest.mock("react-native-keyboard-controller", () => {
-  const { ScrollView } = require("react-native");
+  const { ScrollView } = jest.requireActual("react-native");
   return {
-    KeyboardAwareScrollView: ({ children, ...props }: any) => (
+    KeyboardAwareScrollView: ({ children, ...props }: React.PropsWithChildren<Record<string, unknown>>) => (
       <ScrollView {...props}>{children}</ScrollView>
     ),
   };
@@ -42,8 +42,6 @@ jest.mock("@/components/sign-in/styles", () => ({
     metaLink: {},
   },
 }));
-
-import SignInScreen from "@/app/(auth)/sign-in";
 
 describe("SignInScreen", () => {
   setupAuthTestHooks();

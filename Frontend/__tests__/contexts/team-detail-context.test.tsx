@@ -30,7 +30,7 @@ describe("TeamDetailProvider", () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
-    mockUseTeamDetail.mockReturnValue(mockTeamDetail as any);
+    mockUseTeamDetail.mockReturnValue(mockTeamDetail as unknown as ReturnType<typeof useTeamDetail>);
   });
 
   it("calls useTeamDetail with provided id and provides all properties", () => {
@@ -70,7 +70,7 @@ describe("TeamDetailProvider", () => {
       handleFollow: jest.fn(),
       title: "Updated Team",
       isOwner: false,
-    } as any);
+    } as unknown as ReturnType<typeof useTeamDetail>);
 
     rerender({});
 
@@ -86,7 +86,7 @@ describe("TeamDetailProvider", () => {
       handleFollow: jest.fn(),
       title: "Team",
       isOwner: false,
-    } as any);
+    } as unknown as ReturnType<typeof useTeamDetail>);
 
     const { result } = renderHook(
       () => useTeamDetailContext(),
@@ -110,7 +110,7 @@ describe("TeamDetailProvider", () => {
       handleFollow: jest.fn(),
       title: "Team",
       isOwner: false,
-    } as any);
+    } as unknown as ReturnType<typeof useTeamDetail>);
 
     const { result } = renderHook(
       () => useTeamDetailContext(),
@@ -142,7 +142,7 @@ describe("useTeamDetailContext", () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
-    mockUseTeamDetail.mockReturnValue(mockTeamDetail as any);
+    mockUseTeamDetail.mockReturnValue(mockTeamDetail as unknown as ReturnType<typeof useTeamDetail>);
   });
 
   it("returns context value when used inside provider", () => {
@@ -179,7 +179,6 @@ describe("useTeamDetailContext", () => {
         name: "Complex Team",
         sport: "Soccer",
         location: "Toronto",
-        members: ["user1", "user2"],
       },
       isLoading: false,
       refreshing: false,
@@ -189,7 +188,7 @@ describe("useTeamDetailContext", () => {
       isOwner: false,
     };
 
-    mockUseTeamDetail.mockReturnValue(complexTeamData as any);
+    mockUseTeamDetail.mockReturnValue(complexTeamData as unknown as ReturnType<typeof useTeamDetail>);
 
     const { result } = renderHook(
       () => useTeamDetailContext(),
@@ -201,6 +200,5 @@ describe("useTeamDetailContext", () => {
     );
 
     expect(result.current.team).toEqual(complexTeamData.team);
-    expect(result.current.team?.members).toHaveLength(2);
   });
 });

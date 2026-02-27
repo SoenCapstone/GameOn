@@ -1,11 +1,11 @@
 import { render, fireEvent } from "@testing-library/react-native";
-import { ShapesTab } from "../../components/play-maker/shapes-tab";
+import { ShapesTab } from "@/components/play-maker/shapes-tab";
 
-jest.mock("../../components/play-maker/play-maker-icon/icon-container", () => ({
+jest.mock("@/components/play-maker/play-maker-icon/icon-container", () => ({
   IconContainer: () => null,
 }));
 
-jest.mock("../../components/play-maker/model", () => ({
+jest.mock("@/components/play-maker/model", () => ({
   SELECT_SHAPE_BUTTON_CONFIG: [
     { tool: "person", size: 24, xml: "<svg/>" },
     { tool: "arrow", size: 24, xml: "<svg/>" },
@@ -21,7 +21,7 @@ describe("ShapesTab", () => {
     const onSelectTool = jest.fn();
 
     const { getByText } = render(
-      <ShapesTab selectedTool={"person" as any} onSelectTool={onSelectTool} />
+      <ShapesTab selectedTool={"person"} onSelectTool={onSelectTool} />
     );
 
     expect(getByText("person")).toBeTruthy();
@@ -32,7 +32,7 @@ describe("ShapesTab", () => {
     const onSelectTool = jest.fn();
 
     const { getByTestId } = render(
-      <ShapesTab selectedTool={"person" as any} onSelectTool={onSelectTool} />
+      <ShapesTab selectedTool={"person"} onSelectTool={onSelectTool} />
     );
 
     fireEvent.press(getByTestId("shape-tool-arrow"));

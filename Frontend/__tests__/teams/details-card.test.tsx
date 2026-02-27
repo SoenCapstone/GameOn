@@ -1,6 +1,7 @@
 import React from "react";
 import { render, fireEvent } from "@testing-library/react-native";
 import { TeamDetailsCard } from "@/components/teams/details-card";
+import { ViewStyle } from "react-native";
 
 describe("TeamDetailsCard", () => {
   let mockOnOpenPicker: jest.Mock;
@@ -241,7 +242,7 @@ describe("TeamDetailsCard", () => {
     );
 
     getByText("Sports").parent?.parent?.children.find(
-      (child: any) => child.props.style === undefined || Array.isArray(child.props.style)
+      (child: { props: { style?: ViewStyle } }) => child.props.style === undefined || Array.isArray(child.props.style)
     );
     
     expect(getByText("Sports")).toBeTruthy();

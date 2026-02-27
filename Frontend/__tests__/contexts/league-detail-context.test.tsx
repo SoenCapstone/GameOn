@@ -30,7 +30,7 @@ describe("LeagueDetailProvider", () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
-    mockUseLeagueDetail.mockReturnValue(mockLeagueDetail as any);
+    mockUseLeagueDetail.mockReturnValue(mockLeagueDetail as unknown as ReturnType<typeof useLeagueDetail>);
   });
 
   it("calls useLeagueDetail with provided id", () => {
@@ -82,7 +82,7 @@ describe("LeagueDetailProvider", () => {
       handleFollow: jest.fn(),
       title: "Updated League",
       isOwner: false,
-    } as any);
+    } as unknown as ReturnType<typeof useLeagueDetail>);
 
     rerender({});
 
@@ -98,7 +98,7 @@ describe("LeagueDetailProvider", () => {
       handleFollow: jest.fn(),
       title: "League",
       isOwner: false,
-    } as any);
+    } as unknown as ReturnType<typeof useLeagueDetail>);
 
     const { result } = renderHook(
       () => useLeagueDetailContext(),
@@ -122,7 +122,7 @@ describe("LeagueDetailProvider", () => {
       handleFollow: jest.fn(),
       title: "League",
       isOwner: false,
-    } as any);
+    } as unknown as ReturnType<typeof useLeagueDetail>);
 
     const { result } = renderHook(
       () => useLeagueDetailContext(),
@@ -154,7 +154,7 @@ describe("useLeagueDetailContext", () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
-    mockUseLeagueDetail.mockReturnValue(mockLeagueDetail as any);
+    mockUseLeagueDetail.mockReturnValue(mockLeagueDetail as unknown as ReturnType<typeof useLeagueDetail>);
   });
 
   it("returns context value when used inside provider", () => {
@@ -201,7 +201,7 @@ describe("useLeagueDetailContext", () => {
       isOwner: false,
     };
 
-    mockUseLeagueDetail.mockReturnValue(complexLeagueData as any);
+    mockUseLeagueDetail.mockReturnValue(complexLeagueData as unknown as ReturnType<typeof useLeagueDetail>);
 
     const { result } = renderHook(
       () => useLeagueDetailContext(),

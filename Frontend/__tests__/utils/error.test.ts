@@ -12,7 +12,7 @@ describe("errorToString", () => {
         status: 401,
         statusText: "Unauthorized",
       },
-    } as any;
+    } as unknown;
     expect(errorToString(err)).toBe("Request failed: Not allowed");
   });
 
@@ -23,7 +23,7 @@ describe("errorToString", () => {
         status: 500,
         statusText: "Server Error",
       },
-    } as any;
+    } as unknown;
     expect(errorToString(err)).toBe("Request failed: Server Error");
   });
 
@@ -43,7 +43,7 @@ describe("errorToString", () => {
 
   it("returns String(err) when Error has empty message", () => {
     const e = new Error("Error");
-    const out = errorToString(e);
+    const out = errorToString(e as unknown);
     expect(out).toBe("Error");
   });
 
@@ -53,7 +53,7 @@ describe("errorToString", () => {
         data: { error: "invalid_grant" },
         status: 400,
       },
-    } as any;
+    } as unknown;
     expect(errorToString(err)).toBe("Request failed: invalid_grant");
   });
 
@@ -62,7 +62,7 @@ describe("errorToString", () => {
       response: {
         data: { error_description: "bad credentials" },
       },
-    } as any;
+    } as unknown;
     expect(errorToString(err)).toBe("Request failed: bad credentials");
   });
 
@@ -72,17 +72,17 @@ describe("errorToString", () => {
         data: {},
         status: 404,
       },
-    } as any;
+    } as unknown;
     expect(errorToString(err)).toBe("Request failed: 404");
   });
 
   it("serializes non-string message objects via JSON.stringify", () => {
-    const err = { message: { foo: 1 } } as any;
+    const err = { message: { foo: 1 } } as unknown;
     expect(errorToString(err)).toBe(JSON.stringify(err));
   });
 
   it("falls back to String(err) when JSON.stringify fails (circular)", () => {
-    const a: any = { foo: 1 };
+    const a: Record<string, unknown> = { foo: 1 };
     a.self = a;
     const out = errorToString(a);
     expect(out).toBe(String(a));

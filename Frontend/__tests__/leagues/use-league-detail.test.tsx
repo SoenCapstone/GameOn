@@ -9,6 +9,8 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { useLeagueDetail } from "@/hooks/use-league-detail";
 import { useAxiosWithClerk } from "@/hooks/use-axios-clerk";
 import { useAuth } from "@clerk/clerk-expo";
+import { AxiosInstance } from "axios";
+import type { JwtPayload } from "@clerk/types";
 
 jest.mock("@/hooks/use-axios-clerk", () => ({
   useAxiosWithClerk: jest.fn(),
@@ -20,15 +22,6 @@ jest.mock("@/hooks/use-axios-clerk", () => ({
 
 jest.mock("@clerk/clerk-expo", () => ({
   useAuth: jest.fn(),
-}));
-
-jest.mock("@/utils/logger", () => ({
-  createScopedLog: jest.fn(() => ({
-    error: jest.fn(),
-    info: jest.fn(),
-    warn: jest.fn(),
-    debug: jest.fn(),
-  })),
 }));
 
 const mockedUseAxiosWithClerk = useAxiosWithClerk as jest.MockedFunction<
@@ -52,7 +45,7 @@ function createQueryClient() {
 function createWrapper() {
   queryClient = createQueryClient();
 
-  return function Wrapper({ children }: PropsWithChildren) {
+  return function Wrapper({ children }: PropsWithChildren<Record<string, unknown>>) {
     return (
       <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
     );
@@ -69,10 +62,21 @@ describe("useLeagueDetail", () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
-    mockedUseAxiosWithClerk.mockReturnValue(mockApi as any);
+    mockedUseAxiosWithClerk.mockReturnValue(mockApi as unknown as AxiosInstance);
     mockedUseAuth.mockReturnValue({
+      isLoaded: true,
+      isSignedIn: true,
       userId: "user-123",
-    } as any);
+      sessionId: "session-123",
+      sessionClaims: {} as JwtPayload,
+      actor: null,
+      orgId: "org-123",
+      orgRole: "role-123",
+      orgSlug: null,
+      has: jest.fn(),
+      signOut: jest.fn(),
+      getToken: jest.fn(),
+    });
     
     mockApi.get.mockImplementation((url: string) => {
       if (url.includes("memberships/me")) {
@@ -89,7 +93,10 @@ describe("useLeagueDetail", () => {
     }
   });
 
-  function mockGetRequest(leagueData: any, teamsData: any = []) {
+  function mockGetRequest(
+    leagueData: Record<string, unknown>,
+    teamsData: Record<string, unknown>[] = [],
+  ) {
     mockApi.get.mockImplementation((url: string) => {
       if (url.includes("memberships/me")) {
         return Promise.resolve({ data: teamsData });
@@ -319,8 +326,19 @@ describe("useLeagueDetail", () => {
 
   it("isOwner is false when userId is null", async () => {
     mockedUseAuth.mockReturnValue({
-      userId: null,
-    } as any);
+      isLoaded: true,
+      isSignedIn: true,
+      userId: "",
+      sessionId: "session-123",
+      sessionClaims: {} as JwtPayload,
+      actor: null,
+      orgId: "org-123",
+      orgRole: "role-123",
+      orgSlug: null,
+      has: jest.fn(),
+      signOut: jest.fn(),
+      getToken: jest.fn(),
+    });
 
     const leagueData = {
       id: "league-1",

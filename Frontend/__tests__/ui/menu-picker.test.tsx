@@ -19,20 +19,20 @@ jest.mock("@expo/react-native-action-sheet", () => ({
 
 jest.mock("@expo/vector-icons", () => {
   const ReactMock = jest.requireActual("react");
-  const { View } = require("react-native");
+  const { View } = jest.requireActual("react-native");
   return {
-    Ionicons: (props: any) =>
+    Ionicons: (props: Record<string, unknown>) =>
       ReactMock.createElement(View, { testID: "ionicon", ...props }),
   };
 });
 
 jest.mock("@expo/ui/swift-ui", () => {
   const ReactMock = jest.requireActual("react");
-  const { View } = require("react-native");
+  const { View } = jest.requireActual("react-native");
   return {
-    Host: ({ children, ...props }: any) =>
+    Host: ({ children, ...props }: { children: React.ReactNode; [key: string]: unknown }) =>
       ReactMock.createElement(View, props, children),
-    Picker: jest.fn((props: any) =>
+    Picker: jest.fn((props: Record<string, unknown>) =>
       ReactMock.createElement(View, { testID: "swift-picker", ...props }),
     ),
   };
@@ -56,12 +56,15 @@ jest.mock("@/utils/runtime", () => {
   };
 });
 
-const runtimeAny = runtime as any;
+const runtimeTyped = runtime as unknown as {
+  __setExpoGo: (value: boolean) => void;
+  isRunningInExpoGo: boolean;
+};
 
 describe("MenuPicker", () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    runtimeAny.__setExpoGo(true);
+    runtimeTyped.__setExpoGo(true);
   });
 
   it("uses ActionSheet flow in Expo Go and updates selected value", () => {
@@ -101,7 +104,7 @@ describe("MenuPicker", () => {
   });
 
   it("uses Swift Picker flow outside Expo Go", () => {
-    runtimeAny.__setExpoGo(false);
+    runtimeTyped.__setExpoGo(false);
     const onValueChange = jest.fn();
     render(
       <MenuPicker

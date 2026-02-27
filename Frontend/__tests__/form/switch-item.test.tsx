@@ -6,10 +6,11 @@ import { useAccentColor } from "@/contexts/accent-color-context";
 
 jest.mock("expo-blur", () => {
   const ReactMock = jest.requireActual("react");
-  const { View } = require("react-native");
+  const { View } = jest.requireActual("react-native");
   return {
-    BlurView: ({ children, ...props }: any) =>
+    BlurView: jest.fn(({ children, ...props }: { children?: React.ReactNode; [key: string]: unknown }) =>
       ReactMock.createElement(View, props, children),
+    ),
   };
 });
 

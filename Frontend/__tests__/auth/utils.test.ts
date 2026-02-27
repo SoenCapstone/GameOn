@@ -12,6 +12,16 @@ import {
 } from "@/components/sign-up/utils";
 import { EMAIL_VERIFICATION_STATUS } from "@/components/sign-up/constants";
 import type { SignUpInputLabel } from "@/components/sign-up/models";
+import { SignUpResource } from "@clerk/types";
+interface MockSignUp {
+  create: jest.Mock;
+  prepareEmailAddressVerification: jest.Mock;
+  attemptEmailAddressVerification?: jest.Mock;
+  status?: string;
+  requiredFields?: string[];
+  optionalFields?: string[];
+  missingFields?: string[];
+}
 
 jest.mock("react-native", () => {
   const RN = jest.requireActual("react-native");
@@ -219,9 +229,13 @@ describe("toast", () => {
 
 describe("startClerkSignUp", () => {
   const mockSetPendingVerification = jest.fn();
-  const mockSignUp = {
+  const mockSignUp: MockSignUp = {
     create: jest.fn(),
     prepareEmailAddressVerification: jest.fn(),
+    status: 'pending',
+    requiredFields: [],
+    optionalFields: [],
+    missingFields: [],
   };
   const values = {
     firstname: "John",
@@ -239,7 +253,7 @@ describe("startClerkSignUp", () => {
     await startClerkSignUp(
       values,
       false,
-      mockSignUp,
+      mockSignUp as unknown as SignUpResource,
       mockSetPendingVerification,
     );
     expect(mockSignUp.create).not.toHaveBeenCalled();
@@ -253,7 +267,7 @@ describe("startClerkSignUp", () => {
     await startClerkSignUp(
       values,
       true,
-      mockSignUp,
+      mockSignUp as unknown as SignUpResource,
       mockSetPendingVerification,
     );
 
@@ -278,7 +292,7 @@ describe("startClerkSignUp", () => {
     await startClerkSignUp(
       values,
       true,
-      mockSignUp,
+      mockSignUp as unknown as SignUpResource,
       mockSetPendingVerification,
     );
 
@@ -295,8 +309,14 @@ describe("completeVerificationAndUpsert", () => {
   const mockUpsertUser = {
     mutateAsync: jest.fn(),
   };
-  const mockSignUp = {
+  const mockSignUp: MockSignUp = {
+    create: jest.fn(),
+    prepareEmailAddressVerification: jest.fn(),
     attemptEmailAddressVerification: jest.fn(),
+    status: 'pending',
+    requiredFields: [],
+    optionalFields: [],
+    missingFields: [],
   };
   const values = {
     firstname: "John",
@@ -315,9 +335,10 @@ describe("completeVerificationAndUpsert", () => {
       values,
       false,
       "123456",
-      mockSignUp,
+      mockSignUp as unknown as SignUpResource,
       mockSetActive,
       mockUpsertUser,
+      jest.fn()
     );
     expect(mockSignUp.attemptEmailAddressVerification).not.toHaveBeenCalled();
   });
@@ -325,7 +346,7 @@ describe("completeVerificationAndUpsert", () => {
   it("completes verification and upserts user on success", async () => {
     const createdSessionId = "session_123";
     const createdUserId = "user_123";
-    mockSignUp.attemptEmailAddressVerification.mockResolvedValue({
+    mockSignUp.attemptEmailAddressVerification!.mockResolvedValue({
       status: EMAIL_VERIFICATION_STATUS,
       createdSessionId,
       createdUserId,
@@ -337,9 +358,10 @@ describe("completeVerificationAndUpsert", () => {
       values,
       true,
       "123456",
-      mockSignUp,
+      mockSignUp as unknown as SignUpResource,
       mockSetActive,
       mockUpsertUser,
+      jest.fn()
     );
 
     expect(mockSignUp.attemptEmailAddressVerification).toHaveBeenCalledWith({
@@ -357,7 +379,7 @@ describe("completeVerificationAndUpsert", () => {
   });
 
   it("shows alert when verification status is not complete", async () => {
-    mockSignUp.attemptEmailAddressVerification.mockResolvedValue({
+    mockSignUp.attemptEmailAddressVerification!.mockResolvedValue({
       status: "pending",
     });
 
@@ -365,9 +387,10 @@ describe("completeVerificationAndUpsert", () => {
       values,
       true,
       "123456",
-      mockSignUp,
+      mockSignUp as unknown as SignUpResource,
       mockSetActive,
       mockUpsertUser,
+      jest.fn()
     );
 
     expect(mockAlert).toHaveBeenCalledWith(
@@ -382,15 +405,16 @@ describe("completeVerificationAndUpsert", () => {
     const error = {
       errors: [{ message: "Invalid verification code" }],
     };
-    mockSignUp.attemptEmailAddressVerification.mockRejectedValue(error);
+    mockSignUp.attemptEmailAddressVerification!.mockRejectedValue(error);
 
     await completeVerificationAndUpsert(
       values,
       true,
       "123456",
-      mockSignUp,
+      mockSignUp as unknown as SignUpResource,
       mockSetActive,
       mockUpsertUser,
+      jest.fn()
     );
 
     expect(mockAlert).toHaveBeenCalledWith(
@@ -492,5 +516,33 @@ describe("autoFormatDateInput", () => {
 
   it("truncates to 8 digits maximum", () => {
     expect(autoFormatDateInput("151020231234")).toBe("15/10/2023");
+  });
+});
+
+describe("login", () => {
+  const mockSignIn = {
+    create: jest.fn(),
+  };
+  const mockSetActive = jest.fn();
+  const values = {
+    emailAddress: "test@example.com",
+    password: "password123",
+  };
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  it("logs and returns if session ID is not created", async () => {
+    mockSignIn.create.mockResolvedValue({
+      status: EMAIL_VERIFICATION_STATUS,
+      createdSessionId: undefined,
+    });
+    const log = jest.requireActual("@/utils/logger");
+    jest.spyOn(log, "createScopedLog").mockReturnValue({ info: jest.fn() });
+    const loginUtils = jest.requireActual("@/components/sign-in/utils");
+    await loginUtils.login(values, mockSignIn, mockSetActive, true);
+    expect(log.createScopedLog("Sign In Utils").info).toHaveBeenCalledWith("Session ID not created");
+    expect(mockSetActive).not.toHaveBeenCalled();
   });
 });

@@ -1,11 +1,12 @@
 import React from "react";
 import { render, fireEvent, waitFor } from "@testing-library/react-native";
 import { mockAlert, setupAuthTestHooks } from "@/__tests__/auth/auth-test-setup";
+import SignUpScreen from "@/app/(auth)/sign-up";
 
 jest.mock("react-native-keyboard-controller", () => {
-  const { ScrollView } = require("react-native");
+  const { ScrollView } = jest.requireActual("react-native");
   return {
-    KeyboardAwareScrollView: ({ children, ...props }: any) => (
+    KeyboardAwareScrollView: ({ children, ...props }: React.PropsWithChildren<Record<string, unknown>>) => (
       <ScrollView {...props}>{children}</ScrollView>
     ),
   };
@@ -35,7 +36,7 @@ jest.mock("@/components/privacy-disclaimer/privacy-disclaimer", () => ({
 }));
 
 jest.mock("@/components/sign-up/verification-input", () => {
-  const { Text, View } = require("react-native");
+  const { Text, View } = jest.requireActual("react-native");
   return {
     VerificationInput: () => (
       <View testID="verification-view">
@@ -48,8 +49,6 @@ jest.mock("@/components/sign-up/verification-input", () => {
 jest.mock("@/constants/navigation", () => ({
   SIGN_IN_PATH: "/(auth)/boarding/sign-in",
 }));
-
-import SignUpScreen from "@/app/(auth)/sign-up";
 describe("SignUpScreen", () => {
   setupAuthTestHooks();
 

@@ -6,6 +6,7 @@ import {
   type PickedLogo,
 } from "@/utils/team-league-form";
 import { pickImage } from "@/utils/pick-image";
+import { AxiosInstance } from "axios";
 
 jest.mock("@/utils/pick-image", () => ({
   pickImage: jest.fn(),
@@ -20,7 +21,7 @@ describe("team-league-form utils", () => {
     it("alerts and does not set logo when mime type is unsupported", async () => {
       const alertSpy = jest.spyOn(Alert, "alert").mockImplementation(jest.fn());
       const setPickedLogo = jest.fn();
-      (pickImage as jest.Mock).mockImplementation(async (onPick: any) => {
+      (pickImage as jest.Mock).mockImplementation(async (onPick: (logo: unknown) => void) => {
         onPick({ uri: "file:///tmp/logo.jpg", mimeType: "image/jpeg" });
       });
 
@@ -35,7 +36,7 @@ describe("team-league-form utils", () => {
 
     it("normalizes and sets logo for supported mime type", async () => {
       const setPickedLogo = jest.fn();
-      (pickImage as jest.Mock).mockImplementation(async (onPick: any) => {
+      (pickImage as jest.Mock).mockImplementation(async (onPick: (logo: unknown) => void) => {
         onPick({ uri: "file:///tmp/logo.png", mimeType: " IMAGE/PNG " });
       });
 
@@ -59,7 +60,7 @@ describe("team-league-form utils", () => {
         mimeType: "image/webp",
       };
 
-      const result = await uploadLogo(api as any, "/upload", pickedLogo);
+      const result = await uploadLogo(api as unknown as AxiosInstance, "/upload", pickedLogo);
 
       expect(appendSpy).toHaveBeenCalledWith(
         "file",
@@ -77,7 +78,7 @@ describe("team-league-form utils", () => {
       const api = { post: jest.fn() };
       api.post.mockResolvedValue({ data: {} });
 
-      const result = await uploadLogo(api as any, "/upload", {
+      const result = await uploadLogo(api as unknown as AxiosInstance, "/upload", {
         uri: "file:///tmp/logo.svg",
         mimeType: "image/svg+xml",
       });
