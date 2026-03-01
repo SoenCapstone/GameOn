@@ -11,6 +11,9 @@ export default function LeaguesLayout() {
       "[id]/settings/edit",
       "[id]/manage/index",
       "[id]/invite/index",
+      "[id]/matches/schedule",
+      "[id]/matches/add-venue",
+      "[id]/matches/[matchId]",
     ],
   });
 

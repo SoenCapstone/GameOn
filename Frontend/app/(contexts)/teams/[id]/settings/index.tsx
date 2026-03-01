@@ -109,6 +109,7 @@ function TeamSettingsContent() {
       scope: team.scope ?? "",
       logoUrl: team.logoUrl ?? "",
       location: team.location ?? "",
+      allowedRegions: team.allowedRegions ?? [],
       privacy: "PUBLIC" as const,
     };
     Alert.alert(
@@ -136,6 +137,7 @@ function TeamSettingsContent() {
       scope: team.scope ?? "",
       logoUrl: team.logoUrl ?? "",
       location: team.location ?? "",
+      allowedRegions: team.allowedRegions ?? [],
       privacy: "PRIVATE" as const,
     };
     updateTeamMutation.mutate(payload);

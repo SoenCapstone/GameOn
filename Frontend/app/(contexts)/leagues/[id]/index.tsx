@@ -3,7 +3,6 @@ import {
   View,
   ActivityIndicator,
   RefreshControl,
-  Text,
   StyleSheet,
 } from "react-native";
 import { useLocalSearchParams, useRouter } from "expo-router";
@@ -23,6 +22,14 @@ import {
 import { BoardList } from "@/components/board/board-list";
 import { useDetailPageHandlers } from "@/hooks/use-detail-page-handlers";
 import { createScopedLog } from "@/utils/logger";
+import { MatchListSections } from "@/components/matches/match-list-sections";
+import { matchStyles } from "@/components/matches/match-styles";
+import { useLeagueMatches, useTeamsByIds } from "@/hooks/use-matches";
+import {
+  buildMatchCards,
+  splitMatchSections,
+} from "@/features/matches/utils";
+import { Card } from "@/components/ui/card";
 import { Tabs } from "@/components/ui/tabs";
 
 type LeagueTab = "board" | "matches" | "standings" | "teams";
@@ -50,6 +57,7 @@ export default function LeagueScreen() {
 
 function LeagueContent() {
   const [tab, setTab] = useState<LeagueTab>("board");
+  const [fabOpen, setFabOpen] = useState(false);
   const router = useRouter();
   const log = createScopedLog("League Page");
 
@@ -75,6 +83,31 @@ function LeagueContent() {
 
   const deletePostMutation = useDeleteLeagueBoardPost(id);
 
+   const {
+    data: matches = [],
+    isLoading: matchesLoading,
+    isFetching: matchesFetching,
+    error: matchesError,
+    refetch: refetchMatches,
+  } = useLeagueMatches(id);
+
+  const teamIds = useMemo(
+    () => Array.from(new Set(matches.flatMap((m) => [m.homeTeamId, m.awayTeamId]))),
+    [matches],
+  );
+
+   const teamsQuery = useTeamsByIds(teamIds);
+
+  const matchItems = useMemo(
+    () => buildMatchCards(matches, teamsQuery.data, league?.name ?? "League Match"),
+    [league?.name, matches, teamsQuery.data],
+  );
+
+  const { current, upcoming, past } = useMemo(
+    () => splitMatchSections(matchItems),
+    [matchItems],
+  );
+
   useLeagueHeader({ title, id, isMember, isOwner, onFollow: handleFollow });
 
   const { refreshing, handleDeletePost, handleRefresh } = useDetailPageHandlers({
@@ -98,8 +131,13 @@ function LeagueContent() {
         backgroundProps={{ preset: "red" }}
         refreshControl={
           <RefreshControl
-            refreshing={refreshing}
-            onRefresh={handleRefresh}
+            refreshing={refreshing || matchesFetching}
+            onRefresh={async () => {
+              await handleRefresh();
+              if (tab === "matches") {
+                await Promise.all([refetchMatches(), teamsQuery.refetch()]);
+              }
+            }}
             tintColor="#fff"
           />
         }
@@ -139,11 +177,18 @@ function LeagueContent() {
             )}
 
             {tab === "matches" && (
-              <View>
-                <Text style={{ color: "white", padding: 16 }}>
-                  Matches content here
-                </Text>
-              </View>
+            <MatchListSections
+              current={current}
+              upcoming={upcoming}
+              past={past}
+              isLoading={matchesLoading || teamsQuery.isLoading}
+              errorText={matchesError ? "Could not load matches." : null}
+              onRetry={() => {
+                refetchMatches();
+                teamsQuery.refetch();
+              }}
+              onMatchPress={(matchId) => router.push(`/leagues/${id}/matches/${matchId}`)}
+            />
             )}
 
             {tab === "teams" && (
@@ -158,25 +203,43 @@ function LeagueContent() {
         )}
       </ContentArea>
 
-      {/* Create Post Button */}
-      {isOwner && tab === "board" && (
-        <View style={styles.fabWrap}>
-          <Button
-            type="custom"
-            icon="plus"
-            onPress={() =>
-              router.push({
-                pathname: "/post",
-                params: {
-                  id,
-                  spaceType: "league",
-                  privacy: league?.privacy,
-                },
-              })
-            }
-          />
+      {isOwner ? (
+        <View style={matchStyles.fabWrap}>
+          {fabOpen ? (
+            <Card>
+              <View style={matchStyles.fabMenu}>
+                <Button
+                  type="custom"
+                  label="Create a Post"
+                  onPress={() => {
+                    setFabOpen(false);
+                    router.push({
+                      pathname: "/post",
+                      params: { id, spaceType: "league", privacy: league?.privacy },
+                    });
+                  }}
+                />
+                <Button
+                  type="custom"
+                  label="Schedule a Match"
+                  onPress={() => {
+                    setFabOpen(false);
+                    router.push(`/leagues/${id}/matches/schedule`);
+                  }}
+                />
+              </View>
+            </Card>
+          ) : null}
+
+          <View style={{ width: 56, height: 56 }}>
+            <Button
+              type="custom"
+              icon={fabOpen ? "xmark" : "plus"}
+              onPress={() => setFabOpen((v) => !v)}
+            />
+          </View>
         </View>
-      )}
+      ) : null}
     </View>
   );
 }

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import {
   View,
   ActivityIndicator,
@@ -20,6 +20,9 @@ import { BoardList } from "@/components/board/board-list";
 import { useDetailPageHandlers } from "@/hooks/use-detail-page-handlers";
 import { createScopedLog } from "@/utils/logger";
 import { Tabs } from "@/components/ui/tabs";
+import { MatchListSections } from "@/components/matches/match-list-sections";
+import { useTeamMatches, useTeamsByIds } from "@/hooks/use-matches";
+import { buildMatchCards, splitMatchSections } from "@/features/matches/utils";
 
 export default function Team() {
   const params = useLocalSearchParams<{ id?: string | string[] }>();
@@ -44,6 +47,7 @@ function TeamContent() {
     onRefresh,
     handleFollow,
     title,
+    isOwner,
     isMember,
     isActiveMember,
     role,
@@ -62,7 +66,40 @@ function TeamContent() {
 
   const deletePostMutation = useDeleteBoardPost(id);
 
+  const {
+    data: matches = [],
+    isLoading: matchesLoading,
+    isFetching: matchesFetching,
+    error: matchesError,
+    refetch: refetchMatches,
+  } = useTeamMatches(id);
+
+  const teamIds = useMemo(
+    () =>
+      Array.from(new Set(matches.flatMap((m) => [m.homeTeamId, m.awayTeamId]))),
+    [matches],
+  );
+  const teamsQuery = useTeamsByIds(teamIds);
+
+  const matchItems = useMemo(
+    () => buildMatchCards(matches, teamsQuery.data, "Team Match"),
+    [matches, teamsQuery.data],
+  );
+
+  const {
+    current: currentMatches,
+    upcoming: upcomingMatches,
+    past: pastMatches,
+  } = useMemo(() => splitMatchSections(matchItems), [matchItems]);
+
   useTeamHeader({ title, id, isMember, onFollow: handleFollow });
+
+  const handleMatchesRefresh = useMemo(
+    () => async () => {
+      await Promise.all([refetchMatches(), teamsQuery.refetch()]);
+    },
+    [refetchMatches, teamsQuery],
+  );
 
   const { refreshing, handleDeletePost, handleRefresh } = useDetailPageHandlers(
     {
@@ -73,6 +110,7 @@ function TeamContent() {
       refetchPosts,
       deletePostMutation,
       entityName: "Team",
+      onMatchesRefresh: handleMatchesRefresh,
     },
   );
 
@@ -99,7 +137,7 @@ function TeamContent() {
         backgroundProps={{ preset: "red" }}
         refreshControl={
           <RefreshControl
-            refreshing={refreshing}
+            refreshing={refreshing || matchesFetching}
             onRefresh={handleRefresh}
             tintColor="#fff"
           />
@@ -138,7 +176,17 @@ function TeamContent() {
               />
             )}
             {tab === "matches" && (
-              <Text style={{ color: "white" }}>Games content here</Text>
+              <MatchListSections
+                current={[...currentMatches]}
+                upcoming={[...upcomingMatches]}
+                past={[...pastMatches]}
+                isLoading={matchesLoading || teamsQuery.isLoading}
+                errorText={matchesError ? "Could not load matches." : null}
+                onRetry={handleMatchesRefresh}
+                onMatchPress={(matchId) =>
+                  router.push(`/teams/${id}/matches/${matchId}`)
+                }
+              />
             )}
             {tab === "overview" && (
               <View>
@@ -158,15 +206,8 @@ function TeamContent() {
         )}
       </ContentArea>
 
-      {/* Create Post Button */}
-      {canManage && tab === "board" && (
-        <View
-          style={{
-            position: "absolute",
-            bottom: 20,
-            right: 20,
-          }}
-        >
+      {canManage && tab === "board" ? (
+        <View style={styles.fab}>
           <Button
             type="custom"
             icon="plus"
@@ -182,7 +223,17 @@ function TeamContent() {
             }
           />
         </View>
-      )}
+      ) : null}
+
+      {isOwner && tab === "matches" ? (
+        <View style={styles.fab}>
+          <Button
+            type="custom"
+            icon="plus"
+            onPress={() => router.push(`/teams/${id}/matches/schedule`)}
+          />
+        </View>
+      ) : null}
     </View>
   );
 }
@@ -193,5 +244,10 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
     minHeight: 200,
+  },
+  fab: {
+    position: "absolute",
+    bottom: 20,
+    right: 20,
   },
 });

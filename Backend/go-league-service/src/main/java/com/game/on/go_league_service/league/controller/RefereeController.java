@@ -51,6 +51,10 @@ public class RefereeController {
         return ResponseEntity.ok(refereeService.declineRefInvite(matchId));
     }
 
+    @GetMapping("/ref-invites")
+    public ResponseEntity<List<RefInviteResponse>> listMyPendingRefInvites() {
+        return ResponseEntity.ok(refereeService.listMyPendingRefInvites());
+    }
     @GetMapping("/referees/status")
     public ResponseEntity<Map<String, Boolean>> getRefereeStatus() {
         boolean isReferee = refereeService.isReferee();
