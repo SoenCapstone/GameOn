@@ -178,13 +178,13 @@ export default function ScheduleTeamMatchScreen() {
         err as AxiosError<{ message?: string }>,
         "Only team owner can schedule matches",
       );
-      toast(message);
-      Alert.alert("Schedule failed", message);
       if (status === 0) {
         Alert.alert("Network error", message, [
           { text: "Cancel", style: "cancel" },
           { text: "Retry", onPress: handleSubmit },
         ]);
+      } else {
+        Alert.alert("Schedule failed", message);
       }
     }
   }, [

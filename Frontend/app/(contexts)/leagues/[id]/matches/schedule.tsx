@@ -168,13 +168,13 @@ export default function ScheduleLeagueMatchScreen() {
         err as AxiosError<{ message?: string }>,
         "You must be league admin",
       );
-      toast(message);
-      Alert.alert("Schedule failed", message);
       if (status === 0) {
         Alert.alert("Network error", message, [
           { text: "Cancel", style: "cancel" },
           { text: "Retry", onPress: handleSubmit },
         ]);
+      } else {
+        Alert.alert("Schedule failed", message);
       }
     }
   }, [

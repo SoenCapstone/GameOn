@@ -80,6 +80,14 @@ public class LeagueMatchService {
                 .createdByUserId(userId)
                 .build();
 
+        var referee = refereeProfileRepository.findById(request.refereeUserId())
+                .orElseThrow(() -> new NotFoundException("Referee not found"));
+        if (!referee.isActive()) {
+            throw new BadRequestException("Referee profile is inactive");
+        }
+        ensureRefereeEligible(referee, match);
+        match.setRefereeUserId(referee.getUserId());
+
         var saved = leagueMatchRepository.save(match);
         log.info("league_match_created matchId={} leagueId={} byUser={}", saved.getId(), leagueId, userId);
         return toResponse(saved);
