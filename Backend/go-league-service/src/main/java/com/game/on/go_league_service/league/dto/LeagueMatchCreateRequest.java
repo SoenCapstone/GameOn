@@ -1,6 +1,7 @@
 package com.game.on.go_league_service.league.dto;
 
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 
 import java.time.OffsetDateTime;
@@ -18,6 +19,8 @@ public record LeagueMatchCreateRequest(
         @Size(max = 255, message = "matchLocation cannot exceed 255 characters")
         String matchLocation,
         @NotNull(message = "requiresReferee is required")
-        Boolean requiresReferee
+        Boolean requiresReferee,
+        @NotBlank(message = "refereeUserId is required")
+        String refereeUserId
 ) {
 }
