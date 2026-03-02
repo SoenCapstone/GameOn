@@ -61,7 +61,7 @@ public class LeagueMatchController {
         return ResponseEntity.ok(leagueMatchService.assignReferee(leagueId, matchId, request));
     }
 
-    @PostMapping("/matches/{teamId}")
+    @GetMapping("/matches/{teamId}")
     public ResponseEntity<List<LeagueMatchResponse>> listTeamMatches(@PathVariable UUID teamId) {
         return ResponseEntity.ok(leagueMatchService.listTeamMatches(teamId));
     }
