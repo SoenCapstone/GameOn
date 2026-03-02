@@ -130,6 +130,16 @@ public class TeamMatchService {
             throw new ForbiddenException("Only the away team owner can accept the invite");
         }
 
+        if(checkHasSchedulingConflicts(match.getHomeTeamId(), match.getAwayTeamId(), match.getStartTime(), match.getEndTime())) {
+            invite.setStatus(TeamMatchInviteStatus.DECLINED);
+            invite.setRespondedAt(OffsetDateTime.now());
+            teamMatchInviteRepository.save(invite);
+
+            match.SetStatus(TeamMatchStatus.CANCELLED);
+            teamMatchRepository.save(match);
+            throw new ConflictException("Another match was confirmed in this time slot before this match was confirmed.");
+        }
+
         invite.setStatus(TeamMatchInviteStatus.ACCEPTED);
         invite.setRespondedAt(OffsetDateTime.now());
         teamMatchInviteRepository.save(invite);
