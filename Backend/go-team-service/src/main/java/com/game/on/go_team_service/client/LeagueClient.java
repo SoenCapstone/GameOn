@@ -16,5 +16,5 @@ import java.util.UUID;
 public interface LeagueClient {
 
     @GetMapping("/api/v1/leagues/matches/{teamId}")
-    List<LeagueMatchDetailsResponse> getLeagueMatchesForTeam(@PathVariable UUID teamID);
+    List<LeagueMatchDetailsResponse> getLeagueMatchesForTeam(@PathVariable UUID teamId);
 }
