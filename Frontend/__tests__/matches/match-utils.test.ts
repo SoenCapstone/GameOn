@@ -16,45 +16,66 @@ import type {
 } from "@/features/matches/types";
 
 describe("getMatchSection", () => {
-  it("returns 'current' when now is between start and end and not cancelled", () => {
-    const now = Date.now();
+  it("returns 'today' when start date is today", () => {
+    const now = new Date();
+    const start = new Date(now);
+    start.setHours(9, 0, 0, 0);
+    const end = new Date(now);
+    end.setHours(10, 0, 0, 0);
     expect(
       getMatchSection(
-        new Date(now - 1000).toISOString(),
-        new Date(now + 1000).toISOString(),
+        start.toISOString(),
+        end.toISOString(),
         "CONFIRMED",
       ),
-    ).toBe("current");
+    ).toBe("today");
   });
+
   it("returns 'upcoming' when now is before start", () => {
-    const now = Date.now();
+    const now = new Date();
+    const start = new Date(now);
+    start.setDate(start.getDate() + 1);
+    start.setHours(9, 0, 0, 0);
+    const end = new Date(start);
+    end.setHours(10, 0, 0, 0);
     expect(
       getMatchSection(
-        new Date(now + 10000).toISOString(),
-        new Date(now + 20000).toISOString(),
+        start.toISOString(),
+        end.toISOString(),
         "CONFIRMED",
       ),
     ).toBe("upcoming");
   });
+
   it("returns 'past' when now is after end", () => {
-    const now = Date.now();
+    const now = new Date();
+    const start = new Date(now);
+    start.setDate(start.getDate() - 1);
+    start.setHours(9, 0, 0, 0);
+    const end = new Date(start);
+    end.setHours(10, 0, 0, 0);
     expect(
       getMatchSection(
-        new Date(now - 20000).toISOString(),
-        new Date(now - 10000).toISOString(),
+        start.toISOString(),
+        end.toISOString(),
         "CONFIRMED",
       ),
     ).toBe("past");
   });
-  it("returns 'past' when status is CANCELLED", () => {
-    const now = Date.now();
+
+  it("returns 'today' for cancelled matches scheduled today", () => {
+    const now = new Date();
+    const start = new Date(now);
+    start.setHours(11, 0, 0, 0);
+    const end = new Date(now);
+    end.setHours(12, 0, 0, 0);
     expect(
       getMatchSection(
-        new Date(now - 1000).toISOString(),
-        new Date(now + 1000).toISOString(),
+        start.toISOString(),
+        end.toISOString(),
         "CANCELLED",
       ),
-    ).toBe("past");
+    ).toBe("today");
   });
 });
 
@@ -195,12 +216,12 @@ describe("splitMatchSections", () => {
   it("splits match items into sections", () => {
     const now = Date.now();
     const items: {
-      section: "current" | "upcoming" | "past";
+      section: "today" | "upcoming" | "past";
       isPast: boolean;
       startTime: string;
     }[] = [
       {
-        section: "current",
+        section: "today",
         isPast: false,
         startTime: new Date(now).toISOString(),
       },
@@ -216,7 +237,7 @@ describe("splitMatchSections", () => {
       },
     ];
     const sections = splitMatchSections(items);
-    expect(sections.current).toHaveLength(1);
+    expect(sections.today).toHaveLength(1);
     expect(sections.upcoming).toHaveLength(1);
     expect(sections.past).toHaveLength(1);
   });
