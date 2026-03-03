@@ -1,4 +1,9 @@
-import { LeagueMatch, MatchStatusBadge, TeamMatch, TeamSummary } from "@/features/matches/types";
+import {
+  LeagueMatch,
+  MatchStatusBadge,
+  TeamMatch,
+  TeamSummary,
+} from "@/features/matches/types";
 
 export const PROVINCE_OPTIONS = [
   "Alberta",
@@ -19,11 +24,14 @@ export function isPastMatch(startTime: string) {
 
 export function getMatchSection(
   startTime: string,
-  _endTime: string,
-  _status: string,
+  status: string,
 ): "today" | "upcoming" | "past" {
   const now = new Date();
   const start = new Date(startTime);
+
+  if (status === "CANCELLED") {
+    return "past";
+  }
 
   const isToday =
     start.getFullYear() === now.getFullYear() &&
@@ -71,15 +79,15 @@ export function isValidTimeRange(date: Date, startTime: Date, endTime: Date) {
 
 export function sortUpcomingFirst<T extends { startTime: string }>(items: T[]) {
   return [...items].sort(
-    (a, b) =>
-      new Date(a.startTime).getTime() - new Date(b.startTime).getTime(),
+    (a, b) => new Date(a.startTime).getTime() - new Date(b.startTime).getTime(),
   );
 }
 
-export function sortPastLatestFirst<T extends { startTime: string }>(items: T[]) {
+export function sortPastLatestFirst<T extends { startTime: string }>(
+  items: T[],
+) {
   return [...items].sort(
-    (a, b) =>
-      new Date(b.startTime).getTime() - new Date(a.startTime).getTime(),
+    (a, b) => new Date(b.startTime).getTime() - new Date(a.startTime).getTime(),
   );
 }
 
@@ -133,7 +141,7 @@ export function buildMatchCards(
   return matches.map((match) => {
     const home = teamMap?.[match.homeTeamId];
     const away = teamMap?.[match.awayTeamId];
-    const section = getMatchSection(match.startTime, match.endTime, match.status);
+    const section = getMatchSection(match.startTime, match.status);
     return {
       id: match.id,
       homeName: home?.name ?? "Home Team",
@@ -150,12 +158,20 @@ export function buildMatchCards(
   });
 }
 
-export function splitMatchSections<T extends { section: "today" | "upcoming" | "past"; isPast: boolean; startTime: string }>(
-  matchItems: T[],
-) {
+export function splitMatchSections<
+  T extends {
+    section: "today" | "upcoming" | "past";
+    isPast: boolean;
+    startTime: string;
+  },
+>(matchItems: T[]) {
   return {
-    today: sortUpcomingFirst(matchItems.filter((item) => item.section === "today")),
-    upcoming: sortUpcomingFirst(matchItems.filter((item) => item.section === "upcoming")),
+    today: sortUpcomingFirst(
+      matchItems.filter((item) => item.section === "today"),
+    ),
+    upcoming: sortUpcomingFirst(
+      matchItems.filter((item) => item.section === "upcoming"),
+    ),
     past: sortPastLatestFirst(matchItems.filter((item) => item.isPast)),
   };
 }
