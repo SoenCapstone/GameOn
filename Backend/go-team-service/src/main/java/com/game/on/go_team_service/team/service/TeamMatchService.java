@@ -135,7 +135,7 @@ public class TeamMatchService {
             invite.setRespondedAt(OffsetDateTime.now());
             teamMatchInviteRepository.save(invite);
 
-            match.SetStatus(TeamMatchStatus.CANCELLED);
+            match.setStatus(TeamMatchStatus.CANCELLED);
             teamMatchRepository.save(match);
             throw new ConflictException("Another match was confirmed in this time slot before this match was confirmed.");
         }
