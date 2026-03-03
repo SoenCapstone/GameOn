@@ -67,7 +67,7 @@ export function MatchDetailsSection(props: {
         onValueChange={onVenueChange}
         disabled={venueOptions.length === 0 && !venue}
       />
-      <Form.Button label="Add Venue" onPress={onAddVenue} />
+      <Form.Button button="Add Venue" onPress={onAddVenue} />
     </Form.Section>
   );
 }
