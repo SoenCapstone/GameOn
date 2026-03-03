@@ -81,12 +81,15 @@ export function sortPastLatestFirst<T extends { startTime: string }>(items: T[])
 
 export function formatMatchDateTime(isoDateTime: string) {
   const d = new Date(isoDateTime);
-  return d.toLocaleString(undefined, {
+  const datePart = d.toLocaleDateString(undefined, {
     month: "short",
     day: "numeric",
+  });
+  const timePart = d.toLocaleTimeString(undefined, {
     hour: "numeric",
     minute: "2-digit",
   });
+  return `${datePart} • ${timePart}`;
 }
 
 export function mapTeamsById(teams: TeamSummary[]) {
