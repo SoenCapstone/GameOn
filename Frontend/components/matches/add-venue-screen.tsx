@@ -77,6 +77,8 @@ export function AddVenueScreen({
             onChangeText={setName}
             placeholder="Venue name"
           />
+        </Form.Section>
+        <Form.Section header="Address">
           <Form.Input
             label="Street"
             value={street}
