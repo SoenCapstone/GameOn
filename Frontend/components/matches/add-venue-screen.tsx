@@ -53,7 +53,7 @@ export function AddVenueScreen({
           <Button
             isInteractive
             type="custom"
-            label="Save"
+            label="Add"
             onPress={handleSave}
           />
         }
