@@ -6,7 +6,11 @@ import {
   Text,
   StyleSheet,
 } from "react-native";
-import { useLocalSearchParams, useRouter } from "expo-router";
+import {
+  RelativePathString,
+  useLocalSearchParams,
+  useRouter,
+} from "expo-router";
 import { ContentArea } from "@/components/ui/content-area";
 import { Button } from "@/components/ui/button";
 import { getSportLogo } from "@/components/browse/utils";
@@ -159,7 +163,9 @@ function TeamContent() {
           </View>
         ) : (
           <>
-            {refreshing && <ActivityIndicator size="small" color="#fff" />}
+            {refreshing && !isLoading && (
+              <ActivityIndicator size="small" color="#fff" />
+            )}
 
             {tab === "board" && (
               <BoardList
@@ -184,7 +190,13 @@ function TeamContent() {
                 errorText={matchesError ? "Could not load matches." : null}
                 onRetry={handleMatchesRefresh}
                 onMatchPress={(matchId) =>
-                  router.push(`/teams/${id}/matches/${matchId}`)
+                  router.push({
+                    pathname: `/match/${matchId}` as RelativePathString,
+                    params: {
+                      context: "team",
+                      contextId: id,
+                    },
+                  })
                 }
               />
             )}

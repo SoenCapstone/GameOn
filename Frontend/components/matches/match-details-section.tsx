@@ -1,0 +1,73 @@
+import { Form } from "@/components/form/form";
+
+export function MatchDetailsSection(props: {
+  readonly date: Date;
+  readonly startTimeValue: Date;
+  readonly endTimeValue: Date;
+  readonly venue: string;
+  readonly venueOptions?: string[];
+  readonly onDateChange: (date: Date) => void;
+  readonly onStartTimeChange: (date: Date) => void;
+  readonly onEndTimeChange: (date: Date) => void;
+  readonly onVenueChange: (value: string) => void;
+  readonly onAddVenue: () => void;
+}) {
+  const {
+    date,
+    startTimeValue,
+    endTimeValue,
+    venue,
+    venueOptions = [],
+    onDateChange,
+    onStartTimeChange,
+    onEndTimeChange,
+    onVenueChange,
+    onAddVenue,
+  } = props;
+
+  return (
+    <Form.Section header="Match Details">
+      <Form.DateTime
+        label="Date"
+        value={date}
+        mode="date"
+        display="default"
+        onChange={(_event, selectedDate) => {
+          if (selectedDate) onDateChange(selectedDate);
+        }}
+      />
+
+      <Form.DateTime
+        label="Start Time"
+        value={startTimeValue}
+        mode="time"
+        display="default"
+        onChange={(_event, selectedDate) => {
+          if (selectedDate) onStartTimeChange(selectedDate);
+        }}
+      />
+
+      <Form.DateTime
+        label="End Time"
+        value={endTimeValue}
+        mode="time"
+        display="default"
+        onChange={(_event, selectedDate) => {
+          if (selectedDate) onEndTimeChange(selectedDate);
+        }}
+      />
+
+      <Form.Menu
+        label="Venue"
+        options={venue ? [...venueOptions, venue] : venueOptions}
+        value={
+          venue ||
+          (venueOptions.length === 0 ? "No venues available" : "Select")
+        }
+        onValueChange={onVenueChange}
+        disabled={venueOptions.length === 0 && !venue}
+      />
+      <Form.Button label="Add Venue" onPress={onAddVenue} />
+    </Form.Section>
+  );
+}

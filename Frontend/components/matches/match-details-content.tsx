@@ -2,7 +2,6 @@ import { Alert, Pressable, StyleSheet, Text, View } from "react-native";
 import { ContentArea } from "@/components/ui/content-area";
 import { Card } from "@/components/ui/card";
 import { formatMatchDateTime, toBadgeStatus } from "@/features/matches/utils";
-import { matchStyles, statusColors } from "@/components/matches/match-styles";
 
 interface MatchDetailsContentProps {
   readonly startTime: string;
@@ -14,6 +13,13 @@ interface MatchDetailsContentProps {
   readonly canCancel: boolean;
   readonly onConfirmCancel: () => Promise<void>;
 }
+
+const statusColors: Record<string, string> = {
+  PENDING: "rgba(240,174,46,0.9)",
+  CONFIRMED: "rgba(35,166,85,0.95)",
+  CANCELLED: "rgba(189,44,44,0.95)",
+  COMPLETED: "rgba(44,106,189,0.95)",
+};
 
 export function MatchDetailsContent({
   startTime,
@@ -28,7 +34,7 @@ export function MatchDetailsContent({
   const badgeStatus = toBadgeStatus(status);
 
   return (
-    <ContentArea scrollable backgroundProps={{ preset: "red", mode: "form" }}>
+    <ContentArea scrollable backgroundProps={{ preset: "red" }}>
       <Card>
         <View style={{ gap: 12 }}>
           <View style={styles.rowBetween}>
@@ -41,11 +47,14 @@ export function MatchDetailsContent({
             <Text style={styles.meta}>{formatMatchDateTime(startTime)}</Text>
             <View
               style={[
-                matchStyles.badge,
-                { backgroundColor: statusColors[badgeStatus] ?? "rgba(44,106,189,0.95)" },
+                styles.badge,
+                {
+                  backgroundColor:
+                    statusColors[badgeStatus] ?? "rgba(44,106,189,0.95)",
+                },
               ]}
             >
-              <Text style={matchStyles.badgeText}>{badgeStatus}</Text>
+              <Text style={styles.badgeText}>{badgeStatus}</Text>
             </View>
           </View>
 
@@ -58,16 +67,20 @@ export function MatchDetailsContent({
         <Pressable
           style={styles.cancelButton}
           onPress={() => {
-            Alert.alert("Cancel match", "Are you sure you want to cancel this match?", [
-              { text: "Keep", style: "cancel" },
-              {
-                text: "Cancel Match",
-                style: "destructive",
-                onPress: () => {
-                  void onConfirmCancel();
+            Alert.alert(
+              "Cancel match",
+              "Are you sure you want to cancel this match?",
+              [
+                { text: "Keep", style: "cancel" },
+                {
+                  text: "Cancel Match",
+                  style: "destructive",
+                  onPress: () => {
+                    void onConfirmCancel();
+                  },
                 },
-              },
-            ]);
+              ],
+            );
           }}
         >
           <Text style={styles.cancelText}>Cancel Match</Text>
@@ -107,6 +120,16 @@ const styles = StyleSheet.create({
   },
   cancelText: {
     color: "#ffb3b3",
+    fontWeight: "700",
+  },
+  badge: {
+    borderRadius: 999,
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+  },
+  badgeText: {
+    color: "#fff",
+    fontSize: 11,
     fontWeight: "700",
   },
 });

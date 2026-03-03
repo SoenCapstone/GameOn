@@ -5,7 +5,11 @@ import {
   RefreshControl,
   StyleSheet,
 } from "react-native";
-import { useLocalSearchParams, useRouter } from "expo-router";
+import {
+  RelativePathString,
+  useLocalSearchParams,
+  useRouter,
+} from "expo-router";
 import { ContentArea } from "@/components/ui/content-area";
 import { getSportLogo } from "@/components/browse/utils";
 import { Button } from "@/components/ui/button";
@@ -23,18 +27,19 @@ import { BoardList } from "@/components/board/board-list";
 import { useDetailPageHandlers } from "@/hooks/use-detail-page-handlers";
 import { createScopedLog } from "@/utils/logger";
 import { MatchListSections } from "@/components/matches/match-list-sections";
-import { matchStyles } from "@/components/matches/match-styles";
 import { useLeagueMatches, useTeamsByIds } from "@/hooks/use-matches";
-import {
-  buildMatchCards,
-  splitMatchSections,
-} from "@/features/matches/utils";
+import { buildMatchCards, splitMatchSections } from "@/features/matches/utils";
 import { Card } from "@/components/ui/card";
 import { Tabs } from "@/components/ui/tabs";
 
 type LeagueTab = "board" | "matches" | "standings" | "teams";
 
-const LeagueTabs: readonly LeagueTab[] = ["board", "matches", "standings", "teams"] as const;
+const LeagueTabs: readonly LeagueTab[] = [
+  "board",
+  "matches",
+  "standings",
+  "teams",
+] as const;
 
 const TabLabels: Record<LeagueTab, string> = {
   board: "Board",
@@ -46,7 +51,7 @@ const TabLabels: Record<LeagueTab, string> = {
 export default function LeagueScreen() {
   const params = useLocalSearchParams<{ id?: string | string[] }>();
   const rawId = params.id;
-  const id = Array.isArray(rawId) ? rawId[0] : rawId ?? "";
+  const id = Array.isArray(rawId) ? rawId[0] : (rawId ?? "");
 
   return (
     <LeagueDetailProvider id={id}>
@@ -83,7 +88,7 @@ function LeagueContent() {
 
   const deletePostMutation = useDeleteLeagueBoardPost(id);
 
-   const {
+  const {
     data: matches = [],
     isLoading: matchesLoading,
     isFetching: matchesFetching,
@@ -92,14 +97,16 @@ function LeagueContent() {
   } = useLeagueMatches(id);
 
   const teamIds = useMemo(
-    () => Array.from(new Set(matches.flatMap((m) => [m.homeTeamId, m.awayTeamId]))),
+    () =>
+      Array.from(new Set(matches.flatMap((m) => [m.homeTeamId, m.awayTeamId]))),
     [matches],
   );
 
-   const teamsQuery = useTeamsByIds(teamIds);
+  const teamsQuery = useTeamsByIds(teamIds);
 
   const matchItems = useMemo(
-    () => buildMatchCards(matches, teamsQuery.data, league?.name ?? "League Match"),
+    () =>
+      buildMatchCards(matches, teamsQuery.data, league?.name ?? "League Match"),
     [league?.name, matches, teamsQuery.data],
   );
 
@@ -110,15 +117,17 @@ function LeagueContent() {
 
   useLeagueHeader({ title, id, isMember, isOwner, onFollow: handleFollow });
 
-  const { refreshing, handleDeletePost, handleRefresh } = useDetailPageHandlers({
-    id,
-    currentTab: tab,
-    boardPosts,
-    onRefresh,
-    refetchPosts,
-    deletePostMutation,
-    entityName: "League",
-  });
+  const { refreshing, handleDeletePost, handleRefresh } = useDetailPageHandlers(
+    {
+      id,
+      currentTab: tab,
+      boardPosts,
+      onRefresh,
+      refetchPosts,
+      deletePostMutation,
+      entityName: "League",
+    },
+  );
 
   const selectedIndex = useMemo(() => LeagueTabs.indexOf(tab), [tab]);
 
@@ -159,7 +168,9 @@ function LeagueContent() {
           </View>
         ) : (
           <>
-            {refreshing && <ActivityIndicator size="small" color="#fff" />}
+            {refreshing && !isLoading && (
+              <ActivityIndicator size="small" color="#fff" />
+            )}
 
             {tab === "board" && (
               <BoardList
@@ -177,18 +188,26 @@ function LeagueContent() {
             )}
 
             {tab === "matches" && (
-            <MatchListSections
-              current={current}
-              upcoming={upcoming}
-              past={past}
-              isLoading={matchesLoading || teamsQuery.isLoading}
-              errorText={matchesError ? "Could not load matches." : null}
-              onRetry={() => {
-                refetchMatches();
-                teamsQuery.refetch();
-              }}
-              onMatchPress={(matchId) => router.push(`/leagues/${id}/matches/${matchId}`)}
-            />
+              <MatchListSections
+                current={current}
+                upcoming={upcoming}
+                past={past}
+                isLoading={matchesLoading || teamsQuery.isLoading}
+                errorText={matchesError ? "Could not load matches." : null}
+                onRetry={() => {
+                  refetchMatches();
+                  teamsQuery.refetch();
+                }}
+                onMatchPress={(matchId) =>
+                  router.push({
+                    pathname: `/match/${matchId}` as RelativePathString,
+                    params: {
+                      context: "league",
+                      contextId: id,
+                    },
+                  })
+                }
+              />
             )}
 
             {tab === "teams" && (
@@ -204,10 +223,10 @@ function LeagueContent() {
       </ContentArea>
 
       {isOwner ? (
-        <View style={matchStyles.fabWrap}>
+        <View style={styles.fabWrap}>
           {fabOpen ? (
             <Card>
-              <View style={matchStyles.fabMenu}>
+              <View style={styles.fabMenu}>
                 <Button
                   type="custom"
                   label="Create a Post"
@@ -215,7 +234,11 @@ function LeagueContent() {
                     setFabOpen(false);
                     router.push({
                       pathname: "/post",
-                      params: { id, spaceType: "league", privacy: league?.privacy },
+                      params: {
+                        id,
+                        spaceType: "league",
+                        privacy: league?.privacy,
+                      },
                     });
                   }}
                 />
@@ -253,7 +276,15 @@ const styles = StyleSheet.create({
   },
   fabWrap: {
     position: "absolute",
-    bottom: 20,
     right: 20,
+    bottom: 20,
+    alignItems: "flex-end",
+    gap: 10,
+  },
+  fabMenu: {
+    borderRadius: 20,
+    padding: 10,
+    minWidth: 170,
+    gap: 8,
   },
 });

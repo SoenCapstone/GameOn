@@ -1,7 +1,6 @@
 import React from "react";
-import { Pressable, Text, View } from "react-native";
+import { Pressable, Text, View, StyleSheet } from "react-native";
 import { MatchCard, MatchSkeletonCard } from "@/components/matches/match-card";
-import { matchStyles } from "@/components/matches/match-styles";
 
 type MatchItem = {
   id: string;
@@ -52,7 +51,7 @@ function ListSection({
     }
 
     if (items.length === 0) {
-      return <Text style={matchStyles.emptyText}>{emptyText}</Text>;
+      return <Text style={styles.emptyText}>{emptyText}</Text>;
     }
 
     return items.map((match) => (
@@ -75,9 +74,9 @@ function ListSection({
   };
 
   return (
-    <View style={matchStyles.section}>
-      <Text style={matchStyles.sectionTitle}>{title}</Text>
-      <View style={matchStyles.sectionBody}>{renderSectionContent()}</View>
+    <View style={styles.section}>
+      <Text style={styles.sectionTitle}>{title}</Text>
+      <View style={styles.sectionBody}>{renderSectionContent()}</View>
     </View>
   );
 }
@@ -94,11 +93,11 @@ export function MatchListSections({
   return (
     <>
       {errorText ? (
-        <View style={matchStyles.section}>
-          <Text style={matchStyles.emptyText}>{errorText}</Text>
+        <View style={styles.section}>
+          <Text style={styles.emptyText}>{errorText}</Text>
           {onRetry ? (
-            <Pressable onPress={onRetry} style={matchStyles.retryButton}>
-              <Text style={matchStyles.retryText}>Retry</Text>
+            <Pressable onPress={onRetry} style={styles.retryButton}>
+              <Text style={styles.retryText}>Retry</Text>
             </Pressable>
           ) : null}
         </View>
@@ -130,3 +129,34 @@ export function MatchListSections({
     </>
   );
 }
+
+const styles = StyleSheet.create({
+  section: {
+    gap: 10,
+  },
+  sectionTitle: {
+    color: "#fff",
+    fontSize: 18,
+    fontWeight: "700",
+    marginTop: 8,
+  },
+  sectionBody: {
+    gap: 10,
+  },
+  emptyText: {
+    color: "rgba(255,255,255,0.72)",
+    fontSize: 14,
+  },
+  retryButton: {
+    borderRadius: 999,
+    backgroundColor: "rgba(255,255,255,0.2)",
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+    alignSelf: "flex-start",
+  },
+  retryText: {
+    color: "#fff",
+    fontSize: 13,
+    fontWeight: "600",
+  },
+});

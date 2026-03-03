@@ -115,6 +115,12 @@ jest.mock("@/components/form/form", () => {
       { onPress },
       ReactMock.createElement(Text, null, label),
     );
+  Form.Button = ({ label, onPress }: { label: string; onPress: () => void }) =>
+    ReactMock.createElement(
+      Pressable,
+      { onPress },
+      ReactMock.createElement(Text, null, label),
+    );
   Form.Switch = ({
     label,
     value,
@@ -265,7 +271,7 @@ describe("ScheduleTeamMatchScreen", () => {
       expect(getByTestId("menu-away-team-rivals")).toBeTruthy(),
     );
     fireEvent.press(getByTestId("menu-away-team-rivals"));
-    fireEvent.press(getByTestId("switch-official-match-(requires-referee)"));
+    fireEvent.press(getByTestId("switch-official-match"));
 
     await waitFor(() =>
       expect(getByTestId("menu-choose-referee-john-ref")).toBeTruthy(),

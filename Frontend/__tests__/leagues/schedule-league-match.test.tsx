@@ -115,6 +115,12 @@ jest.mock("@/components/form/form", () => {
       { onPress },
       ReactMock.createElement(Text, null, label),
     );
+  Form.Button = ({ label, onPress }: { label: string; onPress: () => void }) =>
+    ReactMock.createElement(
+      Pressable,
+      { onPress },
+      ReactMock.createElement(Text, null, label),
+    );
   const MockSwitch = () => null;
   MockSwitch.displayName = "MockSwitch";
   Form.Switch = MockSwitch;
