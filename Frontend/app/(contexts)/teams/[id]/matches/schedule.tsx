@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { Alert, View } from "react-native";
+import { Alert } from "react-native";
 import { useLocalSearchParams, useNavigation, useRouter } from "expo-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { ContentArea } from "@/components/ui/content-area";
@@ -15,11 +15,9 @@ import { buildStartEndIso, isValidTimeRange } from "@/features/matches/utils";
 import { toast } from "@/components/sign-up/utils";
 import { createScopedLog } from "@/utils/logger";
 import { useRefereeOptions } from "@/hooks/use-referee-options";
-import {
-  getScheduleApiErrorMessage,
-  MatchDetailsSection,
-  useScheduleHeader,
-} from "@/components/matches/schedule-shared";
+import { getScheduleApiErrorMessage } from "@/utils/schedule-errors";
+import { MatchDetailsSection } from "@/components/matches/match-details-section";
+import { useScheduleHeader } from "@/hooks/use-schedule-header";
 import { AxiosError } from "axios";
 
 const log = createScopedLog("Schedule Team Match");
@@ -108,42 +106,22 @@ export default function ScheduleTeamMatchScreen() {
     }
   }, [refereesQuery.error, teamSearch.error]);
 
-  const validate = useCallback(() => {
-    const nextErrors: Record<string, string> = {};
-
-    if (!awayTeamId) nextErrors.awayTeamId = "Away team is required";
-    if (!startTimeValue) nextErrors.startTime = "Start time is required";
-    if (!endTimeValue) nextErrors.endTime = "End time is required";
+  const handleSubmit = useCallback(async () => {
+    if (!awayTeamId) {
+      Alert.alert("Match schedule failed", "Away team is required");
+      return;
+    }
     if (!isValidTimeRange(date, startTimeValue, endTimeValue)) {
-      nextErrors.timeRange = "End time must be after start time";
+      Alert.alert("Match schedule failed", "End time must be after start time");
+      return;
     }
     if (requiresReferee && !refereeUserId) {
-      nextErrors.refereeUserId = "Referee is required for official match";
+      Alert.alert(
+        "Match schedule failed",
+        "Referee is required for official match",
+      );
+      return;
     }
-
-    if (Object.keys(nextErrors).length > 0) {
-      const firstError = Object.values(nextErrors)[0];
-      if (firstError) {
-        Alert.alert("Invalid match details", firstError);
-      }
-    }
-    return Object.keys(nextErrors).length === 0;
-  }, [
-    awayTeamId,
-    date,
-    endTimeValue,
-    refereeUserId,
-    requiresReferee,
-    startTimeValue,
-  ]);
-
-  const isValid =
-    Boolean(awayTeamId) &&
-    isValidTimeRange(date, startTimeValue, endTimeValue) &&
-    (!requiresReferee || Boolean(refereeUserId));
-
-  const handleSubmit = useCallback(async () => {
-    if (!validate()) return;
 
     const { startTime, endTime } = buildStartEndIso(
       date,
@@ -189,52 +167,50 @@ export default function ScheduleTeamMatchScreen() {
     }
   }, [
     awayTeamId,
-    createMutation,
     date,
-    queryClient,
-    refereeUserId,
-    requiresReferee,
-    router,
-    team?.sport,
-    teamId,
     startTimeValue,
     endTimeValue,
-    validate,
+    requiresReferee,
+    refereeUserId,
+    createMutation,
+    teamId,
+    team?.sport,
     venue,
+    queryClient,
+    router,
   ]);
 
   useScheduleHeader({
     navigation,
     onSubmit: handleSubmit,
     isPending: createMutation.isPending,
-    isValid,
   });
 
   return (
     <ContentArea scrollable backgroundProps={{ preset: "red", mode: "form" }}>
       <Form accentColor={AccentColors.red}>
         <Form.Section header="Teams">
-          <Form.Input
+          <Form.Menu
             label="Home Team"
+            options={[team?.name ?? "My Team"]}
             value={team?.name ?? "My Team"}
-            editable={false}
+            onValueChange={() => {}}
+            disabled={true}
           />
-          <View>
-            <Form.Menu
-              label="Away Team"
-              options={awayTeamOptions}
-              value={
-                awayTeams.find((candidate) => candidate.id === awayTeamId)
-                  ?.name ?? "Select"
-              }
-              onValueChange={(value) => setAwayTeamId(teamNameToId[value])}
-              disabled={
-                createMutation.isPending ||
-                teamSearch.isLoading ||
-                awayTeamOptions.length === 0
-              }
-            />
-          </View>
+          <Form.Menu
+            label="Away Team"
+            options={awayTeamOptions}
+            value={
+              awayTeams.find((candidate) => candidate.id === awayTeamId)
+                ?.name ?? "Select"
+            }
+            onValueChange={(value) => setAwayTeamId(teamNameToId[value])}
+            disabled={
+              createMutation.isPending ||
+              teamSearch.isLoading ||
+              awayTeamOptions.length === 0
+            }
+          />
         </Form.Section>
 
         <MatchDetailsSection
@@ -249,33 +225,38 @@ export default function ScheduleTeamMatchScreen() {
           onAddVenue={() => router.push(`/teams/${teamId}/matches/add-venue`)}
         />
 
-        <Form.Section header="Referee">
+        <Form.Section
+          header="Referee"
+          footer={
+            !requiresReferee
+              ? "An official match requires a referee."
+              : undefined
+          }
+        >
           <Form.Switch
-            label="Official match (requires referee)"
+            label="Official match"
             value={requiresReferee}
             onValueChange={setRequiresReferee}
           />
 
           {requiresReferee ? (
-            <View>
-              <Form.Menu
-                label="Choose Referee"
-                options={refereeOptions}
-                value={
-                  refereeUserId
-                    ? (refereeIdToLabel[refereeUserId] ?? refereeUserId)
-                    : "Select"
-                }
-                onValueChange={(value) =>
-                  setRefereeUserId(refereeLabelToId[value] ?? value)
-                }
-                disabled={
-                  createMutation.isPending ||
-                  refereesQuery.isLoading ||
-                  refereeOptions.length === 0
-                }
-              />
-            </View>
+            <Form.Menu
+              label="Choose Referee"
+              options={refereeOptions}
+              value={
+                refereeUserId
+                  ? (refereeIdToLabel[refereeUserId] ?? refereeUserId)
+                  : "Select"
+              }
+              onValueChange={(value) =>
+                setRefereeUserId(refereeLabelToId[value] ?? value)
+              }
+              disabled={
+                createMutation.isPending ||
+                refereesQuery.isLoading ||
+                refereeOptions.length === 0
+              }
+            />
           ) : null}
         </Form.Section>
       </Form>

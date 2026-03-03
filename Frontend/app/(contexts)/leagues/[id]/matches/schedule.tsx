@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { View, Alert } from "react-native";
+import { Alert } from "react-native";
 import { useLocalSearchParams, useNavigation, useRouter } from "expo-router";
 import { useQueryClient } from "@tanstack/react-query";
 import { ContentArea } from "@/components/ui/content-area";
@@ -16,11 +16,9 @@ import { buildStartEndIso, isValidTimeRange } from "@/features/matches/utils";
 import { toast } from "@/components/sign-up/utils";
 import { createScopedLog } from "@/utils/logger";
 import { useRefereeOptions } from "@/hooks/use-referee-options";
-import {
-  getScheduleApiErrorMessage,
-  MatchDetailsSection,
-  useScheduleHeader,
-} from "@/components/matches/schedule-shared";
+import { getScheduleApiErrorMessage } from "@/utils/schedule-errors";
+import { MatchDetailsSection } from "@/components/matches/match-details-section";
+import { useScheduleHeader } from "@/hooks/use-schedule-header";
 import { AxiosError } from "axios";
 
 const log = createScopedLog("Schedule League Match");
@@ -100,47 +98,41 @@ export default function ScheduleLeagueMatchScreen() {
     }
   }, [refereesQuery.error, teamsQuery.error]);
 
-  const validate = useCallback(() => {
-    const nextErrors: Record<string, string> = {};
-
-    if (!homeTeamId) nextErrors.homeTeamId = "Home team is required";
-    if (!awayTeamId) nextErrors.awayTeamId = "Away team is required";
-    if (homeTeamId && awayTeamId && homeTeamId === awayTeamId) {
-      nextErrors.awayTeamId = "Home and away teams must be different";
-    }
-    if (!date) nextErrors.date = "Date is required";
-    if (!startTimeValue) nextErrors.startTime = "Start time is required";
-    if (!endTimeValue) nextErrors.endTime = "End time is required";
-    if (!isValidTimeRange(date, startTimeValue, endTimeValue)) {
-      nextErrors.timeRange = "End time must be after start time";
-    }
-    if (!refereeUserId) nextErrors.refereeUserId = "Referee is required";
-
-    if (Object.keys(nextErrors).length > 0) {
-      const firstError = Object.values(nextErrors)[0];
-      if (firstError) {
-        Alert.alert("Invalid match details", firstError);
-      }
-    }
-    return Object.keys(nextErrors).length === 0;
-  }, [
-    awayTeamId,
-    date,
-    endTimeValue,
-    homeTeamId,
-    refereeUserId,
-    startTimeValue,
-  ]);
-
-  const isValid =
-    homeTeamId.length > 0 &&
-    awayTeamId.length > 0 &&
-    homeTeamId !== awayTeamId &&
-    isValidTimeRange(date, startTimeValue, endTimeValue) &&
-    refereeUserId.length > 0;
-
   const handleSubmit = useCallback(async () => {
-    if (!validate()) return;
+    if (!homeTeamId) {
+      Alert.alert("Match schedule failed", "Home team is required");
+      return;
+    }
+    if (!awayTeamId) {
+      Alert.alert("Match schedule failed", "Away team is required");
+      return;
+    }
+    if (homeTeamId && awayTeamId && homeTeamId === awayTeamId) {
+      Alert.alert(
+        "Match schedule failed",
+        "Home and away teams must be different",
+      );
+    }
+    if (!date) {
+      Alert.alert("Match schedule failed", "Date is required");
+      return;
+    }
+    if (!startTimeValue) {
+      Alert.alert("Match schedule failed", "Start time is required");
+      return;
+    }
+    if (!endTimeValue) {
+      Alert.alert("Match schedule failed", "End time is required");
+      return;
+    }
+    if (!isValidTimeRange(date, startTimeValue, endTimeValue)) {
+      Alert.alert("Match schedule failed", "End time must be after start time");
+      return;
+    }
+    if (!refereeUserId) {
+      Alert.alert("Match schedule failed", "Referee is required");
+      return;
+    }
 
     const { startTime, endTime } = buildStartEndIso(
       date,
@@ -188,7 +180,6 @@ export default function ScheduleLeagueMatchScreen() {
     router,
     startTimeValue,
     endTimeValue,
-    validate,
     venue,
   ]);
 
@@ -196,44 +187,39 @@ export default function ScheduleLeagueMatchScreen() {
     navigation,
     onSubmit: handleSubmit,
     isPending: createMutation.isPending,
-    isValid,
   });
 
   return (
     <ContentArea scrollable backgroundProps={{ preset: "red", mode: "form" }}>
       <Form accentColor={AccentColors.red}>
         <Form.Section header="Teams">
-          <View>
-            <Form.Menu
-              label="Home Team"
-              options={homeTeamOptions}
-              value={
-                teams.find((team) => team.id === homeTeamId)?.name ?? "Select"
-              }
-              onValueChange={(value) => setHomeTeamId(teamNameToId[value])}
-              disabled={
-                createMutation.isPending ||
-                teamsQuery.isLoading ||
-                teamOptions.length === 0
-              }
-            />
-          </View>
+          <Form.Menu
+            label="Home Team"
+            options={homeTeamOptions}
+            value={
+              teams.find((team) => team.id === homeTeamId)?.name ?? "Select"
+            }
+            onValueChange={(value) => setHomeTeamId(teamNameToId[value])}
+            disabled={
+              createMutation.isPending ||
+              teamsQuery.isLoading ||
+              homeTeamOptions.length === 0
+            }
+          />
 
-          <View>
-            <Form.Menu
-              label="Away Team"
-              options={awayTeamOptions}
-              value={
-                teams.find((team) => team.id === awayTeamId)?.name ?? "Select"
-              }
-              onValueChange={(value) => setAwayTeamId(teamNameToId[value])}
-              disabled={
-                createMutation.isPending ||
-                teamsQuery.isLoading ||
-                teamOptions.length === 0
-              }
-            />
-          </View>
+          <Form.Menu
+            label="Away Team"
+            options={awayTeamOptions}
+            value={
+              teams.find((team) => team.id === awayTeamId)?.name ?? "Select"
+            }
+            onValueChange={(value) => setAwayTeamId(teamNameToId[value])}
+            disabled={
+              createMutation.isPending ||
+              teamsQuery.isLoading ||
+              awayTeamOptions.length === 0
+            }
+          />
         </Form.Section>
 
         <MatchDetailsSection
@@ -251,25 +237,23 @@ export default function ScheduleLeagueMatchScreen() {
         />
 
         <Form.Section header="Referee">
-          <View>
-            <Form.Menu
-              label="Choose Referee"
-              options={refereeOptions}
-              value={
-                refereeUserId
-                  ? (refereeIdToLabel[refereeUserId] ?? refereeUserId)
-                  : "Select"
-              }
-              onValueChange={(value) =>
-                setRefereeUserId(refereeLabelToId[value] ?? value)
-              }
-              disabled={
-                createMutation.isPending ||
-                refereesQuery.isLoading ||
-                refereeOptions.length === 0
-              }
-            />
-          </View>
+          <Form.Menu
+            label="Choose Referee"
+            options={refereeOptions}
+            value={
+              refereeUserId
+                ? (refereeIdToLabel[refereeUserId] ?? refereeUserId)
+                : "Select"
+            }
+            onValueChange={(value) =>
+              setRefereeUserId(refereeLabelToId[value] ?? value)
+            }
+            disabled={
+              createMutation.isPending ||
+              refereesQuery.isLoading ||
+              refereeOptions.length === 0
+            }
+          />
         </Form.Section>
       </Form>
     </ContentArea>

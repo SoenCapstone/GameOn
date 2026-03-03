@@ -1,9 +1,7 @@
 import React from "react";
 import { render } from "@testing-library/react-native";
-import {
-  getScheduleApiErrorMessage,
-  MatchDetailsSection,
-} from "@/components/matches/schedule-shared";
+import { getScheduleApiErrorMessage } from "@/utils/schedule-errors";
+import { MatchDetailsSection } from "@/components/matches/match-details-section";
 import { AxiosError } from "axios";
 jest.mock("expo-router", () => ({}));
 jest.mock("@react-navigation/native", () => ({}));
@@ -31,6 +29,42 @@ jest.mock("@/components/form/form", () => {
           React.ClassAttributes<HTMLButtonElement> &
           React.ButtonHTMLAttributes<HTMLButtonElement>,
       ) => <button data-testid="add-venue-link" {...props} />,
+      Menu: (
+        props: React.JSX.IntrinsicAttributes & {
+          label?: string;
+          value?: string;
+          options?: string[];
+        },
+      ) => (
+        <select data-testid="form-menu" {...props}>
+          {(props.options || []).map((option) => (
+            <option key={option} value={option}>
+              {option}
+            </option>
+          ))}
+        </select>
+      ),
+      Button: (
+        props: React.JSX.IntrinsicAttributes &
+          React.ClassAttributes<HTMLButtonElement> &
+          React.ButtonHTMLAttributes<HTMLButtonElement>,
+      ) => <button data-testid="form-button" {...props} />,
+      Switch: (
+        props: React.JSX.IntrinsicAttributes & {
+          label?: string;
+          value?: boolean;
+        },
+      ) => {
+        const { value, ...rest } = props;
+        return (
+          <input
+            data-testid="form-switch"
+            type="checkbox"
+            checked={value}
+            {...rest}
+          />
+        );
+      },
     },
   };
 });

@@ -13,7 +13,6 @@ export default function TeamsLayout() {
       "[id]/invite/index",
       "[id]/matches/schedule",
       "[id]/matches/add-venue",
-      "[id]/matches/[matchId]",
     ],
   });
 
