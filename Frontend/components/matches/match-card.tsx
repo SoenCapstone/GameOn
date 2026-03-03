@@ -27,6 +27,7 @@ export function MatchCard({
   awayLogoUrl,
   sport,
   contextLabel,
+  status,
   startTime,
   isPast,
   homeScore,
@@ -34,6 +35,10 @@ export function MatchCard({
   onPress,
 }: Readonly<MatchCardProps>) {
   const renderCenterValue = () => {
+    if (status === "CANCELLED") {
+      return <Text style={styles.pending}>Cancelled</Text>;
+    }
+
     if (!isPast) {
       return <Text style={styles.date}>{formatMatchDateTime(startTime)}</Text>;
     }
