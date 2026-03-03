@@ -228,9 +228,9 @@ export default function ScheduleTeamMatchScreen() {
         <Form.Section
           header="Referee"
           footer={
-            !requiresReferee
-              ? "An official match requires a referee."
-              : undefined
+            requiresReferee
+              ? undefined
+              : "An official match requires a referee."
           }
         >
           <Form.Switch
