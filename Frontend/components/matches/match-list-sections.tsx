@@ -18,7 +18,7 @@ type MatchItem = {
 };
 
 interface MatchListSectionsProps {
-  readonly current: MatchItem[];
+  readonly today: MatchItem[];
   readonly upcoming: MatchItem[];
   readonly past: MatchItem[];
   readonly isLoading: boolean;
@@ -29,60 +29,50 @@ interface MatchListSectionsProps {
 
 function ListSection({
   title,
-  emptyText,
   items,
   isLoading,
   onMatchPress,
 }: {
   readonly title: string;
-  readonly emptyText: string;
   readonly items: MatchItem[];
   readonly isLoading: boolean;
   readonly onMatchPress: (matchId: string) => void;
 }) {
-  const renderSectionContent = () => {
-    if (isLoading) {
-      return (
-        <>
-          <MatchSkeletonCard />
-          <MatchSkeletonCard />
-        </>
-      );
-    }
-
-    if (items.length === 0) {
-      return <Text style={styles.emptyText}>{emptyText}</Text>;
-    }
-
-    return items.map((match) => (
-      <MatchCard
-        key={match.id}
-        homeName={match.homeName}
-        awayName={match.awayName}
-        homeLogoUrl={match.homeLogoUrl}
-        awayLogoUrl={match.awayLogoUrl}
-        sport={match.sport}
-        contextLabel={match.contextLabel}
-        status={match.status}
-        startTime={match.startTime}
-        isPast={match.isPast}
-        homeScore={match.homeScore}
-        awayScore={match.awayScore}
-        onPress={() => onMatchPress(match.id)}
-      />
-    ));
-  };
-
   return (
     <View style={styles.section}>
       <Text style={styles.sectionTitle}>{title}</Text>
-      <View style={styles.sectionBody}>{renderSectionContent()}</View>
+      <View style={styles.sectionBody}>
+        {isLoading ? (
+          <>
+            <MatchSkeletonCard />
+            <MatchSkeletonCard />
+          </>
+        ) : (
+          items.map((match) => (
+            <MatchCard
+              key={match.id}
+              homeName={match.homeName}
+              awayName={match.awayName}
+              homeLogoUrl={match.homeLogoUrl}
+              awayLogoUrl={match.awayLogoUrl}
+              sport={match.sport}
+              contextLabel={match.contextLabel}
+              status={match.status}
+              startTime={match.startTime}
+              isPast={match.isPast}
+              homeScore={match.homeScore}
+              awayScore={match.awayScore}
+              onPress={() => onMatchPress(match.id)}
+            />
+          ))
+        )}
+      </View>
     </View>
   );
 }
 
 export function MatchListSections({
-  current,
+  today,
   upcoming,
   past,
   isLoading,
@@ -103,45 +93,51 @@ export function MatchListSections({
         </View>
       ) : null}
 
-      <ListSection
-        title="Current"
-        emptyText="No current matches"
-        items={current}
-        isLoading={isLoading}
-        onMatchPress={onMatchPress}
-      />
+      {isLoading || today.length > 0 ? (
+        <ListSection
+          title="Today"
+          items={today}
+          isLoading={isLoading}
+          onMatchPress={onMatchPress}
+        />
+      ) : null}
 
-      <ListSection
-        title="Upcoming"
-        emptyText="No upcoming matches"
-        items={upcoming}
-        isLoading={isLoading}
-        onMatchPress={onMatchPress}
-      />
+      {isLoading || upcoming.length > 0 ? (
+        <ListSection
+          title="Upcoming"
+          items={upcoming}
+          isLoading={isLoading}
+          onMatchPress={onMatchPress}
+        />
+      ) : null}
 
-      <ListSection
-        title="Past"
-        emptyText="No past matches"
-        items={past}
-        isLoading={isLoading}
-        onMatchPress={onMatchPress}
-      />
+      {isLoading || past.length > 0 ? (
+        <ListSection
+          title="Past"
+          items={past}
+          isLoading={isLoading}
+          onMatchPress={onMatchPress}
+        />
+      ) : null}
     </>
   );
 }
 
 const styles = StyleSheet.create({
   section: {
-    gap: 10,
+    gap: 6,
   },
   sectionTitle: {
-    color: "#fff",
-    fontSize: 18,
-    fontWeight: "700",
-    marginTop: 8,
+    color: "white",
+    fontSize: 20,
+    lineHeight: 25,
+    fontWeight: "600",
+    paddingTop: 5,
+    paddingBottom: 10,
+    paddingHorizontal: 16,
   },
   sectionBody: {
-    gap: 10,
+    gap: 14,
   },
   emptyText: {
     color: "rgba(255,255,255,0.72)",

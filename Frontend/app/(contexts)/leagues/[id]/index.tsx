@@ -110,7 +110,7 @@ function LeagueContent() {
     [league?.name, matches, teamsQuery.data],
   );
 
-  const { current, upcoming, past } = useMemo(
+  const { today, upcoming, past } = useMemo(
     () => splitMatchSections(matchItems),
     [matchItems],
   );
@@ -189,7 +189,7 @@ function LeagueContent() {
 
             {tab === "matches" && (
               <MatchListSections
-                current={current}
+                today={today}
                 upcoming={upcoming}
                 past={past}
                 isLoading={matchesLoading || teamsQuery.isLoading}

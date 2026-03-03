@@ -19,17 +19,21 @@ export function isPastMatch(startTime: string) {
 
 export function getMatchSection(
   startTime: string,
-  endTime: string,
-  status: string,
-): "current" | "upcoming" | "past" {
-  const now = Date.now();
-  const start = new Date(startTime).getTime();
-  const end = new Date(endTime).getTime();
+  _endTime: string,
+  _status: string,
+): "today" | "upcoming" | "past" {
+  const now = new Date();
+  const start = new Date(startTime);
 
-  if (status !== "CANCELLED" && start <= now && now <= end) {
-    return "current";
+  const isToday =
+    start.getFullYear() === now.getFullYear() &&
+    start.getMonth() === now.getMonth() &&
+    start.getDate() === now.getDate();
+
+  if (isToday) {
+    return "today";
   }
-  if (now < start) {
+  if (start.getTime() > now.getTime()) {
     return "upcoming";
   }
   return "past";
@@ -117,7 +121,7 @@ export type MatchCardItem = {
   contextLabel: string;
   status: string;
   startTime: string;
-  section: "current" | "upcoming" | "past";
+  section: "today" | "upcoming" | "past";
   isPast: boolean;
 };
 
@@ -146,11 +150,11 @@ export function buildMatchCards(
   });
 }
 
-export function splitMatchSections<T extends { section: "current" | "upcoming" | "past"; isPast: boolean; startTime: string }>(
+export function splitMatchSections<T extends { section: "today" | "upcoming" | "past"; isPast: boolean; startTime: string }>(
   matchItems: T[],
 ) {
   return {
-    current: sortUpcomingFirst(matchItems.filter((item) => item.section === "current")),
+    today: sortUpcomingFirst(matchItems.filter((item) => item.section === "today")),
     upcoming: sortUpcomingFirst(matchItems.filter((item) => item.section === "upcoming")),
     past: sortPastLatestFirst(matchItems.filter((item) => item.isPast)),
   };
