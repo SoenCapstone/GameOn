@@ -35,57 +35,60 @@ export function MatchCard({
 }: Readonly<MatchCardProps>) {
   const renderCenterValue = () => {
     if (!isPast) {
-      return (
-        <Text style={styles.dateText}>{formatMatchDateTime(startTime)}</Text>
-      );
+      return <Text style={styles.date}>{formatMatchDateTime(startTime)}</Text>;
     }
 
     const hasScore = homeScore !== undefined && awayScore !== undefined;
     if (hasScore) {
       return (
-        <Text style={styles.scoreText}>
-          {homeScore} - {awayScore}
-        </Text>
+        <View style={styles.result}>
+          <Text style={[styles.score, styles.side]} numberOfLines={1}>
+            {homeScore}
+          </Text>
+          <Text style={[styles.score, styles.dash]}>-</Text>
+          <Text style={[styles.score, styles.side]} numberOfLines={1}>
+            {awayScore}
+          </Text>
+        </View>
       );
     }
 
-    return <Text style={styles.scorePending}>Score unavailable</Text>;
+    return <Text style={styles.pending}>Score Pending</Text>;
   };
 
   return (
-    <Pressable onPress={onPress} style={styles.cardPressable}>
+    <Pressable onPress={onPress}>
       <Card>
-        <View style={styles.card}>
-          <View style={styles.contentRow}>
-            <View style={styles.sideColumn}>
-              <Image
-                source={
-                  homeLogoUrl ? { uri: homeLogoUrl } : getSportLogo(sport)
-                }
-                style={styles.teamLogo}
-                contentFit="contain"
-              />
-              <Text style={styles.teamName} numberOfLines={1}>
-                {homeName}
-              </Text>
-            </View>
+        <View style={styles.content}>
+          <View style={styles.top}>
+            <Image
+              source={homeLogoUrl ? { uri: homeLogoUrl } : getSportLogo(sport)}
+              style={styles.logo}
+              contentFit="contain"
+            />
 
-            <View style={styles.centerColumn}>
-              <Text style={styles.contextLabel} numberOfLines={1}>
+            <View style={styles.middle}>
+              <Text style={styles.league} numberOfLines={1}>
                 {contextLabel}
               </Text>
               {renderCenterValue()}
             </View>
 
-            <View style={styles.sideColumn}>
-              <Image
-                source={
-                  awayLogoUrl ? { uri: awayLogoUrl } : getSportLogo(sport)
-                }
-                style={styles.teamLogo}
-                contentFit="contain"
-              />
-              <Text style={styles.teamName} numberOfLines={1}>
+            <Image
+              source={awayLogoUrl ? { uri: awayLogoUrl } : getSportLogo(sport)}
+              style={styles.logo}
+              contentFit="contain"
+            />
+          </View>
+
+          <View style={styles.names}>
+            <View style={styles.home}>
+              <Text style={styles.name} numberOfLines={1}>
+                {homeName}
+              </Text>
+            </View>
+            <View style={styles.away}>
+              <Text style={styles.name} numberOfLines={1}>
                 {awayName}
               </Text>
             </View>
@@ -100,99 +103,106 @@ export function MatchSkeletonCard() {
   return (
     <Card isInteractive={false}>
       <View>
-        <View style={[styles.skeletonBlock, styles.skeletonHeader]} />
-        <View style={[styles.skeletonBlock, styles.skeletonLine]} />
-        <View style={[styles.skeletonBlock, styles.skeletonLine]} />
-        <View style={[styles.skeletonBlock, styles.skeletonFooter]} />
+        <View style={[styles.skeleton, styles.header]} />
+        <View style={[styles.skeleton, styles.line]} />
+        <View style={[styles.skeleton, styles.line]} />
+        <View style={[styles.skeleton, styles.footer]} />
       </View>
     </Card>
   );
 }
 
 const styles = StyleSheet.create({
-  cardPressable: {
-    borderRadius: 34,
-    overflow: "hidden",
+  content: {
+    gap: 8,
   },
-  card: {
-    borderRadius: 28,
-  },
-  contentRow: {
+  top: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    gap: 6,
+    paddingHorizontal: 14,
   },
-  sideColumn: {
-    flex: 1,
+  logo: {
+    width: 48,
+    height: 48,
+  },
+  middle: {
     alignItems: "center",
     justifyContent: "center",
-    minWidth: 0,
-    paddingHorizontal: 8,
-    gap: 10,
+    gap: 4,
+    maxWidth: "55%",
   },
-  centerColumn: {
-    flex: 1.1,
-    alignItems: "center",
-    justifyContent: "center",
-    minWidth: 0,
-    paddingHorizontal: 4,
-    gap: 6,
-  },
-  teamLogo: {
-    width: 60,
-    height: 60,
-    borderRadius: 42,
-    backgroundColor: "rgba(255,255,255,0.04)",
-  },
-  teamName: {
+  league: {
     color: "rgba(235,235,245,0.68)",
-    fontSize: 18,
-    fontWeight: "500",
-    lineHeight: 22,
-    textAlign: "center",
-    maxWidth: "100%",
-    paddingHorizontal: 6,
+    fontSize: 12,
+    lineHeight: 16,
   },
-  contextLabel: {
-    color: "rgba(235,235,245,0.52)",
-    fontSize: 14,
-    fontWeight: "500",
-  },
-  scoreText: {
-    color: "rgba(235,235,245,0.65)",
-    fontSize: 14,
-    fontWeight: "300",
-    lineHeight: 54,
+  date: {
+    color: "rgba(235,235,245,0.68)",
+    fontSize: 12,
+    lineHeight: 16,
     textAlign: "center",
   },
-  dateText: {
-    color: "rgba(235,235,245,0.65)",
-    fontSize: 14,
+  result: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  score: {
+    color: "rgba(235,235,245,0.68)",
+    fontSize: 24,
+    lineHeight: 28,
+  },
+  side: {
+    width: 34,
     fontWeight: "500",
     textAlign: "center",
+    fontVariant: ["tabular-nums"],
   },
-  scorePending: {
-    color: "rgba(235,235,245,0.56)",
-    fontSize: 14,
-    fontWeight: "500",
+  dash: {
+    width: 40,
+    fontWeight: "400",
     textAlign: "center",
   },
-  skeletonBlock: {
+  pending: {
+    color: "rgba(235,235,245,0.68)",
+    fontSize: 14,
+    textAlign: "center",
+  },
+  names: {
+    flexDirection: "row",
+    alignItems: "flex-start",
+    justifyContent: "space-between",
+  },
+  home: {
+    minWidth: 76,
+    alignItems: "center",
+  },
+  name: {
+    color: "rgba(235,235,245,0.68)",
+    fontSize: 12,
+    lineHeight: 16,
+    textAlign: "center",
+  },
+  away: {
+    minWidth: 76,
+    alignItems: "center",
+  },
+  skeleton: {
     backgroundColor: "rgba(255,255,255,0.16)",
     borderRadius: 8,
   },
-  skeletonHeader: {
+  header: {
     height: 18,
     width: "55%",
     marginBottom: 12,
   },
-  skeletonLine: {
+  line: {
     height: 16,
     width: "85%",
     marginBottom: 8,
   },
-  skeletonFooter: {
+  footer: {
     height: 14,
     width: "40%",
   },
