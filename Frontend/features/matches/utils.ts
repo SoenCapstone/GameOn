@@ -136,12 +136,14 @@ export type MatchCardItem = {
 export function buildMatchCards(
   matches: (LeagueMatch | TeamMatch)[],
   teamMap: Record<string, TeamSummary> | undefined,
-  contextLabel: string,
+  contextLabel: string | ((match: LeagueMatch | TeamMatch) => string),
 ): MatchCardItem[] {
   return matches.map((match) => {
     const home = teamMap?.[match.homeTeamId];
     const away = teamMap?.[match.awayTeamId];
     const section = getMatchSection(match.startTime, match.status);
+    const resolvedContextLabel =
+      typeof contextLabel === "function" ? contextLabel(match) : contextLabel;
     return {
       id: match.id,
       homeName: home?.name ?? "Home Team",
@@ -149,7 +151,7 @@ export function buildMatchCards(
       homeLogoUrl: home?.logoUrl,
       awayLogoUrl: away?.logoUrl,
       sport: match.sport,
-      contextLabel,
+      contextLabel: resolvedContextLabel,
       status: match.status,
       startTime: match.startTime,
       section,

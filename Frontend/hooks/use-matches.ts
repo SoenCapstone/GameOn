@@ -51,11 +51,57 @@ export function useLeagueMatches(leagueId: string) {
 
 export function useTeamMatches(teamId: string) {
   const api = useAxiosWithClerk();
-  return useQuery<TeamMatch[]>({
+  return useQuery<(TeamMatch | LeagueMatch)[]>({
     queryKey: ["team-matches", teamId],
     queryFn: async () => {
-      const resp = await api.get(GO_TEAM_SERVICE_ROUTES.MATCHES(teamId));
-      return resp.data ?? [];
+      const resp = await api.get<TeamMatch[]>(GO_TEAM_SERVICE_ROUTES.MATCHES(teamId));
+      const directTeamMatches = resp.data ?? [];
+
+      let leagueMatches: LeagueMatch[] = [];
+      try {
+        const leaguesResp = await api.get<{ items?: { id: string }[] }>(
+          GO_LEAGUE_SERVICE_ROUTES.ALL,
+          { params: { size: "100" } },
+        );
+        const leagueIds = (leaguesResp.data?.items ?? []).map((league) => league.id);
+
+        if (leagueIds.length > 0) {
+          const leagueMatchesResults = await Promise.allSettled(
+            leagueIds.map(async (leagueId) => {
+              const leagueResp = await api.get<LeagueMatch[]>(
+                GO_LEAGUE_SERVICE_ROUTES.MATCHES(leagueId),
+              );
+              return (leagueResp.data ?? []).filter(
+                (match) =>
+                  match.homeTeamId === teamId || match.awayTeamId === teamId,
+              );
+            }),
+          );
+
+          leagueMatches = leagueMatchesResults.flatMap((result) =>
+            result.status === "fulfilled" ? result.value : [],
+          );
+
+          const failedCount = leagueMatchesResults.filter(
+            (result) => result.status === "rejected",
+          ).length;
+          if (failedCount > 0) {
+            log.warn("Some league match requests failed while aggregating team matches", {
+              teamId,
+              failedCount,
+            });
+          }
+        }
+      } catch (err) {
+        log.warn("Failed to aggregate league matches for team", { teamId, err });
+      }
+
+      const mergedMatches = [...directTeamMatches, ...leagueMatches];
+      const dedupedById = new Map<string, TeamMatch | LeagueMatch>();
+      for (const match of mergedMatches) {
+        dedupedById.set(match.id, match);
+      }
+      return Array.from(dedupedById.values());
     },
     enabled: Boolean(teamId),
     retry: false,
@@ -98,6 +144,39 @@ export function useTeamsByIds(teamIds: string[]) {
           } catch (err) {
             log.warn("Failed to fetch team summary by id", { teamId, err });
             return [teamId, { id: teamId, name: "Team" }] as const;
+          }
+        }),
+      );
+      return Object.fromEntries(entries);
+    },
+    enabled: idsKey.length > 0,
+    retry: false,
+  });
+}
+
+export function useLeaguesByIds(leagueIds: string[]) {
+  const api = useAxiosWithClerk();
+  const idsKey = useMemo(
+    () =>
+      [...new Set(leagueIds.filter(Boolean))]
+        .sort((left, right) => left.localeCompare(right))
+        .join(","),
+    [leagueIds],
+  );
+
+  return useQuery<Record<string, { id: string; name: string }>>({
+    queryKey: ["league-summary-map", idsKey],
+    queryFn: async () => {
+      const uniqueIds = idsKey ? idsKey.split(",") : [];
+      const entries = await Promise.all(
+        uniqueIds.map(async (leagueId) => {
+          try {
+            const resp = await api.get(GO_LEAGUE_SERVICE_ROUTES.GET(leagueId));
+            const league = resp.data as { id: string; name?: string };
+            return [leagueId, { id: leagueId, name: league.name ?? "League" }] as const;
+          } catch (err) {
+            log.warn("Failed to fetch league summary by id", { leagueId, err });
+            return [leagueId, { id: leagueId, name: "League" }] as const;
           }
         }),
       );

@@ -234,7 +234,7 @@ export default function ScheduleTeamMatchScreen() {
           }
         >
           <Form.Switch
-            label="Official match"
+            label="Official Match"
             value={requiresReferee}
             onValueChange={setRequiresReferee}
           />
