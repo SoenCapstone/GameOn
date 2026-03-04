@@ -25,7 +25,11 @@ import { useDetailPageHandlers } from "@/hooks/use-detail-page-handlers";
 import { createScopedLog } from "@/utils/logger";
 import { Tabs } from "@/components/ui/tabs";
 import { MatchListSections } from "@/components/matches/match-list-sections";
-import { useTeamMatches, useTeamsByIds } from "@/hooks/use-matches";
+import {
+  useLeaguesByIds,
+  useTeamMatches,
+  useTeamsByIds,
+} from "@/hooks/use-matches";
 import { buildMatchCards, splitMatchSections } from "@/features/matches/utils";
 
 export default function Team() {
@@ -82,11 +86,29 @@ function TeamContent() {
       Array.from(new Set(matches.flatMap((m) => [m.homeTeamId, m.awayTeamId]))),
     [matches],
   );
+  const leagueIds = useMemo(
+    () =>
+      Array.from(
+        new Set(
+          matches.flatMap((match) =>
+            "leagueId" in match && match.leagueId ? [match.leagueId] : [],
+          ),
+        ),
+      ),
+    [matches],
+  );
   const teamsQuery = useTeamsByIds(teamIds);
+  const leaguesQuery = useLeaguesByIds(leagueIds);
 
   const matchItems = useMemo(
-    () => buildMatchCards(matches, teamsQuery.data, "Team Match"),
-    [matches, teamsQuery.data],
+    () =>
+      buildMatchCards(matches, teamsQuery.data, (match) => {
+        if ("leagueId" in match && match.leagueId) {
+          return leaguesQuery.data?.[match.leagueId]?.name ?? "League Match";
+        }
+        return "Team Match";
+      }),
+    [matches, teamsQuery.data, leaguesQuery.data],
   );
 
   const {
@@ -99,9 +121,13 @@ function TeamContent() {
 
   const handleMatchesRefresh = useMemo(
     () => async () => {
-      await Promise.all([refetchMatches(), teamsQuery.refetch()]);
+      await Promise.all([
+        refetchMatches(),
+        teamsQuery.refetch(),
+        leaguesQuery.refetch(),
+      ]);
     },
-    [refetchMatches, teamsQuery],
+    [refetchMatches, teamsQuery, leaguesQuery],
   );
 
   const { refreshing, handleDeletePost, handleRefresh } = useDetailPageHandlers(
@@ -185,7 +211,11 @@ function TeamContent() {
                 today={[...todayMatches]}
                 upcoming={[...upcomingMatches]}
                 past={[...pastMatches]}
-                isLoading={matchesLoading || teamsQuery.isLoading}
+                isLoading={
+                  matchesLoading ||
+                  teamsQuery.isLoading ||
+                  leaguesQuery.isLoading
+                }
                 errorText={matchesError ? "Could not load matches." : null}
                 onRetry={handleMatchesRefresh}
                 onMatchPress={(matchId) =>
