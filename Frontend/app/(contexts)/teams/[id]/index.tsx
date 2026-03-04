@@ -73,7 +73,6 @@ function TeamContent() {
   const {
     data: matches = [],
     isLoading: matchesLoading,
-    isFetching: matchesFetching,
     error: matchesError,
     refetch: refetchMatches,
   } = useTeamMatches(id);
@@ -141,7 +140,7 @@ function TeamContent() {
         backgroundProps={{ preset: "red" }}
         refreshControl={
           <RefreshControl
-            refreshing={refreshing || matchesFetching}
+            refreshing={refreshing}
             onRefresh={handleRefresh}
             tintColor="#fff"
           />
