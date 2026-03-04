@@ -220,7 +220,7 @@ function TeamContent() {
                 onRetry={handleMatchesRefresh}
                 onMatchPress={(matchId) =>
                   router.push({
-                    pathname: `/match/${matchId}` as RelativePathString,
+                    pathname: `/(sheets)/match/${matchId}` as RelativePathString,
                     params: {
                       context: "team",
                       contextId: id,
