@@ -150,7 +150,7 @@ export default function ScheduleTeamMatchScreen() {
       } else {
         toast("Match scheduled");
       }
-      router.replace(`/teams/${teamId}`);
+      router.back();
     } catch (err) {
       const { status, message } = getScheduleApiErrorMessage(
         err as AxiosError<{ message?: string }>,

@@ -11,14 +11,17 @@ import {
 import {
   LeagueMatch,
   LeagueTeamMembership,
-  RefInviteResponse,
   RefereeMatchInviteCard,
   RefereeProfile,
+  RefInviteResponse,
   TeamMatch,
   TeamMatchInviteCard,
   TeamSummary,
 } from "@/features/matches/types";
-import { filterPendingTeamInvitesForOwner, mapTeamsById } from "@/features/matches/utils";
+import {
+  filterPendingTeamInvitesForOwner,
+  mapTeamsById,
+} from "@/features/matches/utils";
 import { createScopedLog } from "@/utils/logger";
 
 const log = createScopedLog("Matches");
@@ -54,7 +57,9 @@ export function useTeamMatches(teamId: string) {
   return useQuery<(TeamMatch | LeagueMatch)[]>({
     queryKey: ["team-matches", teamId],
     queryFn: async () => {
-      const resp = await api.get<TeamMatch[]>(GO_TEAM_SERVICE_ROUTES.MATCHES(teamId));
+      const resp = await api.get<TeamMatch[]>(
+        GO_TEAM_SERVICE_ROUTES.MATCHES(teamId),
+      );
       const directTeamMatches = resp.data ?? [];
 
       let leagueMatches: LeagueMatch[] = [];
@@ -63,7 +68,9 @@ export function useTeamMatches(teamId: string) {
           GO_LEAGUE_SERVICE_ROUTES.ALL,
           { params: { size: "100" } },
         );
-        const leagueIds = (leaguesResp.data?.items ?? []).map((league) => league.id);
+        const leagueIds = (leaguesResp.data?.items ?? []).map(
+          (league) => league.id,
+        );
 
         if (leagueIds.length > 0) {
           const leagueMatchesResults = await Promise.allSettled(
@@ -86,14 +93,20 @@ export function useTeamMatches(teamId: string) {
             (result) => result.status === "rejected",
           ).length;
           if (failedCount > 0) {
-            log.warn("Some league match requests failed while aggregating team matches", {
-              teamId,
-              failedCount,
-            });
+            log.warn(
+              "Some league match requests failed while aggregating team matches",
+              {
+                teamId,
+                failedCount,
+              },
+            );
           }
         }
       } catch (err) {
-        log.warn("Failed to aggregate league matches for team", { teamId, err });
+        log.warn("Failed to aggregate league matches for team", {
+          teamId,
+          err,
+        });
       }
 
       const mergedMatches = [...directTeamMatches, ...leagueMatches];
@@ -138,7 +151,9 @@ export function useTeamsByIds(teamIds: string[]) {
       const entries = await Promise.all(
         uniqueIds.map(async (teamId) => {
           try {
-            const resp = await api.get(`${GO_TEAM_SERVICE_ROUTES.ALL}/${teamId}`);
+            const resp = await api.get(
+              `${GO_TEAM_SERVICE_ROUTES.ALL}/${teamId}`,
+            );
             const team = resp.data as TeamSummary;
             return [teamId, team] as const;
           } catch (err) {
@@ -173,7 +188,10 @@ export function useLeaguesByIds(leagueIds: string[]) {
           try {
             const resp = await api.get(GO_LEAGUE_SERVICE_ROUTES.GET(leagueId));
             const league = resp.data as { id: string; name?: string };
-            return [leagueId, { id: leagueId, name: league.name ?? "League" }] as const;
+            return [
+              leagueId,
+              { id: leagueId, name: league.name ?? "League" },
+            ] as const;
           } catch (err) {
             log.warn("Failed to fetch league summary by id", { leagueId, err });
             return [leagueId, { id: leagueId, name: "League" }] as const;
@@ -197,7 +215,13 @@ export function useReferees(params?: {
   const api = useAxiosWithClerk();
   const { enabled = true, ...queryParams } = params ?? {};
   return useQuery<RefereeProfile[]>({
-    queryKey: ["referees", queryParams.sport ?? "", queryParams.region ?? "", queryParams.active ?? true, queryParams.matchId ?? ""],
+    queryKey: [
+      "referees",
+      queryParams.sport ?? "",
+      queryParams.region ?? "",
+      queryParams.active ?? true,
+      queryParams.matchId ?? "",
+    ],
     queryFn: async () => {
       const resp = await api.get(GO_REFEREE_ROUTES.ALL, {
         params: queryParams,
@@ -292,7 +316,13 @@ export function useCancelLeagueMatch(leagueId: string) {
   const api = useAxiosWithClerk();
 
   return useMutation({
-    mutationFn: async ({ matchId, reason }: { matchId: string; reason?: string }) => {
+    mutationFn: async ({
+      matchId,
+      reason,
+    }: {
+      matchId: string;
+      reason?: string;
+    }) => {
       const resp = await api.post(
         GO_LEAGUE_SERVICE_ROUTES.CANCEL_MATCH(leagueId, matchId),
         reason ? { reason } : {},
@@ -306,8 +336,17 @@ export function useCancelTeamMatch() {
   const api = useAxiosWithClerk();
 
   return useMutation({
-    mutationFn: async ({ matchId, reason }: { matchId: string; reason?: string }) => {
-      const resp = await api.post(GO_MATCH_ROUTES.CANCEL(matchId), reason ? { reason } : {});
+    mutationFn: async ({
+      matchId,
+      reason,
+    }: {
+      matchId: string;
+      reason?: string;
+    }) => {
+      const resp = await api.post(
+        GO_MATCH_ROUTES.CANCEL(matchId),
+        reason ? { reason } : {},
+      );
       return resp.data as TeamMatch;
     },
   });
@@ -359,9 +398,12 @@ export async function fetchIncomingTeamMatchInvites(
   api: AxiosInstance,
   userId: string,
 ): Promise<TeamMatchInviteCard[]> {
-  const myTeamsResp = await api.get<{ items: TeamSummary[] }>(GO_TEAM_SERVICE_ROUTES.ALL, {
-    params: { my: true, size: 100 },
-  });
+  const myTeamsResp = await api.get<{ items: TeamSummary[] }>(
+    GO_TEAM_SERVICE_ROUTES.ALL,
+    {
+      params: { my: true, size: 100 },
+    },
+  );
 
   const myTeams = myTeamsResp.data?.items ?? [];
   if (myTeams.length === 0) return [];
@@ -372,18 +414,25 @@ export async function fetchIncomingTeamMatchInvites(
         const resp = await api.get(`${GO_TEAM_SERVICE_ROUTES.ALL}/${team.id}`);
         return resp.data as TeamSummary;
       } catch (err) {
-        log.warn("Failed to fetch detailed team for owner check", { teamId: team.id, err });
+        log.warn("Failed to fetch detailed team for owner check", {
+          teamId: team.id,
+          err,
+        });
         return team;
       }
     }),
   );
 
-  const ownerTeams = detailEntries.filter((team) => team.ownerUserId === userId);
+  const ownerTeams = detailEntries.filter(
+    (team) => team.ownerUserId === userId,
+  );
   if (ownerTeams.length === 0) return [];
 
   const matchesPerTeam = await Promise.all(
     ownerTeams.map(async (team) => {
-      const resp = await api.get<TeamMatch[]>(GO_TEAM_SERVICE_ROUTES.MATCHES(team.id));
+      const resp = await api.get<TeamMatch[]>(
+        GO_TEAM_SERVICE_ROUTES.MATCHES(team.id),
+      );
       return filterPendingTeamInvitesForOwner(resp.data ?? [], team.id);
     }),
   );
@@ -426,7 +475,9 @@ export async function fetchIncomingRefereeInvites(
 ): Promise<RefereeMatchInviteCard[]> {
   let invites: RefInviteResponse[] = [];
   try {
-    const resp = await api.get<RefInviteResponse[]>(GO_REFEREE_ROUTES.MY_INVITES);
+    const resp = await api.get<RefInviteResponse[]>(
+      GO_REFEREE_ROUTES.MY_INVITES,
+    );
     invites = (resp.data ?? []).filter((invite) => invite.status === "PENDING");
   } catch (err) {
     // Endpoint may be unavailable on older backend builds; don't fail Home updates.
@@ -439,20 +490,32 @@ export async function fetchIncomingRefereeInvites(
   const matches = await Promise.all(
     invites.map(async (invite) => {
       try {
-        const matchResp = await api.get<TeamMatch>(GO_MATCH_ROUTES.GET(invite.matchId));
+        const matchResp = await api.get<TeamMatch>(
+          GO_MATCH_ROUTES.GET(invite.matchId),
+        );
         return { invite, match: matchResp.data } as const;
       } catch (err) {
-        log.warn("Failed to fetch match for referee invite", { inviteId: invite.id, err });
+        log.warn("Failed to fetch match for referee invite", {
+          inviteId: invite.id,
+          err,
+        });
         return null;
       }
     }),
   );
 
-  const valid = matches.filter((entry): entry is NonNullable<typeof entry> => Boolean(entry));
+  const valid = matches.filter((entry): entry is NonNullable<typeof entry> =>
+    Boolean(entry),
+  );
   if (valid.length === 0) return [];
 
   const teamIds = Array.from(
-    new Set(valid.flatMap((entry) => [entry.match.homeTeamId, entry.match.awayTeamId])),
+    new Set(
+      valid.flatMap((entry) => [
+        entry.match.homeTeamId,
+        entry.match.awayTeamId,
+      ]),
+    ),
   );
   const teams = await fetchTeamsByIds(api, teamIds);
   const teamMap = mapTeamsById(teams);
@@ -468,7 +531,7 @@ export async function fetchIncomingRefereeInvites(
 }
 
 async function fetchTeamsByIds(api: AxiosInstance, teamIds: string[]) {
-  const entries = await Promise.all(
+  return await Promise.all(
     teamIds.map(async (teamId) => {
       try {
         const resp = await api.get(`${GO_TEAM_SERVICE_ROUTES.ALL}/${teamId}`);
@@ -479,6 +542,4 @@ async function fetchTeamsByIds(api: AxiosInstance, teamIds: string[]) {
       }
     }),
   );
-
-  return entries;
 }
