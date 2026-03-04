@@ -6,6 +6,7 @@ import ScheduleLeagueMatchScreen from "@/app/(contexts)/leagues/[id]/matches/sch
 const mockSetOptions = jest.fn();
 const mockReplace = jest.fn();
 const mockPush = jest.fn();
+const mockBack = jest.fn();
 const mockCreateLeagueMatch = jest.fn();
 const mockApiGet = jest.fn();
 const mockToast = jest.fn();
@@ -13,7 +14,7 @@ const mockToast = jest.fn();
 jest.mock("expo-router", () => ({
   useLocalSearchParams: () => ({ id: "league-1" }),
   useNavigation: () => ({ setOptions: mockSetOptions }),
-  useRouter: () => ({ replace: mockReplace, push: mockPush }),
+  useRouter: () => ({ replace: mockReplace, push: mockPush, back: mockBack }),
 }));
 
 jest.mock("@/components/ui/content-area", () => ({
@@ -243,6 +244,6 @@ describe("ScheduleLeagueMatchScreen", () => {
       }) as unknown,
     );
     expect(mockToast).toHaveBeenCalledWith("Match scheduled");
-    expect(mockReplace).toHaveBeenCalledWith("/leagues/league-1");
+    expect(mockBack).toHaveBeenCalledTimes(1);
   });
 });
