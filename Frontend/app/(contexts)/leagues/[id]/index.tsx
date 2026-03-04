@@ -91,7 +91,6 @@ function LeagueContent() {
   const {
     data: matches = [],
     isLoading: matchesLoading,
-    isFetching: matchesFetching,
     error: matchesError,
     refetch: refetchMatches,
   } = useLeagueMatches(id);
@@ -140,7 +139,7 @@ function LeagueContent() {
         backgroundProps={{ preset: "red" }}
         refreshControl={
           <RefreshControl
-            refreshing={refreshing || matchesFetching}
+            refreshing={refreshing}
             onRefresh={async () => {
               await handleRefresh();
               if (tab === "matches") {
