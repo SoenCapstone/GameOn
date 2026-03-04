@@ -9,7 +9,6 @@ interface MatchLike {
   readonly awayTeamId: string;
   readonly refereeUserId?: string | null;
   readonly startTime: string;
-  readonly endTime: string;
   readonly status: string;
 }
 
@@ -27,7 +26,7 @@ export function useMatchPresentation(match: MatchLike | undefined) {
   const title = homeTeam && awayTeam ? `${homeTeam.name} vs ${awayTeam.name}` : "Match Details";
 
   const section = match
-    ? getMatchSection(match.startTime, match.endTime, match.status)
+    ? getMatchSection(match.startTime, match.status)
     : "upcoming";
   const isPast = section === "past";
 
