@@ -154,7 +154,7 @@ export default function ScheduleLeagueMatchScreen() {
         queryKey: ["league-matches", leagueId],
       });
       toast("Match scheduled");
-      router.replace(`/leagues/${leagueId}`);
+      router.back();
     } catch (err) {
       const { status, message } = getScheduleApiErrorMessage(
         err as AxiosError<{ message?: string }>,
