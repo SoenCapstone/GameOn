@@ -1,5 +1,5 @@
 import { useCallback, useLayoutEffect } from "react";
-import { Alert, StyleSheet, Text } from "react-native";
+import { ActivityIndicator, Alert, StyleSheet, Text, View } from "react-native";
 import { useAuth } from "@clerk/clerk-expo";
 import { useLocalSearchParams, useNavigation } from "expo-router";
 import { useQueryClient } from "@tanstack/react-query";
@@ -11,6 +11,7 @@ import {
   useCancelLeagueMatch,
   useCancelTeamMatch,
   useLeagueMatches,
+  useTeamMatches,
   useTeamMatch,
 } from "@/hooks/use-matches";
 import { useLeagueDetail } from "@/hooks/use-league-detail";
@@ -32,8 +33,13 @@ export default function MatchDetailsScreen() {
   const { userId } = useAuth();
   const navigation = useNavigation();
 
-  const teamMatchQuery = useTeamMatch(matchId);
-  const match = teamMatchQuery.data;
+  const teamMatchQuery = useTeamMatch(context === "team" ? matchId : "");
+  const teamMatchesQuery = useTeamMatches(context === "team" ? contextId : "");
+  const teamListMatch =
+    context === "team"
+      ? teamMatchesQuery.data?.find((m) => m.id === matchId)
+      : undefined;
+  const match = teamMatchQuery.data ?? teamListMatch;
 
   const { data: leagueMatches = [] } = useLeagueMatches(
     context === "league" ? contextId : "",
@@ -48,6 +54,10 @@ export default function MatchDetailsScreen() {
   const displayMatch = leagueMatch || match;
   const { homeTeam, awayTeam, title, isPast, refereeText } =
     useMatchPresentation(displayMatch);
+  const isMatchLoading =
+    context === "league"
+      ? false
+      : teamMatchQuery.isLoading || teamMatchesQuery.isLoading;
 
   const cancelLeagueMutation = useCancelLeagueMatch(contextId);
   const cancelTeamMutation = useCancelTeamMatch();
@@ -66,6 +76,16 @@ export default function MatchDetailsScreen() {
       headerTitle: renderMatchHeader,
     });
   }, [navigation, renderMatchHeader]);
+
+  if (isMatchLoading && !displayMatch) {
+    return (
+      <ContentArea backgroundProps={{ preset: "red" }}>
+        <View style={styles.loading}>
+          <ActivityIndicator size="small" color="#fff" />
+        </View>
+      </ContentArea>
+    );
+  }
 
   if (!displayMatch) {
     return (
@@ -123,6 +143,10 @@ export default function MatchDetailsScreen() {
 }
 
 const styles = StyleSheet.create({
+  loading: {
+    marginTop: 24,
+    alignItems: "center",
+  },
   empty: {
     color: "#fff",
     fontSize: 16,
