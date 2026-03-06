@@ -9,63 +9,12 @@ import {
   useTeamMatches,
   useTeamMatch,
 } from "@/hooks/use-matches";
-
-function getTeamContextLeagueId(
-  context: "team" | "league",
-  displayMatch: unknown,
-): string {
-  if (context !== "team" || !displayMatch) {
-    return "";
-  }
-
-  if (
-    typeof displayMatch === "object" &&
-    "leagueId" in displayMatch &&
-    typeof displayMatch.leagueId === "string"
-  ) {
-    return displayMatch.leagueId;
-  }
-
-  return "";
-}
-
-function getContextLabel({
-  context,
-  leagueName,
-  teamContextLeagueId,
-  teamContextLeagueMap,
-}: {
-  context: "team" | "league";
-  leagueName?: string;
-  teamContextLeagueId: string;
-  teamContextLeagueMap?: Record<string, { name?: string }>;
-}): string {
-  if (context === "league") {
-    return leagueName ?? "League Match";
-  }
-
-  if (teamContextLeagueId) {
-    return teamContextLeagueMap?.[teamContextLeagueId]?.name ?? "League Match";
-  }
-
-  return "Team Match";
-}
-
-function getIsMatchLoading({
-  context,
-  teamMatchLoading,
-  teamMatchesLoading,
-}: {
-  context: "team" | "league";
-  teamMatchLoading: boolean;
-  teamMatchesLoading: boolean;
-}): boolean {
-  if (context === "league") {
-    return false;
-  }
-
-  return teamMatchLoading || teamMatchesLoading;
-}
+import {
+  getContextLabel,
+  getIsMatchLoading,
+  getMatchScores,
+  getTeamContextLeagueId,
+} from "@/utils/match-details";
 
 export default function MatchDetailsScreen() {
   const params = useLocalSearchParams<{
@@ -99,12 +48,7 @@ export default function MatchDetailsScreen() {
   const { league } = useLeagueDetail(context === "league" ? contextId : "");
 
   const displayMatch = leagueMatch || match;
-  const displayMatchWithScore = displayMatch as
-    | (typeof displayMatch & {
-        homeScore?: number | null;
-        awayScore?: number | null;
-      })
-    | undefined;
+  const { homeScore, awayScore } = getMatchScores(displayMatch);
   const HomeName = params.homeName?.trim() || "Home Team";
   const AwayName = params.awayName?.trim() || "Away Team";
   const HomeLogoUrl = params.homeLogoUrl?.trim() || undefined;
@@ -149,8 +93,8 @@ export default function MatchDetailsScreen() {
       status={displayMatch.status}
       homeTeamName={HomeTeamName}
       awayTeamName={AwayTeamName}
-      homeScore={displayMatchWithScore?.homeScore}
-      awayScore={displayMatchWithScore?.awayScore}
+      homeScore={homeScore}
+      awayScore={awayScore}
       homeTeamLogoUrl={HomeTeamLogoUrl}
       awayTeamLogoUrl={AwayTeamLogoUrl}
       sport={displayMatch.sport}

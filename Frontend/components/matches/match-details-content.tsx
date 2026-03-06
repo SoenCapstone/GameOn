@@ -55,17 +55,19 @@ export function MatchDetailsContent({
               <Text style={styles.context} numberOfLines={1}>
                 {contextLabel}
               </Text>
-              {status === "CANCELLED" ? (
+              {status === "CANCELLED" && (
                 <Text style={styles.pending}>Cancelled</Text>
-              ) : hasScore ? (
+              )}
+              {status !== "CANCELLED" && hasScore && (
                 <View style={styles.result}>
                   <Text style={styles.score}>{homeScore}</Text>
                   <Text style={styles.dash}>-</Text>
                   <Text style={styles.score}>{awayScore}</Text>
                 </View>
-              ) : centerValue ? (
+              )}
+              {status !== "CANCELLED" && !hasScore && centerValue && (
                 <Text style={styles.date}>{centerValue}</Text>
-              ) : null}
+              )}
             </View>
 
             <Image
