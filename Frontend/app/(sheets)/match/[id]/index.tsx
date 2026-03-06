@@ -10,6 +10,63 @@ import {
   useTeamMatch,
 } from "@/hooks/use-matches";
 
+function getTeamContextLeagueId(
+  context: "team" | "league",
+  displayMatch: unknown,
+): string {
+  if (context !== "team" || !displayMatch) {
+    return "";
+  }
+
+  if (
+    typeof displayMatch === "object" &&
+    "leagueId" in displayMatch &&
+    typeof displayMatch.leagueId === "string"
+  ) {
+    return displayMatch.leagueId;
+  }
+
+  return "";
+}
+
+function getContextLabel({
+  context,
+  leagueName,
+  teamContextLeagueId,
+  teamContextLeagueMap,
+}: {
+  context: "team" | "league";
+  leagueName?: string;
+  teamContextLeagueId: string;
+  teamContextLeagueMap?: Record<string, { name?: string }>;
+}): string {
+  if (context === "league") {
+    return leagueName ?? "League Match";
+  }
+
+  if (teamContextLeagueId) {
+    return teamContextLeagueMap?.[teamContextLeagueId]?.name ?? "League Match";
+  }
+
+  return "Team Match";
+}
+
+function getIsMatchLoading({
+  context,
+  teamMatchLoading,
+  teamMatchesLoading,
+}: {
+  context: "team" | "league";
+  teamMatchLoading: boolean;
+  teamMatchesLoading: boolean;
+}): boolean {
+  if (context === "league") {
+    return false;
+  }
+
+  return teamMatchLoading || teamMatchesLoading;
+}
+
 export default function MatchDetailsScreen() {
   const params = useLocalSearchParams<{
     id?: string;
@@ -52,32 +109,27 @@ export default function MatchDetailsScreen() {
   const AwayName = params.awayName?.trim() || "Away Team";
   const HomeLogoUrl = params.homeLogoUrl?.trim() || undefined;
   const AwayLogoUrl = params.awayLogoUrl?.trim() || undefined;
-  const teamContextLeagueId =
-    context === "team" &&
-    displayMatch &&
-    "leagueId" in displayMatch &&
-    displayMatch.leagueId
-      ? displayMatch.leagueId
-      : "";
+  const teamContextLeagueId = getTeamContextLeagueId(context, displayMatch);
   const { data: teamContextLeagueMap } = useLeaguesByIds(
     teamContextLeagueId ? [teamContextLeagueId] : [],
   );
-  const contextLabel =
-    context === "league"
-      ? (league?.name ?? "League Match")
-      : teamContextLeagueId
-        ? (teamContextLeagueMap?.[teamContextLeagueId]?.name ?? "League Match")
-        : "Team Match";
+  const contextLabel = getContextLabel({
+    context,
+    leagueName: league?.name,
+    teamContextLeagueId,
+    teamContextLeagueMap,
+  });
   const { homeTeam, awayTeam, refereeName } =
     useMatchPresentation(displayMatch);
   const HomeTeamName = homeTeam?.name ?? HomeName;
   const AwayTeamName = awayTeam?.name ?? AwayName;
   const HomeTeamLogoUrl = homeTeam?.logoUrl ?? HomeLogoUrl;
   const AwayTeamLogoUrl = awayTeam?.logoUrl ?? AwayLogoUrl;
-  const isMatchLoading =
-    context === "league"
-      ? false
-      : teamMatchQuery.isLoading || teamMatchesQuery.isLoading;
+  const isMatchLoading = getIsMatchLoading({
+    context,
+    teamMatchLoading: teamMatchQuery.isLoading,
+    teamMatchesLoading: teamMatchesQuery.isLoading,
+  });
 
   if (isMatchLoading && !displayMatch) {
     return (
