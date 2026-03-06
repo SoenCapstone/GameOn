@@ -71,7 +71,8 @@ export default function RootLayout() {
                             name="(sheets)"
                             options={{
                               presentation: "formSheet",
-                              sheetAllowedDetents: [0.5],
+                              sheetAllowedDetents: "fitToContents",
+                              sheetCornerRadius: 58,
                               contentStyle: { backgroundColor: "transparent" },
                               headerShown: false,
                             }}

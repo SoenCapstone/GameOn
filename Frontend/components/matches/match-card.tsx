@@ -39,10 +39,6 @@ export function MatchCard({
       return <Text style={styles.pending}>Cancelled</Text>;
     }
 
-    if (!isPast) {
-      return <Text style={styles.date}>{formatMatchDateTime(startTime)}</Text>;
-    }
-
     const hasScore = homeScore !== undefined && awayScore !== undefined;
     if (hasScore) {
       return (
@@ -58,7 +54,7 @@ export function MatchCard({
       );
     }
 
-    return <Text style={styles.pending}>Score Pending</Text>;
+    return <Text style={styles.date}>{formatMatchDateTime(startTime)}</Text>;
   };
 
   return (
@@ -134,7 +130,7 @@ const styles = StyleSheet.create({
   middle: {
     alignItems: "center",
     justifyContent: "center",
-    gap: 4,
+    gap: 2,
     maxWidth: "55%",
   },
   league: {
@@ -171,7 +167,7 @@ const styles = StyleSheet.create({
   },
   pending: {
     color: "rgba(235,235,245,0.68)",
-    fontSize: 14,
+    fontSize: 13,
     textAlign: "center",
   },
   names: {
