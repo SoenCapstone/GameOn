@@ -4,6 +4,8 @@ import { MatchCard, MatchSkeletonCard } from "@/components/matches/match-card";
 
 type MatchItem = {
   id: string;
+  homeTeamId?: string;
+  awayTeamId?: string;
   homeName: string;
   awayName: string;
   homeLogoUrl?: string | null;
@@ -15,6 +17,8 @@ type MatchItem = {
   isPast: boolean;
   homeScore?: number | null;
   awayScore?: number | null;
+  canCancel?: boolean;
+  onConfirmCancel?: () => Promise<void>;
 };
 
 interface MatchListSectionsProps {
@@ -24,7 +28,7 @@ interface MatchListSectionsProps {
   readonly isLoading: boolean;
   readonly errorText?: string | null;
   readonly onRetry?: () => void;
-  readonly onMatchPress: (matchId: string) => void;
+  readonly onMatchPress: (match: MatchItem) => void;
 }
 
 function ListSection({
@@ -36,7 +40,7 @@ function ListSection({
   readonly title: string;
   readonly items: MatchItem[];
   readonly isLoading: boolean;
-  readonly onMatchPress: (matchId: string) => void;
+  readonly onMatchPress: (match: MatchItem) => void;
 }) {
   return (
     <View style={styles.section}>
@@ -62,7 +66,9 @@ function ListSection({
               isPast={match.isPast}
               homeScore={match.homeScore}
               awayScore={match.awayScore}
-              onPress={() => onMatchPress(match.id)}
+              canCancel={Boolean(match.canCancel)}
+              onConfirmCancel={match.onConfirmCancel}
+              onPress={() => onMatchPress(match)}
             />
           ))
         )}

@@ -1,7 +1,7 @@
-import { Alert, Pressable, StyleSheet, Text, View } from "react-native";
+import { StyleSheet, Text, View } from "react-native";
 import { Image } from "expo-image";
 import { getSportLogo } from "@/components/browse/utils";
-import { formatMatchDateTime, toBadgeStatus } from "@/features/matches/utils";
+import { formatMatchDateTime } from "@/features/matches/utils";
 import MapView from "react-native-maps";
 import { IconSymbol } from "@/components/ui/icon-symbol";
 
@@ -10,38 +10,31 @@ interface MatchDetailsContentProps {
   readonly status: string;
   readonly homeTeamName: string;
   readonly awayTeamName: string;
+  readonly homeScore?: number | null;
+  readonly awayScore?: number | null;
   readonly homeTeamLogoUrl?: string | null;
   readonly awayTeamLogoUrl?: string | null;
   readonly sport?: string | null;
   readonly contextLabel: string;
   readonly refereeName?: string;
   readonly venueName?: string | null;
-  readonly canCancel: boolean;
-  readonly onConfirmCancel: () => Promise<void>;
 }
-
-const statusColors: Record<string, string> = {
-  PENDING: "rgba(240,174,46,0.9)",
-  CONFIRMED: "rgba(35,166,85,0.95)",
-  CANCELLED: "rgba(189,44,44,0.95)",
-  COMPLETED: "rgba(44,106,189,0.95)",
-};
 
 export function MatchDetailsContent({
   startTime,
   status,
   homeTeamName,
   awayTeamName,
+  homeScore,
+  awayScore,
   homeTeamLogoUrl,
   awayTeamLogoUrl,
   sport,
   contextLabel,
   refereeName,
   venueName,
-  canCancel,
-  onConfirmCancel,
 }: Readonly<MatchDetailsContentProps>) {
-  const badgeStatus = toBadgeStatus(status);
+  const hasScore = homeScore != null && awayScore != null;
   const centerValue =
     status === "CANCELLED" ? "Cancelled" : formatMatchDateTime(startTime);
 
@@ -62,12 +55,16 @@ export function MatchDetailsContent({
               <Text style={styles.context} numberOfLines={1}>
                 {contextLabel}
               </Text>
-              {centerValue ? (
-                <Text
-                  style={status === "CANCELLED" ? styles.pending : styles.date}
-                >
-                  {centerValue}
-                </Text>
+              {status === "CANCELLED" ? (
+                <Text style={styles.pending}>Cancelled</Text>
+              ) : hasScore ? (
+                <View style={styles.result}>
+                  <Text style={styles.score}>{homeScore}</Text>
+                  <Text style={styles.dash}>-</Text>
+                  <Text style={styles.score}>{awayScore}</Text>
+                </View>
+              ) : centerValue ? (
+                <Text style={styles.date}>{centerValue}</Text>
               ) : null}
             </View>
 
@@ -104,17 +101,6 @@ export function MatchDetailsContent({
         </View>
 
         <View style={styles.metaBlock}>
-          {/*<View*/}
-          {/*  style={[*/}
-          {/*    styles.badge,*/}
-          {/*    {*/}
-          {/*      backgroundColor:*/}
-          {/*        statusColors[badgeStatus] ?? "rgba(44,106,189,0.95)",*/}
-          {/*    },*/}
-          {/*  ]}*/}
-          {/*>*/}
-          {/*  <Text style={styles.badgeText}>{badgeStatus}</Text>*/}
-          {/*</View>*/}
           {venueName ? (
             <View style={styles.venue}>
               <IconSymbol name="mappin.and.ellipse" color="727272" size={18} />
@@ -135,30 +121,6 @@ export function MatchDetailsContent({
           ) : null}
         </View>
       </View>
-
-      {/*{canCancel ? (*/}
-      {/*  <Pressable*/}
-      {/*    style={styles.cancelButton}*/}
-      {/*    onPress={() => {*/}
-      {/*      Alert.alert(*/}
-      {/*        "Cancel match",*/}
-      {/*        "Are you sure you want to cancel this match?",*/}
-      {/*        [*/}
-      {/*          { text: "Keep", style: "cancel" },*/}
-      {/*          {*/}
-      {/*            text: "Cancel Match",*/}
-      {/*            style: "destructive",*/}
-      {/*            onPress: () => {*/}
-      {/*              void onConfirmCancel();*/}
-      {/*            },*/}
-      {/*          },*/}
-      {/*        ],*/}
-      {/*      );*/}
-      {/*    }}*/}
-      {/*  >*/}
-      {/*    <Text style={styles.cancelText}>Cancel Match</Text>*/}
-      {/*  </Pressable>*/}
-      {/*) : null}*/}
     </View>
   );
 }
@@ -166,7 +128,6 @@ export function MatchDetailsContent({
 const styles = StyleSheet.create({
   container: {
     paddingTop: 44,
-    paddingBottom: 32,
   },
   content: {
     paddingHorizontal: 10,
@@ -199,6 +160,23 @@ const styles = StyleSheet.create({
     color: "rgba(235,235,245,0.68)",
     fontSize: 14,
     textAlign: "center",
+  },
+  result: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  score: {
+    color: "rgba(235,235,245,0.68)",
+    fontSize: 26,
+    fontWeight: "500",
+    fontVariant: ["tabular-nums"],
+  },
+  dash: {
+    color: "rgba(235,235,245,0.68)",
+    fontSize: 26,
+    fontWeight: "400",
+    marginHorizontal: 32,
   },
   pending: {
     color: "rgba(235,235,245,0.68)",
@@ -257,26 +235,5 @@ const styles = StyleSheet.create({
   meta: {
     color: "#727272",
     fontSize: 14,
-  },
-  cancelButton: {
-    borderRadius: 999,
-    backgroundColor: "rgba(255,0,0,0.22)",
-    paddingHorizontal: 14,
-    paddingVertical: 10,
-    alignSelf: "flex-start",
-  },
-  cancelText: {
-    color: "#ffb3b3",
-    fontWeight: "700",
-  },
-  badge: {
-    borderRadius: 999,
-    paddingHorizontal: 10,
-    paddingVertical: 5,
-  },
-  badgeText: {
-    color: "#fff",
-    fontSize: 11,
-    fontWeight: "700",
   },
 });
