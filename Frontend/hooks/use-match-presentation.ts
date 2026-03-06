@@ -34,20 +34,18 @@ export function useMatchPresentation(match: MatchLike | undefined) {
     queryKey: ["user-name", match?.refereeUserId ?? ""],
     queryFn: async () => {
       const refereeUserId = match?.refereeUserId;
-      if (!refereeUserId) return "No referee assigned";
+      if (!refereeUserId) return undefined;
       const resp = await api.get(GO_USER_SERVICE_ROUTES.BY_ID(refereeUserId));
       const first = resp.data?.firstname ?? "";
       const last = resp.data?.lastname ?? "";
       const full = `${first} ${last}`.trim();
-      return full || "No referee assigned";
+      return full || undefined;
     },
     enabled: Boolean(match?.refereeUserId),
     retry: false,
   });
 
-  const refereeText = match?.refereeUserId
-    ? `Referee: ${refereeNameQuery.data ?? "Loading..."}`
-    : "Referee: No referee assigned";
+  const refereeName = match?.refereeUserId ? refereeNameQuery.data : undefined;
 
-  return { homeTeam, awayTeam, title, isPast, refereeText };
+  return { homeTeam, awayTeam, title, isPast, refereeName };
 }

@@ -6,10 +6,10 @@ import { useQueryClient } from "@tanstack/react-query";
 import { Header } from "@/components/header/header";
 import { PageTitle } from "@/components/header/page-title";
 import { Button } from "@/components/ui/button";
-import { ContentArea } from "@/components/ui/content-area";
 import {
   useCancelLeagueMatch,
   useCancelTeamMatch,
+  useLeaguesByIds,
   useLeagueMatches,
   useTeamMatches,
   useTeamMatch,
@@ -47,12 +47,28 @@ export default function MatchDetailsScreen() {
   const leagueMatch =
     context === "league" ? leagueMatches.find((m) => m.id === matchId) : null;
 
-  const { isOwner: isLeagueOwner } = useLeagueDetail(
+  const { league, isOwner: isLeagueOwner } = useLeagueDetail(
     context === "league" ? contextId : "",
   );
 
   const displayMatch = leagueMatch || match;
-  const { homeTeam, awayTeam, title, isPast, refereeText } =
+  const teamContextLeagueId =
+    context === "team" &&
+    displayMatch &&
+    "leagueId" in displayMatch &&
+    displayMatch.leagueId
+      ? displayMatch.leagueId
+      : "";
+  const { data: teamContextLeagueMap } = useLeaguesByIds(
+    teamContextLeagueId ? [teamContextLeagueId] : [],
+  );
+  const contextLabel =
+    context === "league"
+      ? (league?.name ?? "League Match")
+      : teamContextLeagueId
+        ? (teamContextLeagueMap?.[teamContextLeagueId]?.name ?? "League Match")
+        : "Team Match";
+  const { homeTeam, awayTeam, title, isPast, refereeName } =
     useMatchPresentation(displayMatch);
   const isMatchLoading =
     context === "league"
@@ -79,20 +95,14 @@ export default function MatchDetailsScreen() {
 
   if (isMatchLoading && !displayMatch) {
     return (
-      <ContentArea backgroundProps={{ preset: "red" }}>
-        <View style={styles.loading}>
-          <ActivityIndicator size="small" color="#fff" />
-        </View>
-      </ContentArea>
+      <View style={styles.loading}>
+        <ActivityIndicator size="small" color="#fff" />
+      </View>
     );
   }
 
   if (!displayMatch) {
-    return (
-      <ContentArea backgroundProps={{ preset: "red" }}>
-        <Text style={styles.empty}>Match not found</Text>
-      </ContentArea>
-    );
+    return <Text style={styles.empty}>Match not found</Text>;
   }
 
   let canCancel = false;
@@ -134,8 +144,12 @@ export default function MatchDetailsScreen() {
       status={displayMatch.status}
       homeTeamName={homeTeam?.name ?? "Home Team"}
       awayTeamName={awayTeam?.name ?? "Away Team"}
-      refereeText={refereeText}
-      venueText={`Venue: ${displayMatch.matchLocation || "Not set"}`}
+      homeTeamLogoUrl={homeTeam?.logoUrl}
+      awayTeamLogoUrl={awayTeam?.logoUrl}
+      sport={displayMatch.sport}
+      contextLabel={contextLabel}
+      refereeName={refereeName}
+      venueName={displayMatch.matchLocation}
       canCancel={canCancel}
       onConfirmCancel={handleCancel}
     />
