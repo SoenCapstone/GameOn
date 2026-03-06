@@ -1,4 +1,4 @@
-import { useLayoutEffect } from "react";
+import { useLayoutEffect, useRef } from "react";
 import { Header } from "@/components/header/header";
 import { PageTitle } from "@/components/header/page-title";
 import { Button } from "@/components/ui/button";
@@ -21,6 +21,8 @@ export function useScheduleHeader(params: {
     onSubmit,
     isPending,
   } = params;
+  const submitRef = useRef(onSubmit);
+  submitRef.current = onSubmit;
 
   useLayoutEffect(() => {
     navigation.setOptions({
@@ -32,7 +34,7 @@ export function useScheduleHeader(params: {
             <Button
               type="custom"
               label="Schedule"
-              onPress={onSubmit}
+              onPress={() => submitRef.current()}
               loading={isPending}
               isInteractive={!isPending}
             />
@@ -40,5 +42,5 @@ export function useScheduleHeader(params: {
         />
       ),
     });
-  }, [isPending, navigation, onSubmit, title]);
+  }, [isPending, navigation, title]);
 }
