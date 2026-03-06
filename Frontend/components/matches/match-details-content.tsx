@@ -65,7 +65,7 @@ export function MatchDetailsContent({
                   <Text style={styles.score}>{awayScore}</Text>
                 </View>
               )}
-              {status !== "CANCELLED" && !hasScore && centerValue && (
+              {status !== "CANCELLED" && !hasScore && (
                 <Text style={styles.date}>{centerValue}</Text>
               )}
             </View>
