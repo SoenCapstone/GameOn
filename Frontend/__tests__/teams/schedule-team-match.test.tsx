@@ -10,6 +10,7 @@ const mockBack = jest.fn();
 const mockCreateTeamMatch = jest.fn();
 const mockApiGet = jest.fn();
 const mockToast = jest.fn();
+const mockAlert = jest.fn();
 
 jest.mock("expo-router", () => ({
   useLocalSearchParams: () => ({ id: "team-1" }),
@@ -202,6 +203,10 @@ describe("ScheduleTeamMatchScreen", () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    
+    const { Alert } = jest.requireActual("react-native");
+    jest.spyOn(Alert, "alert").mockImplementation(mockAlert);
+    
     mockCreateTeamMatch.mockResolvedValue({
       match: { id: "m1" },
       refereeInviteSent: true,

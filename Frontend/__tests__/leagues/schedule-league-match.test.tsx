@@ -10,6 +10,7 @@ const mockBack = jest.fn();
 const mockCreateLeagueMatch = jest.fn();
 const mockApiGet = jest.fn();
 const mockToast = jest.fn();
+const mockAlert = jest.fn();
 
 jest.mock("expo-router", () => ({
   useLocalSearchParams: () => ({ id: "league-1" }),
@@ -196,6 +197,10 @@ describe("ScheduleLeagueMatchScreen", () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    
+    const { Alert } = jest.requireActual("react-native");
+    jest.spyOn(Alert, "alert").mockImplementation(mockAlert);
+    
     mockCreateLeagueMatch.mockResolvedValue({ id: "m1" });
     mockApiGet.mockImplementation((url: string) => {
       if (url === "/users/ref-1") {
