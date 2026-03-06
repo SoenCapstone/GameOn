@@ -1,37 +1,29 @@
-import { useCallback, useLayoutEffect } from "react";
-import { ActivityIndicator, Alert, StyleSheet, Text, View } from "react-native";
-import { useAuth } from "@clerk/clerk-expo";
-import { useLocalSearchParams, useNavigation } from "expo-router";
-import { useQueryClient } from "@tanstack/react-query";
-import { Header } from "@/components/header/header";
-import { PageTitle } from "@/components/header/page-title";
-import { Button } from "@/components/ui/button";
+import { ActivityIndicator, StyleSheet, Text, View } from "react-native";
+import { useLocalSearchParams } from "expo-router";
+import { useLeagueDetail } from "@/hooks/use-league-detail";
+import { MatchDetailsContent } from "@/components/matches/match-details-content";
+import { useMatchPresentation } from "@/hooks/use-match-presentation";
 import {
-  useCancelLeagueMatch,
-  useCancelTeamMatch,
   useLeaguesByIds,
   useLeagueMatches,
   useTeamMatches,
   useTeamMatch,
 } from "@/hooks/use-matches";
-import { useLeagueDetail } from "@/hooks/use-league-detail";
-import { errorToString } from "@/utils/error";
-import { MatchDetailsContent } from "@/components/matches/match-details-content";
-import { useMatchPresentation } from "@/hooks/use-match-presentation";
 
 export default function MatchDetailsScreen() {
   const params = useLocalSearchParams<{
     id?: string;
     context?: "team" | "league";
     contextId?: string;
+    homeName?: string;
+    awayName?: string;
+    homeLogoUrl?: string;
+    awayLogoUrl?: string;
   }>();
 
   const matchId = params.id ?? "";
   const context = params.context ?? "team";
   const contextId = params.contextId ?? "";
-  const queryClient = useQueryClient();
-  const { userId } = useAuth();
-  const navigation = useNavigation();
 
   const teamMatchQuery = useTeamMatch(context === "team" ? matchId : "");
   const teamMatchesQuery = useTeamMatches(context === "team" ? contextId : "");
@@ -47,11 +39,19 @@ export default function MatchDetailsScreen() {
   const leagueMatch =
     context === "league" ? leagueMatches.find((m) => m.id === matchId) : null;
 
-  const { league, isOwner: isLeagueOwner } = useLeagueDetail(
-    context === "league" ? contextId : "",
-  );
+  const { league } = useLeagueDetail(context === "league" ? contextId : "");
 
   const displayMatch = leagueMatch || match;
+  const displayMatchWithScore = displayMatch as
+    | (typeof displayMatch & {
+        homeScore?: number | null;
+        awayScore?: number | null;
+      })
+    | undefined;
+  const HomeName = params.homeName?.trim() || "Home Team";
+  const AwayName = params.awayName?.trim() || "Away Team";
+  const HomeLogoUrl = params.homeLogoUrl?.trim() || undefined;
+  const AwayLogoUrl = params.awayLogoUrl?.trim() || undefined;
   const teamContextLeagueId =
     context === "team" &&
     displayMatch &&
@@ -68,30 +68,16 @@ export default function MatchDetailsScreen() {
       : teamContextLeagueId
         ? (teamContextLeagueMap?.[teamContextLeagueId]?.name ?? "League Match")
         : "Team Match";
-  const { homeTeam, awayTeam, title, isPast, refereeName } =
+  const { homeTeam, awayTeam, refereeName } =
     useMatchPresentation(displayMatch);
+  const HomeTeamName = homeTeam?.name ?? HomeName;
+  const AwayTeamName = awayTeam?.name ?? AwayName;
+  const HomeTeamLogoUrl = homeTeam?.logoUrl ?? HomeLogoUrl;
+  const AwayTeamLogoUrl = awayTeam?.logoUrl ?? AwayLogoUrl;
   const isMatchLoading =
     context === "league"
       ? false
       : teamMatchQuery.isLoading || teamMatchesQuery.isLoading;
-
-  const cancelLeagueMutation = useCancelLeagueMatch(contextId);
-  const cancelTeamMutation = useCancelTeamMatch();
-
-  const renderMatchHeader = useCallback(() => {
-    return (
-      <Header
-        left={<Button type="back" />}
-        center={<PageTitle title={title} />}
-      />
-    );
-  }, [title]);
-
-  useLayoutEffect(() => {
-    navigation.setOptions({
-      headerTitle: renderMatchHeader,
-    });
-  }, [navigation, renderMatchHeader]);
 
   if (isMatchLoading && !displayMatch) {
     return (
@@ -105,53 +91,20 @@ export default function MatchDetailsScreen() {
     return <Text style={styles.empty}>Match not found</Text>;
   }
 
-  let canCancel = false;
-  if (context === "league" && leagueMatch) {
-    canCancel = !isPast && isLeagueOwner && leagueMatch.status !== "CANCELLED";
-  } else if (context === "team" && match) {
-    canCancel = Boolean(
-      !isPast &&
-        ((homeTeam?.ownerUserId && homeTeam.ownerUserId === userId) ||
-          (awayTeam?.ownerUserId && awayTeam.ownerUserId === userId)) &&
-        match.status !== "CANCELLED",
-    );
-  }
-
-  const handleCancel = async () => {
-    try {
-      if (context === "league" && cancelLeagueMutation) {
-        await cancelLeagueMutation.mutateAsync({ matchId });
-        await queryClient.invalidateQueries({
-          queryKey: ["league-matches", contextId],
-        });
-      } else if (context === "team" && cancelTeamMutation) {
-        await cancelTeamMutation.mutateAsync({ matchId });
-        await Promise.all([
-          queryClient.invalidateQueries({ queryKey: ["team-match", matchId] }),
-          queryClient.invalidateQueries({
-            queryKey: ["team-matches", contextId],
-          }),
-        ]);
-      }
-    } catch (err) {
-      Alert.alert("Cancel failed", errorToString(err));
-    }
-  };
-
   return (
     <MatchDetailsContent
       startTime={displayMatch.startTime}
       status={displayMatch.status}
-      homeTeamName={homeTeam?.name ?? "Home Team"}
-      awayTeamName={awayTeam?.name ?? "Away Team"}
-      homeTeamLogoUrl={homeTeam?.logoUrl}
-      awayTeamLogoUrl={awayTeam?.logoUrl}
+      homeTeamName={HomeTeamName}
+      awayTeamName={AwayTeamName}
+      homeScore={displayMatchWithScore?.homeScore}
+      awayScore={displayMatchWithScore?.awayScore}
+      homeTeamLogoUrl={HomeTeamLogoUrl}
+      awayTeamLogoUrl={AwayTeamLogoUrl}
       sport={displayMatch.sport}
       contextLabel={contextLabel}
       refereeName={refereeName}
       venueName={displayMatch.matchLocation}
-      canCancel={canCancel}
-      onConfirmCancel={handleCancel}
     />
   );
 }

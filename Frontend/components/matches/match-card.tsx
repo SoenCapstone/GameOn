@@ -1,9 +1,19 @@
-import React from "react";
-import { Pressable, Text, View, StyleSheet } from "react-native";
+import React, { useRef } from "react";
+import {
+  Alert,
+  Pressable,
+  Text,
+  View,
+  StyleSheet,
+  findNodeHandle,
+} from "react-native";
 import { Image } from "expo-image";
 import { getSportLogo } from "@/components/browse/utils";
 import { formatMatchDateTime } from "@/features/matches/utils";
 import { Card } from "@/components/ui/card";
+import { useActionSheet } from "@expo/react-native-action-sheet";
+import ContextMenu from "react-native-context-menu-view";
+import { isRunningInExpoGo } from "@/utils/runtime";
 
 interface MatchCardProps {
   readonly homeName: string;
@@ -18,6 +28,8 @@ interface MatchCardProps {
   readonly homeScore?: number | null;
   readonly awayScore?: number | null;
   readonly onPress?: () => void;
+  readonly canCancel?: boolean;
+  readonly onConfirmCancel?: () => Promise<void>;
 }
 
 export function MatchCard({
@@ -33,23 +45,24 @@ export function MatchCard({
   homeScore,
   awayScore,
   onPress,
+  canCancel = false,
+  onConfirmCancel,
 }: Readonly<MatchCardProps>) {
+  const { showActionSheetWithOptions } = useActionSheet();
+  const anchorRef = useRef<View>(null);
+
   const renderCenterValue = () => {
     if (status === "CANCELLED") {
       return <Text style={styles.pending}>Cancelled</Text>;
     }
 
-    const hasScore = homeScore !== undefined && awayScore !== undefined;
+    const hasScore = homeScore != null && awayScore != null;
     if (hasScore) {
       return (
         <View style={styles.result}>
-          <Text style={[styles.score, styles.side]} numberOfLines={1}>
-            {homeScore}
-          </Text>
-          <Text style={[styles.score, styles.dash]}>-</Text>
-          <Text style={[styles.score, styles.side]} numberOfLines={1}>
-            {awayScore}
-          </Text>
+          <Text style={styles.score}>{homeScore}</Text>
+          <Text style={styles.dash}>-</Text>
+          <Text style={styles.score}>{awayScore}</Text>
         </View>
       );
     }
@@ -57,9 +70,50 @@ export function MatchCard({
     return <Text style={styles.date}>{formatMatchDateTime(startTime)}</Text>;
   };
 
-  return (
-    <Pressable onPress={onPress}>
-      <Card>
+  const showCancelConfirm = () => {
+    if (!onConfirmCancel) return;
+
+    Alert.alert("Cancel match", "Are you sure you want to cancel this match?", [
+      { text: "Keep", style: "cancel" },
+      {
+        text: "Cancel Match",
+        style: "destructive",
+        onPress: () => {
+          void onConfirmCancel();
+        },
+      },
+    ]);
+  };
+
+  const openMenu = () => {
+    if (!canCancel || !onConfirmCancel) return;
+
+    if (isRunningInExpoGo) {
+      showActionSheetWithOptions(
+        {
+          options: ["Cancel", "Cancel Match"],
+          destructiveButtonIndex: 1,
+          cancelButtonIndex: 0,
+          anchor: findNodeHandle(anchorRef.current) ?? undefined,
+        },
+        (buttonIndex) => {
+          if (buttonIndex === 1) {
+            showCancelConfirm();
+          }
+        },
+      );
+    } else {
+      showCancelConfirm();
+    }
+  };
+
+  const cardContent = (
+    <Pressable
+      ref={anchorRef}
+      onPress={onPress}
+      onLongPress={isRunningInExpoGo && canCancel ? openMenu : undefined}
+    >
+      <Card isInteractive={!(canCancel && !isRunningInExpoGo)}>
         <View style={styles.content}>
           <View style={styles.top}>
             <Image
@@ -97,6 +151,34 @@ export function MatchCard({
         </View>
       </Card>
     </Pressable>
+  );
+
+  if (!canCancel || !onConfirmCancel) {
+    return cardContent;
+  }
+
+  if (isRunningInExpoGo) {
+    return cardContent;
+  }
+
+  return (
+    <ContextMenu
+      actions={[
+        {
+          title: "Cancel Match",
+          systemIcon: "xmark",
+          destructive: true,
+        },
+      ]}
+      onPress={(e) => {
+        if (e.nativeEvent.name === "Cancel Match") {
+          openMenu();
+        }
+      }}
+      previewBackgroundColor="transparent"
+    >
+      {cardContent}
+    </ContextMenu>
   );
 }
 
@@ -152,18 +234,14 @@ const styles = StyleSheet.create({
   score: {
     color: "rgba(235,235,245,0.68)",
     fontSize: 24,
-    lineHeight: 28,
-  },
-  side: {
-    width: 34,
     fontWeight: "500",
-    textAlign: "center",
     fontVariant: ["tabular-nums"],
   },
   dash: {
-    width: 40,
+    color: "rgba(235,235,245,0.68)",
+    fontSize: 24,
     fontWeight: "400",
-    textAlign: "center",
+    marginHorizontal: 28,
   },
   pending: {
     color: "rgba(235,235,245,0.68)",

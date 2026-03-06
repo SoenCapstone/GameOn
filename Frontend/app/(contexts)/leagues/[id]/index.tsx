@@ -4,12 +4,14 @@ import {
   ActivityIndicator,
   RefreshControl,
   StyleSheet,
+  Alert,
 } from "react-native";
 import {
   RelativePathString,
   useLocalSearchParams,
   useRouter,
 } from "expo-router";
+import { useQueryClient } from "@tanstack/react-query";
 import { ContentArea } from "@/components/ui/content-area";
 import { getSportLogo } from "@/components/browse/utils";
 import { Button } from "@/components/ui/button";
@@ -27,10 +29,11 @@ import { BoardList } from "@/components/board/board-list";
 import { useDetailPageHandlers } from "@/hooks/use-detail-page-handlers";
 import { createScopedLog } from "@/utils/logger";
 import { MatchListSections } from "@/components/matches/match-list-sections";
-import { useLeagueMatches, useTeamsByIds } from "@/hooks/use-matches";
+import { useCancelLeagueMatch, useLeagueMatches, useTeamsByIds } from "@/hooks/use-matches";
 import { buildMatchCards, splitMatchSections } from "@/features/matches/utils";
 import { Card } from "@/components/ui/card";
 import { Tabs } from "@/components/ui/tabs";
+import { errorToString } from "@/utils/error";
 
 type LeagueTab = "board" | "matches" | "standings" | "teams";
 
@@ -65,6 +68,7 @@ function LeagueContent() {
   const [fabOpen, setFabOpen] = useState(false);
   const router = useRouter();
   const log = createScopedLog("League Page");
+  const queryClient = useQueryClient();
 
   const {
     id,
@@ -94,6 +98,7 @@ function LeagueContent() {
     error: matchesError,
     refetch: refetchMatches,
   } = useLeagueMatches(id);
+  const cancelLeagueMutation = useCancelLeagueMatch(id);
 
   const teamIds = useMemo(
     () =>
@@ -103,15 +108,54 @@ function LeagueContent() {
 
   const teamsQuery = useTeamsByIds(teamIds);
 
-  const matchItems = useMemo(
-    () =>
-      buildMatchCards(matches, teamsQuery.data, league?.name ?? "League Match"),
-    [league?.name, matches, teamsQuery.data],
-  );
+  const matchItems = useMemo(() => {
+    const items = buildMatchCards(
+      matches,
+      teamsQuery.data,
+      league?.name ?? "League Match",
+    );
+
+    return items.map((match) => {
+      const canCancel =
+        !match.isPast && isOwner && match.status !== "CANCELLED";
+
+      return {
+        ...match,
+        canCancel,
+        onConfirmCancel: canCancel
+          ? async () => {
+              try {
+                await cancelLeagueMutation.mutateAsync({ matchId: match.id });
+                await queryClient.invalidateQueries({
+                  queryKey: ["league-matches", id],
+                });
+              } catch (err) {
+                Alert.alert("Cancel failed", errorToString(err));
+              }
+            }
+          : undefined,
+      };
+    });
+  }, [
+    matches,
+    teamsQuery.data,
+    league?.name,
+    isOwner,
+    cancelLeagueMutation,
+    queryClient,
+    id,
+  ]);
 
   const { today, upcoming, past } = useMemo(
     () => splitMatchSections(matchItems),
     [matchItems],
+  );
+
+  const handleMatchesRefresh = useMemo(
+    () => async () => {
+      await Promise.all([refetchMatches(), teamsQuery.refetch()]);
+    },
+    [refetchMatches, teamsQuery],
   );
 
   useLeagueHeader({ title, id, isMember, isOwner, onFollow: handleFollow });
@@ -125,6 +169,7 @@ function LeagueContent() {
       refetchPosts,
       deletePostMutation,
       entityName: "League",
+      onMatchesRefresh: handleMatchesRefresh,
     },
   );
 
@@ -140,12 +185,7 @@ function LeagueContent() {
         refreshControl={
           <RefreshControl
             refreshing={refreshing}
-            onRefresh={async () => {
-              await handleRefresh();
-              if (tab === "matches") {
-                await Promise.all([refetchMatches(), teamsQuery.refetch()]);
-              }
-            }}
+            onRefresh={handleRefresh}
             tintColor="#fff"
           />
         }
@@ -193,16 +233,17 @@ function LeagueContent() {
                 past={past}
                 isLoading={matchesLoading || teamsQuery.isLoading}
                 errorText={matchesError ? "Could not load matches." : null}
-                onRetry={() => {
-                  refetchMatches();
-                  teamsQuery.refetch();
-                }}
-                onMatchPress={(matchId) =>
+                onRetry={handleMatchesRefresh}
+                onMatchPress={(match) =>
                   router.push({
-                    pathname: `/(sheets)/match/${matchId}` as RelativePathString,
+                    pathname: `/(sheets)/match/${match.id}` as RelativePathString,
                     params: {
                       context: "league",
                       contextId: id,
+                      homeName: match.homeName,
+                      awayName: match.awayName,
+                      homeLogoUrl: match.homeLogoUrl ?? "",
+                      awayLogoUrl: match.awayLogoUrl ?? "",
                     },
                   })
                 }

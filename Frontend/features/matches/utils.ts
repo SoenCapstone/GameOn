@@ -121,6 +121,8 @@ export function filterPendingTeamInvitesForOwner(
 
 export type MatchCardItem = {
   id: string;
+  homeTeamId: string;
+  awayTeamId: string;
   homeName: string;
   awayName: string;
   homeLogoUrl?: string | null;
@@ -131,6 +133,7 @@ export type MatchCardItem = {
   startTime: string;
   section: "today" | "upcoming" | "past";
   isPast: boolean;
+  leagueId?: string;
 };
 
 export function buildMatchCards(
@@ -146,6 +149,8 @@ export function buildMatchCards(
       typeof contextLabel === "function" ? contextLabel(match) : contextLabel;
     return {
       id: match.id,
+      homeTeamId: match.homeTeamId,
+      awayTeamId: match.awayTeamId,
       homeName: home?.name ?? "Home Team",
       awayName: away?.name ?? "Away Team",
       homeLogoUrl: home?.logoUrl,
@@ -156,6 +161,7 @@ export function buildMatchCards(
       startTime: match.startTime,
       section,
       isPast: section === "past",
+      leagueId: "leagueId" in match ? match.leagueId : undefined,
     };
   });
 }

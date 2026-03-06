@@ -5,12 +5,15 @@ import {
   RefreshControl,
   Text,
   StyleSheet,
+  Alert,
 } from "react-native";
 import {
   RelativePathString,
   useLocalSearchParams,
   useRouter,
 } from "expo-router";
+import { useQueryClient } from "@tanstack/react-query";
+import { useAuth } from "@clerk/clerk-expo";
 import { ContentArea } from "@/components/ui/content-area";
 import { Button } from "@/components/ui/button";
 import { getSportLogo } from "@/components/browse/utils";
@@ -26,11 +29,13 @@ import { createScopedLog } from "@/utils/logger";
 import { Tabs } from "@/components/ui/tabs";
 import { MatchListSections } from "@/components/matches/match-list-sections";
 import {
+  useCancelTeamMatch,
   useLeaguesByIds,
   useTeamMatches,
   useTeamsByIds,
 } from "@/hooks/use-matches";
 import { buildMatchCards, splitMatchSections } from "@/features/matches/utils";
+import { errorToString } from "@/utils/error";
 
 export default function Team() {
   const params = useLocalSearchParams<{ id?: string | string[] }>();
@@ -48,6 +53,8 @@ function TeamContent() {
   const [tab, setTab] = useState<"board" | "matches" | "overview">("board");
   const router = useRouter();
   const log = createScopedLog("Team Page");
+  const queryClient = useQueryClient();
+  const { userId } = useAuth();
 
   const {
     id,
@@ -80,6 +87,7 @@ function TeamContent() {
     error: matchesError,
     refetch: refetchMatches,
   } = useTeamMatches(id);
+  const cancelTeamMutation = useCancelTeamMatch();
 
   const teamIds = useMemo(
     () =>
@@ -100,16 +108,58 @@ function TeamContent() {
   const teamsQuery = useTeamsByIds(teamIds);
   const leaguesQuery = useLeaguesByIds(leagueIds);
 
-  const matchItems = useMemo(
-    () =>
-      buildMatchCards(matches, teamsQuery.data, (match) => {
-        if ("leagueId" in match && match.leagueId) {
-          return leaguesQuery.data?.[match.leagueId]?.name ?? "League Match";
-        }
-        return "Team Match";
-      }),
-    [matches, teamsQuery.data, leaguesQuery.data],
-  );
+  const matchItems = useMemo(() => {
+    const items = buildMatchCards(matches, teamsQuery.data, (match) => {
+      if ("leagueId" in match && match.leagueId) {
+        return leaguesQuery.data?.[match.leagueId]?.name ?? "League Match";
+      }
+      return "Team Match";
+    });
+
+    return items.map((match) => {
+      const isLeagueMatch = "leagueId" in match && Boolean(match.leagueId);
+      const homeOwnerId = teamsQuery.data?.[match.homeTeamId]?.ownerUserId;
+      const awayOwnerId = teamsQuery.data?.[match.awayTeamId]?.ownerUserId;
+      const canCancel = Boolean(
+        !isLeagueMatch &&
+        userId &&
+          !match.isPast &&
+          match.status !== "CANCELLED" &&
+          ((homeOwnerId && homeOwnerId === userId) ||
+            (awayOwnerId && awayOwnerId === userId)),
+      );
+
+      return {
+        ...match,
+        canCancel,
+        onConfirmCancel: canCancel
+          ? async () => {
+              try {
+                await cancelTeamMutation.mutateAsync({ matchId: match.id });
+                await Promise.all([
+                  queryClient.invalidateQueries({
+                    queryKey: ["team-match", match.id],
+                  }),
+                  queryClient.invalidateQueries({
+                    queryKey: ["team-matches", id],
+                  }),
+                ]);
+              } catch (err) {
+                Alert.alert("Cancel failed", errorToString(err));
+              }
+            }
+          : undefined,
+      };
+    });
+  }, [
+    matches,
+    teamsQuery.data,
+    leaguesQuery.data,
+    userId,
+    cancelTeamMutation,
+    queryClient,
+    id,
+  ]);
 
   const {
     today: todayMatches,
@@ -218,12 +268,16 @@ function TeamContent() {
                 }
                 errorText={matchesError ? "Could not load matches." : null}
                 onRetry={handleMatchesRefresh}
-                onMatchPress={(matchId) =>
+                onMatchPress={(match) =>
                   router.push({
-                    pathname: `/(sheets)/match/${matchId}` as RelativePathString,
+                    pathname: `/(sheets)/match/${match.id}` as RelativePathString,
                     params: {
                       context: "team",
                       contextId: id,
+                      homeName: match.homeName,
+                      awayName: match.awayName,
+                      homeLogoUrl: match.homeLogoUrl ?? "",
+                      awayLogoUrl: match.awayLogoUrl ?? "",
                     },
                   })
                 }
