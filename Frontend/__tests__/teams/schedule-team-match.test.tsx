@@ -48,6 +48,7 @@ jest.mock("@/components/ui/button", () => ({
       Pressable,
       {
         accessibilityRole: "button",
+        testID: `header-button-${label.replaceAll(" ", "-").toLowerCase()}`,
         onPress: isInteractive ? onPress : undefined,
       },
       ReactMock.createElement(Text, null, label),
@@ -192,8 +193,8 @@ function getScheduleButton() {
   if (!HeaderTitle || typeof HeaderTitle !== "function") {
     throw new Error("headerTitle not set");
   }
-  const { getByText } = render(<HeaderTitle />);
-  return getByText("Schedule");
+  const { getByTestId } = render(<HeaderTitle />);
+  return getByTestId("header-button-schedule");
 }
 
 describe("ScheduleTeamMatchScreen", () => {
