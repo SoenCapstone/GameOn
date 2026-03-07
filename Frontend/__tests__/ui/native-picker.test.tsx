@@ -21,13 +21,13 @@ jest.mock("@expo/ui/swift-ui", () => {
       ...props
     }: {
       children: React.ReactNode;
-      [key: string]: unknown;
+      [_key: string]: unknown;
     }) => ReactMock.createElement(View, props, children),
     Picker: jest.fn((props: Record<string, unknown>) =>
       ReactMock.createElement(View, { testID: "swift-picker", ...props }),
     ),
     Text: jest.fn(
-      (props: { children: React.ReactNode; [key: string]: unknown }) =>
+      (props: { children: React.ReactNode; [_key: string]: unknown }) =>
         ReactMock.createElement(View, { testID: "swift-text", ...props }),
     ),
   };

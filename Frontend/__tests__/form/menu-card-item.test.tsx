@@ -14,7 +14,7 @@ jest.mock("expo-blur", () => {
         ...props
       }: {
         children?: React.ReactNode;
-        [key: string]: unknown;
+        [_key: string]: unknown;
       }) => ReactMock.createElement(View, props, children),
     ),
   };
@@ -24,7 +24,7 @@ jest.mock("expo-image", () => {
   const ReactMock = jest.requireActual("react");
   const { View } = jest.requireActual("react-native");
   return {
-    Image: jest.fn((props: { [key: string]: unknown }) =>
+    Image: jest.fn((props: { [_key: string]: unknown }) =>
       ReactMock.createElement(View, { testID: "expo-image", ...props }),
     ),
   };
