@@ -1,8 +1,8 @@
-import { StyleSheet, Text, View } from "react-native";
+import { Alert, Linking, StyleSheet, Text, View } from "react-native";
 import { Image } from "expo-image";
 import { getSportLogo } from "@/components/browse/utils";
 import { formatMatchDateTime } from "@/features/matches/utils";
-import MapView from "react-native-maps";
+import MapView, { Marker } from "react-native-maps";
 import { IconSymbol } from "@/components/ui/icon-symbol";
 
 interface MatchDetailsContentProps {
@@ -18,6 +18,9 @@ interface MatchDetailsContentProps {
   readonly contextLabel: string;
   readonly refereeName?: string;
   readonly venueName?: string | null;
+  readonly venueAddress?: string | null;
+  readonly venueLatitude?: number | null;
+  readonly venueLongitude?: number | null;
 }
 
 export function MatchDetailsContent({
@@ -33,10 +36,47 @@ export function MatchDetailsContent({
   contextLabel,
   refereeName,
   venueName,
+  venueAddress,
+  venueLatitude,
+  venueLongitude,
 }: Readonly<MatchDetailsContentProps>) {
   const hasScore = homeScore != null && awayScore != null;
   const centerValue =
     status === "CANCELLED" ? "Cancelled" : formatMatchDateTime(startTime);
+  const hasCoordinates =
+    typeof venueLatitude === "number" && typeof venueLongitude === "number";
+  const hasVenue = Boolean(venueName?.trim());
+  const hasReferee = Boolean(refereeName?.trim());
+
+  const handleMapPress = () => {
+    if (!venueName && !venueAddress) return;
+
+    Alert.alert("Open directions", "Open directions to this venue?", [
+      { text: "Cancel", style: "cancel" },
+      {
+        text: "Open",
+        onPress: async () => {
+          const label = encodeURIComponent(venueName ?? "Venue");
+          const query = encodeURIComponent(
+            venueAddress?.trim() || venueName?.trim() || "Venue",
+          );
+          const appleMapsUrl = hasCoordinates
+            ? `http://maps.apple.com/?daddr=${venueLatitude},${venueLongitude}&q=${label}`
+            : `http://maps.apple.com/?daddr=${query}`;
+
+          const canOpenAppleMaps = await Linking.canOpenURL(appleMapsUrl);
+          if (canOpenAppleMaps) {
+            await Linking.openURL(appleMapsUrl);
+            return;
+          }
+          Alert.alert(
+            "Maps unavailable",
+            "Could not open Apple Maps for directions on this device.",
+          );
+        },
+      },
+    ]);
+  };
 
   return (
     <View style={styles.container}>
@@ -96,26 +136,46 @@ export function MatchDetailsContent({
           <MapView
             style={styles.map}
             mapPadding={{ top: 8, right: 8, bottom: 8, left: 8 }}
-            zoomEnabled={false}
+            initialRegion={{
+              latitude: venueLatitude ?? 45.5017,
+              longitude: venueLongitude ?? -73.5673,
+              latitudeDelta: hasCoordinates ? 0.01 : 0.12,
+              longitudeDelta: hasCoordinates ? 0.01 : 0.12,
+            }}
+            onPress={handleMapPress}
+            zoomEnabled={true}
             rotateEnabled={false}
             pitchEnabled={false}
-          />
+          >
+            {hasCoordinates ? (
+              <Marker
+                coordinate={{
+                  latitude: venueLatitude,
+                  longitude: venueLongitude,
+                }}
+                title={venueName ?? "Venue"}
+                description={venueAddress ?? undefined}
+              />
+            ) : null}
+          </MapView>
         </View>
 
         <View style={styles.metaBlock}>
-          {venueName ? (
-            <View style={styles.venue}>
+          {hasVenue ? (
+            <View style={styles.metaRow}>
               <IconSymbol name="mappin.and.ellipse" color="727272" size={18} />
-              <View style={{ flexDirection: "row", gap: 4 }}>
+              <View style={styles.metaTextRow}>
                 <Text style={styles.meta}>Venue:</Text>
-                <Text style={styles.metaWhite}>{venueName}</Text>
+                <Text style={styles.metaWhite} numberOfLines={2}>
+                  {venueAddress ? `${venueName} (${venueAddress})` : venueName}
+                </Text>
               </View>
             </View>
           ) : null}
-          {refereeName ? (
-            <View style={styles.referee}>
+          {hasReferee ? (
+            <View style={styles.metaRow}>
               <IconSymbol name="flag.fill" color="727272" size={15} />
-              <View style={{ flexDirection: "row", gap: 4 }}>
+              <View style={styles.metaTextRow}>
                 <Text style={styles.meta}>Referee:</Text>
                 <Text style={styles.metaWhite}>{refereeName}</Text>
               </View>
@@ -206,15 +266,15 @@ const styles = StyleSheet.create({
   },
   view: {
     width: "100%",
-    height: 238,
+    height: 220,
     alignItems: "center",
     justifyContent: "center",
     padding: 3,
     borderWidth: 1,
     borderColor: "rgba(108,108,113,0.35)",
     borderRadius: 34,
-    marginTop: 38,
-    marginBottom: 18,
+    marginTop: 30,
+    marginBottom: 14,
   },
   map: {
     width: "100%",
@@ -226,15 +286,18 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     gap: 8,
   },
-  venue: {
+  metaRow: {
     flexDirection: "row",
     gap: 8,
+    alignItems: "flex-start",
   },
-  referee: {
+  metaTextRow: {
     flexDirection: "row",
-    gap: 8,
+    gap: 4,
+    flex: 1,
+    minWidth: 0,
   },
-  metaWhite: { color: "white", fontSize: 14 },
+  metaWhite: { color: "white", fontSize: 14, flexShrink: 1 },
   meta: {
     color: "#727272",
     fontSize: 14,
