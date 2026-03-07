@@ -13,12 +13,14 @@ import com.game.on.go_league_service.league.model.LeagueMatch;
 import com.game.on.go_league_service.league.model.LeagueMatchScore;
 import com.game.on.go_league_service.league.model.LeagueMatchStatus;
 import com.game.on.go_league_service.league.model.RefereeProfile;
+import com.game.on.go_league_service.league.model.Venue;
 import com.game.on.go_league_service.league.repository.LeagueMatchRepository;
 import com.game.on.go_league_service.league.repository.LeagueMatchScoreRepository;
 import com.game.on.go_league_service.league.repository.LeagueRepository;
 import com.game.on.go_league_service.league.repository.LeagueTeamRepository;
 import com.game.on.go_league_service.league.repository.RefereeProfileRepository;
 import com.game.on.go_league_service.league.service.LeagueMatchService;
+import com.game.on.go_league_service.league.service.VenueService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -43,6 +45,7 @@ class LeagueMatchServiceTest {
     @Mock LeagueMatchRepository leagueMatchRepository;
     @Mock LeagueMatchScoreRepository leagueMatchScoreRepository;
     @Mock RefereeProfileRepository refereeProfileRepository;
+    @Mock VenueService venueService;
     @Mock TeamClient teamClient;
     @Mock CurrentUserProvider userProvider;
 
@@ -71,6 +74,7 @@ class LeagueMatchServiceTest {
                 awayTeamId,
                 OffsetDateTime.now().plusDays(1),
                 OffsetDateTime.now().plusDays(1).plusHours(1),
+                null,
                 "Montreal",
                 false,
                 "ref_1"
@@ -99,11 +103,19 @@ class LeagueMatchServiceTest {
         referee.setAllowedRegions(List.of("Toronto"));
         when(refereeProfileRepository.findById("ref_1")).thenReturn(Optional.of(referee));
 
+        UUID venueId = UUID.randomUUID();
+        Venue venue = new Venue();
+        venue.setId(venueId);
+        venue.setName("Olympic Stadium");
+        venue.setRegion("Montreal");
+        when(venueService.requireVenue(venueId)).thenReturn(venue);
+
         LeagueMatchCreateRequest request = new LeagueMatchCreateRequest(
                 homeTeamId,
                 awayTeamId,
                 OffsetDateTime.now().plusDays(1),
                 OffsetDateTime.now().plusDays(1).plusHours(1),
+                venueId,
                 null,
                 true,
                 "ref_1"
