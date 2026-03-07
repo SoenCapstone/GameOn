@@ -1,6 +1,11 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Alert } from "react-native";
-import { useLocalSearchParams, useNavigation, useRouter } from "expo-router";
+import {
+  RelativePathString,
+  useLocalSearchParams,
+  useNavigation,
+  useRouter,
+} from "expo-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { ContentArea } from "@/components/ui/content-area";
 import { Form } from "@/components/form/form";
@@ -10,7 +15,7 @@ import {
   GO_TEAM_SERVICE_ROUTES,
   useAxiosWithClerk,
 } from "@/hooks/use-axios-clerk";
-import { useCreateTeamMatch, useReferees } from "@/hooks/use-matches";
+import { useCreateTeamMatch, useReferees, useTeamVenues } from "@/hooks/use-matches";
 import { buildStartEndIso, isValidTimeRange } from "@/features/matches/utils";
 import { toast } from "@/components/sign-up/utils";
 import { createScopedLog } from "@/utils/logger";
@@ -29,7 +34,18 @@ type TeamSummary = {
 };
 
 export default function ScheduleTeamMatchScreen() {
-  const params = useLocalSearchParams<{ id?: string; newVenue?: string }>();
+  const params = useLocalSearchParams<{
+    id?: string;
+    newVenueId?: string;
+    newVenueName?: string;
+    draftAwayTeamId?: string;
+    draftDate?: string;
+    draftStartTime?: string;
+    draftEndTime?: string;
+    draftVenueId?: string;
+    draftRequiresReferee?: string;
+    draftRefereeUserId?: string;
+  }>();
   const teamId = params.id ?? "";
   const navigation = useNavigation();
   const router = useRouter();
@@ -44,15 +60,51 @@ export default function ScheduleTeamMatchScreen() {
   const [endTimeValue, setEndTimeValue] = useState(
     new Date(Date.now() + 60 * 60 * 1000),
   );
-  const [venue, setVenue] = useState("");
+  const [venueId, setVenueId] = useState("");
   const [requiresReferee, setRequiresReferee] = useState(false);
   const [refereeUserId, setRefereeUserId] = useState("");
 
   useEffect(() => {
-    if (params.newVenue) {
-      setVenue(params.newVenue);
+    if (params.newVenueId) {
+      setVenueId(params.newVenueId);
     }
-  }, [params.newVenue]);
+  }, [params.newVenueId]);
+
+  useEffect(() => {
+    if (params.draftAwayTeamId) {
+      setAwayTeamId(params.draftAwayTeamId);
+    }
+    if (params.draftDate) {
+      const parsed = new Date(params.draftDate);
+      if (!Number.isNaN(parsed.getTime())) setDate(parsed);
+    }
+    if (params.draftStartTime) {
+      const parsed = new Date(params.draftStartTime);
+      if (!Number.isNaN(parsed.getTime())) setStartTimeValue(parsed);
+    }
+    if (params.draftEndTime) {
+      const parsed = new Date(params.draftEndTime);
+      if (!Number.isNaN(parsed.getTime())) setEndTimeValue(parsed);
+    }
+    if (params.draftVenueId && !params.newVenueId) {
+      setVenueId(params.draftVenueId);
+    }
+    if (params.draftRequiresReferee) {
+      setRequiresReferee(params.draftRequiresReferee === "true");
+    }
+    if (params.draftRefereeUserId) {
+      setRefereeUserId(params.draftRefereeUserId);
+    }
+  }, [
+    params.draftAwayTeamId,
+    params.draftDate,
+    params.draftEndTime,
+    params.draftRefereeUserId,
+    params.draftRequiresReferee,
+    params.draftStartTime,
+    params.draftVenueId,
+    params.newVenueId,
+  ]);
 
   const teamSearch = useQuery<{ items: TeamSummary[] }>({
     queryKey: ["teams", "", false, team?.sport ?? ""],
@@ -73,6 +125,35 @@ export default function ScheduleTeamMatchScreen() {
       ),
     [teamId, teamSearch.data?.items],
   );
+
+  const venuesQuery = useTeamVenues({
+    homeTeamId: teamId,
+    awayTeamId: awayTeamId || undefined,
+    enabled: Boolean(teamId),
+  });
+  const refetchVenues = venuesQuery.refetch;
+
+  const venueOptions = useMemo(
+    () =>
+      (venuesQuery.data ?? []).map((venue) => ({
+        id: venue.id,
+        label: `${venue.name} - ${venue.city}`,
+      })),
+    [venuesQuery.data],
+  );
+
+  const venueLabelToId = useMemo(
+    () => Object.fromEntries(venueOptions.map((venue) => [venue.label, venue.id])),
+    [venueOptions],
+  );
+  const venueIdToLabel = useMemo(
+    () => Object.fromEntries(venueOptions.map((venue) => [venue.id, venue.label])),
+    [venueOptions],
+  );
+
+  const selectedVenueLabel =
+    (venueId ? venueIdToLabel[venueId] : undefined) ??
+    (params.newVenueName ? `${params.newVenueName} - New` : "");
 
   const refereesQuery = useReferees({
     active: true,
@@ -97,6 +178,10 @@ export default function ScheduleTeamMatchScreen() {
       log.error("Failed to load away teams for schedule", teamSearch.error);
       Alert.alert("Load error", "Could not load teams. Please retry.");
     }
+    if (venuesQuery.error) {
+      log.error("Failed to load venues for team schedule", venuesQuery.error);
+      Alert.alert("Load error", "Could not load venues. Please retry.");
+    }
     if (refereesQuery.error) {
       log.error(
         "Failed to load referees for team schedule",
@@ -104,11 +189,21 @@ export default function ScheduleTeamMatchScreen() {
       );
       Alert.alert("Load error", "Could not load referees. Please retry.");
     }
-  }, [refereesQuery.error, teamSearch.error]);
+  }, [refereesQuery.error, teamSearch.error, venuesQuery.error]);
+
+  useEffect(() => {
+    if (params.newVenueId) {
+      void refetchVenues();
+    }
+  }, [params.newVenueId, refetchVenues]);
 
   const handleSubmit = useCallback(async () => {
     if (!awayTeamId) {
       Alert.alert("Match schedule failed", "Away team is required");
+      return;
+    }
+    if (!venueId) {
+      Alert.alert("Match schedule failed", "Venue is required");
       return;
     }
     if (!isValidTimeRange(date, startTimeValue, endTimeValue)) {
@@ -136,7 +231,7 @@ export default function ScheduleTeamMatchScreen() {
         sport: team?.sport ?? undefined,
         startTime,
         endTime,
-        matchRegion: venue || undefined,
+        venueId,
         requiresReferee,
         refereeUserId: requiresReferee ? refereeUserId : undefined,
       });
@@ -150,7 +245,10 @@ export default function ScheduleTeamMatchScreen() {
       } else {
         toast("Match scheduled");
       }
-      router.back();
+      router.replace({
+        pathname: `/teams/${teamId}` as RelativePathString,
+        params: { tab: "matches" },
+      });
     } catch (err) {
       const { status, message } = getScheduleApiErrorMessage(
         err as AxiosError<{ message?: string }>,
@@ -170,12 +268,12 @@ export default function ScheduleTeamMatchScreen() {
     date,
     startTimeValue,
     endTimeValue,
+    venueId,
     requiresReferee,
     refereeUserId,
     createMutation,
     teamId,
     team?.sport,
-    venue,
     queryClient,
     router,
   ]);
@@ -217,12 +315,29 @@ export default function ScheduleTeamMatchScreen() {
           date={date}
           startTimeValue={startTimeValue}
           endTimeValue={endTimeValue}
-          venue={venue}
+          venue={selectedVenueLabel}
+          venueOptions={venueOptions.map((venue) => venue.label)}
           onDateChange={setDate}
           onStartTimeChange={setStartTimeValue}
           onEndTimeChange={setEndTimeValue}
-          onVenueChange={setVenue}
-          onAddVenue={() => router.push(`/teams/${teamId}/matches/add-venue`)}
+          onVenueChange={(label) => setVenueId(venueLabelToId[label] ?? "")}
+          onAddVenue={() =>
+            router.push({
+              pathname: `/teams/${teamId}/matches/add-venue` as RelativePathString,
+              params: {
+                id: teamId,
+                homeTeamId: teamId,
+                awayTeamId,
+                draftAwayTeamId: awayTeamId,
+                draftDate: date.toISOString(),
+                draftStartTime: startTimeValue.toISOString(),
+                draftEndTime: endTimeValue.toISOString(),
+                draftVenueId: venueId,
+                draftRequiresReferee: String(requiresReferee),
+                draftRefereeUserId: refereeUserId,
+              },
+            })
+          }
         />
 
         <Form.Section
