@@ -17,6 +17,12 @@ import {
 } from "@/hooks/use-axios-clerk";
 import { useCreateTeamMatch, useReferees, useTeamVenues } from "@/hooks/use-matches";
 import { buildStartEndIso, isValidTimeRange } from "@/features/matches/utils";
+import {
+  buildVenueOptionMaps,
+  buildVenueOptions,
+  parseDraftDate,
+  resolveSelectedVenueLabel,
+} from "@/features/matches/schedule-shared";
 import { toast } from "@/components/sign-up/utils";
 import { createScopedLog } from "@/utils/logger";
 import { useRefereeOptions } from "@/hooks/use-referee-options";
@@ -74,18 +80,12 @@ export default function ScheduleTeamMatchScreen() {
     if (params.draftAwayTeamId) {
       setAwayTeamId(params.draftAwayTeamId);
     }
-    if (params.draftDate) {
-      const parsed = new Date(params.draftDate);
-      if (!Number.isNaN(parsed.getTime())) setDate(parsed);
-    }
-    if (params.draftStartTime) {
-      const parsed = new Date(params.draftStartTime);
-      if (!Number.isNaN(parsed.getTime())) setStartTimeValue(parsed);
-    }
-    if (params.draftEndTime) {
-      const parsed = new Date(params.draftEndTime);
-      if (!Number.isNaN(parsed.getTime())) setEndTimeValue(parsed);
-    }
+    const draftDate = parseDraftDate(params.draftDate);
+    if (draftDate) setDate(draftDate);
+    const draftStart = parseDraftDate(params.draftStartTime);
+    if (draftStart) setStartTimeValue(draftStart);
+    const draftEnd = parseDraftDate(params.draftEndTime);
+    if (draftEnd) setEndTimeValue(draftEnd);
     if (params.draftVenueId && !params.newVenueId) {
       setVenueId(params.draftVenueId);
     }
@@ -134,26 +134,18 @@ export default function ScheduleTeamMatchScreen() {
   const refetchVenues = venuesQuery.refetch;
 
   const venueOptions = useMemo(
-    () =>
-      (venuesQuery.data ?? []).map((venue) => ({
-        id: venue.id,
-        label: `${venue.name} - ${venue.city}`,
-      })),
+    () => buildVenueOptions(venuesQuery.data),
     [venuesQuery.data],
   );
-
-  const venueLabelToId = useMemo(
-    () => Object.fromEntries(venueOptions.map((venue) => [venue.label, venue.id])),
+  const { venueLabelToId, venueIdToLabel } = useMemo(
+    () => buildVenueOptionMaps(venueOptions),
     [venueOptions],
   );
-  const venueIdToLabel = useMemo(
-    () => Object.fromEntries(venueOptions.map((venue) => [venue.id, venue.label])),
-    [venueOptions],
+  const selectedVenueLabel = resolveSelectedVenueLabel(
+    venueId,
+    venueIdToLabel,
+    params.newVenueName,
   );
-
-  const selectedVenueLabel =
-    (venueId ? venueIdToLabel[venueId] : undefined) ??
-    (params.newVenueName ? `${params.newVenueName} - New` : "");
 
   const refereesQuery = useReferees({
     active: true,
