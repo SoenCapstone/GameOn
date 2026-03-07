@@ -17,6 +17,7 @@ jest.mock("@/hooks/use-axios-clerk", () => ({
   GO_LEAGUE_SERVICE_ROUTES: {
     ALL: "/api/v1/leagues",
     GET: (id: string) => `/api/v1/leagues/${id}`,
+    TEAMS: (id: string) => `/api/v1/leagues/${id}/teams`,
   },
 }));
 
@@ -102,6 +103,9 @@ describe("useLeagueDetail", () => {
     teamsData: Record<string, unknown>[] = [],
   ) {
     mockApi.get.mockImplementation((url: string) => {
+      if (url.endsWith("/teams")) {
+        return Promise.resolve({ data: teamsData });
+      }
       if (url.includes("memberships/me")) {
         return Promise.resolve({ data: teamsData });
       }
