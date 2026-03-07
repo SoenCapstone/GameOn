@@ -14,12 +14,18 @@ interface UseTeamFormProps {
 
 export const useTeamForm = (props?: UseTeamFormProps) => {
   const [teamName, setTeamName] = useState("");
-  const [selectedSport, setSelectedSport] = useState<Option | null>(null);
-  const [selectedScope, setSelectedScope] = useState<Option>(SCOPE_OPTIONS[0]);
-  const [selectedCity, setSelectedCity] = useState<Option | null>(null);
-  const [selectedAllowedRegions, setSelectedAllowedRegions] = useState<string[]>(
-    [],
+  const [selectedSport, setSelectedSport] = useState<Option | undefined>(
+    undefined,
   );
+  const [selectedScope, setSelectedScope] = useState<Option | undefined>(
+    undefined,
+  );
+  const [selectedCity, setSelectedCity] = useState<Option | undefined>(
+    undefined,
+  );
+  const [selectedAllowedRegions, setSelectedAllowedRegions] = useState<
+    string[]
+  >([]);
   const [allowedRegionsManuallyEdited, setAllowedRegionsManuallyEdited] =
     useState(false);
   const [logoUri, setLogoUri] = useState<string | null>(null);
@@ -75,7 +81,7 @@ export const useTeamForm = (props?: UseTeamFormProps) => {
     setSelectedAllowedRegions(regions);
   };
 
-  const updateSelectedCity = (city: Option | null) => {
+  const updateSelectedCity = (city: Option) => {
     setSelectedCity(city);
 
     if (!city) return;
