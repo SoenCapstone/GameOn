@@ -72,7 +72,41 @@ class LeagueMatchServiceTest {
                 OffsetDateTime.now().plusDays(1),
                 OffsetDateTime.now().plusDays(1).plusHours(1),
                 "Montreal",
-                false
+                false,
+                "ref_1"
+        );
+
+        assertThrows(BadRequestException.class, () -> leagueMatchService.createMatch(leagueId, request));
+        verify(leagueMatchRepository, never()).save(any());
+    }
+
+    @Test
+    void createMatch_refereeWithoutSharedRegion_throwsBadRequest() {
+        when(userProvider.clerkUserId()).thenReturn("owner_1");
+        when(leagueTeamRepository.existsByLeague_IdAndTeamId(leagueId, homeTeamId)).thenReturn(true);
+        when(leagueTeamRepository.existsByLeague_IdAndTeamId(leagueId, awayTeamId)).thenReturn(true);
+        when(teamClient.getTeam(homeTeamId)).thenReturn(
+                new TeamSummaryResponse(homeTeamId, "soccer", List.of("Montreal"), "owner_1")
+        );
+        when(teamClient.getTeam(awayTeamId)).thenReturn(
+                new TeamSummaryResponse(awayTeamId, "soccer", List.of("Montreal"), "owner_2")
+        );
+
+        RefereeProfile referee = new RefereeProfile();
+        referee.setUserId("ref_1");
+        referee.setActive(true);
+        referee.setSports(List.of("soccer"));
+        referee.setAllowedRegions(List.of("Toronto"));
+        when(refereeProfileRepository.findById("ref_1")).thenReturn(Optional.of(referee));
+
+        LeagueMatchCreateRequest request = new LeagueMatchCreateRequest(
+                homeTeamId,
+                awayTeamId,
+                OffsetDateTime.now().plusDays(1),
+                OffsetDateTime.now().plusDays(1).plusHours(1),
+                null,
+                true,
+                "ref_1"
         );
 
         assertThrows(BadRequestException.class, () -> leagueMatchService.createMatch(leagueId, request));

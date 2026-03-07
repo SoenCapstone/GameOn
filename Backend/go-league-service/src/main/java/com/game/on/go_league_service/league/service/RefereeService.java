@@ -188,6 +188,17 @@ public class RefereeService {
         return toResponse(saved);
     }
 
+    @Transactional(readOnly = true)
+    public List<RefInviteResponse> listMyPendingRefInvites() {
+        String userId = userProvider.clerkUserId();
+
+        return refInviteRepository
+                .findByRefereeUserIdAndStatusOrderByCreatedAtDesc(userId, RefInviteStatus.PENDING)
+                .stream()
+                .map(this::toResponse)
+                .toList();
+    }
+
     private MatchContext resolveMatchContext(UUID matchId) {
         var leagueMatch = leagueMatchRepository.findById(matchId).orElse(null);
         if (leagueMatch != null) {
@@ -249,10 +260,17 @@ public class RefereeService {
     }
 
     private RefereeProfileResponse toResponse(RefereeProfile profile) {
+        List<String> sports = profile.getSports() == null
+                ? List.of()
+                : new ArrayList<>(profile.getSports());
+        List<String> allowedRegions = profile.getAllowedRegions() == null
+                ? List.of()
+                : new ArrayList<>(profile.getAllowedRegions());
+
         return new RefereeProfileResponse(
                 profile.getUserId(),
-                profile.getSports(),
-                profile.getAllowedRegions(),
+                sports,
+                allowedRegions,
                 profile.isActive(),
                 profile.getCreatedAt(),
                 profile.getUpdatedAt()

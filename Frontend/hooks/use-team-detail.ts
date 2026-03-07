@@ -14,6 +14,7 @@ export type TeamDetailResponse = Readonly<{
   name: string | null;
   sport: string | null;
   location: string | null;
+  allowedRegions?: string[] | null;
   logoUrl: string | null;
   scope: string | null;
   privacy: "PRIVATE" | "PUBLIC";
