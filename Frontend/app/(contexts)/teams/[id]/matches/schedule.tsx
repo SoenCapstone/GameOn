@@ -201,8 +201,12 @@ export default function ScheduleTeamMatchScreen() {
             label="Away Team"
             options={awayTeamOptions}
             value={
-              awayTeams.find((candidate) => candidate.id === awayTeamId)
-                ?.name ?? "Select"
+              awayTeams.find((candidate) => candidate.id === awayTeamId)?.name
+            }
+            placeholder={
+              awayTeamOptions.length === 0
+                ? "No teams available"
+                : "Select team"
             }
             onValueChange={(value) => setAwayTeamId(teamNameToId[value])}
             disabled={
@@ -244,9 +248,14 @@ export default function ScheduleTeamMatchScreen() {
               label="Choose Referee"
               options={refereeOptions}
               value={
+                refereeUserId ??
+                refereeIdToLabel[refereeUserId] ??
                 refereeUserId
-                  ? (refereeIdToLabel[refereeUserId] ?? refereeUserId)
-                  : "Select"
+              }
+              placeholder={
+                refereeOptions.length === 0
+                  ? "No referees available"
+                  : "Select referee"
               }
               onValueChange={(value) =>
                 setRefereeUserId(refereeLabelToId[value] ?? value)

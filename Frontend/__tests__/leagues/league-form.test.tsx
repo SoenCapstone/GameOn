@@ -40,11 +40,11 @@ describe("LeagueForm", () => {
 
   const baseValues = {
     leagueName: "My League",
-    selectedSport: null,
-    selectedLevel: null,
-    region: "North America",
+    selectedSport: undefined,
+    selectedLevel: undefined,
+    region: "Canada",
     location: "",
-  } as const;
+  };
 
   beforeEach(() => {
     jest.clearAllMocks();
@@ -121,7 +121,7 @@ describe("LeagueForm", () => {
     }
     if (regionInput) {
       expect(regionInput.editable).toBe(false);
-      expect(regionInput.value).toBe("North America");
+      expect(regionInput.value).toBe("Canada");
     }
 
     const menuCalls = (Form.Menu as jest.Mock).mock.calls.map(
@@ -138,8 +138,6 @@ describe("LeagueForm", () => {
     );
 
     if (sportMenu && typeof sportMenu.onValueChange === "function") {
-      (sportMenu.onValueChange as (val: string) => void)("None");
-      expect(onChange.onSportChange).toHaveBeenCalledWith(null);
       (sportMenu.onValueChange as (val: string) => void)("Soccer");
       expect(onChange.onSportChange).toHaveBeenCalledWith({
         id: "soccer",
@@ -147,8 +145,6 @@ describe("LeagueForm", () => {
       });
     }
     if (levelMenu && typeof levelMenu.onValueChange === "function") {
-      (levelMenu.onValueChange as (val: string) => void)("Optional");
-      expect(onChange.onLevelChange).toHaveBeenCalledWith(null);
       (levelMenu.onValueChange as (val: string) => void)("Competitive");
       expect(onChange.onLevelChange).toHaveBeenCalledWith({
         id: "COMPETITIVE",
@@ -156,8 +152,6 @@ describe("LeagueForm", () => {
       });
     }
     if (locationMenu && typeof locationMenu.onValueChange === "function") {
-      (locationMenu.onValueChange as (val: string) => void)("City");
-      expect(onChange.onLocationChange).toHaveBeenCalledWith("");
       (locationMenu.onValueChange as (val: string) => void)("Montreal");
       expect(onChange.onLocationChange).toHaveBeenCalledWith("Montreal");
     }

@@ -47,7 +47,7 @@ export default function Post() {
   const navigation = useNavigation();
 
   const [title, setTitle] = useState("");
-  const [scope, setScope] = useState<BoardPostScope>("Members");
+  const [scope, setScope] = useState<BoardPostScope | undefined>(undefined);
   const [body, setBody] = useState("");
 
   const createTeamPostMutation = useCreateBoardPost(id);
@@ -66,6 +66,11 @@ export default function Post() {
 
     if (!body.trim()) {
       Alert.alert("Failed to Post", "Please enter body");
+      return;
+    }
+
+    if (!scope) {
+      Alert.alert("Failed to Post", "Please select a scope");
       return;
     }
 
@@ -118,6 +123,7 @@ export default function Post() {
           />
           <Form.Menu
             label="Scope"
+            placeholder="Select scope"
             options={PostScope}
             value={scope}
             onValueChange={(value) => setScope(value as BoardPostScope)}

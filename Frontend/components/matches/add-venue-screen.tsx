@@ -24,9 +24,9 @@ export function AddVenueScreen({
   const [name, setName] = useState("");
   const [street, setStreet] = useState("");
   const [city, setCity] = useState("");
-  const [province, setProvince] = useState<(typeof PROVINCE_OPTIONS)[number]>(
-    PROVINCE_OPTIONS[0],
-  );
+  const [province, setProvince] = useState<
+    (typeof PROVINCE_OPTIONS)[number] | undefined
+  >(undefined);
   const [postalCode, setPostalCode] = useState("");
 
   const canSave = Boolean(
@@ -93,6 +93,7 @@ export function AddVenueScreen({
           />
           <Form.Menu
             label="Province"
+            placeholder="Select province"
             options={[...PROVINCE_OPTIONS]}
             value={province}
             onValueChange={(value) =>

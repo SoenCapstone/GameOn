@@ -1,14 +1,22 @@
 import { renderHook, act } from "@testing-library/react-native";
 import { useTeamForm } from "@/hooks/use-team-form";
-import { SCOPE_OPTIONS } from "@/constants/form-constants";
+import type { TeamDetailResponse } from "@/hooks/use-team-detail";
 
-interface TeamFormInitialData {
-  readonly name: string;
-  readonly sport?: string;
-  readonly scope?: string;
-  readonly location?: string;
-  readonly logoUrl?: string;
-  readonly privacy?: "PUBLIC" | "PRIVATE";
+function makeTeamData(
+  partial: Partial<TeamDetailResponse>,
+): TeamDetailResponse {
+  return {
+    id: null,
+    ownerUserId: null,
+    name: null,
+    sport: null,
+    location: null,
+    allowedRegions: null,
+    logoUrl: null,
+    scope: null,
+    privacy: "PUBLIC",
+    ...partial,
+  };
 }
 
 describe("useTeamForm", () => {
@@ -16,23 +24,23 @@ describe("useTeamForm", () => {
     const { result } = renderHook(() => useTeamForm());
 
     expect(result.current.teamName).toBe("");
-    expect(result.current.selectedSport).toBeNull();
-    expect(result.current.selectedScope).toEqual(SCOPE_OPTIONS[0]);
-    expect(result.current.selectedCity).toBeNull();
+    expect(result.current.selectedSport).toBeUndefined();
+    expect(result.current.selectedScope).toBeUndefined();
+    expect(result.current.selectedCity).toBeUndefined();
     expect(result.current.logoUri).toBeNull();
     expect(result.current.isPublic).toBe(true);
     expect(result.current.openPicker).toBeNull();
   });
 
   it("initializes with provided initial data", () => {
-    const initialData = {
+    const initialData = makeTeamData({
       name: "Test Team",
       sport: "Soccer",
       scope: "managed",
       location: "Montreal",
       logoUrl: "https://example.com/logo.png",
       privacy: "PUBLIC",
-    };
+    });
 
     const { result } = renderHook(() => useTeamForm({ initialData }));
 
@@ -54,10 +62,10 @@ describe("useTeamForm", () => {
   });
 
   it("sets privacy to false when initial data is PRIVATE", () => {
-    const initialData = {
+    const initialData = makeTeamData({
       name: "Private Team",
       privacy: "PRIVATE",
-    };
+    });
 
     const { result } = renderHook(() => useTeamForm({ initialData }));
 
@@ -159,10 +167,10 @@ describe("useTeamForm", () => {
   });
 
   it("handles case-insensitive sport matching", () => {
-    const initialData = {
+    const initialData = makeTeamData({
       name: "Test Team",
       sport: "BASKETBALL",
-    };
+    });
 
     const { result } = renderHook(() => useTeamForm({ initialData }));
 
@@ -173,10 +181,10 @@ describe("useTeamForm", () => {
   });
 
   it("handles case-insensitive scope matching", () => {
-    const initialData = {
+    const initialData = makeTeamData({
       name: "Test Team",
       scope: "LEAGUE_READY",
-    };
+    });
 
     const { result } = renderHook(() => useTeamForm({ initialData }));
 
@@ -187,10 +195,10 @@ describe("useTeamForm", () => {
   });
 
   it("handles case-insensitive city matching", () => {
-    const initialData = {
+    const initialData = makeTeamData({
       name: "Test Team",
       location: "VANCOUVER",
-    };
+    });
 
     const { result } = renderHook(() => useTeamForm({ initialData }));
 
@@ -200,62 +208,57 @@ describe("useTeamForm", () => {
     });
   });
 
-  it("handles missing sport in initial data gracefully", () => {
-    const initialData = {
+  it("leaves selectedSport undefined when sport does not match any option", () => {
+    const initialData = makeTeamData({
       name: "Test Team",
       sport: "NonExistentSport",
-    };
+    });
 
     const { result } = renderHook(() => useTeamForm({ initialData }));
 
-    expect(result.current.selectedSport).toBeNull();
+    expect(result.current.selectedSport).toBeUndefined();
   });
 
-  it("handles missing scope in initial data gracefully", () => {
-    const initialData = {
+  it("leaves selectedScope undefined when scope does not match any option", () => {
+    const initialData = makeTeamData({
       name: "Test Team",
       scope: "nonexistent",
-    };
+    });
 
     const { result } = renderHook(() => useTeamForm({ initialData }));
 
-    expect(result.current.selectedScope).toEqual(SCOPE_OPTIONS[0]);
+    expect(result.current.selectedScope).toBeUndefined();
   });
 
-  it("handles missing city in initial data gracefully", () => {
-    const initialData = {
+  it("leaves selectedCity undefined when location does not match any option", () => {
+    const initialData = makeTeamData({
       name: "Test Team",
       location: "NonExistentCity",
-    };
+    });
 
     const { result } = renderHook(() => useTeamForm({ initialData }));
 
-    expect(result.current.selectedCity).toBeNull();
+    expect(result.current.selectedCity).toBeUndefined();
   });
 
-  it("handles empty initial data object", () => {
-    const initialData = {
-      name: "",
-    };
+  it("handles initial data with no sport, scope, or location", () => {
+    const initialData = makeTeamData({ name: "", privacy: "PRIVATE" });
 
     const { result } = renderHook(() => useTeamForm({ initialData }));
 
     expect(result.current.teamName).toBe("");
-    expect(result.current.selectedSport).toBeNull();
+    expect(result.current.selectedSport).toBeUndefined();
     expect(result.current.logoUri).toBeNull();
     expect(result.current.isPublic).toBe(false);
   });
 
   it("updates state when initialData changes", () => {
     const { result, rerender } = renderHook(
-      (props: { initialData: TeamFormInitialData }) =>
+      (props: { initialData: TeamDetailResponse }) =>
         useTeamForm({ initialData: props.initialData }),
       {
         initialProps: {
-          initialData: {
-            name: "First Team",
-            sport: "Soccer",
-          },
+          initialData: makeTeamData({ name: "First Team", sport: "Soccer" }),
         },
       },
     );
@@ -267,10 +270,7 @@ describe("useTeamForm", () => {
     });
 
     rerender({
-      initialData: {
-        name: "Second Team",
-        sport: "Basketball",
-      },
+      initialData: makeTeamData({ name: "Second Team", sport: "Basketball" }),
     });
 
     expect(result.current.teamName).toBe("Second Team");

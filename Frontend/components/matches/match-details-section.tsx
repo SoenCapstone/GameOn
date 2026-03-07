@@ -60,9 +60,9 @@ export function MatchDetailsSection(props: {
       <Form.Menu
         label="Venue"
         options={venue ? [...venueOptions, venue] : venueOptions}
-        value={
-          venue ||
-          (venueOptions.length === 0 ? "No venues available" : "Select")
+        value={venue}
+        placeholder={
+          venueOptions.length === 0 ? "No venues available" : "Select venue"
         }
         onValueChange={onVenueChange}
         disabled={venueOptions.length === 0 && !venue}

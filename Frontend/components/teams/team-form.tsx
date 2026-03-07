@@ -15,9 +15,9 @@ import {
 
 interface TeamFormValues {
   readonly teamName: string;
-  readonly selectedSport: Option | null;
-  readonly selectedScope: Option;
-  readonly selectedCity: Option | null;
+  readonly selectedSport: Option | undefined;
+  readonly selectedScope: Option | undefined;
+  readonly selectedCity: Option | undefined;
   readonly selectedAllowedRegions: string[];
 }
 
@@ -75,14 +75,10 @@ export function TeamForm({
         />
         <Form.Menu
           label="Sport"
+          placeholder="Select sport"
           options={sportOptions}
-          value={values.selectedSport?.label ?? "None"}
+          value={values.selectedSport?.label}
           onValueChange={(label) => {
-            if (label === "None") {
-              onChange.onSportChange(null);
-              return;
-            }
-
             const option = getSportByLabel(label);
             if (option) {
               onChange.onSportChange(option);
@@ -91,8 +87,9 @@ export function TeamForm({
         />
         <Form.Menu
           label="Scope"
+          placeholder="Select scope"
           options={scopeOptions}
-          value={values.selectedScope.label}
+          value={values.selectedScope?.label}
           onValueChange={(label) => {
             const option = getScopeByLabel(label);
             if (option) {
@@ -102,14 +99,10 @@ export function TeamForm({
         />
         <Form.Menu
           label="Location"
+          placeholder="Select city"
           options={cityOptions}
-          value={values.selectedCity?.label ?? "City"}
+          value={values.selectedCity?.label}
           onValueChange={(label) => {
-            if (label === "Select location") {
-              onChange.onCityChange(null);
-              return;
-            }
-
             const option = getCityByLabel(label);
             if (option) {
               onChange.onCityChange(option);

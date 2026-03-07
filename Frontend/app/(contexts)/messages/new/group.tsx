@@ -104,24 +104,19 @@ Event chats lock membership once created. Only the creator can add members.`}
             <Form.Menu
               label="Team"
               disabled={(teams ?? []).length === 0}
-              options={
-                (teams ?? []).length > 0
-                  ? (teams ?? []).map((t) => t.name)
-                  : ["No teams available"]
-              }
+              options={(teams ?? []).map((team) => team.name)}
               value={
-                selectedTeam
-                  ? ((teams ?? []).find((t) => t.id === selectedTeam)?.name ??
-                    "Select a team")
-                  : "Select a team"
+                selectedTeam ??
+                (teams ?? []).find((team) => team.id === selectedTeam)?.name
+              }
+              placeholder={
+                (teams ?? []).length > 0
+                  ? "Select a team"
+                  : "No teams available"
               }
               onValueChange={(name) => {
-                if (name === "Select a team" || name === "No teams available")
-                  setSelectedTeam(null);
-                else {
-                  const t = (teams ?? []).find((t) => t.name === name);
-                  setSelectedTeam(t?.id ?? null);
-                }
+                const team = (teams ?? []).find((team) => team.name === name);
+                setSelectedTeam(team?.id ?? null);
               }}
             />
             <Form.Switch

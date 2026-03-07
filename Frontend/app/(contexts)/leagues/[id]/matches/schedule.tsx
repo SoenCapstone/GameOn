@@ -196,8 +196,11 @@ export default function ScheduleLeagueMatchScreen() {
           <Form.Menu
             label="Home Team"
             options={homeTeamOptions}
-            value={
-              teams.find((team) => team.id === homeTeamId)?.name ?? "Select"
+            value={teams.find((team) => team.id === homeTeamId)?.name}
+            placeholder={
+              homeTeamOptions.length === 0
+                ? "No teams available"
+                : "Select team"
             }
             onValueChange={(value) => setHomeTeamId(teamNameToId[value])}
             disabled={
@@ -210,8 +213,11 @@ export default function ScheduleLeagueMatchScreen() {
           <Form.Menu
             label="Away Team"
             options={awayTeamOptions}
-            value={
-              teams.find((team) => team.id === awayTeamId)?.name ?? "Select"
+            value={teams.find((team) => team.id === awayTeamId)?.name}
+            placeholder={
+              awayTeamOptions.length === 0
+                ? "No teams available"
+                : "Select team"
             }
             onValueChange={(value) => setAwayTeamId(teamNameToId[value])}
             disabled={
@@ -241,9 +247,12 @@ export default function ScheduleLeagueMatchScreen() {
             label="Choose Referee"
             options={refereeOptions}
             value={
-              refereeUserId
-                ? (refereeIdToLabel[refereeUserId] ?? refereeUserId)
-                : "Select"
+              refereeUserId ?? refereeIdToLabel[refereeUserId] ?? refereeUserId
+            }
+            placeholder={
+              refereeOptions.length === 0
+                ? "No referees available"
+                : "Select referee"
             }
             onValueChange={(value) =>
               setRefereeUserId(refereeLabelToId[value] ?? value)

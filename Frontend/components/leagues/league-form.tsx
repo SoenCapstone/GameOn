@@ -14,8 +14,8 @@ import {
 
 interface LeagueFormValues {
   readonly leagueName: string;
-  readonly selectedSport: Option | null;
-  readonly selectedLevel: Option | null;
+  readonly selectedSport: Option | undefined;
+  readonly selectedLevel: Option | undefined;
   readonly region: string;
   readonly location: string;
 }
@@ -71,14 +71,10 @@ export function LeagueForm({
         />
         <Form.Menu
           label="Sport"
+          placeholder="Select sport"
           options={sportOptions}
-          value={values.selectedSport?.label ?? "None"}
+          value={values.selectedSport?.label}
           onValueChange={(label) => {
-            if (label === "None") {
-              onChange.onSportChange(null);
-              return;
-            }
-
             const option = getSportByLabel(label);
             if (option) {
               onChange.onSportChange(option);
@@ -87,14 +83,10 @@ export function LeagueForm({
         />
         <Form.Menu
           label="Level"
+          placeholder="Select level"
           options={levelOptions}
-          value={values.selectedLevel?.label ?? "Optional"}
+          value={values.selectedLevel?.label}
           onValueChange={(label) => {
-            if (label === "Optional") {
-              onChange.onLevelChange(null);
-              return;
-            }
-
             const option = getLevelByLabel(label);
             if (option) {
               onChange.onLevelChange(option);
@@ -109,14 +101,10 @@ export function LeagueForm({
         />
         <Form.Menu
           label="Location"
+          placeholder="Select city"
           options={cityOptions}
-          value={values.location || "City"}
+          value={values.location}
           onValueChange={(label) => {
-            if (label === "City") {
-              onChange.onLocationChange("");
-              return;
-            }
-
             const option = getCityByLabel(label);
             if (option) {
               onChange.onLocationChange(option.label);
