@@ -37,6 +37,8 @@ import {
 import { buildMatchCards, splitMatchSections } from "@/features/matches/utils";
 import { errorToString } from "@/utils/error";
 
+type TeamTab = "board" | "matches" | "overview";
+
 export default function Team() {
   const params = useLocalSearchParams<{ id?: string | string[] }>();
   const rawId = params.id;
@@ -51,13 +53,8 @@ export default function Team() {
 
 function TeamContent() {
   const params = useLocalSearchParams<{ tab?: string }>();
-  const initialTab: "board" | "matches" | "overview" =
-    params.tab === "matches"
-      ? "matches"
-      : params.tab === "overview"
-        ? "overview"
-        : "board";
-  const [tab, setTab] = useState<"board" | "matches" | "overview">(initialTab);
+  const initialTab: TeamTab = resolveTeamTab(params.tab);
+  const [tab, setTab] = useState<TeamTab>(initialTab);
   const router = useRouter();
   const log = createScopedLog("Team Page");
   const queryClient = useQueryClient();
@@ -200,9 +197,7 @@ function TeamContent() {
     },
   );
 
-  const getTabFromSegmentValue = (
-    value: string,
-  ): "board" | "matches" | "overview" => {
+  const getTabFromSegmentValue = (value: string): TeamTab => {
     if (value === "Board") return "board";
     if (value === "Overview") return "overview";
     return "matches";
@@ -338,6 +333,12 @@ function TeamContent() {
       ) : null}
     </View>
   );
+}
+
+function resolveTeamTab(tab?: string): TeamTab {
+  if (tab === "matches") return "matches";
+  if (tab === "overview") return "overview";
+  return "board";
 }
 
 const styles = StyleSheet.create({
