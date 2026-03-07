@@ -14,7 +14,7 @@ const mockAlert = jest.fn();
 let capturedSubmit: (() => void | Promise<void>) | undefined;
 
 jest.mock("expo-router", () => ({
-  useLocalSearchParams: () => ({ id: "team-1" }),
+  useLocalSearchParams: () => ({ id: "team-1", tab: "matches" }),
   useNavigation: () => ({ setOptions: mockSetOptions }),
   useRouter: () => ({ replace: mockReplace, push: mockPush, back: mockBack }),
 }));
@@ -162,6 +162,12 @@ jest.mock("@/hooks/use-matches", () => ({
     isLoading: false,
     error: null,
   }),
+  useTeamVenues: () => ({
+    data: [{ id: "venue-1", name: "Stadium", city: "Montreal" }],
+    isLoading: false,
+    error: null,
+    refetch: jest.fn(),
+  }),
 }));
 
 jest.mock("@/hooks/use-axios-clerk", () => ({
@@ -258,6 +264,7 @@ describe("ScheduleTeamMatchScreen", () => {
       expect(getByTestId("menu-away-team-rivals")).toBeTruthy(),
     );
     fireEvent.press(getByTestId("menu-away-team-rivals"));
+    fireEvent.press(getByTestId("menu-venue-stadium---montreal"));
     await submitSchedule();
 
     await waitFor(() => expect(mockCreateTeamMatch).toHaveBeenCalledTimes(1));
@@ -266,10 +273,14 @@ describe("ScheduleTeamMatchScreen", () => {
       expect.objectContaining({
         homeTeamId: "team-1",
         awayTeamId: "team-2",
+        venueId: "venue-1",
         requiresReferee: false,
       }) as unknown,
     );
-    expect(mockBack).toHaveBeenCalledTimes(1);
+    expect(mockReplace).toHaveBeenCalledWith({
+      pathname: "/teams/team-1",
+      params: { tab: "matches" },
+    });
     expect(mockToast).toHaveBeenCalledWith("Match scheduled");
   });
 
@@ -284,6 +295,7 @@ describe("ScheduleTeamMatchScreen", () => {
       expect(getByTestId("menu-away-team-rivals")).toBeTruthy(),
     );
     fireEvent.press(getByTestId("menu-away-team-rivals"));
+    fireEvent.press(getByTestId("menu-venue-stadium---montreal"));
     fireEvent.press(getByTestId("switch-official-match"));
 
     await waitFor(() =>
@@ -298,6 +310,7 @@ describe("ScheduleTeamMatchScreen", () => {
       expect.objectContaining({
         homeTeamId: "team-1",
         awayTeamId: "team-2",
+        venueId: "venue-1",
         requiresReferee: true,
         refereeUserId: "ref-1",
       }) as unknown,

@@ -14,7 +14,7 @@ const mockAlert = jest.fn();
 let capturedSubmit: (() => void | Promise<void>) | undefined;
 
 jest.mock("expo-router", () => ({
-  useLocalSearchParams: () => ({ id: "league-1" }),
+  useLocalSearchParams: () => ({ id: "league-1", tab: "matches" }),
   useNavigation: () => ({ setOptions: mockSetOptions }),
   useRouter: () => ({ replace: mockReplace, push: mockPush, back: mockBack }),
 }));
@@ -153,6 +153,12 @@ jest.mock("@/hooks/use-matches", () => ({
     isLoading: false,
     error: null,
   }),
+  useLeagueVenues: () => ({
+    data: [{ id: "venue-1", name: "Stadium", city: "Montreal" }],
+    isLoading: false,
+    error: null,
+    refetch: jest.fn(),
+  }),
 }));
 
 jest.mock("@/hooks/use-axios-clerk", () => ({
@@ -240,6 +246,7 @@ describe("ScheduleLeagueMatchScreen", () => {
     );
     fireEvent.press(getByTestId("menu-home-team-alpha-fc"));
     fireEvent.press(getByTestId("menu-away-team-beta-fc"));
+    fireEvent.press(getByTestId("menu-venue-stadium---montreal"));
 
     await waitFor(() =>
       expect(getByTestId("menu-choose-referee-jane-ref")).toBeTruthy(),
@@ -252,10 +259,14 @@ describe("ScheduleLeagueMatchScreen", () => {
       expect.objectContaining({
         homeTeamId: "team-1",
         awayTeamId: "team-2",
+        venueId: "venue-1",
         refereeUserId: "ref-1",
       }) as unknown,
     );
     expect(mockToast).toHaveBeenCalledWith("Match scheduled");
-    expect(mockBack).toHaveBeenCalledTimes(1);
+    expect(mockReplace).toHaveBeenCalledWith({
+      pathname: "/leagues/league-1",
+      params: { tab: "matches" },
+    });
   });
 });
