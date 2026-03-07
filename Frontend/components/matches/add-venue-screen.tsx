@@ -84,16 +84,18 @@ export function AddVenueScreen({
         // eslint-disable-next-line @typescript-eslint/no-require-imports
         locationModule = require("expo-location") as ExpoLocationModule;
       } catch {
-        throw new Error("Expo geocoding is unavailable. Install expo-location.");
+        throw new TypeError("Expo geocoding is unavailable. Install expo-location.");
       }
 
       if (!locationModule?.geocodeAsync) {
-        throw new Error("Expo geocoding is unavailable. Install expo-location.");
+        throw new TypeError("Expo geocoding is unavailable. Install expo-location.");
       }
 
       const geocodeResults = await locationModule.geocodeAsync(address);
       if (!Array.isArray(geocodeResults) || geocodeResults.length === 0) {
-        throw new Error("We couldn't find this address. Please verify the venue address.");
+        throw new TypeError(
+          "We couldn't find this address. Please verify the venue address.",
+        );
       }
 
       const firstResult = geocodeResults[0];
@@ -101,7 +103,9 @@ export function AddVenueScreen({
         typeof firstResult?.latitude !== "number" ||
         typeof firstResult?.longitude !== "number"
       ) {
-        throw new Error("We couldn't find this address. Please verify the venue address.");
+        throw new TypeError(
+          "We couldn't find this address. Please verify the venue address.",
+        );
       }
 
       return {

@@ -13,8 +13,10 @@ import { AccentColors } from "@/constants/colors";
 import {
   buildVenueOptionMaps,
   buildVenueOptions,
+  navigateToMatchesTab,
   parseDraftDate,
   resolveSelectedVenueLabel,
+  showScheduleSubmitError,
 } from "@/features/matches/schedule-shared";
 import {
   useCreateLeagueMatch,
@@ -28,10 +30,8 @@ import { buildStartEndIso, isValidTimeRange } from "@/features/matches/utils";
 import { toast } from "@/components/sign-up/utils";
 import { createScopedLog } from "@/utils/logger";
 import { useRefereeOptions } from "@/hooks/use-referee-options";
-import { getScheduleApiErrorMessage } from "@/utils/schedule-errors";
 import { MatchDetailsSection } from "@/components/matches/match-details-section";
 import { useScheduleHeader } from "@/hooks/use-schedule-header";
-import { AxiosError } from "axios";
 
 const log = createScopedLog("Schedule League Match");
 
@@ -178,7 +178,9 @@ export default function ScheduleLeagueMatchScreen() {
 
   useEffect(() => {
     if (params.newVenueId) {
-      void refetchVenues();
+      refetchVenues().catch((err) => {
+        log.error("Failed to refresh venues after venue creation", err);
+      });
     }
   }, [params.newVenueId, refetchVenues]);
 
@@ -242,23 +244,16 @@ export default function ScheduleLeagueMatchScreen() {
         queryKey: ["league-matches", leagueId],
       });
       toast("Match scheduled");
-      router.replace({
-        pathname: `/leagues/${leagueId}` as RelativePathString,
-        params: { tab: "matches" },
-      });
-    } catch (err) {
-      const { status, message } = getScheduleApiErrorMessage(
-        err as AxiosError<{ message?: string }>,
-        "You must be league admin",
+      navigateToMatchesTab(
+        router.replace,
+        `/leagues/${leagueId}` as RelativePathString,
       );
-      if (status === 0) {
-        Alert.alert("Network error", message, [
-          { text: "Cancel", style: "cancel" },
-          { text: "Retry", onPress: handleSubmit },
-        ]);
-      } else {
-        Alert.alert("Schedule failed", message);
-      }
+    } catch (err) {
+      showScheduleSubmitError(
+        err,
+        "You must be league admin",
+        handleSubmit,
+      );
     }
   }, [
     awayTeamId,

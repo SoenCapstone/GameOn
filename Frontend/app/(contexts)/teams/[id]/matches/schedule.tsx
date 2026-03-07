@@ -20,16 +20,16 @@ import { buildStartEndIso, isValidTimeRange } from "@/features/matches/utils";
 import {
   buildVenueOptionMaps,
   buildVenueOptions,
+  navigateToMatchesTab,
   parseDraftDate,
   resolveSelectedVenueLabel,
+  showScheduleSubmitError,
 } from "@/features/matches/schedule-shared";
 import { toast } from "@/components/sign-up/utils";
 import { createScopedLog } from "@/utils/logger";
 import { useRefereeOptions } from "@/hooks/use-referee-options";
-import { getScheduleApiErrorMessage } from "@/utils/schedule-errors";
 import { MatchDetailsSection } from "@/components/matches/match-details-section";
 import { useScheduleHeader } from "@/hooks/use-schedule-header";
-import { AxiosError } from "axios";
 
 const log = createScopedLog("Schedule Team Match");
 
@@ -185,7 +185,9 @@ export default function ScheduleTeamMatchScreen() {
 
   useEffect(() => {
     if (params.newVenueId) {
-      void refetchVenues();
+      refetchVenues().catch((err) => {
+        log.error("Failed to refresh venues after venue creation", err);
+      });
     }
   }, [params.newVenueId, refetchVenues]);
 
@@ -237,23 +239,16 @@ export default function ScheduleTeamMatchScreen() {
       } else {
         toast("Match scheduled");
       }
-      router.replace({
-        pathname: `/teams/${teamId}` as RelativePathString,
-        params: { tab: "matches" },
-      });
-    } catch (err) {
-      const { status, message } = getScheduleApiErrorMessage(
-        err as AxiosError<{ message?: string }>,
-        "Only team owner can schedule matches",
+      navigateToMatchesTab(
+        router.replace,
+        `/teams/${teamId}` as RelativePathString,
       );
-      if (status === 0) {
-        Alert.alert("Network error", message, [
-          { text: "Cancel", style: "cancel" },
-          { text: "Retry", onPress: handleSubmit },
-        ]);
-      } else {
-        Alert.alert("Schedule failed", message);
-      }
+    } catch (err) {
+      showScheduleSubmitError(
+        err,
+        "Only team owner can schedule matches",
+        handleSubmit,
+      );
     }
   }, [
     awayTeamId,
