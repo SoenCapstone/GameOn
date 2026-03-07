@@ -7,18 +7,24 @@ interface MenuCardItemProps {
   readonly title: string;
   readonly subtitle?: string;
   readonly image: ImageSource;
+  readonly placeholder?: string;
   readonly options: readonly string[];
-  readonly value: string;
+  readonly value: string | undefined;
   readonly onValueChange: (value: string) => void;
+  readonly menuTitle?: string;
+  readonly disabled?: boolean;
 }
 
 export function MenuCardItem({
   title,
   subtitle,
   image,
+  placeholder,
   options,
   value,
   onValueChange,
+  menuTitle,
+  disabled = false,
 }: Readonly<MenuCardItemProps>) {
   return (
     <BlurView tint={"systemUltraThinMaterialDark"} style={styles.item}>
@@ -30,9 +36,12 @@ export function MenuCardItem({
         </View>
       </View>
       <MenuPicker
+        title={menuTitle}
+        placeholder={placeholder}
         options={options}
         value={value}
         onValueChange={onValueChange}
+        disabled={disabled}
       />
     </BlurView>
   );

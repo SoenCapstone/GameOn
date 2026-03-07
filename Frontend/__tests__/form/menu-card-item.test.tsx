@@ -47,9 +47,12 @@ describe("MenuCardItem", () => {
         title="Alex"
         subtitle="alex@example.com"
         image={{ uri: "https://example.com/alex.png" }}
+        placeholder="Select role"
         options={options}
         value="Member"
         onValueChange={onValueChange}
+        menuTitle="Choose role"
+        disabled={true}
       />,
     );
 
@@ -58,8 +61,11 @@ describe("MenuCardItem", () => {
     });
 
     const menuCall = (MenuPicker as jest.Mock).mock.calls[0][0];
+    expect(menuCall.title).toBe("Choose role");
+    expect(menuCall.placeholder).toBe("Select role");
     expect(menuCall.options).toEqual(options);
     expect(menuCall.value).toBe("Member");
     expect(menuCall.onValueChange).toBe(onValueChange);
+    expect(menuCall.disabled).toBe(true);
   });
 });

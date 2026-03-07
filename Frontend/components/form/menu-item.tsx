@@ -5,8 +5,9 @@ import { MenuPicker } from "@/components/ui/menu-picker";
 interface MenuItemProps {
   readonly label: string;
   readonly title?: string;
+  readonly placeholder?: string;
   readonly options: readonly string[];
-  readonly value: string;
+  readonly value: string | undefined;
   readonly onValueChange: (value: string) => void;
   readonly disabled?: boolean;
 }
@@ -14,6 +15,7 @@ interface MenuItemProps {
 export function MenuItem({
   label,
   title,
+  placeholder,
   options,
   value,
   onValueChange,
@@ -24,6 +26,7 @@ export function MenuItem({
       <Text style={styles.label}>{label}</Text>
       <MenuPicker
         title={title}
+        placeholder={placeholder}
         options={options}
         value={value}
         onValueChange={onValueChange}
