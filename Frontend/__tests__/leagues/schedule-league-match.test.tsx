@@ -1,5 +1,5 @@
 import React from "react";
-import { render, fireEvent, waitFor } from "@testing-library/react-native";
+import { render, fireEvent, waitFor, act } from "@testing-library/react-native";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import ScheduleLeagueMatchScreen from "@/app/(contexts)/leagues/[id]/matches/schedule";
 
@@ -11,6 +11,7 @@ const mockCreateLeagueMatch = jest.fn();
 const mockApiGet = jest.fn();
 const mockToast = jest.fn();
 const mockAlert = jest.fn();
+let capturedSubmit: (() => void | Promise<void>) | undefined;
 
 jest.mock("expo-router", () => ({
   useLocalSearchParams: () => ({ id: "league-1" }),
@@ -181,15 +182,19 @@ jest.mock("@/utils/logger", () => ({
   }),
 }));
 
-function getScheduleButton() {
-  const latestOptions =
-    mockSetOptions.mock.calls[mockSetOptions.mock.calls.length - 1]?.[0];
-  const HeaderTitle = latestOptions?.headerTitle;
-  if (!HeaderTitle || typeof HeaderTitle !== "function") {
-    throw new Error("headerTitle not set");
+jest.mock("@/hooks/use-schedule-header", () => ({
+  useScheduleHeader: ({ onSubmit }: { onSubmit: () => void | Promise<void> }) => {
+    capturedSubmit = onSubmit;
+  },
+}));
+
+async function submitSchedule() {
+  if (!capturedSubmit) {
+    throw new Error("schedule submit handler not captured");
   }
-  const { getByTestId } = render(<HeaderTitle />);
-  return getByTestId("header-button-schedule");
+  await act(async () => {
+    await capturedSubmit?.();
+  });
 }
 
 describe("ScheduleLeagueMatchScreen", () => {
@@ -197,6 +202,7 @@ describe("ScheduleLeagueMatchScreen", () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    capturedSubmit = undefined;
     
     const { Alert } = jest.requireActual("react-native");
     jest.spyOn(Alert, "alert").mockImplementation(mockAlert);
@@ -239,7 +245,7 @@ describe("ScheduleLeagueMatchScreen", () => {
       expect(getByTestId("menu-choose-referee-jane-ref")).toBeTruthy(),
     );
     fireEvent.press(getByTestId("menu-choose-referee-jane-ref"));
-    fireEvent.press(getScheduleButton());
+    await submitSchedule();
 
     await waitFor(() => expect(mockCreateLeagueMatch).toHaveBeenCalledTimes(1));
     expect(mockCreateLeagueMatch).toHaveBeenCalledWith(
