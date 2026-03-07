@@ -50,7 +50,14 @@ export default function Team() {
 }
 
 function TeamContent() {
-  const [tab, setTab] = useState<"board" | "matches" | "overview">("board");
+  const params = useLocalSearchParams<{ tab?: string }>();
+  const initialTab: "board" | "matches" | "overview" =
+    params.tab === "matches"
+      ? "matches"
+      : params.tab === "overview"
+        ? "overview"
+        : "board";
+  const [tab, setTab] = useState<"board" | "matches" | "overview">(initialTab);
   const router = useRouter();
   const log = createScopedLog("Team Page");
   const queryClient = useQueryClient();
