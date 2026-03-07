@@ -1,4 +1,5 @@
 import { Form } from "@/components/form/form";
+import { isToday } from "@/utils/date";
 
 export function MatchDetailsSection(props: {
   readonly date: Date;
@@ -28,6 +29,8 @@ export function MatchDetailsSection(props: {
     new Set(venue ? [...venueOptions, venue] : venueOptions),
   );
 
+  const now = new Date();
+
   return (
     <Form.Section header="Match Details">
       <Form.DateTime
@@ -35,6 +38,7 @@ export function MatchDetailsSection(props: {
         value={date}
         mode="date"
         display="default"
+        minimumDate={now}
         onChange={(_event, selectedDate) => {
           if (selectedDate) onDateChange(selectedDate);
         }}
@@ -45,6 +49,7 @@ export function MatchDetailsSection(props: {
         value={startTimeValue}
         mode="time"
         display="default"
+        minimumDate={isToday(date) ? now : undefined}
         onChange={(_event, selectedDate) => {
           if (selectedDate) onStartTimeChange(selectedDate);
         }}
@@ -55,6 +60,7 @@ export function MatchDetailsSection(props: {
         value={endTimeValue}
         mode="time"
         display="default"
+        minimumDate={startTimeValue}
         onChange={(_event, selectedDate) => {
           if (selectedDate) onEndTimeChange(selectedDate);
         }}

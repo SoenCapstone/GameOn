@@ -4,6 +4,7 @@ import {
   TeamMatch,
   TeamSummary,
 } from "@/features/matches/types";
+import { isToday } from "@/utils/date";
 
 export const PROVINCE_OPTIONS = [
   "Alberta",
@@ -33,12 +34,9 @@ export function getMatchSection(
     return "past";
   }
 
-  const isToday =
-    start.getFullYear() === now.getFullYear() &&
-    start.getMonth() === now.getMonth() &&
-    start.getDate() === now.getDate();
+  const today: boolean = isToday(start);
 
-  if (isToday) {
+  if (today) {
     return "today";
   }
   if (start.getTime() > now.getTime()) {
