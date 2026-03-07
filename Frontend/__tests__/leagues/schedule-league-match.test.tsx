@@ -12,6 +12,7 @@ const mockApiGet = jest.fn();
 const mockToast = jest.fn();
 const mockAlert = jest.fn();
 let capturedSubmit: (() => void | Promise<void>) | undefined;
+let scheduleHeaderRenderCount = 0;
 
 jest.mock("expo-router", () => ({
   useLocalSearchParams: () => ({ id: "league-1" }),
@@ -185,6 +186,7 @@ jest.mock("@/utils/logger", () => ({
 jest.mock("@/hooks/use-schedule-header", () => ({
   useScheduleHeader: ({ onSubmit }: { onSubmit: () => void | Promise<void> }) => {
     capturedSubmit = onSubmit;
+    scheduleHeaderRenderCount += 1;
   },
 }));
 
@@ -197,12 +199,20 @@ async function submitSchedule() {
   });
 }
 
+async function waitForSubmitRefresh(previousCount: number) {
+  await waitFor(() => {
+    expect(scheduleHeaderRenderCount).toBeGreaterThan(previousCount);
+  });
+  return scheduleHeaderRenderCount;
+}
+
 describe("ScheduleLeagueMatchScreen", () => {
   let queryClient: QueryClient;
 
   beforeEach(() => {
     jest.clearAllMocks();
     capturedSubmit = undefined;
+    scheduleHeaderRenderCount = 0;
     
     const { Alert } = jest.requireActual("react-native");
     jest.spyOn(Alert, "alert").mockImplementation(mockAlert);
@@ -235,16 +245,21 @@ describe("ScheduleLeagueMatchScreen", () => {
       </QueryClientProvider>,
     );
 
+    let renderCount = scheduleHeaderRenderCount;
+
     await waitFor(() =>
       expect(getByTestId("menu-home-team-alpha-fc")).toBeTruthy(),
     );
     fireEvent.press(getByTestId("menu-home-team-alpha-fc"));
+    renderCount = await waitForSubmitRefresh(renderCount);
     fireEvent.press(getByTestId("menu-away-team-beta-fc"));
+    renderCount = await waitForSubmitRefresh(renderCount);
 
     await waitFor(() =>
       expect(getByTestId("menu-choose-referee-jane-ref")).toBeTruthy(),
     );
     fireEvent.press(getByTestId("menu-choose-referee-jane-ref"));
+    await waitForSubmitRefresh(renderCount);
     await submitSchedule();
 
     await waitFor(() => expect(mockCreateLeagueMatch).toHaveBeenCalledTimes(1));
