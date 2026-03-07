@@ -31,6 +31,8 @@ export function MatchDetailsSection(props: {
 
   const now = new Date();
 
+  const now = new Date();
+
   return (
     <Form.Section header="Match Details">
       <Form.DateTime
