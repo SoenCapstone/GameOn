@@ -64,7 +64,16 @@ export default function LeagueScreen() {
 }
 
 function LeagueContent() {
-  const [tab, setTab] = useState<LeagueTab>("board");
+  const params = useLocalSearchParams<{ tab?: string }>();
+  const initialTab: LeagueTab =
+    params.tab === "matches"
+      ? "matches"
+      : params.tab === "standings"
+        ? "standings"
+        : params.tab === "teams"
+          ? "teams"
+          : "board";
+  const [tab, setTab] = useState<LeagueTab>(initialTab);
   const [fabOpen, setFabOpen] = useState(false);
   const router = useRouter();
   const log = createScopedLog("League Page");
