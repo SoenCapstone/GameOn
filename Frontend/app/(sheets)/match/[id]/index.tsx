@@ -4,8 +4,10 @@ import { useLeagueDetail } from "@/hooks/use-league-detail";
 import { MatchDetailsContent } from "@/components/matches/match-details-content";
 import { useMatchPresentation } from "@/hooks/use-match-presentation";
 import {
+  useLeagueVenue,
   useLeaguesByIds,
   useLeagueMatches,
+  useTeamVenue,
   useTeamMatches,
   useTeamMatch,
 } from "@/hooks/use-matches";
@@ -48,6 +50,21 @@ export default function MatchDetailsScreen() {
   const { league } = useLeagueDetail(context === "league" ? contextId : "");
 
   const displayMatch = leagueMatch || match;
+  const venueId = displayMatch?.venueId ?? "";
+  const isLeagueContextMatch = Boolean(
+    displayMatch && "leagueId" in displayMatch,
+  );
+  const teamVenueQuery = useTeamVenue(
+    venueId,
+    Boolean(venueId) && !isLeagueContextMatch,
+  );
+  const leagueVenueQuery = useLeagueVenue(
+    venueId,
+    Boolean(venueId) && isLeagueContextMatch,
+  );
+  const venue = isLeagueContextMatch
+    ? leagueVenueQuery.data
+    : teamVenueQuery.data;
   const { homeScore, awayScore } = getMatchScores(displayMatch);
   const HomeName = params.homeName?.trim() || "Home Team";
   const AwayName = params.awayName?.trim() || "Away Team";
@@ -100,7 +117,14 @@ export default function MatchDetailsScreen() {
       sport={displayMatch.sport}
       contextLabel={contextLabel}
       refereeName={refereeName}
-      venueName={displayMatch.matchLocation}
+      venueName={venue?.name ?? displayMatch.matchLocation}
+      venueAddress={
+        venue
+          ? `${venue.street}, ${venue.city}, ${venue.province} ${venue.postalCode}, ${venue.country}`
+          : null
+      }
+      venueLatitude={venue?.latitude}
+      venueLongitude={venue?.longitude}
     />
   );
 }
