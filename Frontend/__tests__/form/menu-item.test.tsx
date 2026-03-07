@@ -34,6 +34,7 @@ describe("MenuItem", () => {
       <MenuItem
         label="Role"
         title="Team role"
+        placeholder="Select role"
         options={["Owner", "Member"]}
         value="Owner"
         onValueChange={onValueChange}
@@ -42,6 +43,7 @@ describe("MenuItem", () => {
 
     const call = (MenuPicker as jest.Mock).mock.calls[0][0];
     expect(call.title).toBe("Team role");
+    expect(call.placeholder).toBe("Select role");
     expect(call.options).toEqual(["Owner", "Member"]);
     expect(call.value).toBe("Owner");
     expect(call.onValueChange).toBe(onValueChange);

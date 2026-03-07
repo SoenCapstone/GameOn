@@ -1,13 +1,7 @@
 import React from "react";
-import { fireEvent, render } from "@testing-library/react-native";
+import { act, fireEvent, render } from "@testing-library/react-native";
 import { MenuPicker } from "@/components/ui/menu-picker";
 import * as runtime from "@/utils/runtime";
-import { Picker } from "@expo/ui/swift-ui";
-import {
-  disabled as disabledModifier,
-  fixedSize,
-  opacity,
-} from "@expo/ui/swift-ui/modifiers";
 
 const mockShowActionSheetWithOptions = jest.fn();
 
@@ -26,29 +20,6 @@ jest.mock("@expo/vector-icons", () => {
   };
 });
 
-jest.mock("@expo/ui/swift-ui", () => {
-  const ReactMock = jest.requireActual("react");
-  const { View } = jest.requireActual("react-native");
-  return {
-    Host: ({
-      children,
-      ...props
-    }: {
-      children: React.ReactNode;
-      [key: string]: unknown;
-    }) => ReactMock.createElement(View, props, children),
-    Picker: jest.fn((props: Record<string, unknown>) =>
-      ReactMock.createElement(View, { testID: "swift-picker", ...props }),
-    ),
-  };
-});
-
-jest.mock("@expo/ui/swift-ui/modifiers", () => ({
-  disabled: jest.fn((value: boolean) => ({ type: "disabled", value })),
-  fixedSize: jest.fn((value: unknown) => ({ type: "fixedSize", value })),
-  opacity: jest.fn((value: number) => ({ type: "opacity", value })),
-}));
-
 jest.mock("@/utils/runtime", () => {
   let expoGo = true;
   return {
@@ -61,6 +32,11 @@ jest.mock("@/utils/runtime", () => {
   };
 });
 
+jest.mock("@/components/ui/native-picker", () => ({
+  __esModule: true,
+  default: jest.fn(),
+}));
+
 const runtimeTyped = runtime as unknown as {
   __setExpoGo: (value: boolean) => void;
   isRunningInExpoGo: boolean;
@@ -72,68 +48,118 @@ describe("MenuPicker", () => {
     runtimeTyped.__setExpoGo(true);
   });
 
-  it("uses ActionSheet flow in Expo Go and updates selected value", () => {
-    const onValueChange = jest.fn();
-    const { getByText } = render(
-      <MenuPicker
-        title="Pick role"
-        options={["Owner", "Member"]}
-        value="Owner"
-        onValueChange={onValueChange}
-      />,
-    );
-
-    fireEvent.press(getByText("Owner"));
-
-    expect(mockShowActionSheetWithOptions).toHaveBeenCalledTimes(1);
-    const [config, callback] = mockShowActionSheetWithOptions.mock.calls[0];
-    expect(config.title).toBe("Pick role");
-    expect(config.options).toEqual(["Owner", "Member"]);
-
-    callback(1);
-    expect(onValueChange).toHaveBeenCalledWith("Member");
-  });
-
-  it("does not open ActionSheet when disabled", () => {
-    const { getByText } = render(
-      <MenuPicker
-        options={["Owner", "Member"]}
-        value="Owner"
-        onValueChange={jest.fn()}
-        disabled={true}
-      />,
-    );
-
-    fireEvent.press(getByText("Owner"));
-    expect(mockShowActionSheetWithOptions).not.toHaveBeenCalled();
-  });
-
-  it("uses Swift Picker flow outside Expo Go", () => {
-    runtimeTyped.__setExpoGo(false);
-    const onValueChange = jest.fn();
-    render(
-      <MenuPicker
-        options={["Owner", "Member"]}
-        value="Member"
-        onValueChange={onValueChange}
-        disabled={true}
-      />,
-    );
-
-    const pickerCall = (Picker as jest.Mock).mock.calls[0][0];
-    expect(pickerCall.options).toEqual(["Owner", "Member"]);
-    expect(pickerCall.selectedIndex).toBe(1);
-    expect(pickerCall.variant).toBe("menu");
-    expect(pickerCall.color).toBe("rgba(235,235,245,0.35)");
-
-    pickerCall.onOptionSelected({ nativeEvent: { index: 0 } });
-    expect(onValueChange).toHaveBeenCalledWith("Owner");
-
-    expect(fixedSize).toHaveBeenCalledWith({
-      horizontal: true,
-      vertical: true,
+  describe("in Expo Go (ActionSheet)", () => {
+    it("displays the selected value as the button label", () => {
+      const { getByText } = render(
+        <MenuPicker
+          options={["Owner", "Member"]}
+          value="Owner"
+          onValueChange={jest.fn()}
+        />,
+      );
+      expect(getByText("Owner")).toBeTruthy();
     });
-    expect(disabledModifier).toHaveBeenCalledWith(true);
-    expect(opacity).toHaveBeenCalledWith(0.5);
+
+    it("displays the placeholder when value is not in options", () => {
+      const { getByText } = render(
+        <MenuPicker
+          options={["Owner", "Member"]}
+          value=""
+          placeholder="Select role"
+          onValueChange={jest.fn()}
+        />,
+      );
+      expect(getByText("Select role")).toBeTruthy();
+    });
+
+    it("opens ActionSheet with all options on press", () => {
+      const { getByText } = render(
+        <MenuPicker
+          title="Pick role"
+          options={["Owner", "Member"]}
+          value="Owner"
+          onValueChange={jest.fn()}
+        />,
+      );
+      fireEvent.press(getByText("Owner"));
+      expect(mockShowActionSheetWithOptions).toHaveBeenCalledTimes(1);
+      const [config] = mockShowActionSheetWithOptions.mock.calls[0];
+      expect(config.title).toBe("Pick role");
+      expect(config.options).toEqual(["Owner", "Member"]);
+    });
+
+    it("ActionSheet options do not include the placeholder", () => {
+      const { getByText } = render(
+        <MenuPicker
+          title="Pick role"
+          options={["Owner", "Member"]}
+          value=""
+          placeholder="Select role"
+          onValueChange={jest.fn()}
+        />,
+      );
+      fireEvent.press(getByText("Select role"));
+      const [config] = mockShowActionSheetWithOptions.mock.calls[0];
+      expect(config.options).toEqual(["Owner", "Member"]);
+    });
+
+    it("calls onValueChange with the tapped option", () => {
+      const onValueChange = jest.fn();
+      const { getByText } = render(
+        <MenuPicker
+          title="Pick role"
+          options={["Owner", "Member"]}
+          value="Owner"
+          onValueChange={onValueChange}
+        />,
+      );
+      fireEvent.press(getByText("Owner"));
+      const [, callback] = mockShowActionSheetWithOptions.mock.calls[0];
+      callback(1);
+      expect(onValueChange).toHaveBeenCalledWith("Member");
+    });
+
+    it("does not call onValueChange when callback index is out of bounds", () => {
+      const onValueChange = jest.fn();
+      const { getByText } = render(
+        <MenuPicker
+          options={["Owner", "Member"]}
+          value="Owner"
+          onValueChange={onValueChange}
+        />,
+      );
+      fireEvent.press(getByText("Owner"));
+      const [, callback] = mockShowActionSheetWithOptions.mock.calls[0];
+      callback(undefined);
+      expect(onValueChange).not.toHaveBeenCalled();
+    });
+
+    it("does not open ActionSheet when disabled", () => {
+      const { getByText } = render(
+        <MenuPicker
+          options={["Owner", "Member"]}
+          value="Owner"
+          onValueChange={jest.fn()}
+          disabled={true}
+        />,
+      );
+      fireEvent.press(getByText("Owner"));
+      expect(mockShowActionSheetWithOptions).not.toHaveBeenCalled();
+    });
+  });
+
+  describe("outside Expo Go (NativePicker)", () => {
+    it("does not open ActionSheet when not in Expo Go", () => {
+      runtimeTyped.__setExpoGo(false);
+      const { queryByText } = render(
+        <MenuPicker
+          options={["Owner", "Member"]}
+          value="Owner"
+          onValueChange={jest.fn()}
+        />,
+      );
+      expect(queryByText("Owner")).toBeNull();
+      expect(mockShowActionSheetWithOptions).not.toHaveBeenCalled();
+    });
   });
 });

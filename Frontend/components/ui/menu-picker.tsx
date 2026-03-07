@@ -1,4 +1,5 @@
-import { useRef } from "react";
+import { lazy, Suspense, useRef } from "react";
+import type NativePickerComponent from "@/components/ui/native-picker";
 import {
   Text,
   StyleSheet,
@@ -6,26 +7,26 @@ import {
   View,
   findNodeHandle,
 } from "react-native";
-import { Host, Picker } from "@expo/ui/swift-ui";
-import {
-  disabled as disabledModifier,
-  fixedSize,
-  opacity,
-} from "@expo/ui/swift-ui/modifiers";
 import { isRunningInExpoGo } from "@/utils/runtime";
 import { Ionicons } from "@expo/vector-icons";
 import { useActionSheet } from "@expo/react-native-action-sheet";
 
 interface MenuPickerProps {
   readonly title?: string;
+  readonly placeholder?: string;
   readonly options: readonly string[];
-  readonly value: string;
+  readonly value: string | undefined;
   readonly onValueChange: (value: string) => void;
   readonly disabled?: boolean;
 }
 
+const NativePicker = lazy<typeof NativePickerComponent>(
+  () => import("@/components/ui/native-picker"),
+);
+
 export function MenuPicker({
   title,
+  placeholder,
   options,
   value,
   onValueChange,
@@ -33,19 +34,25 @@ export function MenuPicker({
 }: Readonly<MenuPickerProps>) {
   const anchorRef = useRef<View>(null);
   const { showActionSheetWithOptions } = useActionSheet();
+  const selectedValue =
+    value !== undefined && options.includes(value) ? value : placeholder;
+  const displayValue = selectedValue ?? value;
 
   const onPress = () => {
     if (disabled) return;
 
     showActionSheetWithOptions(
       {
-        title: title,
+        title,
         options: [...options],
         anchor: findNodeHandle(anchorRef.current) ?? undefined,
       },
       (buttonIndex) => {
-        if (buttonIndex !== undefined && buttonIndex !== options.length) {
-          onValueChange(options[buttonIndex]);
+        if (buttonIndex === undefined) return;
+
+        const selectedOption = options[buttonIndex];
+        if (selectedOption !== undefined) {
+          onValueChange(selectedOption);
         }
       },
     );
@@ -78,7 +85,7 @@ export function MenuPicker({
                   pressed && { color: "rgba(235,235,245,0.7)" },
                 ]}
               >
-                {value}
+                {displayValue}
               </Text>
               <Ionicons name="chevron-expand" size={16} color={iconColor} />
             </>
@@ -89,24 +96,16 @@ export function MenuPicker({
   }
 
   return (
-    <View>
-      <Host matchContents>
-        <Picker
-          modifiers={[
-            fixedSize({ horizontal: true, vertical: true }),
-            disabledModifier(disabled),
-            opacity(disabled ? 0.5 : 1),
-          ]}
-          options={[...options]}
-          selectedIndex={options.indexOf(value)}
-          onOptionSelected={(event) =>
-            onValueChange(options[event.nativeEvent.index])
-          }
-          variant="menu"
-          color={disabled ? "rgba(235,235,245,0.35)" : "rgba(235,235,245,0.6)"}
-        />
-      </Host>
-    </View>
+    <Suspense fallback={null}>
+      <NativePicker
+        title={title}
+        placeholder={placeholder}
+        options={options}
+        value={value}
+        onValueChange={onValueChange}
+        disabled={disabled}
+      />
+    </Suspense>
   );
 }
 
