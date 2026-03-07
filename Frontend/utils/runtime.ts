@@ -1,12 +1,12 @@
 import Constants from "expo-constants";
+import { isRunningInExpoGo as isAppRunningInExpoGo } from "expo";
 import { Platform } from "react-native";
 
 /**
  * Determines if the application is currently running within the Expo Go client.
  * @returns {boolean} True if running in Expo Go, false otherwise.
  */
-export const isRunningInExpoGo =
-  Constants.executionEnvironment === "storeClient";
+export const isRunningInExpoGo = isAppRunningInExpoGo();
 
 /**
  * Determines if the application is running in a bare workflow environment.
