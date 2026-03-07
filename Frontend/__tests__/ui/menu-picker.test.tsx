@@ -1,5 +1,5 @@
 import React from "react";
-import { act, fireEvent, render } from "@testing-library/react-native";
+import { fireEvent, render } from "@testing-library/react-native";
 import { MenuPicker } from "@/components/ui/menu-picker";
 import * as runtime from "@/utils/runtime";
 

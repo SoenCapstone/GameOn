@@ -13,7 +13,7 @@ jest.mock("expo-blur", () => {
         ...props
       }: {
         children?: React.ReactNode;
-        [key: string]: unknown;
+        [_key: string]: unknown;
       }) => ReactMock.createElement(View, props, children),
     ),
   };
