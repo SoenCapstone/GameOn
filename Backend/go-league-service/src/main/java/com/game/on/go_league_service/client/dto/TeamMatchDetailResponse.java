@@ -16,6 +16,7 @@ public record TeamMatchDetailResponse(
         OffsetDateTime startTime,
         OffsetDateTime endTime,
         String matchLocation,
+        UUID venueId,
         Boolean requiresReferee,
         String refereeUserId,
         String createdByUserId
