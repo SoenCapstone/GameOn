@@ -183,6 +183,14 @@ jest.mock("@/utils/logger", () => ({
   }),
 }));
 
+jest.mock("@/features/matches/utils", () => {
+  const actual = jest.requireActual("@/features/matches/utils");
+  return {
+    ...actual,
+    isValidTimeRange: () => true,
+  };
+});
+
 jest.mock("@/hooks/use-schedule-header", () => ({
   useScheduleHeader: ({ onSubmit }: { onSubmit: () => void | Promise<void> }) => {
     capturedSubmit = onSubmit;
