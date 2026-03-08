@@ -15,6 +15,7 @@ import { Form } from "@/components/form/form";
 import { AccentColors } from "@/constants/colors";
 import { PROVINCE_OPTIONS } from "@/features/matches/utils";
 import { useCreateLeagueVenue, useCreateTeamVenue } from "@/hooks/use-matches";
+import { errorToString } from "@/utils/error";
 
 type ExpoLocationModule = {
   geocodeAsync: (address: string) => Promise<
@@ -184,9 +185,9 @@ export function AddVenueScreen({
           draftRefereeUserId: params.draftRefereeUserId,
         },
       });
-    } catch (err: any) {
+    } catch (err) {
       const message =
-        String(err?.response?.data?.message ?? "Could not create venue.") ||
+        String(errorToString(err) ?? "Could not create venue.") ||
         "Could not create venue.";
       Alert.alert("Add venue failed", message);
     }
