@@ -58,6 +58,7 @@ export function AddVenueScreen({
 
   const createTeamVenue = useCreateTeamVenue();
   const createLeagueVenue = useCreateLeagueVenue();
+  const isSaving = createTeamVenue.isPending || createLeagueVenue.isPending;
 
   const [name, setName] = useState("");
   const [street, setStreet] = useState("");
@@ -228,11 +229,12 @@ export function AddVenueScreen({
             type="custom"
             label="Add"
             onPress={handleSave}
+            loading={isSaving}
           />
         }
       />
     );
-  }, [handleSave]);
+  }, [handleSave, isSaving]);
 
   useLayoutEffect(() => {
     navigation.setOptions({
