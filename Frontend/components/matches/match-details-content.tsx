@@ -77,7 +77,7 @@ export function MatchDetailsContent({
   const handleMapPress = () => {
     if (!venueName && !venueAddress) return;
 
-    Alert.alert("Open in Maps?", "You will be directed to the Maps app", [
+    Alert.alert("Open in Maps", "Get directions to this venue in Maps.", [
       { text: "Cancel", style: "cancel" },
       {
         text: "Open",
@@ -152,19 +152,17 @@ export function MatchDetailsContent({
               latitudeDelta: hasCoordinates ? 0.01 : 0.12,
               longitudeDelta: hasCoordinates ? 0.01 : 0.12,
             }}
-            onPress={handleMapPress}
-            zoomEnabled={true}
+            scrollEnabled={false}
             rotateEnabled={false}
             pitchEnabled={false}
           >
             {hasCoordinates ? (
               <Marker
+                onPress={handleMapPress}
                 coordinate={{
                   latitude: venueLatitude,
                   longitude: venueLongitude,
                 }}
-                title={venueName ?? "Venue"}
-                description={venueAddress ?? undefined}
               />
             ) : null}
           </MapView>
