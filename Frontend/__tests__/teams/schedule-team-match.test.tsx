@@ -1,5 +1,5 @@
 import React from "react";
-import { render, fireEvent, waitFor } from "@testing-library/react-native";
+import { render, fireEvent, waitFor, act } from "@testing-library/react-native";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import ScheduleTeamMatchScreen from "@/app/(contexts)/teams/[id]/matches/schedule";
 
@@ -10,6 +10,9 @@ const mockBack = jest.fn();
 const mockCreateTeamMatch = jest.fn();
 const mockApiGet = jest.fn();
 const mockToast = jest.fn();
+const mockAlert = jest.fn();
+let capturedSubmit: (() => void | Promise<void>) | undefined;
+let scheduleHeaderRenderCount = 0;
 
 jest.mock("expo-router", () => ({
   useLocalSearchParams: () => ({ id: "team-1" }),
@@ -48,6 +51,7 @@ jest.mock("@/components/ui/button", () => ({
       Pressable,
       {
         accessibilityRole: "button",
+        testID: `header-button-${label.replaceAll(" ", "-").toLowerCase()}`,
         onPress: isInteractive ? onPress : undefined,
       },
       ReactMock.createElement(Text, null, label),
@@ -185,15 +189,39 @@ jest.mock("@/utils/logger", () => ({
   }),
 }));
 
-function getScheduleButton() {
-  const latestOptions =
-    mockSetOptions.mock.calls[mockSetOptions.mock.calls.length - 1]?.[0];
-  const HeaderTitle = latestOptions?.headerTitle;
-  if (!HeaderTitle || typeof HeaderTitle !== "function") {
-    throw new Error("headerTitle not set");
+jest.mock("@/features/matches/utils", () => {
+  const actual = jest.requireActual("@/features/matches/utils");
+  return {
+    ...actual,
+    isValidTimeRange: () => true,
+  };
+});
+
+jest.mock("@/hooks/use-schedule-header", () => ({
+  useScheduleHeader: ({
+    onSubmit,
+  }: {
+    onSubmit: () => void | Promise<void>;
+  }) => {
+    capturedSubmit = onSubmit;
+    scheduleHeaderRenderCount += 1;
+  },
+}));
+
+async function submitSchedule() {
+  if (!capturedSubmit) {
+    throw new Error("schedule submit handler not captured");
   }
-  const { getByText } = render(<HeaderTitle />);
-  return getByText("Schedule");
+  await act(async () => {
+    await capturedSubmit?.();
+  });
+}
+
+async function waitForSubmitRefresh(previousCount: number) {
+  await waitFor(() => {
+    expect(scheduleHeaderRenderCount).toBeGreaterThan(previousCount);
+  });
+  return scheduleHeaderRenderCount;
 }
 
 describe("ScheduleTeamMatchScreen", () => {
@@ -201,6 +229,12 @@ describe("ScheduleTeamMatchScreen", () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    capturedSubmit = undefined;
+    scheduleHeaderRenderCount = 0;
+
+    const { Alert } = jest.requireActual("react-native");
+    jest.spyOn(Alert, "alert").mockImplementation(mockAlert);
+
     mockCreateTeamMatch.mockResolvedValue({
       match: { id: "m1" },
       refereeInviteSent: true,
@@ -242,11 +276,14 @@ describe("ScheduleTeamMatchScreen", () => {
       </QueryClientProvider>,
     );
 
+    let renderCount = scheduleHeaderRenderCount;
+
     await waitFor(() =>
       expect(getByTestId("menu-away-team-rivals")).toBeTruthy(),
     );
     fireEvent.press(getByTestId("menu-away-team-rivals"));
-    fireEvent.press(getScheduleButton());
+    await waitForSubmitRefresh(renderCount);
+    await submitSchedule();
 
     await waitFor(() => expect(mockCreateTeamMatch).toHaveBeenCalledTimes(1));
 
@@ -268,17 +305,22 @@ describe("ScheduleTeamMatchScreen", () => {
       </QueryClientProvider>,
     );
 
+    let renderCount = scheduleHeaderRenderCount;
+
     await waitFor(() =>
       expect(getByTestId("menu-away-team-rivals")).toBeTruthy(),
     );
     fireEvent.press(getByTestId("menu-away-team-rivals"));
+    renderCount = await waitForSubmitRefresh(renderCount);
     fireEvent.press(getByTestId("switch-official-match"));
+    renderCount = await waitForSubmitRefresh(renderCount);
 
     await waitFor(() =>
       expect(getByTestId("menu-choose-referee-john-ref")).toBeTruthy(),
     );
     fireEvent.press(getByTestId("menu-choose-referee-john-ref"));
-    fireEvent.press(getScheduleButton());
+    await waitForSubmitRefresh(renderCount);
+    await submitSchedule();
 
     await waitFor(() => expect(mockCreateTeamMatch).toHaveBeenCalledTimes(1));
 
