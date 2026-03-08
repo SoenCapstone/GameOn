@@ -81,10 +81,9 @@ export const useTeamForm = (props?: UseTeamFormProps) => {
     setSelectedAllowedRegions(regions);
   };
 
-  const updateSelectedCity = (city: Option) => {
-    setSelectedCity(city);
-
+  const updateSelectedCity = (city: Option | undefined) => {
     if (!city) return;
+    setSelectedCity(city);
 
     if (!allowedRegionsManuallyEdited) {
       setSelectedAllowedRegions([city.label]);

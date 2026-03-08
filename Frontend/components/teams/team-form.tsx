@@ -28,9 +28,9 @@ interface TeamFormLogo {
 
 interface TeamFormOnChange {
   readonly onTeamNameChange: (name: string) => void;
-  readonly onSportChange: (sport: Option | null) => void;
+  readonly onSportChange: (sport: Option | undefined) => void;
   readonly onScopeChange: (scope: Option) => void;
-  readonly onCityChange: (city: Option | null) => void;
+  readonly onCityChange: (city: Option | undefined) => void;
   readonly onAllowedRegionsChange: (regions: string[]) => void;
   readonly onPickLogo: () => void;
   readonly onRemoveLogo: () => void;
