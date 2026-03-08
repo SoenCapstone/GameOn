@@ -159,7 +159,7 @@ function LeagueSettingsContent() {
 
   if (!isOwner) {
     return (
-      <ContentArea backgroundProps={{ preset: "red" }}>
+      <ContentArea background={{ preset: "red" }}>
         <View style={settingsStyles.container}>
           <Text style={settingsStyles.errorText}>
             You don&apos;t have permission to edit this league
@@ -171,7 +171,7 @@ function LeagueSettingsContent() {
 
   if (!league && !leagueLoading) {
     return (
-      <ContentArea backgroundProps={{ preset: "red" }}>
+      <ContentArea background={{ preset: "red" }}>
         <View style={settingsStyles.container}>
           <Text style={settingsStyles.errorText}>League not found</Text>
         </View>
@@ -180,7 +180,7 @@ function LeagueSettingsContent() {
   }
 
   return (
-    <ContentArea scrollable backgroundProps={{ preset: "red", mode: "form" }}>
+    <ContentArea background={{ preset: "red", mode: "form" }}>
       {leagueLoading && (
         <View style={settingsStyles.loadingOverlay}>
           <ActivityIndicator size="large" color="#fff" />

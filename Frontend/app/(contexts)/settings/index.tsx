@@ -65,8 +65,29 @@ export default function Settings() {
     );
   };
 
+  const confirmBecomeReferee = () => {
+    Alert.alert(
+      "Become a Referee?",
+      "Referees help keep games fair and running smoothly.",
+      [
+        { text: "Cancel", style: "cancel" },
+        {
+          text: "Continue",
+          onPress: async () => {
+            try {
+              await registerAsReferee();
+              Alert.alert("Success", "You are now a referee!");
+            } catch {
+              Alert.alert("Error", "Could not register as referee.");
+            }
+          },
+        },
+      ],
+    );
+  };
+
   return (
-    <ContentArea scrollable backgroundProps={{ preset: "blue", mode: "form" }}>
+    <ContentArea background={{ preset: "blue", mode: "form" }}>
       <Form accentColor={AccentColors.blue}>
         <Form.Section>
           <Form.Profile
@@ -124,29 +145,7 @@ export default function Settings() {
           {!isReferee && (
             <Form.Button
               button="Become a Referee"
-              onPress={() => {
-                Alert.alert(
-                  "Become a Referee?",
-                  "Referees help keep games fair and running smoothly.",
-                  [
-                    { text: "Cancel", style: "cancel" },
-                    {
-                      text: "Continue",
-                      onPress: async () => {
-                        try {
-                          await registerAsReferee();
-                          Alert.alert("Success", "You are now a referee!");
-                        } catch {
-                          Alert.alert(
-                            "Error",
-                            "Could not register as referee.",
-                          );
-                        }
-                      },
-                    },
-                  ],
-                );
-              }}
+              onPress={confirmBecomeReferee}
             />
           )}
           <Form.Button

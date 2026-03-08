@@ -19,7 +19,7 @@ export default function Sports() {
   useRefereeHeader({ title: "Sports", canSave, saving, saveItems });
 
   return (
-    <ContentArea scrollable backgroundProps={{ preset: "blue", mode: "form" }}>
+    <ContentArea background={{ preset: "blue", mode: "form" }}>
       {!loading && (
         <Form accentColor={AccentColors.blue}>
           <Form.Section>
@@ -34,4 +34,3 @@ export default function Sports() {
     </ContentArea>
   );
 }
-

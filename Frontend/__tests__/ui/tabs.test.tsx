@@ -16,7 +16,7 @@ jest.mock("expo-glass-effect", () => {
       ...props
     }: {
       children: React.ReactNode;
-      [key: string]: unknown;
+      [_key: string]: unknown;
     }) => React.createElement(View, props, children),
   };
 });

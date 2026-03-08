@@ -189,7 +189,7 @@ function EditTeamContent() {
 
   if (!isOwner) {
     return (
-      <ContentArea backgroundProps={{ preset: "red" }}>
+      <ContentArea background={{ preset: "red" }}>
         <View style={settingsStyles.container}>
           <Text style={settingsStyles.errorText}>
             You don&apos;t have permission to edit this team
@@ -201,7 +201,7 @@ function EditTeamContent() {
 
   if (!team) {
     return (
-      <ContentArea backgroundProps={{ preset: "red" }}>
+      <ContentArea background={{ preset: "red" }}>
         <View style={settingsStyles.container}>
           <Text style={settingsStyles.errorText}>Team not found</Text>
         </View>
@@ -210,7 +210,7 @@ function EditTeamContent() {
   }
 
   return (
-    <ContentArea scrollable backgroundProps={{ preset: "red", mode: "form" }}>
+    <ContentArea background={{ preset: "red", mode: "form" }}>
       {teamLoading && (
         <View style={settingsStyles.loadingOverlay}>
           <ActivityIndicator size="large" color="#fff" />
@@ -241,7 +241,9 @@ function EditTeamContent() {
             onAllowedRegionsChange: (regions) => {
               setSelectedAllowedRegions(regions);
               setAllowedRegionsError(
-                regions.length === 0 ? "Please select at least one region." : "",
+                regions.length === 0
+                  ? "Please select at least one region."
+                  : "",
               );
             },
             onPickLogo: handlePickLogo,

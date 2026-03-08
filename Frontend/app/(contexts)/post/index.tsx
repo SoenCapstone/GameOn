@@ -104,7 +104,7 @@ export default function Post() {
   }, [navigation, headerTitle]);
 
   return (
-    <ContentArea scrollable backgroundProps={{ preset: "red", mode: "form" }}>
+    <ContentArea background={{ preset: "red", mode: "form" }}>
       <Form accentColor={AccentColors.blue}>
         <Form.Section
           footer={

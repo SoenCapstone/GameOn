@@ -30,7 +30,7 @@ export default function SignUpScreen() {
   const [otpCode, setOtpCode] = useState(EMPTY_STRING);
 
   return (
-    <ContentArea auth backgroundProps={{ preset: "red", mode: "form" }}>
+    <ContentArea background={{ preset: "red", mode: "form" }}>
       <Formik<User>
         initialValues={initialSignUpValues}
         validationSchema={SignUpSchema}

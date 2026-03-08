@@ -26,7 +26,6 @@ import { useTeamBoardPosts, useDeleteBoardPost } from "@/hooks/use-team-board";
 import { BoardList } from "@/components/board/board-list";
 import { useDetailPageHandlers } from "@/hooks/use-detail-page-handlers";
 import { createScopedLog } from "@/utils/logger";
-import { Tabs } from "@/components/ui/tabs";
 import { MatchListSections } from "@/components/matches/match-list-sections";
 import {
   useCancelTeamMatch,
@@ -122,7 +121,7 @@ function TeamContent() {
       const awayOwnerId = teamsQuery.data?.[match.awayTeamId]?.ownerUserId;
       const canCancel = Boolean(
         !isLeagueMatch &&
-        userId &&
+          userId &&
           !match.isPast &&
           match.status !== "CANCELLED" &&
           ((homeOwnerId && homeOwnerId === userId) ||
@@ -210,10 +209,17 @@ function TeamContent() {
   return (
     <View style={{ flex: 1 }}>
       <ContentArea
-        scrollable
-        paddingBottom={20}
-        tabs
-        backgroundProps={{ preset: "red" }}
+        style={{ paddingBottom: 20 }}
+        tabs={{
+          values: ["Board", "Matches", "Overview"],
+          selectedIndex: getSelectedIndex(),
+          onValueChange: (value) => {
+            const newTab = getTabFromSegmentValue(value);
+            setTab(newTab);
+            log.info("Tab changed", { tab: newTab });
+          },
+        }}
+        background={{ preset: "red" }}
         refreshControl={
           <RefreshControl
             refreshing={refreshing}
@@ -222,26 +228,12 @@ function TeamContent() {
           />
         }
       >
-        <Tabs
-          values={["Board", "Matches", "Overview"]}
-          selectedIndex={getSelectedIndex()}
-          onValueChange={(value) => {
-            const newTab = getTabFromSegmentValue(value);
-            setTab(newTab);
-            log.info("Tab changed", { tab: newTab });
-          }}
-        />
-
         {isLoading ? (
           <View style={styles.container}>
             <ActivityIndicator size="small" color="#fff" />
           </View>
         ) : (
           <>
-            {refreshing && !isLoading && (
-              <ActivityIndicator size="small" color="#fff" />
-            )}
-
             {tab === "board" && (
               <BoardList
                 posts={boardPosts}
@@ -270,7 +262,8 @@ function TeamContent() {
                 onRetry={handleMatchesRefresh}
                 onMatchPress={(match) =>
                   router.push({
-                    pathname: `/(sheets)/match/${match.id}` as RelativePathString,
+                    pathname:
+                      `/(sheets)/match/${match.id}` as RelativePathString,
                     params: {
                       context: "team",
                       contextId: id,

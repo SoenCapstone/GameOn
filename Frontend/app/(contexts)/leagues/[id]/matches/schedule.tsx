@@ -190,7 +190,7 @@ export default function ScheduleLeagueMatchScreen() {
   });
 
   return (
-    <ContentArea scrollable backgroundProps={{ preset: "red", mode: "form" }}>
+    <ContentArea background={{ preset: "red", mode: "form" }}>
       <Form accentColor={AccentColors.red}>
         <Form.Section header="Teams">
           <Form.Menu

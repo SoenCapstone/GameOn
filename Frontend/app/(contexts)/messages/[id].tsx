@@ -1,4 +1,11 @@
-import { useLayoutEffect, useMemo, useRef, useState, useEffect } from "react";
+import {
+  useLayoutEffect,
+  useMemo,
+  useRef,
+  useState,
+  useEffect,
+  RefObject,
+} from "react";
 import { ContentArea } from "@/components/ui/content-area";
 import {
   ActivityIndicator,
@@ -12,7 +19,10 @@ import {
   type TextStyle,
   type ViewStyle,
 } from "react-native";
-import { KeyboardStickyView } from "react-native-keyboard-controller";
+import {
+  KeyboardAwareScrollViewRef,
+  KeyboardStickyView,
+} from "react-native-keyboard-controller";
 import { LegendList } from "@legendapp/list";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useNavigation } from "@react-navigation/native";
@@ -272,17 +282,15 @@ export default function ChatScreen() {
   return (
     <View style={styles.screen}>
       <ContentArea
-        scrollable
-        progressiveBlur
-        scrollRef={contentRef as React.RefObject<ScrollView>}
+        scrollRef={contentRef as RefObject<KeyboardAwareScrollViewRef>}
         onContentSizeChange={() => {
           if (status !== "success") return;
           requestAnimationFrame(() => {
             contentRef.current?.scrollToEnd?.({ animated: true });
           });
         }}
-        paddingBottom={composerBottomInset}
-        backgroundProps={{ preset: "green", mode: "form" }}
+        style={{ paddingBottom: composerBottomInset }}
+        background={{ preset: "green", mode: "form" }}
       >
         {conversation?.isEvent && (
           <Text style={styles.infoText}>

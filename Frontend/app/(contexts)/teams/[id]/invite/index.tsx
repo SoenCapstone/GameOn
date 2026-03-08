@@ -125,11 +125,7 @@ export default function InvitePlayersScreen() {
     createInviteMutation.isPending;
 
   return (
-    <ContentArea
-      scrollable
-      backgroundProps={{ preset: "red" }}
-      paddingBottom={24}
-    >
+    <ContentArea background={{ preset: "red" }}>
       <InviteSection
         title="Available Players"
         isBusy={isBusy}

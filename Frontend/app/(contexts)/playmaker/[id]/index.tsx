@@ -139,8 +139,8 @@ function PlayMakerContent() {
 
   return (
     <ContentArea
-      paddingBottom={60}
-      backgroundProps={{ preset: "red" }}
+      style={{ paddingBottom: 60 }}
+      background={{ preset: "red" }}
       refreshControl={
         <RefreshControl
           refreshing={refreshing}

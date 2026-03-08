@@ -6,27 +6,21 @@ import {
   RefObject,
 } from "react";
 import {
-  View,
   StyleSheet,
   StyleProp,
   ViewStyle,
   RefreshControlProps,
 } from "react-native";
-import { useHeaderHeight } from "@react-navigation/elements";
 import { Background } from "@/components/ui/background";
-import { ProgressiveBlur } from "@/components/ui/progressive-blur";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { KeyboardAwareScrollView } from "react-native-keyboard-controller";
+import { Tabs } from "@/components/ui/tabs";
 
 interface ContentAreaProps {
   readonly children: ReactNode;
-  readonly backgroundProps?: ComponentProps<typeof Background>;
-  readonly tabs?: boolean;
-  readonly scrollable?: boolean;
-  readonly paddingBottom?: number;
+  readonly background?: ComponentProps<typeof Background>;
+  readonly tabs?: ComponentProps<typeof Tabs>;
+  readonly toolbar?: ReactElement;
   readonly style?: StyleProp<ViewStyle>;
-  readonly auth?: boolean;
-  readonly progressiveBlur?: boolean;
   readonly refreshControl?: ReactElement<RefreshControlProps>;
   readonly scrollRef?: RefObject<ComponentRef<typeof KeyboardAwareScrollView>>;
   readonly onContentSizeChange?: ComponentProps<
@@ -36,66 +30,43 @@ interface ContentAreaProps {
 
 export function ContentArea({
   children,
-  backgroundProps,
+  background,
   tabs,
-  scrollable,
-  paddingBottom,
+  toolbar,
   style,
-  auth,
-  progressiveBlur,
   refreshControl,
   scrollRef,
   onContentSizeChange,
 }: Readonly<ContentAreaProps>) {
-  const headerHeight = useHeaderHeight();
-  const insets = useSafeAreaInsets();
-
-  const Container = scrollable ? KeyboardAwareScrollView : View;
-
-  const content = (
-    <Container
-      bottomOffset={30}
-      contentContainerStyle={{
-        paddingBottom: insets.bottom + (paddingBottom ?? 0),
-        gap: 14,
-      }}
-      {...(scrollable ? { ref: scrollRef, onContentSizeChange } : {})}
-      style={[
-        styles.content,
-        {
-          paddingTop: headerHeight + (auth ? 18 : 8),
-          paddingBottom: insets.bottom,
-        },
-        style,
-      ]}
-      {...(scrollable && refreshControl ? { refreshControl } : {})}
-      {...(tabs ? { stickyHeaderIndices: [0] } : {})}
-    >
-      {children}
-    </Container>
-  );
-
   return (
     <>
-      {backgroundProps && <Background {...backgroundProps} />}
-      {progressiveBlur ? (
-        <View style={styles.wrapper}>
-          {content}
-          <ProgressiveBlur />
-        </View>
-      ) : (
-        content
-      )}
+      {background && <Background {...background} />}
+      <KeyboardAwareScrollView
+        bottomOffset={30}
+        contentInsetAdjustmentBehavior="always"
+        contentInset={tabs ? { top: 50 } : undefined}
+        scrollIndicatorInsets={tabs ? { top: 52 } : undefined}
+        contentContainerStyle={[styles.contentContainer, style]}
+        onContentSizeChange={onContentSizeChange}
+        ref={scrollRef}
+        refreshControl={refreshControl}
+        style={styles.scrollView}
+      >
+        {children}
+      </KeyboardAwareScrollView>
+      {tabs && <Tabs {...tabs} />}
+      {toolbar}
     </>
   );
 }
 
 const styles = StyleSheet.create({
-  wrapper: {
+  scrollView: {
     flex: 1,
   },
-  content: {
-    flex: 1,
+  contentContainer: {
+    gap: 14,
     paddingHorizontal: 16,
+    paddingTop: 8,
   },
 });

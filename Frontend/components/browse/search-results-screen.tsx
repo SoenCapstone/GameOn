@@ -16,7 +16,6 @@ import type {
   Modes,
   SearchModeConfig,
 } from "@/components/browse/constants";
-import { Tabs } from "@/components/ui/tabs";
 
 type Props = {
   readonly logScope: string;
@@ -117,7 +116,8 @@ export function SearchResultsScreen({
   );
 
   const renderItem = React.useCallback(
-    ({ item }: { item: SearchResult }) => {
+    (props: { item: SearchResult }) => {
+      const { item } = props;
       return (
         <InfoCard
           title={item.name}
@@ -152,12 +152,19 @@ export function SearchResultsScreen({
 
   return (
     <ContentArea
-      scrollable
-      tabs={showTabs}
-      paddingBottom={60}
-      backgroundProps={
-        backgroundPreset ? { preset: backgroundPreset } : undefined
+      tabs={
+        showTabs
+          ? {
+              values: modes.map((m) => m.label),
+              selectedIndex: modes.findIndex((m) => m.key === selectedMode.key),
+              onValueChange: (value) => {
+                const next = modes.find((m) => m.label === value);
+                if (next) setMode(next.key);
+              },
+            }
+          : undefined
       }
+      background={backgroundPreset ? { preset: backgroundPreset } : undefined}
       refreshControl={
         <RefreshControl
           refreshing={refreshing}
@@ -166,17 +173,6 @@ export function SearchResultsScreen({
         />
       }
     >
-      {showTabs && (
-        <Tabs
-          values={modes.map((m) => m.label)}
-          selectedIndex={modes.findIndex((m) => m.key === selectedMode.key)}
-          onValueChange={(value) => {
-            const next = modes.find((m) => m.label === value);
-            if (next) setMode(next.key);
-          }}
-        />
-      )}
-
       {isLoading ? (
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="small" color="#FFFFFF" />
@@ -211,7 +207,6 @@ export function SearchResultsScreen({
           </Text>
         </View>
       ) : null}
-      {refreshing && <ActivityIndicator size="small" color="#fff" />}
 
       <LegendList
         data={displayedResults}
