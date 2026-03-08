@@ -1,4 +1,5 @@
 import { useCallback, useLayoutEffect, useState } from "react";
+import * as Location from "expo-location";
 import {
   RelativePathString,
   useLocalSearchParams,
@@ -16,12 +17,6 @@ import { AccentColors } from "@/constants/colors";
 import { PROVINCE_OPTIONS } from "@/features/matches/utils";
 import { useCreateLeagueVenue, useCreateTeamVenue } from "@/hooks/use-matches";
 import { errorToString } from "@/utils/error";
-
-type ExpoLocationModule = {
-  geocodeAsync: (address: string) => Promise<
-    { latitude: number; longitude: number }[]
-  >;
-};
 
 interface AddVenueScreenProps {
   readonly entityId: string;
@@ -75,24 +70,24 @@ export function AddVenueScreen({
   const country = "Canada";
 
   const canSave = Boolean(
-    name.trim() && street.trim() && city.trim() && province.trim() && postalCode.trim(),
+    name.trim() &&
+      street.trim() &&
+      city.trim() &&
+      province.trim() &&
+      postalCode.trim(),
   );
 
   const geocodeAddress = useCallback(
-    async (address: string): Promise<{ latitude: number; longitude: number }> => {
-      let locationModule: ExpoLocationModule | null = null;
-      try {
-        // eslint-disable-next-line @typescript-eslint/no-require-imports
-        locationModule = require("expo-location") as ExpoLocationModule;
-      } catch {
-        throw new TypeError("Expo geocoding is unavailable. Install expo-location.");
+    async (
+      address: string,
+    ): Promise<{ latitude: number; longitude: number }> => {
+      if (typeof Location.geocodeAsync !== "function") {
+        throw new TypeError(
+          "Expo geocoding is unavailable. Install expo-location.",
+        );
       }
 
-      if (!locationModule?.geocodeAsync) {
-        throw new TypeError("Expo geocoding is unavailable. Install expo-location.");
-      }
-
-      const geocodeResults = await locationModule.geocodeAsync(address);
+      const geocodeResults = await Location.geocodeAsync(address);
       if (!Array.isArray(geocodeResults) || geocodeResults.length === 0) {
         throw new TypeError(
           "We couldn't find this address. Please verify the venue address.",
@@ -119,7 +114,10 @@ export function AddVenueScreen({
 
   const handleSave = useCallback(async () => {
     if (!canSave) {
-      Alert.alert("Invalid venue", "Please fill in all required venue details.");
+      Alert.alert(
+        "Invalid venue",
+        "Please fill in all required venue details.",
+      );
       return;
     }
 
@@ -167,7 +165,7 @@ export function AddVenueScreen({
       await queryClient.invalidateQueries({ queryKey: ["team-venues"] });
       await queryClient.invalidateQueries({ queryKey: ["league-venues"] });
 
-      router.replace({
+      router.dismissTo({
         pathname: schedulePathname,
         params: {
           id: entityId,
@@ -225,7 +223,12 @@ export function AddVenueScreen({
         left={<Button type="back" />}
         center={<PageTitle title="Add a Venue" />}
         right={
-          <Button isInteractive type="custom" label="Add" onPress={handleSave} />
+          <Button
+            isInteractive
+            type="custom"
+            label="Add"
+            onPress={handleSave}
+          />
         }
       />
     );
