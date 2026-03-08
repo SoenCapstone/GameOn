@@ -27,7 +27,6 @@ import {
   fetchIncomingRefereeInvites,
   fetchIncomingTeamMatchInvites,
 } from "@/hooks/use-matches";
-import { Tabs } from "@/components/ui/tabs";
 
 const denyColor = "rgba(255,255,255,0.75)";
 
@@ -406,9 +405,15 @@ export default function Home() {
 
   return (
     <ContentArea
-      scrollable
-      tabs
-      backgroundProps={{ preset: "blue" }}
+      tabs={{
+        values: ["My Updates", "Following"],
+        selectedIndex: tab === "updates" ? 0 : 1,
+        onValueChange: (value) => {
+          if (value === "My Updates") setTab("updates");
+          if (value === "Following") setTab("following");
+        },
+      }}
+      background={{ preset: "blue" }}
       refreshControl={
         <RefreshControl
           refreshing={isFetching}
@@ -417,14 +422,6 @@ export default function Home() {
         />
       }
     >
-      <Tabs
-        values={["My Updates", "Following"]}
-        selectedIndex={tab === "updates" ? 0 : 1}
-        onValueChange={(value) => {
-          if (value === "My Updates") setTab("updates");
-          if (value === "Following") setTab("following");
-        }}
-      />
 
       {tab === "updates" ? (
         <View style={styles.cardWrap}>

@@ -29,10 +29,13 @@ import { BoardList } from "@/components/board/board-list";
 import { useDetailPageHandlers } from "@/hooks/use-detail-page-handlers";
 import { createScopedLog } from "@/utils/logger";
 import { MatchListSections } from "@/components/matches/match-list-sections";
-import { useCancelLeagueMatch, useLeagueMatches, useTeamsByIds } from "@/hooks/use-matches";
+import {
+  useCancelLeagueMatch,
+  useLeagueMatches,
+  useTeamsByIds,
+} from "@/hooks/use-matches";
 import { buildMatchCards, splitMatchSections } from "@/features/matches/utils";
 import { Card } from "@/components/ui/card";
-import { Tabs } from "@/components/ui/tabs";
 import { errorToString } from "@/utils/error";
 
 type LeagueTab = "board" | "matches" | "standings" | "teams";
@@ -178,10 +181,17 @@ function LeagueContent() {
   return (
     <View style={{ flex: 1 }}>
       <ContentArea
-        scrollable
-        paddingBottom={20}
-        tabs
-        backgroundProps={{ preset: "red" }}
+        tabs={{
+          values: LeagueTabs.map((t) => TabLabels[t]),
+          selectedIndex,
+          onValueChange: (value) => {
+            const index = LeagueTabs.findIndex((t) => TabLabels[t] === value);
+            const nextTab = index >= 0 ? LeagueTabs[index] : "board";
+            setTab(nextTab);
+            log.info("Tab changed", { tab: nextTab });
+          },
+        }}
+        background={{ preset: "red" }}
         refreshControl={
           <RefreshControl
             refreshing={refreshing}
@@ -190,27 +200,12 @@ function LeagueContent() {
           />
         }
       >
-        <Tabs
-          values={LeagueTabs.map((t) => TabLabels[t])}
-          selectedIndex={selectedIndex}
-          onValueChange={(value) => {
-            const index = LeagueTabs.findIndex((t) => TabLabels[t] === value);
-            const nextTab = index >= 0 ? LeagueTabs[index] : "board";
-            setTab(nextTab);
-            log.info("Tab changed", { tab: nextTab });
-          }}
-        />
-
         {isLoading ? (
           <View style={styles.container}>
             <ActivityIndicator size="small" color="#fff" />
           </View>
         ) : (
           <>
-            {refreshing && !isLoading && (
-              <ActivityIndicator size="small" color="#fff" />
-            )}
-
             {tab === "board" && (
               <BoardList
                 posts={boardPosts}
@@ -236,7 +231,8 @@ function LeagueContent() {
                 onRetry={handleMatchesRefresh}
                 onMatchPress={(match) =>
                   router.push({
-                    pathname: `/(sheets)/match/${match.id}` as RelativePathString,
+                    pathname:
+                      `/(sheets)/match/${match.id}` as RelativePathString,
                     params: {
                       context: "league",
                       contextId: id,

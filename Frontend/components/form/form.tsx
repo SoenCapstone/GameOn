@@ -45,5 +45,5 @@ Form.Image = ImageItem;
 Form.Multiselect = MultiselectItem;
 
 const styles = StyleSheet.create({
-  form: { gap: 22 },
+  form: { gap: 24 },
 });

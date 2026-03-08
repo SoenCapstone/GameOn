@@ -131,10 +131,7 @@ export default function CreateLeagueScreen() {
   }, [navigation, createLeagueMutation.isPending, handleCreateLeague]);
 
   return (
-    <ContentArea
-      scrollable
-      backgroundProps={{ preset: "purple", mode: "form" }}
-    >
+    <ContentArea background={{ preset: "purple", mode: "form" }}>
       <Form accentColor={AccentColors.purple}>
         <LeagueForm
           values={{

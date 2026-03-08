@@ -29,7 +29,7 @@ export default function SignInScreen() {
   const { signIn, setActive, isLoaded } = useSignIn();
 
   return (
-    <ContentArea auth backgroundProps={{ preset: "red", mode: "form" }}>
+    <ContentArea background={{ preset: "red", mode: "form" }}>
       <Formik
         initialValues={initialSignInValue}
         validationSchema={SignInSchema}

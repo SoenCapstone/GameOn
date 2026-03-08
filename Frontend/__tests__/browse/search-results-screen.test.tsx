@@ -16,13 +16,22 @@ jest.mock("@react-navigation/elements", () => ({
 
 jest.mock("@/components/ui/content-area", () => {
   const mockReact = jest.requireActual("react");
-  const mockView = jest.requireActual("react-native").View;
+  const { View } = jest.requireActual("react-native");
+  const { Tabs } = jest.requireMock("@/components/ui/tabs");
   return {
-    ContentArea: (props: { children?: React.ReactNode }) =>
+    ContentArea: (props: {
+      children?: React.ReactNode;
+      tabs?: {
+        values: string[];
+        selectedIndex: number;
+        onValueChange?: (value: string) => void;
+      };
+    }) =>
       mockReact.createElement(
-        mockView,
+        View,
         { testID: "content-area" },
         props.children,
+        props.tabs ? mockReact.createElement(Tabs, props.tabs) : null,
       ),
   };
 });

@@ -127,8 +127,7 @@ export default function InviteTeamsScreen() {
     const leagueSport = normalizeSport(league?.sport);
     return items.filter(
       (team) =>
-        (!leagueSport ||
-          normalizeSport(team.sport) === leagueSport) &&
+        (!leagueSport || normalizeSport(team.sport) === leagueSport) &&
         !teamIdSet.has(team.id) &&
         !invitedTeamIds.has(team.id) &&
         !pendingInviteTeamIds.has(team.id),
@@ -148,11 +147,7 @@ export default function InviteTeamsScreen() {
     inviteTeamMutation.isPending;
 
   return (
-    <ContentArea
-      scrollable
-      backgroundProps={{ preset: "purple" }}
-      paddingBottom={24}
-    >
+    <ContentArea background={{ preset: "purple" }}>
       <InviteSection
         title="Available Teams"
         isBusy={isBusy}

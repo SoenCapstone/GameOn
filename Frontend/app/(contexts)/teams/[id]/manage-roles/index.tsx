@@ -93,11 +93,7 @@ export default function ManageRolesScreen() {
   };
 
   return (
-    <ContentArea
-      scrollable
-      backgroundProps={{ preset: "red" }}
-      paddingBottom={24}
-    >
+    <ContentArea background={{ preset: "red" }}>
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>Team Members</Text>
 

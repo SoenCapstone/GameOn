@@ -28,9 +28,9 @@ const styles = StyleSheet.create({
     fontSize: 17,
     lineHeight: 22,
     fontWeight: "600",
+    marginBottom: 10,
   },
   content: {
-    marginTop: 10,
     gap: 16,
   },
   footer: {

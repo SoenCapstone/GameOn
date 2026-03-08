@@ -39,8 +39,7 @@ export default function Browse() {
 
   return (
     <ContentArea
-      scrollable
-      backgroundProps={{
+      background={{
         preset: "red",
       }}
     >

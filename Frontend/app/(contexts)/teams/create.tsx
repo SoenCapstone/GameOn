@@ -143,10 +143,7 @@ export default function CreateTeamScreen() {
   }, [navigation, createTeamMutation.isPending, handleCreateTeam]);
 
   return (
-    <ContentArea
-      scrollable
-      backgroundProps={{ preset: "purple", mode: "form" }}
-    >
+    <ContentArea background={{ preset: "purple", mode: "form" }}>
       <Form accentColor={AccentColors.purple}>
         <TeamForm
           values={{
@@ -171,7 +168,9 @@ export default function CreateTeamScreen() {
             onAllowedRegionsChange: (regions) => {
               setSelectedAllowedRegions(regions);
               setAllowedRegionsError(
-                regions.length === 0 ? "Please select at least one region." : "",
+                regions.length === 0
+                  ? "Please select at least one region."
+                  : "",
               );
             },
             onPickLogo: handlePickLogo,

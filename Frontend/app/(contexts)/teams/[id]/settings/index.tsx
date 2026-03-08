@@ -152,7 +152,7 @@ function TeamSettingsContent() {
 
   if (!team && !isLoading) {
     return (
-      <ContentArea backgroundProps={{ preset: "red" }}>
+      <ContentArea background={{ preset: "red" }}>
         <View style={settingsStyles.container}>
           <Text style={settingsStyles.errorText}>Team not found</Text>
         </View>
@@ -162,7 +162,7 @@ function TeamSettingsContent() {
 
   if (!isOwner && team) {
     return (
-      <ContentArea backgroundProps={{ preset: "red" }}>
+      <ContentArea background={{ preset: "red" }}>
         <View style={settingsStyles.container}>
           <Text style={settingsStyles.errorText}>
             You don&apos;t have permission to edit this team
@@ -173,7 +173,7 @@ function TeamSettingsContent() {
   }
 
   return (
-    <ContentArea scrollable backgroundProps={{ preset: "red", mode: "form" }}>
+    <ContentArea background={{ preset: "red", mode: "form" }}>
       {isLoading && (
         <View style={settingsStyles.loadingOverlay}>
           <ActivityIndicator size="large" color="#fff" />

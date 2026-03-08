@@ -19,7 +19,7 @@ export default function Regions() {
   useRefereeHeader({ title: "Regions", canSave, saving, saveItems });
 
   return (
-    <ContentArea scrollable backgroundProps={{ preset: "blue", mode: "form" }}>
+    <ContentArea background={{ preset: "blue", mode: "form" }}>
       {!loading && (
         <Form accentColor={AccentColors.blue}>
           <Form.Section>

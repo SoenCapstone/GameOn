@@ -60,7 +60,7 @@ export default function Edit() {
   if (!isLoaded || !isSignedIn) return null;
 
   return (
-    <ContentArea scrollable backgroundProps={{ preset: "blue", mode: "form" }}>
+    <ContentArea background={{ preset: "blue", mode: "form" }}>
       <Form accentColor={AccentColors.blue}>
         <Form.Section>
           <Form.Image

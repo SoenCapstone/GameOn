@@ -140,11 +140,7 @@ export default function ManageLeagueScreen() {
     removeTeamMutation.isPending;
 
   return (
-    <ContentArea
-      scrollable
-      backgroundProps={{ preset: "purple" }}
-      paddingBottom={24}
-    >
+    <ContentArea background={{ preset: "purple" }}>
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>League Teams</Text>
 

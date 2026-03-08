@@ -85,7 +85,7 @@ export default function NewGroup() {
   }, [navigation, creating, teams, submitTeamChat]);
 
   return (
-    <ContentArea scrollable backgroundProps={{ preset: "green", mode: "form" }}>
+    <ContentArea background={{ preset: "green", mode: "form" }}>
       {loadingTeams ? (
         <ActivityIndicator color="white" style={{ marginTop: 40 }} />
       ) : (

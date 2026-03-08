@@ -74,7 +74,7 @@ export default function NewMessage() {
   };
 
   return (
-    <ContentArea scrollable backgroundProps={{ preset: "green", mode: "form" }}>
+    <ContentArea background={{ preset: "green", mode: "form" }}>
       {loadingUsers ? (
         <ActivityIndicator color="white" style={{ marginTop: 40 }} />
       ) : (

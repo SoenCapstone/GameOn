@@ -28,7 +28,6 @@ import {
   useUserDirectory,
 } from "@/features/messaging/hooks";
 import { Chat, type ChatItem } from "@/components/messages/chat";
-import { Tabs } from "@/components/ui/tabs";
 
 function MessagesHeader({
   socketState,
@@ -150,9 +149,16 @@ export default function Messages() {
 
   return (
     <ContentArea
-      scrollable
-      tabs
-      backgroundProps={{ preset: "green" }}
+      tabs={{
+        values: ["All", "Direct", "Groups"],
+        selectedIndex,
+        onValueChange: (value) => {
+          if (value === "All") setFilter("all");
+          else if (value === "Direct") setFilter("direct");
+          else setFilter("group");
+        },
+      }}
+      background={{ preset: "green" }}
       refreshControl={
         <RefreshControl
           refreshing={isRefetching}
@@ -161,17 +167,7 @@ export default function Messages() {
         />
       }
     >
-      <Tabs
-        values={["All", "Direct", "Groups"]}
-        selectedIndex={selectedIndex}
-        onValueChange={(value) => {
-          if (value === "All") setFilter("all");
-          else if (value === "Direct") setFilter("direct");
-          else setFilter("group");
-        }}
-      />
-
-      {isLoading || isRefetching ? (
+      {isLoading ? (
         <View style={styles.emptyState}>
           <ActivityIndicator color="white" />
         </View>
