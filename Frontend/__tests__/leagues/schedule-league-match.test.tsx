@@ -267,7 +267,7 @@ describe("ScheduleLeagueMatchScreen", () => {
     fireEvent.press(getByTestId("menu-home-team-alpha-fc"));
     renderCount = await waitForSubmitRefresh(renderCount);
     fireEvent.press(getByTestId("menu-away-team-beta-fc"));
-    fireEvent.press(getByTestId("menu-venue-stadium---montreal"));
+    fireEvent.press(getByTestId("menu-venue-stadium"));
     renderCount = await waitForSubmitRefresh(renderCount);
 
     await waitFor(() =>

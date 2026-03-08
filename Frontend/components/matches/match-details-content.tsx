@@ -18,6 +18,7 @@ interface MatchDetailsContentProps {
   readonly contextLabel: string;
   readonly refereeName?: string;
   readonly venueName?: string | null;
+  readonly venueLocationLabel?: string | null;
   readonly venueAddress?: string | null;
   readonly venueLatitude?: number | null;
   readonly venueLongitude?: number | null;
@@ -36,6 +37,7 @@ export function MatchDetailsContent({
   contextLabel,
   refereeName,
   venueName,
+  venueLocationLabel,
   venueAddress,
   venueLatitude,
   venueLongitude,
@@ -47,32 +49,40 @@ export function MatchDetailsContent({
     typeof venueLatitude === "number" && typeof venueLongitude === "number";
   const hasVenue = Boolean(venueName?.trim());
   const hasReferee = Boolean(refereeName?.trim());
+  const venueMetaLabel = venueLocationLabel?.trim()
+    ? `${venueName}, ${venueLocationLabel}`
+    : venueName;
+
+  const openVenueDirections = async () => {
+    const label = encodeURIComponent(venueName ?? "Venue");
+    const query = encodeURIComponent(
+      venueAddress?.trim() || venueName?.trim() || "Venue",
+    );
+    const appleMapsUrl = hasCoordinates
+      ? `http://maps.apple.com/?daddr=${venueLatitude},${venueLongitude}&q=${label}`
+      : `http://maps.apple.com/?daddr=${query}`;
+
+    const canOpenAppleMaps = await Linking.canOpenURL(appleMapsUrl);
+    if (canOpenAppleMaps) {
+      await Linking.openURL(appleMapsUrl);
+      return;
+    }
+
+    Alert.alert(
+      "Maps unavailable",
+      "Could not open Apple Maps for directions on this device.",
+    );
+  };
 
   const handleMapPress = () => {
     if (!venueName && !venueAddress) return;
 
-    Alert.alert("Open directions", "Open directions to this venue?", [
+    Alert.alert("Open in Maps?", "You will be directed to the Maps app", [
       { text: "Cancel", style: "cancel" },
       {
         text: "Open",
-        onPress: async () => {
-          const label = encodeURIComponent(venueName ?? "Venue");
-          const query = encodeURIComponent(
-            venueAddress?.trim() || venueName?.trim() || "Venue",
-          );
-          const appleMapsUrl = hasCoordinates
-            ? `http://maps.apple.com/?daddr=${venueLatitude},${venueLongitude}&q=${label}`
-            : `http://maps.apple.com/?daddr=${query}`;
-
-          const canOpenAppleMaps = await Linking.canOpenURL(appleMapsUrl);
-          if (canOpenAppleMaps) {
-            await Linking.openURL(appleMapsUrl);
-            return;
-          }
-          Alert.alert(
-            "Maps unavailable",
-            "Could not open Apple Maps for directions on this device.",
-          );
+        onPress: () => {
+          void openVenueDirections();
         },
       },
     ]);
@@ -167,7 +177,7 @@ export function MatchDetailsContent({
               <View style={styles.metaTextRow}>
                 <Text style={styles.meta}>Venue:</Text>
                 <Text style={styles.metaWhite} numberOfLines={2}>
-                  {venueAddress ? `${venueName} (${venueAddress})` : venueName}
+                  {venueMetaLabel}
                 </Text>
               </View>
             </View>
