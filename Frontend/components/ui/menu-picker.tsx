@@ -1,5 +1,8 @@
 import { lazy, Suspense, useRef } from "react";
 import type NativePickerComponent from "@/components/ui/native-picker";
+import { isRunningInExpoGo } from "@/utils/runtime";
+import { Ionicons } from "@expo/vector-icons";
+import { useActionSheet } from "@expo/react-native-action-sheet";
 import {
   Text,
   StyleSheet,
@@ -7,9 +10,6 @@ import {
   View,
   findNodeHandle,
 } from "react-native";
-import { isRunningInExpoGo } from "@/utils/runtime";
-import { Ionicons } from "@expo/vector-icons";
-import { useActionSheet } from "@expo/react-native-action-sheet";
 
 interface MenuPickerProps {
   readonly title?: string;
@@ -23,6 +23,10 @@ interface MenuPickerProps {
 const NativePicker = lazy<typeof NativePickerComponent>(
   () => import("@/components/ui/native-picker"),
 );
+
+if (!isRunningInExpoGo) {
+  void import("@/components/ui/native-picker");
+}
 
 export function MenuPicker({
   title,
