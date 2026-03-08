@@ -52,6 +52,12 @@ export function MatchDetailsContent({
   const venueMetaLabel = venueLocationLabel?.trim()
     ? `${venueName}, ${venueLocationLabel}`
     : venueName;
+  const mapRegion = {
+    latitude: venueLatitude as number,
+    longitude: venueLongitude as number,
+    latitudeDelta: 0.01,
+    longitudeDelta: 0.01,
+  };
 
   const openVenueDirections = async () => {
     const label = encodeURIComponent(venueName ?? "Venue");
@@ -59,8 +65,8 @@ export function MatchDetailsContent({
       venueAddress?.trim() || venueName?.trim() || "Venue",
     );
     const appleMapsUrl = hasCoordinates
-      ? `http://maps.apple.com/?daddr=${venueLatitude},${venueLongitude}&q=${label}`
-      : `http://maps.apple.com/?daddr=${query}`;
+      ? `https://maps.apple.com/?daddr=${venueLatitude},${venueLongitude}&q=${label}`
+      : `https://maps.apple.com/?daddr=${query}`;
 
     const canOpenAppleMaps = await Linking.canOpenURL(appleMapsUrl);
     if (canOpenAppleMaps) {
@@ -146,12 +152,7 @@ export function MatchDetailsContent({
           <MapView
             style={styles.map}
             mapPadding={{ top: 8, right: 8, bottom: 8, left: 8 }}
-            initialRegion={{
-              latitude: venueLatitude ?? 45.5017,
-              longitude: venueLongitude ?? -73.5673,
-              latitudeDelta: hasCoordinates ? 0.01 : 0.12,
-              longitudeDelta: hasCoordinates ? 0.01 : 0.12,
-            }}
+            region={mapRegion}
             scrollEnabled={false}
             rotateEnabled={false}
             pitchEnabled={false}

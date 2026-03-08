@@ -1,7 +1,4 @@
-import { Alert } from "react-native";
-import { AxiosError } from "axios";
 import { Venue } from "@/features/matches/types";
-import { getScheduleApiErrorMessage } from "@/utils/schedule-errors";
 
 export type VenueOption = {
   id: string;
@@ -32,30 +29,4 @@ export function resolveSelectedVenueLabel(
   newVenueName?: string,
 ) {
   return (venueId ? venueIdToLabel[venueId] : undefined) ?? (newVenueName ?? "");
-}
-
-export function parseDraftDate(value?: string): Date | undefined {
-  if (!value) return undefined;
-  const parsed = new Date(value);
-  if (Number.isNaN(parsed.getTime())) return undefined;
-  return parsed;
-}
-
-export function showScheduleSubmitError(
-  err: unknown,
-  unauthorizedMessage: string,
-  onRetry: () => void,
-) {
-  const { status, message } = getScheduleApiErrorMessage(
-    err as AxiosError<{ message?: string }>,
-    unauthorizedMessage,
-  );
-  if (status === 0) {
-    Alert.alert("Network error", message, [
-      { text: "Cancel", style: "cancel" },
-      { text: "Retry", onPress: onRetry },
-    ]);
-    return;
-  }
-  Alert.alert("Schedule failed", message);
 }
