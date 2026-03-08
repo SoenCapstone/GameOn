@@ -5,6 +5,7 @@ import ScheduleTeamMatchScreen from "@/app/(contexts)/teams/[id]/matches/schedul
 
 const mockSetOptions = jest.fn();
 const mockReplace = jest.fn();
+const mockDismissTo = jest.fn();
 const mockPush = jest.fn();
 const mockBack = jest.fn();
 const mockCreateTeamMatch = jest.fn();
@@ -17,7 +18,12 @@ let scheduleHeaderRenderCount = 0;
 jest.mock("expo-router", () => ({
   useLocalSearchParams: () => ({ id: "team-1", tab: "matches" }),
   useNavigation: () => ({ setOptions: mockSetOptions }),
-  useRouter: () => ({ replace: mockReplace, push: mockPush, back: mockBack }),
+  useRouter: () => ({
+    replace: mockReplace,
+    dismissTo: mockDismissTo,
+    push: mockPush,
+    back: mockBack,
+  }),
 }));
 
 jest.mock("@/components/ui/content-area", () => ({
@@ -298,7 +304,7 @@ describe("ScheduleTeamMatchScreen", () => {
         requiresReferee: false,
       }) as unknown,
     );
-    expect(mockReplace).toHaveBeenCalledWith({
+    expect(mockDismissTo).toHaveBeenCalledWith({
       pathname: "/teams/team-1",
       params: { tab: "matches" },
     });
