@@ -24,12 +24,12 @@ import { buildStartEndIso, isValidTimeRange } from "@/features/matches/utils";
 import {
   buildVenueOptionMaps,
   buildVenueOptions,
-  parseDraftDate,
   resolveSelectedVenueLabel,
-  showScheduleSubmitError,
 } from "@/features/matches/schedule-shared";
 import { toast } from "@/components/sign-up/utils";
+import { parseDraftDate } from "@/utils/date";
 import { createScopedLog } from "@/utils/logger";
+import { showScheduleSubmitError } from "@/utils/schedule-errors";
 import { useRefereeOptions } from "@/hooks/use-referee-options";
 import { MatchDetailsSection } from "@/components/matches/match-details-section";
 import { useScheduleHeader } from "@/hooks/use-schedule-header";
