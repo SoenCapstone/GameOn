@@ -1,6 +1,6 @@
-import React from "react";
 import { Pressable, ScrollView, StyleSheet, Text } from "react-native";
 import { GlassView } from "expo-glass-effect";
+import { useHeaderHeight } from "@/contexts/header-height-context";
 
 interface TabsProps {
   readonly values: string[];
@@ -13,12 +13,14 @@ export function Tabs({
   selectedIndex,
   onValueChange,
 }: Readonly<TabsProps>) {
+  const headerHeight = useHeaderHeight();
+
   return (
     <ScrollView
       horizontal
       showsHorizontalScrollIndicator={false}
       contentContainerStyle={styles.content}
-      style={styles.scroll}
+      style={[styles.scroll, { top: headerHeight + 4 }]}
     >
       {values.map((value, index) => {
         const isSelected = index === selectedIndex;
@@ -46,12 +48,12 @@ export function Tabs({
 
 const styles = StyleSheet.create({
   scroll: {
+    position: "absolute",
     overflow: "visible",
-    marginBottom: 4,
+    paddingHorizontal: 20,
   },
   content: {
     flexDirection: "row",
-    paddingHorizontal: 4,
     gap: 8,
   },
   pressable: {
