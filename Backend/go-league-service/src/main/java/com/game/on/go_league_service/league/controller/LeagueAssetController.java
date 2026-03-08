@@ -97,7 +97,8 @@ public class LeagueAssetController {
             s3Client.putObject(putObjectRequest, RequestBody.fromBytes(fileBytes));
         }
 
-        String publicUrl = String.format("https://%s.s3.%s.amazonaws.com/%s", bucket, region, key);
+        String baseUrl = String.format("https://%s.s3.%s.amazonaws.com/%s", bucket, region, key);
+        String publicUrl = baseUrl + "?t=" + System.currentTimeMillis();
 
         // Update league with logo URL in database
         leagueService.updateLeaugeLogo(UUID.fromString(leagueId), publicUrl);

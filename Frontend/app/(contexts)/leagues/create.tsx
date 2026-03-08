@@ -1,0 +1,160 @@
+import { useCallback, useLayoutEffect, useState } from "react";
+import { Alert } from "react-native";
+import { useRouter } from "expo-router";
+import { useNavigation } from "@react-navigation/native";
+import { ContentArea } from "@/components/ui/content-area";
+import { Header } from "@/components/header/header";
+import { PageTitle } from "@/components/header/page-title";
+import { Button } from "@/components/ui/button";
+import { Form } from "@/components/form/form";
+import { LeagueForm } from "@/components/leagues/league-form";
+import { AccentColors } from "@/constants/colors";
+import { createScopedLog } from "@/utils/logger";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { errorToString } from "@/utils/error";
+import { useLeagueForm } from "@/hooks/use-league-form";
+import { pickLogo, PickedLogo, uploadLogo } from "@/utils/team-league-form";
+import {
+  useAxiosWithClerk,
+  GO_LEAGUE_SERVICE_ROUTES,
+} from "@/hooks/use-axios-clerk";
+
+const log = createScopedLog("Create League Page");
+
+const CreateLeagueHeader = ({
+  onCreate,
+  isCreating,
+}: {
+  onCreate: () => void;
+  isCreating: boolean;
+}) => (
+  <Header
+    left={<Button type="back" />}
+    center={<PageTitle title="Create a League" />}
+    right={
+      <Button
+        type="custom"
+        label={isCreating ? "Creating..." : "Create"}
+        onPress={onCreate}
+        loading={isCreating}
+      />
+    }
+  />
+);
+
+export default function CreateLeagueScreen() {
+  const router = useRouter();
+  const api = useAxiosWithClerk();
+  const queryClient = useQueryClient();
+
+  const [pickedLogo, setPickedLogo] = useState<PickedLogo | null>(null);
+
+  const {
+    leagueName,
+    setLeagueName,
+    selectedSport,
+    setSelectedSport,
+    selectedLevel,
+    setSelectedLevel,
+    region,
+    location,
+    setLocation,
+  } = useLeagueForm({ initialData: { region: "Canada" } });
+
+  const handlePickLogo = useCallback(async () => {
+    await pickLogo(setPickedLogo);
+  }, []);
+
+  const createLeagueMutation = useMutation({
+    mutationFn: async () => {
+      const payload = {
+        name: leagueName.trim(),
+        sport: selectedSport?.id ?? "",
+        region: region.trim() || undefined,
+        location: location.trim() || undefined,
+        level: selectedLevel?.id ?? undefined,
+        privacy: "PRIVATE" as const,
+      };
+
+      log.info("Sending league creation payload:", payload);
+      const resp = await api.post(GO_LEAGUE_SERVICE_ROUTES.CREATE, payload);
+      const data = resp.data as { id: string; slug: string };
+
+      if (pickedLogo && data.id) {
+        await uploadLogo(
+          api,
+          GO_LEAGUE_SERVICE_ROUTES.LEAGUE_LOGO(data.id),
+          pickedLogo,
+        );
+        log.info("League logo uploaded for league", data.id);
+      }
+
+      return data;
+    },
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: ["leagues"] });
+      Alert.alert(
+        "League created",
+        "Your league has been created successfully.",
+      );
+      router.back();
+    },
+    onError: (err) => {
+      const message = errorToString(err);
+      log.error("Create league failed", message);
+      Alert.alert("League creation failed", message);
+    },
+  });
+
+  const handleCreateLeague = useCallback(() => {
+    if (!leagueName.trim()) {
+      Alert.alert("League creation failed", "League name is required");
+      return;
+    }
+    if (!selectedSport) {
+      Alert.alert("League creation failed", "Sport is required");
+      return;
+    }
+    createLeagueMutation.mutate();
+  }, [leagueName, selectedSport, createLeagueMutation]);
+
+  const navigation = useNavigation();
+  useLayoutEffect(() => {
+    navigation.setOptions({
+      headerTitle: () => (
+        <CreateLeagueHeader
+          onCreate={handleCreateLeague}
+          isCreating={createLeagueMutation.isPending}
+        />
+      ),
+    });
+  }, [navigation, createLeagueMutation.isPending, handleCreateLeague]);
+
+  return (
+    <ContentArea
+      scrollable
+      backgroundProps={{ preset: "purple", mode: "form" }}
+    >
+      <Form accentColor={AccentColors.purple}>
+        <LeagueForm
+          values={{
+            leagueName,
+            selectedSport,
+            selectedLevel,
+            region,
+            location,
+          }}
+          logo={{ pickedLogo }}
+          onChange={{
+            onLeagueNameChange: setLeagueName,
+            onSportChange: setSelectedSport,
+            onLevelChange: setSelectedLevel,
+            onLocationChange: setLocation,
+            onPickLogo: handlePickLogo,
+            onRemoveLogo: () => setPickedLogo(null),
+          }}
+        />
+      </Form>
+    </ContentArea>
+  );
+}

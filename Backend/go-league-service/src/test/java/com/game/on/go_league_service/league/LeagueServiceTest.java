@@ -103,9 +103,10 @@ class LeagueServiceTest {
 
         LeagueCreateRequest request = new LeagueCreateRequest(
                 "Downtown League",
-                "basketball",
-                "Quebec",
+                "Soccer",
+                "Winter 2025",
                 "Montreal",
+                "Test description",
                 null,
                 null
         );
@@ -114,8 +115,10 @@ class LeagueServiceTest {
 
         assertThat(response.ownerUserId()).isEqualTo("user_123");
         assertThat(response.slug()).isEqualTo("downtown-league");
+
         assertThat(response.level()).isEqualTo(LeagueLevel.COMPETITIVE);
         assertThat(response.privacy()).isEqualTo(LeaguePrivacy.PUBLIC);
+
         assertThat(response.seasonCount()).isZero();
 
         verify(metricsPublisher).leagueCreated();
@@ -127,8 +130,15 @@ class LeagueServiceTest {
         when(slugGenerator.generateUniqueSlug(any()))
                 .thenThrow(new BadRequestException("Unable to generate league slug"));
 
-        LeagueCreateRequest request =
-                new LeagueCreateRequest("!!!", "soccer", null, null, null, null);
+        LeagueCreateRequest request = new LeagueCreateRequest(
+                "!!!",
+                "soccer",
+                "Winter 2025",
+                "Montreal",
+                "desc",
+                LeagueLevel.RECREATIONAL,
+                LeaguePrivacy.PUBLIC
+        );
 
         assertThatThrownBy(() -> leagueService.createLeague(request))
                 .isInstanceOf(BadRequestException.class);
@@ -167,9 +177,11 @@ class LeagueServiceTest {
                 "volleyball",
                 "Ontario",
                 "Toronto",
+                "Updated description",
                 LeagueLevel.RECREATIONAL,
                 LeaguePrivacy.PRIVATE
         );
+
 
         var response = leagueService.updateLeague(leagueId, update);
 
@@ -206,7 +218,8 @@ class LeagueServiceTest {
         assertThatThrownBy(() ->
                 leagueService.updateLeague(
                         leagueId,
-                        new LeagueUpdateRequest(null, null, null, null, null, null)
+                        new LeagueUpdateRequest(null, null, null, null, null, null, null)
+
                 )
         ).isInstanceOf(BadRequestException.class);
 
@@ -236,7 +249,8 @@ class LeagueServiceTest {
         assertThatThrownBy(() ->
                 leagueService.updateLeague(
                         leagueId,
-                        new LeagueUpdateRequest("New", null, null, null, null, null)
+                        new LeagueUpdateRequest("New", null, null, null, null, null, null)
+
                 )
         ).isInstanceOf(ForbiddenException.class);
 

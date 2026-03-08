@@ -1,5 +1,5 @@
 import { useCallback, useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, type UseQueryOptions } from "@tanstack/react-query";
 import { useAuth } from "@clerk/clerk-expo";
 import {
   useAxiosWithClerk,
@@ -8,6 +8,38 @@ import {
 import { createScopedLog } from "@/utils/logger";
 
 const log = createScopedLog("Team Detail");
+
+export type TeamDetailResponse = Readonly<{
+  id: string | null;
+  name: string | null;
+  sport: string | null;
+  location: string | null;
+  logoUrl: string | null;
+  scope: string | null;
+  privacy: "PRIVATE" | "PUBLIC";
+  ownerUserId: string | null;
+}>;
+
+export function teamDetailQueryOptions(
+  api: ReturnType<typeof useAxiosWithClerk>,
+  id: string,
+): UseQueryOptions<TeamDetailResponse> {
+  return {
+    queryKey: ["team", id],
+    queryFn: async () => {
+      try {
+        const resp = await api.get(`${GO_TEAM_SERVICE_ROUTES.ALL}/${id}`);
+        return resp.data as TeamDetailResponse;
+      } catch (err) {
+        log.error("Failed to fetch team:", err);
+        throw err;
+      }
+    },
+    enabled: Boolean(id),
+    retry: false,
+    refetchOnWindowFocus: false,
+  };
+}
 
 export function useTeamDetail(id: string) {
   const [refreshing, setRefreshing] = useState(false);
@@ -18,30 +50,14 @@ export function useTeamDetail(id: string) {
     data: team,
     isLoading,
     refetch,
-  } = useQuery({
-    queryKey: ["team", id],
-    queryFn: async () => {
-      try {
-        const resp = await api.get(`${GO_TEAM_SERVICE_ROUTES.ALL}/${id}`);
-        return resp.data;
-      } catch (err) {
-        log.error("Failed to fetch team:", err);
-        throw err;
-      }
-    },
-    enabled: !!id,
-    retry: false,
-    refetchOnWindowFocus: false,
-  });
+  } = useQuery(teamDetailQueryOptions(api, id));
 
-  const {
-    data: membership,
-  } = useQuery({
+  const { data: membership } = useQuery({
     queryKey: ["team-membership", id, userId],
     queryFn: async () => {
       try {
         const resp = await api.get(
-          `${GO_TEAM_SERVICE_ROUTES.ALL}/${id}/memberships/me`
+          `${GO_TEAM_SERVICE_ROUTES.ALL}/${id}/memberships/me`,
         );
         return resp.data;
       } catch (err) {
@@ -70,6 +86,7 @@ export function useTeamDetail(id: string) {
 
   const title = team?.name ?? (id ? `Team ${id}` : "Team");
   const isOwner = Boolean(userId && team && team.ownerUserId === userId);
+
   const isMember = Boolean(membership);
   const isActiveMember = membership?.status === "ACTIVE";
   const role = membership?.role;

@@ -35,7 +35,7 @@ public class TeamAssetController {
     @Value("${aws.region:us-east-1}")
     private String region;
 
-    private static final String[] ALLOWED_IMAGE_TYPES = {"image/jpeg", "image/png", "image/gif", "image/webp"};
+    private static final String[] ALLOWED_IMAGE_TYPES = {"image/png", "image/svg+xml", "image/webp"};
 
     private void validateImageContentType(String contentType) {
         if (contentType == null || contentType.isEmpty()) {
@@ -49,7 +49,7 @@ public class TeamAssetController {
             }
         }
         if (!isValid) {
-            throw new ValidationException("Only image uploads are supported. Allowed types: image/jpeg, image/png, image/gif, image/webp");
+            throw new ValidationException("Only logos with transparent background are supported. Allowed types: image/png, image/svg+xml, image/webp");
         }
     }
 
@@ -69,14 +69,14 @@ public class TeamAssetController {
         String contentType = file.getContentType();
         validateImageContentType(contentType);
 
-        // Determine extension from content type
-        String ext = ".jpg";
+        // Determine extension from content type (only allowed types reach here)
+        String ext = ".png";
         if (contentType != null) {
             switch (contentType.toLowerCase()) {
-                case "image/jpeg" -> ext = ".jpg";
                 case "image/png" -> ext = ".png";
-                case "image/gif" -> ext = ".gif";
                 case "image/webp" -> ext = ".webp";
+                case "image/svg+xml" -> ext = ".svg";
+                default -> { }
             }
         }
 
@@ -98,7 +98,8 @@ public class TeamAssetController {
             s3Client.putObject(putObjectRequest, RequestBody.fromBytes(fileBytes));
         }
 
-        String publicUrl = String.format("https://%s.s3.%s.amazonaws.com/%s", bucket, region, key);
+        String baseUrl = String.format("https://%s.s3.%s.amazonaws.com/%s", bucket, region, key);
+        String publicUrl = baseUrl + "?t=" + System.currentTimeMillis();
 
         // Update team with logo URL in database
         teamService.updateTeamLogo(UUID.fromString(teamId), publicUrl);

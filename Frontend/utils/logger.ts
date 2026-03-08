@@ -1,6 +1,13 @@
 import { logger, consoleTransport } from "react-native-logs";
 import { isDevelopment } from "@/utils/runtime";
 
+export type LoggerProps = {
+  debug: (m: string, d?: unknown) => void;
+  info: (m: string, d?: unknown) => void;
+  warn: (m: string, d?: unknown) => void;
+  error: (m: string, d?: unknown) => void;
+};
+
 const severity =
   (process.env.EXPO_PUBLIC_LOG_LEVEL as "debug" | "info" | "warn" | "error") ??
   (isDevelopment ? "debug" : "info");
@@ -20,7 +27,7 @@ export const log = logger.createLogger({
   },
 });
 
-export const createScopedLog = (scope: string) => ({
+export const createScopedLog = (scope: string): LoggerProps => ({
   debug: (m: string, d?: unknown) => log.debug(`${scope}: ${m}`, d),
   info: (m: string, d?: unknown) =>
     d === undefined

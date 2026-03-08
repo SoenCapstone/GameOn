@@ -2,7 +2,7 @@ import { SearchResult } from "@/components/browse/constants";
 import { AxiosInstance } from "axios";
 import { useQuery } from "@tanstack/react-query";
 import { createScopedLog } from "@/utils/logger";
-import { ImageSourcePropType } from "react-native";
+import { ImageSource } from "expo-image";
 import { images } from "@/constants/images";
 import {
   useAxiosWithClerk,
@@ -12,7 +12,7 @@ import {
 
 const log = createScopedLog("Browse");
 
-export function getSportLogo(sport?: string | null): ImageSourcePropType {
+export function getSportLogo(sport?: string | null): ImageSource {
   const s = (sport || "").toLowerCase();
   switch (s) {
     case "soccer":
@@ -54,6 +54,7 @@ type LeagueSummaryResponse = {
   name: string;
   sport: string;
   slug: string;
+  logoUrl?: string | null;
   region?: string | null;
   level?: string | null;
   privacy?: string | null;
@@ -180,7 +181,9 @@ export function useLeagueResults(query: string, onlyMine?: boolean) {
       name: league.name,
       subtitle,
       sport: league.sport,
-      logo: getSportLogo(league.sport),
+      logo: league.logoUrl
+        ? { uri: league.logoUrl }
+        : getSportLogo(league.sport),
       league: "",
       location: league.region ?? "",
       privacy: league.privacy ?? undefined,

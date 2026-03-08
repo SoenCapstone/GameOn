@@ -1,4 +1,4 @@
-import { 
+import {
   validateMessageContent,
   sortConversations,
   insertMessageOrdered,
@@ -6,6 +6,7 @@ import {
   updateConversationsWithMessage,
   buildMessagesFromPages,
   formatMessageTimestamp,
+  formatDateSeparator,
   MAX_MESSAGE_LENGTH,
 } from "@/features/messaging/utils";
 import type { InfiniteData } from "@tanstack/react-query";
@@ -214,10 +215,7 @@ describe("appendMessageToPages", () => {
   it("appends to last page and does not modify non-last pages", () => {
     const msg1 = createMessage("msg-1");
     const data: InfiniteData<MessageHistoryResponse> = {
-      pages: [
-        createPage([msg1]),
-        createPage([createMessage("msg-2")]),
-      ],
+      pages: [createPage([msg1]), createPage([createMessage("msg-2")])],
       pageParams: [undefined, null],
     };
     const incoming = createMessage("msg-3");
@@ -250,7 +248,10 @@ describe("appendMessageToPages", () => {
 });
 
 describe("updateConversationsWithMessage", () => {
-  const createMessage = (id: string, conversationId: string): MessageResponse => ({
+  const createMessage = (
+    id: string,
+    conversationId: string,
+  ): MessageResponse => ({
     id,
     content: "test",
     createdAt: "2024-01-01T10:00:00Z",
@@ -318,8 +319,14 @@ describe("buildMessagesFromPages", () => {
 
     const data: InfiniteData<MessageHistoryResponse> = {
       pages: [
-        { messages: [createMessage("msg-1"), createMessage("msg-2")], hasMore: false },
-        { messages: [createMessage("msg-3"), createMessage("msg-4")], hasMore: false },
+        {
+          messages: [createMessage("msg-1"), createMessage("msg-2")],
+          hasMore: false,
+        },
+        {
+          messages: [createMessage("msg-3"), createMessage("msg-4")],
+          hasMore: false,
+        },
       ],
       pageParams: [undefined, null],
     };
@@ -331,7 +338,10 @@ describe("buildMessagesFromPages", () => {
 
   it("handles undefined and empty messages arrays in pages", () => {
     const data1: InfiniteData<MessageHistoryResponse> = {
-      pages: [{ messages: [createMessage("msg-1")], hasMore: false }, { messages: [], hasMore: false }],
+      pages: [
+        { messages: [createMessage("msg-1")], hasMore: false },
+        { messages: [], hasMore: false },
+      ],
       pageParams: [undefined, null],
     };
     const result1 = buildMessagesFromPages(data1);
@@ -339,7 +349,10 @@ describe("buildMessagesFromPages", () => {
     expect(result1[0].id).toBe("msg-1");
 
     const data2: InfiniteData<MessageHistoryResponse> = {
-      pages: [{ messages: [], hasMore: false }, { messages: [], hasMore: false }],
+      pages: [
+        { messages: [], hasMore: false },
+        { messages: [], hasMore: false },
+      ],
       pageParams: [undefined, null],
     };
     const result2 = buildMessagesFromPages(data2);
@@ -386,5 +399,45 @@ describe("formatMessageTimestamp", () => {
 
     const result4 = formatMessageTimestamp("2024-01-01T00:00:00Z");
     expect(result4).toMatch(/\d{1,2}:\d{2}/);
+  });
+});
+
+describe("formatDateSeparator", () => {
+  beforeEach(() => {
+    jest.useFakeTimers();
+    jest.setSystemTime(new Date(2026, 1, 21, 12, 0, 0));
+  });
+
+  afterEach(() => {
+    jest.useRealTimers();
+  });
+
+  it("returns Today for messages from the current day", () => {
+    const result = formatDateSeparator(new Date(2026, 1, 21, 8, 15, 0));
+    expect(result).toBe("Today");
+  });
+
+  it("returns Yesterday for messages from one day before", () => {
+    const result = formatDateSeparator(new Date(2026, 1, 20, 23, 59, 0));
+    expect(result).toBe("Yesterday");
+  });
+
+  it("returns full weekday name for 2-6 days ago", () => {
+    const target = new Date(2026, 1, 18, 9, 0, 0);
+    const expected = Intl.DateTimeFormat(undefined, { weekday: "long" }).format(
+      target,
+    );
+    expect(formatDateSeparator(target)).toBe(expected);
+  });
+
+  it("returns short date format for older dates", () => {
+    const target = new Date(2026, 0, 10, 9, 0, 0);
+    const expected = Intl.DateTimeFormat(undefined, {
+      weekday: "short",
+      month: "short",
+      day: "numeric",
+    }).format(target);
+
+    expect(formatDateSeparator(target)).toBe(expected);
   });
 });

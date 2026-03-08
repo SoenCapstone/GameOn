@@ -3,11 +3,10 @@ import {
   View,
   Text,
   StyleSheet,
-  ImageSourcePropType,
   Pressable,
   findNodeHandle,
 } from "react-native";
-import { Image } from "expo-image";
+import { Image, ImageSource } from "expo-image";
 import { useActionSheet } from "@expo/react-native-action-sheet";
 import ContextMenu from "react-native-context-menu-view";
 import { Card } from "@/components/ui/card";
@@ -19,7 +18,7 @@ import TimeAgo from "javascript-time-ago";
 interface PostProps {
   post: BoardPost;
   spaceName: string;
-  spaceLogo: ImageSourcePropType;
+  spaceLogo: ImageSource;
   onDelete?: (postId: string) => void;
   canDelete?: boolean;
 }

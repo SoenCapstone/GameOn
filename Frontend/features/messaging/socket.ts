@@ -1,7 +1,7 @@
 import { Client, IMessage, StompSubscription } from "@stomp/stompjs";
 import { createScopedLog } from "@/utils/logger";
 import { isDevelopment } from "@/utils/runtime";
-import { MessageResponse, SendMessagePayload } from "./types";
+import { MessageResponse, SendMessagePayload } from "@/features/messaging/types";
 
 export type SocketState = "idle" | "connecting" | "connected" | "error";
 
@@ -86,8 +86,9 @@ export class MessagingSocket {
         log.info("Opening WebSocket", {
           url: this.redactUrl(this.currentWsUrl),
         });
-    this.client.binaryWSFrames = true;
-    this.client.forceBinaryWSFrames = true;
+        if (this.client){
+          this.client.forceBinaryWSFrames = true;
+        }
 
         const socket = new WebSocket(this.currentWsUrl, "v12.stomp");
         socket.onclose = (event) => {
@@ -115,7 +116,10 @@ export class MessagingSocket {
         );
       },
       onStompError: (frame) => {
-        log.warn("STOMP error", frame.headers["message"], frame.body);
+        log.warn("STOMP error", {
+          message: frame.headers["message"],
+          body: frame.body,
+        });
         this.setState("error");
       },
       onWebSocketClose: (event) => {

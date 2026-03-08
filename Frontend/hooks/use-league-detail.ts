@@ -1,7 +1,10 @@
 import { useCallback, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useAuth } from "@clerk/clerk-expo";
-import { GO_LEAGUE_SERVICE_ROUTES, useAxiosWithClerk } from "@/hooks/use-axios-clerk";
+import {
+  GO_LEAGUE_SERVICE_ROUTES,
+  useAxiosWithClerk,
+} from "@/hooks/use-axios-clerk";
 import { createScopedLog } from "@/utils/logger";
 
 const log = createScopedLog("League Detail");
@@ -31,9 +34,7 @@ export function useLeagueDetail(id: string) {
     refetchOnWindowFocus: false,
   });
 
-  const {
-    data: myLeagueTeams = [],
-  } = useQuery({
+  const { data: myLeagueTeams = [] } = useQuery({
     queryKey: ["league-memberships", id, userId],
     queryFn: async () => {
       try {
@@ -51,15 +52,36 @@ export function useLeagueDetail(id: string) {
     refetchOnWindowFocus: false,
   });
 
+  const {
+    data: leagueTeams = [],
+    isLoading: isLeagueTeamsLoading,
+    error: leagueTeamsError,
+    refetch: refetchLeagueTeams,
+  } = useQuery({
+    queryKey: ["league-teams", id],
+    queryFn: async () => {
+      try {
+        const resp = await api.get(GO_LEAGUE_SERVICE_ROUTES.TEAMS(id));
+        return resp.data;
+      } catch (err) {
+        log.error("Failed to fetch league teams:", err);
+        throw err;
+      }
+    },
+    enabled: Boolean(id),
+    retry: false,
+    refetchOnWindowFocus: false,
+  });
+
   const onRefresh = useCallback(async () => {
     try {
       setRefreshing(true);
-      await refetch();
+      await Promise.all([refetch(), refetchLeagueTeams()]);
     } finally {
       setRefreshing(false);
     }
     log.info("League page updated");
-  }, [refetch]);
+  }, [refetch, refetchLeagueTeams]);
 
   const handleFollow = useCallback(() => {
     log.info(`User with id ${userId} has followed league with id ${id}`);
@@ -79,5 +101,9 @@ export function useLeagueDetail(id: string) {
     isOwner,
     myLeagueTeams,
     isMember,
+    leagueTeams,
+    isLeagueTeamsLoading,
+    leagueTeamsError,
+    refetchLeagueTeams,
   };
 }

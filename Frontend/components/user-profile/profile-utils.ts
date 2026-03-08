@@ -1,12 +1,12 @@
 import { Alert } from "react-native";
-import { createScopedLog } from "@/utils/logger";
-import * as ImagePicker from "expo-image-picker";
+import { createScopedLog, LoggerProps } from "@/utils/logger";
 import { File } from "expo-file-system";
+import { errorToString } from "@/utils/error";
+import { UserResource } from "@clerk/types";
 
 const log = createScopedLog("Profile");
-
 interface HandleSaveParams {
-  user: any;
+  user: UserResource | null;
   firstName: string;
   lastName: string;
   email: string;
@@ -65,9 +65,9 @@ export const handleSaveProfile = async ({
     }
 
     Alert.alert("Success", "Profile updated");
-  } catch (err: any) {
-    console.error("Fetch error:", err.message);
-    Alert.alert("Error", "Failed to update profile: " + err.message);
+  } catch (err) {
+    log.error("Fetch error:", errorToString(err));
+    Alert.alert("Error", "Failed to update profile: " + errorToString(err));
   }
 
   log.info("Updated Profile:", { firstName, lastName, email, image });
@@ -75,41 +75,7 @@ export const handleSaveProfile = async ({
   router.back();
 };
 
-export const pickImage = async (
-  setImage: (img: { uri: string; mimeType?: string }) => void,
-) => {
-  try {
-    const { granted } = await ImagePicker.requestMediaLibraryPermissionsAsync();
-    if (!granted) {
-      Alert.alert(
-        "Permission denied",
-        "You need to allow access to your media library.",
-      );
-      return;
-    }
-
-    const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ["images"],
-      quality: 0.8,
-      allowsEditing: true,
-      aspect: [1, 1],
-      exif: false,
-    });
-
-    if (!result.canceled && result.assets.length > 0) {
-      const asset = result.assets[0];
-      setImage({
-        uri: asset.uri,
-        mimeType: asset.mimeType || "image/jpeg",
-      });
-    }
-  } catch (err: any) {
-    console.error("Image picker error:", err.message);
-    Alert.alert("Error", "Failed to pick image: " + err.message);
-  }
-};
-
-export const confirmLogout = (signOut: () => void, log: any) => {
+export const confirmLogout = (signOut: () => void, log: LoggerProps) => {
   return () => {
     Alert.alert(
       "Sign Out",

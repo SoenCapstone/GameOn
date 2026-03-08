@@ -11,7 +11,7 @@ type RendererMap = {
     shape: Extract<Shape, { type: K }>,
     isSelected: boolean,
     selectedShapeId: string | null,
-    onSelect: OnSelect
+    onSelect: OnSelect,
   ) => React.ReactElement | null;
 };
 
@@ -40,7 +40,7 @@ const renderers: RendererMap = {
           size={isSelected ? size * 1.25 : size}
           xml={PERSON_SVG.replace(
             /currentColor/g,
-            isSelected ? "#4ade80" : "white"
+            isSelected ? "#4ade80" : "white",
           )}
         />
       </G>
@@ -88,18 +88,22 @@ const renderers: RendererMap = {
 export const useRenderPlayMakerShapes = (
   shapes: Shape[],
   selectedShapeId: string | null,
-  onSelect: OnSelect
+  onSelect: OnSelect,
 ) => {
   return useMemo(() => {
     return shapes
       .map((s) => {
         const isSelected = "id" in s && s.id === selectedShapeId;
-        return renderers[s.type](
-          s as any,
-          isSelected,
-          selectedShapeId,
-          onSelect
-        );
+        switch (s.type) {
+          case "person":
+            return renderers.person(s, isSelected, selectedShapeId, onSelect);
+          case "arrow":
+            return renderers.arrow(s, isSelected, selectedShapeId, onSelect);
+          case "select":
+            return renderers.select(s, isSelected, selectedShapeId, onSelect);
+          default:
+            return null;
+        }
       })
       .filter(Boolean) as React.ReactElement[];
   }, [shapes, selectedShapeId, onSelect]);
@@ -111,7 +115,7 @@ const buildArrowPath = (
   x2: number,
   y2: number,
   headLength = 14,
-  headAngle = Math.PI / 6
+  headAngle = Math.PI / 6,
 ) => {
   const angle = Math.atan2(y2 - y1, x2 - x1);
 

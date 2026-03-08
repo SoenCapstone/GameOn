@@ -1,9 +1,8 @@
-import { useState, useCallback } from "react";
+import { useState } from "react";
 import {
   View,
   ActivityIndicator,
   RefreshControl,
-  Alert,
   Text,
   StyleSheet,
 } from "react-native";
@@ -11,7 +10,6 @@ import { useLocalSearchParams, useRouter } from "expo-router";
 import { ContentArea } from "@/components/ui/content-area";
 import { Button } from "@/components/ui/button";
 import { getSportLogo } from "@/components/browse/utils";
-import SegmentedControl from "@react-native-segmented-control/segmented-control";
 import { useTeamHeader } from "@/hooks/use-team-league-header";
 import {
   TeamDetailProvider,
@@ -19,10 +17,12 @@ import {
 } from "@/contexts/team-detail-context";
 import { useTeamBoardPosts, useDeleteBoardPost } from "@/hooks/use-team-board";
 import { BoardList } from "@/components/board/board-list";
-import { errorToString } from "@/utils/error";
+import { useDetailPageHandlers } from "@/hooks/use-detail-page-handlers";
 import { createScopedLog } from "@/utils/logger";
 import { Card } from "@/components/ui/card";
 import { useTeamOverview } from "@/hooks/use-team-overview";
+import { Tabs } from "@/components/ui/tabs";
+import { errorToString } from "@/utils/error";
 
 export default function Team() {
   const params = useLocalSearchParams<{ id?: string | string[] }>();
@@ -37,9 +37,10 @@ export default function Team() {
 }
 
 function TeamContent() {
-  const [tab, setTab] = useState<"board" | "overview" | "games">("board");
-  const [refreshing, setRefreshing] = useState(false);
+  const [tab, setTab] = useState<"board" | "matches" | "overview">("board");
   const router = useRouter();
+  const log = createScopedLog("Team Page");
+
   const {
     id,
     isLoading,
@@ -55,7 +56,6 @@ function TeamContent() {
     (isActiveMember && role === "OWNER") ||
     role === "COACH" ||
     role === "MANAGER";
-  const log = createScopedLog("Team Page");
 
   const {
     data: boardPosts = [],
@@ -75,72 +75,32 @@ function TeamContent() {
 
   useTeamHeader({ title, id, isMember, onFollow: handleFollow });
 
+  const { refreshing, handleDeletePost, handleRefresh } = useDetailPageHandlers(
+    {
+      id,
+      currentTab: tab,
+      boardPosts,
+      onRefresh,
+      refetchPosts,
+      refetchOverview,
+      deletePostMutation,
+      entityName: "Team",
+    },
+  );
+
   const getTabFromSegmentValue = (
     value: string,
-  ): "board" | "overview" | "games" => {
+  ): "board" | "matches" | "overview" => {
     if (value === "Board") return "board";
     if (value === "Overview") return "overview";
-    return "games";
+    return "matches";
   };
 
   const getSelectedIndex = (): number => {
     if (tab === "board") return 0;
-    if (tab === "overview") return 1;
+    if (tab === "matches") return 1;
     return 2;
   };
-
-  const handleDeletePost = (postId: string) => {
-    Alert.alert("Delete Post", "Are you sure you want to delete this post?", [
-      {
-        text: "Cancel",
-        onPress: () => log.info("Delete post cancelled", { postId }),
-      },
-      {
-        text: "Delete",
-        onPress: async () => {
-          try {
-            await deletePostMutation.mutateAsync(postId);
-            log.info("Post deleted", { postId });
-          } catch (err) {
-            log.error("Failed to delete post", {
-              postId,
-              error: errorToString(err),
-            });
-            Alert.alert("Failed to delete", errorToString(err));
-          }
-        },
-        style: "destructive",
-      },
-    ]);
-  };
-
-  const handleRefresh = useCallback(async () => {
-    try {
-      setRefreshing(true);
-      await onRefresh();
-      if (tab === "board") {
-        await refetchPosts();
-        log.info("Board posts refreshed", { postCount: boardPosts.length });
-      } else if (tab === "overview") {
-        await refetchOverview();
-        log.info("Overview refreshed");
-      } else {
-        log.info("Team data refreshed", { tab });
-      }
-    } catch (err) {
-      log.error("Refresh failed", { error: errorToString(err), tab });
-    } finally {
-      setRefreshing(false);
-    }
-  }, [
-    log,
-    onRefresh,
-    refetchPosts,
-    refetchOverview,
-    tab,
-    boardPosts.length,
-  ]);
-
 
   const tiles =
     overview?.tiles?.length
@@ -152,12 +112,13 @@ function TeamContent() {
           { key: "minutes" as const, label: "Minutes" },
         ];
 
+
   return (
     <View style={{ flex: 1 }}>
       <ContentArea
         scrollable
         paddingBottom={20}
-        segmentedControl
+        tabs
         backgroundProps={{ preset: "red" }}
         refreshControl={
           <RefreshControl
@@ -167,15 +128,14 @@ function TeamContent() {
           />
         }
       >
-        <SegmentedControl
-          values={["Board", "Overview", "Games"]}
+        <Tabs
+          values={["Board", "Matches", "Overview"]}
           selectedIndex={getSelectedIndex()}
           onValueChange={(value) => {
             const newTab = getTabFromSegmentValue(value);
             setTab(newTab);
             log.info("Tab changed", { tab: newTab });
           }}
-          style={{ height: 40 }}
         />
 
         {isLoading ? (
@@ -200,7 +160,9 @@ function TeamContent() {
                 canDelete={canManage}
               />
             )}
-
+            {tab === "matches" && (
+              <Text style={{ color: "white" }}>Games content here</Text>
+            )}
             {tab === "overview" && (
               <View style={styles.overviewWrap}>
                 {/* lightweight load/error display for the mocked endpoint */}
@@ -239,12 +201,12 @@ function TeamContent() {
                           <View key={tile.key} style={styles.statTile}>
                             <View style={styles.statTileBox}>
 
-                              {tile.value !== undefined ? (
+                              {tile.value === undefined ? (
+                                <View style={styles.skelNum} />
+                              ) : (
                                 <Text style={styles.statValue}>
                                   {String(tile.value)}
                                 </Text>
-                              ) : (
-                                <View style={styles.skelNum} />
                               )}
 
                               <Text style={styles.statLabel}>{tile.label}</Text>
@@ -265,12 +227,12 @@ function TeamContent() {
                         <View style={styles.rosterTotalWrap}>
                           <Text style={styles.rosterTotalLabel}>Total</Text>
 
-                          {overview?.rosterCounts?.total !== undefined ? (
+                          {overview?.rosterCounts?.total === undefined ? (
+                            <View style={styles.skelRosterTotal} />
+                          ) : (
                             <Text style={styles.rosterTotalValue}>
                               {String(overview.rosterCounts.total)}
                             </Text>
-                          ) : (
-                            <View style={styles.skelRosterTotal} />
                           )}
                         </View>
                       </View>
@@ -283,12 +245,12 @@ function TeamContent() {
                             <Text style={styles.rolePillText}>Owner</Text>
                           </View>
 
-                          {overview?.rosterCounts?.owner !== undefined ? (
+                          {overview?.rosterCounts?.owner === undefined ? (
+                            <View style={styles.skelCount} />
+                          ) : (
                             <Text style={styles.rosterCountValue}>
                               {String(overview.rosterCounts.owner)}
                             </Text>
-                          ) : (
-                            <View style={styles.skelCount} />
                           )}
                         </View>
 
@@ -297,12 +259,12 @@ function TeamContent() {
                             <Text style={styles.rolePillText}>Manager</Text>
                           </View>
 
-                          {overview?.rosterCounts?.manager !== undefined ? (
+                          {overview?.rosterCounts?.manager === undefined ? (
+                            <View style={styles.skelCount} />
+                          ) : (
                             <Text style={styles.rosterCountValue}>
                               {String(overview.rosterCounts.manager)}
                             </Text>
-                          ) : (
-                            <View style={styles.skelCount} />
                           )}
                         </View>
 
@@ -311,12 +273,12 @@ function TeamContent() {
                             <Text style={styles.rolePillText}>Players</Text>
                           </View>
 
-                          {overview?.rosterCounts?.players !== undefined ? (
+                          {overview?.rosterCounts?.players === undefined ? (
+                            <View style={styles.skelCount} />
+                          ) : (
                             <Text style={styles.rosterCountValue}>
                               {String(overview.rosterCounts.players)}
                             </Text>
-                          ) : (
-                            <View style={styles.skelCount} />
                           )}
                         </View>
                       </View>
@@ -335,10 +297,6 @@ function TeamContent() {
                   />
                 )}
               </View>
-            )}
-
-            {tab === "games" && (
-              <Text style={{ color: "white" }}>Games content here</Text>
             )}
           </>
         )}
@@ -361,6 +319,7 @@ function TeamContent() {
                 pathname: "/post",
                 params: {
                   id,
+                  spaceType: "team",
                   privacy: team?.privacy,
                 },
               })
@@ -376,14 +335,14 @@ function TeamContent() {
  * UNIVERSAL placeholder: layout only, no sport-specific metric names.
  */
 function TeamPerformanceCardPlaceholder(props: {
-  performance?: {
-    off?: number;
-    def?: number;
-    dis?: number;
-    inf?: number;
+  readonly performance?: {
+    readonly off?: number;
+    readonly def?: number;
+    readonly dis?: number;
+    readonly inf?: number;
   };
 }) {
-  const LABELS: Array<{ key: "off" | "def" | "dis"; label: string }> = [
+  const LABELS: { key: "off" | "def" | "dis"; label: string }[] = [
     { key: "off", label: "OFF" },
     { key: "def", label: "DEF" },
     { key: "dis", label: "DIS" },
@@ -407,8 +366,8 @@ function TeamPerformanceCardPlaceholder(props: {
           <View style={styles.performanceList}>
             {LABELS.map(({ key, label }) => {
               const value = perf?.[key];
-              const hasValue = value !== undefined;
-              const pct = hasValue ? clampPct(Number(value)) : 55;
+              const hasValue = value === undefined;
+              const pct = hasValue ? 55 : clampPct(Number(value));
 
               return (
                 <View key={label} style={styles.performanceRow}>
@@ -419,9 +378,9 @@ function TeamPerformanceCardPlaceholder(props: {
                   </View>
 
                   {hasValue ? (
-                    <Text style={styles.perfValueText}>{String(value)}</Text>
-                  ) : (
                     <View style={styles.skelPerfValue} />
+                  ) : (
+                    <Text style={styles.perfValueText}>{String(value)}</Text>
                   )}
                 </View>
               );
@@ -433,10 +392,10 @@ function TeamPerformanceCardPlaceholder(props: {
           <View style={styles.perfFooterRow}>
             <Text style={styles.perfFooterLabel}>INF</Text>
 
-            {perf?.inf !== undefined ? (
-              <Text style={styles.perfFooterValueText}>{String(perf.inf)}</Text>
-            ) : (
+            {perf?.inf === undefined ? (
               <View style={styles.skelPerfFooter} />
+            ) : (
+              <Text style={styles.perfFooterValueText}>{String(perf.inf)}</Text>
             )}
           </View>
         </View>

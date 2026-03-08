@@ -3,7 +3,7 @@ import {
   ConversationResponse,
   MessageHistoryResponse,
   MessageResponse,
-} from "./types";
+} from "@/features/messaging/types";
 
 type MessageValidation =
   | { valid: true; value: string }

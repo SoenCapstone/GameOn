@@ -1,15 +1,10 @@
-import React from "react";
-import {
-  View,
-  Text,
-  ActivityIndicator,
-  StyleSheet,
-  ImageSourcePropType,
-} from "react-native";
+import React, { ComponentRef } from "react";
+import { View, Text, ActivityIndicator, StyleSheet } from "react-native";
 import { BoardPost } from "@/components/board/board-types";
 import { Post } from "@/components/board/post";
 import { LegendList } from "@legendapp/list";
 import { createScopedLog } from "@/utils/logger";
+import { ImageSource } from "expo-image";
 
 const log = createScopedLog("BoardList");
 
@@ -17,7 +12,7 @@ interface BoardListProps {
   posts: BoardPost[];
   isLoading: boolean;
   spaceName: string;
-  spaceLogo: ImageSourcePropType;
+  spaceLogo: ImageSource;
   onDeletePost?: (postId: string) => void;
   canDelete?: boolean;
 }
@@ -30,7 +25,7 @@ export function BoardList({
   onDeletePost,
   canDelete = false,
 }: Readonly<BoardListProps>) {
-  const listRef = React.useRef<any>(null);
+  const listRef = React.useRef<ComponentRef<typeof LegendList>>(null);
 
   const handleContentSizeChange = React.useCallback(() => {
     listRef.current?.scrollToIndex({ index: 0, animated: true });

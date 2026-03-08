@@ -1,4 +1,4 @@
-import { Shape, ShapeTool, EndpointShape, SHAPE_CONFIG } from "./model";
+import { Shape, ShapeTool, EndpointShape, SHAPE_CONFIG } from "@/components/play-maker/model";
 import * as Crypto from "expo-crypto";
 
 export const scanBoard = (

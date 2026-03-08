@@ -1,11 +1,11 @@
-import { ImageSourcePropType } from "react-native";
+import { ImageSource } from "expo-image";
 
 export interface SearchResult {
   id: string;
   type: "team" | "league" | "tournament";
   name: string;
   subtitle: string;
-  logo: ImageSourcePropType;
+  logo: ImageSource;
   league?: string;
   sport: string;
   location: string;
@@ -43,12 +43,7 @@ export interface SearchModeConfig {
   type: SearchResult["type"];
 }
 
-export const BROWSE_MODES: SearchModeConfig[] = [
-  { key: "teams", label: "Teams", type: "team" },
-  { key: "leagues", label: "Leagues", type: "league" },
-];
-
-export const SPACES_MODES: SearchModeConfig[] = [
+export const Tabs: SearchModeConfig[] = [
   { key: "teams", label: "Teams", type: "team" },
   { key: "leagues", label: "Leagues", type: "league" },
   { key: "tournaments", label: "Tournaments", type: "tournament" },

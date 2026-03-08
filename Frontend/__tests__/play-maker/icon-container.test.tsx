@@ -1,6 +1,6 @@
 import React from "react";
 import { render } from "@testing-library/react-native";
-import { IconContainer } from "../../components/play-maker/play-maker-icon/icon-container";
+import { IconContainer } from "@/components/play-maker/play-maker-icon/icon-container";
 import { SvgXml } from "react-native-svg";
 
 jest.mock("react-native-svg", () => {

@@ -20,4 +20,6 @@ public interface LeagueTeamRepository extends JpaRepository<LeagueTeam, UUID> {
 
     @Query("select distinct lt.league.id from LeagueTeam lt where lt.teamId in :teamIds")
     List<UUID> findLeagueIdsByTeamIdIn(@Param("teamIds") Collection<UUID> teamIds);
+
+    boolean existsByLeague_IdAndTeamIdIn(UUID leagueId, Collection<UUID> teamIds);
 }

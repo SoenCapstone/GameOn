@@ -2,17 +2,30 @@ import React from "react";
 import { render, fireEvent, waitFor } from "@testing-library/react-native";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Alert } from "react-native";
-import CreateTeamScreen from "@/app/(contexts)/teams/create-team";
+import CreateTeamScreen from "@/app/(contexts)/teams/create";
 
 const mockBack = jest.fn();
+const mockSetOptions = jest.fn();
 
 jest.mock("expo-router", () => ({
   useRouter: () => ({ back: mockBack }),
 }));
 
-const mockPost: jest.Mock<any, any> = jest.fn(async () => ({
-  data: { id: "team-1", slug: "test-team" },
+jest.mock("@react-navigation/native", () => ({
+  useNavigation: () => ({ setOptions: mockSetOptions }),
 }));
+
+const mockPost: jest.Mock<
+  Promise<{ data: { id: string; slug: string } }>,
+  [unknown, { name: string; sport: string; location: string; privacy: string }]
+> = jest.fn(
+  async (
+    _arg1: unknown,
+    _arg2: { name: string; sport: string; location: string; privacy: string },
+  ) => ({
+    data: { id: "team-1", slug: "test-team" },
+  }),
+);
 
 jest.mock("@/hooks/use-axios-clerk", () => ({
   useAxiosWithClerk: () => ({
@@ -25,12 +38,25 @@ jest.mock("@/hooks/use-axios-clerk", () => ({
 }));
 
 jest.mock("@/components/ui/content-area", () => ({
-  ContentArea: ({ children }: any) => children,
+  ContentArea: ({ children }: { children?: React.ReactNode }) => children,
 }));
 
-jest.mock("@/components/teams/logo-picker", () => ({
-  TeamLogoSection: () => null,
-}));
+jest.mock("@/hooks/use-team-form", () => {
+  const actual = jest.requireActual("@/hooks/use-team-form");
+  const { SPORTS, CITIES } = jest.requireActual("@/constants/form-constants");
+  return {
+    ...actual,
+    useTeamForm: (props?: Parameters<typeof actual.useTeamForm>[0]) => {
+      const result = actual.useTeamForm(props);
+      return {
+        ...result,
+        // Pre-fill sport and city so tests don't need to open native pickers
+        selectedSport: result.selectedSport ?? SPORTS[0],
+        selectedCity: result.selectedCity ?? CITIES[1],
+      };
+    },
+  };
+});
 
 let queryClient: QueryClient;
 
@@ -56,6 +82,16 @@ function renderScreen() {
   );
 }
 
+function getCreateButton() {
+  const opts =
+    mockSetOptions.mock.calls[mockSetOptions.mock.calls.length - 1]?.[0];
+  const Header = opts?.headerTitle;
+  if (!Header || typeof Header !== "function")
+    throw new Error("headerTitle not set");
+  const { getByText } = render(<Header />);
+  return getByText("Create");
+}
+
 describe("CreateTeamScreen", () => {
   beforeEach(() => {
     jest.clearAllMocks();
@@ -67,9 +103,9 @@ describe("CreateTeamScreen", () => {
 
   it("shows validation errors when required fields missing", () => {
     const alertSpy = jest.spyOn(Alert, "alert");
-    const { getByText } = renderScreen();
+    renderScreen();
 
-    fireEvent.press(getByText("Create Team"));
+    fireEvent.press(getCreateButton());
 
     expect(alertSpy).toHaveBeenCalledWith(
       "Team creation failed",
@@ -78,19 +114,17 @@ describe("CreateTeamScreen", () => {
   });
 
   it("creates team with PRIVATE privacy by default", async () => {
-    const { getByPlaceholderText, getByText } = renderScreen();
+    const { getByPlaceholderText } = renderScreen();
 
-    fireEvent.changeText(getByPlaceholderText("Team Name"), "My Team");
-    fireEvent.press(getByText("Sports"));
-    fireEvent.press(getByText("Soccer"));
-    fireEvent.press(getByText("Location"));
-    fireEvent.press(getByText("Toronto"));
-
-    fireEvent.press(getByText("Create Team"));
+    fireEvent.changeText(getByPlaceholderText("Enter team name"), "My Team");
+    fireEvent.press(getCreateButton());
 
     await waitFor(() => expect(mockPost).toHaveBeenCalled());
 
-    const [, payload] = mockPost.mock.calls[0] as any[];
+    const [, payload] = mockPost.mock.calls[0] as [
+      unknown,
+      { name: string; sport: string; location: string; privacy: string },
+    ];
     expect(payload).toMatchObject({
       name: "My Team",
       sport: "soccer",
@@ -100,14 +134,10 @@ describe("CreateTeamScreen", () => {
   });
 
   it("navigates back after successful creation", async () => {
-    const { getByPlaceholderText, getByText } = renderScreen();
+    const { getByPlaceholderText } = renderScreen();
 
-    fireEvent.changeText(getByPlaceholderText("Team Name"), "Nav Team");
-    fireEvent.press(getByText("Sports"));
-    fireEvent.press(getByText("Soccer"));
-    fireEvent.press(getByText("Location"));
-    fireEvent.press(getByText("Toronto"));
-    fireEvent.press(getByText("Create Team"));
+    fireEvent.changeText(getByPlaceholderText("Enter team name"), "Nav Team");
+    fireEvent.press(getCreateButton());
 
     await waitFor(() => expect(mockBack).toHaveBeenCalled());
   });

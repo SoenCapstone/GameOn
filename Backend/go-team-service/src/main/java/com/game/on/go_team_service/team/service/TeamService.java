@@ -497,6 +497,50 @@ public class TeamService {
         return playId;
     }
 
+    @Transactional(readOnly = true)
+    public List<PlayItemDTO> getPlayItems(UUID teamId, UUID playId) {
+        String userId = userProvider.clerkUserId();
+
+        requireActiveTeam(teamId);
+        requireActiveMembership(teamId, userId);
+        ensurePlayBelongsToTeam(playId, teamId);
+
+        var nodes = playNodeRepository.findByPlayId(playId);
+        var edges = playEdgeRepository.findByPlayIdWithNodes(playId);
+
+        return toPlayItemDTOs(nodes, edges);
+    }
+
+    private static List<PlayItemDTO> toPlayItemDTOs(List<PlayNode> nodes, List<PlayEdge> edges) {
+        List<PlayItemDTO> items = new ArrayList<>(nodes.size() + edges.size());
+
+        for (PlayNode n : nodes) {
+            items.add(new PersonNodeDTO(
+                    n.getId(),
+                    n.getX(),
+                    n.getY(),
+                    n.getSize(),
+                    n.getAssociatedPlayerId()
+            ));
+        }
+
+        for (PlayEdge e : edges) {
+            items.add(new ArrowDTO(
+                    e.getId(),
+                    new NodeRefDTO(e.getFrom().getId()),
+                    new NodeRefDTO(e.getTo().getId())
+            ));
+        }
+
+        return items;
+    }
+
+    private void ensurePlayBelongsToTeam(UUID playId, UUID teamId) {
+        if (!playRepository.existsByIdAndTeam_Id(playId, teamId)) {
+            throw new ForbiddenException("Play does not belong to this team");
+        }
+    }
+
     private Team requireActiveTeam(UUID teamId) {
         return teamRepository.findByIdAndDeletedAtIsNull(teamId)
                 .orElseThrow(() -> new NotFoundException("Team not found"));
