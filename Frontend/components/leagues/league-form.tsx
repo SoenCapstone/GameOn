@@ -27,8 +27,8 @@ interface LeagueFormLogo {
 
 interface LeagueFormOnChange {
   readonly onLeagueNameChange: (name: string) => void;
-  readonly onSportChange: (sport: Option | null) => void;
-  readonly onLevelChange: (level: Option | null) => void;
+  readonly onSportChange: (sport: Option | undefined) => void;
+  readonly onLevelChange: (level: Option | undefined) => void;
   readonly onLocationChange: (location: string) => void;
   readonly onPickLogo: () => void;
   readonly onRemoveLogo: () => void;
