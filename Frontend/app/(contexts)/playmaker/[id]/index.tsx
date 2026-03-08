@@ -4,6 +4,7 @@ import {
   RefreshControl,
   StyleSheet,
   Alert,
+  ImageBackground,
 } from "react-native";
 import { useLocalSearchParams, useNavigation } from "expo-router";
 import { ContentArea } from "@/components/ui/content-area";
@@ -16,7 +17,6 @@ import { Header } from "@/components/header/header";
 import { Button } from "@/components/ui/button";
 import { PageTitle } from "@/components/header/page-title";
 import type { Shape } from "@/components/play-maker/model";
-
 import {
   GO_TEAM_SERVICE_ROUTES,
   useAxiosWithClerk,
@@ -60,7 +60,9 @@ function PlaymakerHeader({ title, saving, onSave }: PlaymakerHeaderProps) {
     <Header
       left={<Button type="back" />}
       center={<PageTitle title={title} subtitle="Playmaker" />}
-      right={<Button type="custom" label="Save" onPress={onSave} loading={saving} />}
+      right={
+        <Button type="custom" label="Save" onPress={onSave} loading={saving} />
+      }
     />
   );
 }
@@ -68,24 +70,43 @@ function PlaymakerHeader({ title, saving, onSave }: PlaymakerHeaderProps) {
 export default function PlayMaker() {
   const params = useLocalSearchParams<{ id?: string | string[] }>();
   const rawId = params.id;
-  const id = Array.isArray(rawId) ? rawId[0] : rawId ?? "";
+  const id = Array.isArray(rawId) ? rawId[0] : (rawId ?? "");
 
   return (
     <TeamDetailProvider id={id}>
-      <PlayMakerContent />
+      <PlayMakerScreen />
     </TeamDetailProvider>
   );
 }
 
-function PlayMakerContent() {
-  const { isLoading, refreshing, onRefresh, title, id: teamId } =
-    useTeamDetailContext();
+const BACKGROUND_OPTIONS = {
+  soccer: require("@/assets/images/play-maker/soccer_stadium.png"),
+  basketball: require("@/assets/images/play-maker/basketball_stadium.png"),
+  hockey: require("@/assets/images/play-maker/hockey_stadium.png"),
+  volleyball: require("@/assets/images/play-maker/volleyball_stadium.png"),
+  default: require("@/assets/images/play-maker/generic_stadium.png"),
+} as const;
+
+function PlayMakerScreen() {
+  const {
+    team,
+    isLoading,
+    refreshing,
+    onRefresh,
+    title,
+    id: teamId,
+  } = useTeamDetailContext();
 
   const navigation = useNavigation();
   const api = useAxiosWithClerk();
 
   const latestShapesRef = useRef<Shape[]>([]);
   const [saving, setSaving] = useState(false);
+
+  const sport = team?.sport?.toLowerCase?.() ?? "default";
+  const backgroundSource =
+    BACKGROUND_OPTIONS[sport as keyof typeof BACKGROUND_OPTIONS] ??
+    BACKGROUND_OPTIONS.default;
 
   const handleShapesChange = useCallback((shapes: Shape[]) => {
     latestShapesRef.current = shapes;
@@ -117,7 +138,7 @@ function PlayMakerContent() {
 
   const headerTitle = useCallback(
     () => <PlaymakerHeader title={title} saving={saving} onSave={onSave} />,
-    [title, saving, onSave]
+    [title, saving, onSave],
   );
 
   useLayoutEffect(() => {
@@ -125,24 +146,32 @@ function PlayMakerContent() {
   }, [navigation, headerTitle]);
 
   return (
-    <ContentArea
-      paddingBottom={60}
-      backgroundProps={{ preset: "red" }}
-      refreshControl={
-        <RefreshControl
-          refreshing={refreshing}
-          onRefresh={onRefresh}
-          tintColor="#fff"
-        />
-      }
+    <ImageBackground
+      source={backgroundSource}
+      style={styles.bg}
+      resizeMode="cover"
     >
-      <PlayMakerArea styles={styles} onShapesChange={handleShapesChange} />
-      {isLoading ? <ActivityIndicator size="small" color="#fff" /> : null}
-    </ContentArea>
+      <ContentArea
+        paddingBottom={60}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={onRefresh}
+            tintColor="#fff"
+          />
+        }
+      >
+        <PlayMakerArea styles={styles} onShapesChange={handleShapesChange} />
+        {isLoading ? <ActivityIndicator size="small" color="#fff" /> : null}
+      </ContentArea>
+    </ImageBackground>
   );
 }
 
 const styles = StyleSheet.create({
+  bg: {
+    flex: 1,
+  },
   container: { flex: 1 },
   boardWrapper: { height: "50%" },
   shapeArea: {
