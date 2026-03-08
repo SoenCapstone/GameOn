@@ -1,5 +1,4 @@
 import { Alert } from "react-native";
-import { RelativePathString } from "expo-router";
 import { AxiosError } from "axios";
 import { Venue } from "@/features/matches/types";
 import { getScheduleApiErrorMessage } from "@/utils/schedule-errors";
@@ -40,16 +39,6 @@ export function parseDraftDate(value?: string): Date | undefined {
   const parsed = new Date(value);
   if (Number.isNaN(parsed.getTime())) return undefined;
   return parsed;
-}
-
-export function navigateToMatchesTab(
-  replace: (value: {
-    pathname: RelativePathString;
-    params: { tab: "matches" };
-  }) => void,
-  pathname: RelativePathString,
-) {
-  replace({ pathname, params: { tab: "matches" } });
 }
 
 export function showScheduleSubmitError(

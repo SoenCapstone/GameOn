@@ -15,12 +15,15 @@ import {
   GO_TEAM_SERVICE_ROUTES,
   useAxiosWithClerk,
 } from "@/hooks/use-axios-clerk";
-import { useCreateTeamMatch, useReferees, useTeamVenues } from "@/hooks/use-matches";
+import {
+  useCreateTeamMatch,
+  useReferees,
+  useTeamVenues,
+} from "@/hooks/use-matches";
 import { buildStartEndIso, isValidTimeRange } from "@/features/matches/utils";
 import {
   buildVenueOptionMaps,
   buildVenueOptions,
-  navigateToMatchesTab,
   parseDraftDate,
   resolveSelectedVenueLabel,
   showScheduleSubmitError,
@@ -239,10 +242,10 @@ export default function ScheduleTeamMatchScreen() {
       } else {
         toast("Match scheduled");
       }
-      navigateToMatchesTab(
-        router.replace,
-        `/teams/${teamId}` as RelativePathString,
-      );
+      router.dismissTo({
+        pathname: `/teams/${teamId}` as RelativePathString,
+        params: { tab: "matches" },
+      });
     } catch (err) {
       showScheduleSubmitError(
         err,
@@ -310,7 +313,8 @@ export default function ScheduleTeamMatchScreen() {
           onVenueChange={(label) => setVenueId(venueLabelToId[label] ?? "")}
           onAddVenue={() =>
             router.push({
-              pathname: `/teams/${teamId}/matches/add-venue` as RelativePathString,
+              pathname:
+                `/teams/${teamId}/matches/add-venue` as RelativePathString,
               params: {
                 id: teamId,
                 homeTeamId: teamId,

@@ -13,7 +13,6 @@ import { AccentColors } from "@/constants/colors";
 import {
   buildVenueOptionMaps,
   buildVenueOptions,
-  navigateToMatchesTab,
   parseDraftDate,
   resolveSelectedVenueLabel,
   showScheduleSubmitError,
@@ -244,16 +243,12 @@ export default function ScheduleLeagueMatchScreen() {
         queryKey: ["league-matches", leagueId],
       });
       toast("Match scheduled");
-      navigateToMatchesTab(
-        router.replace,
-        `/leagues/${leagueId}` as RelativePathString,
-      );
+      router.dismissTo({
+        pathname: `/leagues/${leagueId}` as RelativePathString,
+        params: { tab: "matches" },
+      });
     } catch (err) {
-      showScheduleSubmitError(
-        err,
-        "You must be league admin",
-        handleSubmit,
-      );
+      showScheduleSubmitError(err, "You must be league admin", handleSubmit);
     }
   }, [
     awayTeamId,
