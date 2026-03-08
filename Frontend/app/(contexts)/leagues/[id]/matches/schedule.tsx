@@ -1,30 +1,52 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Alert } from "react-native";
-import { useLocalSearchParams, useNavigation, useRouter } from "expo-router";
+import {
+  RelativePathString,
+  useLocalSearchParams,
+  useNavigation,
+  useRouter,
+} from "expo-router";
 import { useQueryClient } from "@tanstack/react-query";
 import { ContentArea } from "@/components/ui/content-area";
 import { Form } from "@/components/form/form";
 import { AccentColors } from "@/constants/colors";
 import {
+  buildVenueOptionMaps,
+  buildVenueOptions,
+  resolveSelectedVenueLabel,
+} from "@/features/matches/schedule-shared";
+import {
   useCreateLeagueMatch,
   useLeagueTeams,
+  useLeagueVenues,
   useReferees,
   useTeamsByIds,
 } from "@/hooks/use-matches";
 import { useLeagueDetail } from "@/hooks/use-league-detail";
 import { buildStartEndIso, isValidTimeRange } from "@/features/matches/utils";
 import { toast } from "@/components/sign-up/utils";
+import { parseDraftDate } from "@/utils/date";
 import { createScopedLog } from "@/utils/logger";
+import { showScheduleSubmitError } from "@/utils/schedule-errors";
 import { useRefereeOptions } from "@/hooks/use-referee-options";
-import { getScheduleApiErrorMessage } from "@/utils/schedule-errors";
 import { MatchDetailsSection } from "@/components/matches/match-details-section";
 import { useScheduleHeader } from "@/hooks/use-schedule-header";
-import { AxiosError } from "axios";
 
 const log = createScopedLog("Schedule League Match");
 
 export default function ScheduleLeagueMatchScreen() {
-  const params = useLocalSearchParams<{ id?: string; newVenue?: string }>();
+  const params = useLocalSearchParams<{
+    id?: string;
+    newVenueId?: string;
+    newVenueName?: string;
+    draftHomeTeamId?: string;
+    draftAwayTeamId?: string;
+    draftDate?: string;
+    draftStartTime?: string;
+    draftEndTime?: string;
+    draftVenueId?: string;
+    draftRefereeUserId?: string;
+  }>();
   const leagueId = params.id ?? "";
   const navigation = useNavigation();
   const router = useRouter();
@@ -38,13 +60,43 @@ export default function ScheduleLeagueMatchScreen() {
   const [endTimeValue, setEndTimeValue] = useState(
     new Date(Date.now() + 60 * 60 * 1000),
   );
-  const [venue, setVenue] = useState("");
+  const [venueId, setVenueId] = useState("");
 
   useEffect(() => {
-    if (params.newVenue) {
-      setVenue(params.newVenue);
+    if (params.newVenueId) {
+      setVenueId(params.newVenueId);
     }
-  }, [params.newVenue]);
+  }, [params.newVenueId]);
+
+  useEffect(() => {
+    if (params.draftHomeTeamId) {
+      setHomeTeamId(params.draftHomeTeamId);
+    }
+    if (params.draftAwayTeamId) {
+      setAwayTeamId(params.draftAwayTeamId);
+    }
+    const draftDate = parseDraftDate(params.draftDate);
+    if (draftDate) setDate(draftDate);
+    const draftStart = parseDraftDate(params.draftStartTime);
+    if (draftStart) setStartTimeValue(draftStart);
+    const draftEnd = parseDraftDate(params.draftEndTime);
+    if (draftEnd) setEndTimeValue(draftEnd);
+    if (params.draftVenueId && !params.newVenueId) {
+      setVenueId(params.draftVenueId);
+    }
+    if (params.draftRefereeUserId) {
+      setRefereeUserId(params.draftRefereeUserId);
+    }
+  }, [
+    params.draftAwayTeamId,
+    params.draftDate,
+    params.draftEndTime,
+    params.draftHomeTeamId,
+    params.draftRefereeUserId,
+    params.draftStartTime,
+    params.draftVenueId,
+    params.newVenueId,
+  ]);
 
   const { league } = useLeagueDetail(leagueId);
   const { data: leagueTeams = [] } = useLeagueTeams(leagueId);
@@ -59,6 +111,27 @@ export default function ScheduleLeagueMatchScreen() {
         .map((teamId) => teamsQuery.data?.[teamId])
         .filter((team): team is NonNullable<typeof team> => Boolean(team)),
     [teamIds, teamsQuery.data],
+  );
+
+  const venuesQuery = useLeagueVenues({
+    homeTeamId: homeTeamId || undefined,
+    awayTeamId: awayTeamId || undefined,
+    enabled: Boolean(leagueId),
+  });
+  const refetchVenues = venuesQuery.refetch;
+
+  const venueOptions = useMemo(
+    () => buildVenueOptions(venuesQuery.data),
+    [venuesQuery.data],
+  );
+  const { venueLabelToId, venueIdToLabel } = useMemo(
+    () => buildVenueOptionMaps(venueOptions),
+    [venueOptions],
+  );
+  const selectedVenueLabel = resolveSelectedVenueLabel(
+    venueId,
+    venueIdToLabel,
+    params.newVenueName,
   );
 
   const refereesQuery = useReferees({
@@ -92,11 +165,23 @@ export default function ScheduleLeagueMatchScreen() {
       log.error("Failed to load league teams for schedule", teamsQuery.error);
       Alert.alert("Load error", "Could not load teams. Please retry.");
     }
+    if (venuesQuery.error) {
+      log.error("Failed to load league venues for schedule", venuesQuery.error);
+      Alert.alert("Load error", "Could not load venues. Please retry.");
+    }
     if (refereesQuery.error) {
       log.error("Failed to load referees for schedule", refereesQuery.error);
       Alert.alert("Load error", "Could not load referees. Please retry.");
     }
-  }, [refereesQuery.error, teamsQuery.error]);
+  }, [refereesQuery.error, teamsQuery.error, venuesQuery.error]);
+
+  useEffect(() => {
+    if (params.newVenueId) {
+      refetchVenues().catch((err) => {
+        log.error("Failed to refresh venues after venue creation", err);
+      });
+    }
+  }, [params.newVenueId, refetchVenues]);
 
   const handleSubmit = useCallback(async () => {
     if (!homeTeamId) {
@@ -125,6 +210,10 @@ export default function ScheduleLeagueMatchScreen() {
       Alert.alert("Match schedule failed", "End time is required");
       return;
     }
+    if (!venueId) {
+      Alert.alert("Match schedule failed", "Venue is required");
+      return;
+    }
     if (!isValidTimeRange(date, startTimeValue, endTimeValue)) {
       Alert.alert("Match schedule failed", "End time must be after start time");
       return;
@@ -146,7 +235,7 @@ export default function ScheduleLeagueMatchScreen() {
         awayTeamId,
         startTime,
         endTime,
-        matchLocation: venue || undefined,
+        venueId,
         refereeUserId,
       });
 
@@ -154,20 +243,12 @@ export default function ScheduleLeagueMatchScreen() {
         queryKey: ["league-matches", leagueId],
       });
       toast("Match scheduled");
-      router.back();
+      router.dismissTo({
+        pathname: `/leagues/${leagueId}` as RelativePathString,
+        params: { tab: "matches" },
+      });
     } catch (err) {
-      const { status, message } = getScheduleApiErrorMessage(
-        err as AxiosError<{ message?: string }>,
-        "You must be league admin",
-      );
-      if (status === 0) {
-        Alert.alert("Network error", message, [
-          { text: "Cancel", style: "cancel" },
-          { text: "Retry", onPress: handleSubmit },
-        ]);
-      } else {
-        Alert.alert("Schedule failed", message);
-      }
+      showScheduleSubmitError(err, "You must be league admin", handleSubmit);
     }
   }, [
     awayTeamId,
@@ -180,7 +261,7 @@ export default function ScheduleLeagueMatchScreen() {
     router,
     startTimeValue,
     endTimeValue,
-    venue,
+    venueId,
   ]);
 
   useScheduleHeader({
@@ -226,13 +307,29 @@ export default function ScheduleLeagueMatchScreen() {
           date={date}
           startTimeValue={startTimeValue}
           endTimeValue={endTimeValue}
-          venue={venue}
+          venue={selectedVenueLabel}
+          venueOptions={venueOptions.map((venue) => venue.label)}
           onDateChange={setDate}
           onStartTimeChange={setStartTimeValue}
           onEndTimeChange={setEndTimeValue}
-          onVenueChange={setVenue}
+          onVenueChange={(label) => setVenueId(venueLabelToId[label] ?? "")}
           onAddVenue={() =>
-            router.push(`/leagues/${leagueId}/matches/add-venue`)
+            router.push({
+              pathname:
+                `/leagues/${leagueId}/matches/add-venue` as RelativePathString,
+              params: {
+                id: leagueId,
+                homeTeamId,
+                awayTeamId,
+                draftHomeTeamId: homeTeamId,
+                draftAwayTeamId: awayTeamId,
+                draftDate: date.toISOString(),
+                draftStartTime: startTimeValue.toISOString(),
+                draftEndTime: endTimeValue.toISOString(),
+                draftVenueId: venueId,
+                draftRefereeUserId: refereeUserId,
+              },
+            })
           }
         />
 

@@ -4,8 +4,10 @@ import { useLeagueDetail } from "@/hooks/use-league-detail";
 import { MatchDetailsContent } from "@/components/matches/match-details-content";
 import { useMatchPresentation } from "@/hooks/use-match-presentation";
 import {
+  useLeagueVenue,
   useLeaguesByIds,
   useLeagueMatches,
+  useTeamVenue,
   useTeamMatches,
   useTeamMatch,
 } from "@/hooks/use-matches";
@@ -15,6 +17,21 @@ import {
   getMatchScores,
   getTeamContextLeagueId,
 } from "@/utils/match-details";
+
+function renderMatchLoadingState(
+  isMatchLoading: boolean,
+  displayMatch: unknown,
+) {
+  if (isMatchLoading && !displayMatch) {
+    return (
+      <View style={styles.loading}>
+        <ActivityIndicator size="small" color="#fff" />
+      </View>
+    );
+  }
+
+  return null;
+}
 
 export default function MatchDetailsScreen() {
   const params = useLocalSearchParams<{
@@ -48,6 +65,21 @@ export default function MatchDetailsScreen() {
   const { league } = useLeagueDetail(context === "league" ? contextId : "");
 
   const displayMatch = leagueMatch || match;
+  const venueId = displayMatch?.venueId ?? "";
+  const isLeagueContextMatch = Boolean(
+    displayMatch && "leagueId" in displayMatch,
+  );
+  const teamVenueQuery = useTeamVenue(
+    venueId,
+    Boolean(venueId) && !isLeagueContextMatch,
+  );
+  const leagueVenueQuery = useLeagueVenue(
+    venueId,
+    Boolean(venueId) && isLeagueContextMatch,
+  );
+  const venue = isLeagueContextMatch
+    ? leagueVenueQuery.data
+    : teamVenueQuery.data;
   const { homeScore, awayScore } = getMatchScores(displayMatch);
   const HomeName = params.homeName?.trim() || "Home Team";
   const AwayName = params.awayName?.trim() || "Away Team";
@@ -74,13 +106,10 @@ export default function MatchDetailsScreen() {
     teamMatchLoading: teamMatchQuery.isLoading,
     teamMatchesLoading: teamMatchesQuery.isLoading,
   });
+  const loadingState = renderMatchLoadingState(isMatchLoading, displayMatch);
 
-  if (isMatchLoading && !displayMatch) {
-    return (
-      <View style={styles.loading}>
-        <ActivityIndicator size="small" color="#fff" />
-      </View>
-    );
+  if (loadingState) {
+    return loadingState;
   }
 
   if (!displayMatch) {
@@ -100,7 +129,15 @@ export default function MatchDetailsScreen() {
       sport={displayMatch.sport}
       contextLabel={contextLabel}
       refereeName={refereeName}
-      venueName={displayMatch.matchLocation}
+      venueName={venue?.name ?? displayMatch.matchLocation}
+      venueLocationLabel={venue ? `${venue.city}, ${venue.province}` : null}
+      venueAddress={
+        venue
+          ? `${venue.street}, ${venue.city}, ${venue.province} ${venue.postalCode}, ${venue.country}`
+          : null
+      }
+      venueLatitude={venue?.latitude}
+      venueLongitude={venue?.longitude}
     />
   );
 }

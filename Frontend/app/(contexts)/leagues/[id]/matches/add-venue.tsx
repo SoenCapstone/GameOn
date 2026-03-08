@@ -7,6 +7,7 @@ export default function AddLeagueVenueScreen() {
   return (
     <AddVenueScreen
       entityId={leagueId}
+      contextType="league"
       schedulePathname={
         `/leagues/${leagueId}/matches/schedule` as RelativePathString
       }
