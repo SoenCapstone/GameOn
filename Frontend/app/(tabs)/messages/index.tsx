@@ -1,4 +1,11 @@
-import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
+import {
+  ComponentRef,
+  useEffect,
+  useLayoutEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import { ContentArea } from "@/components/ui/content-area";
 import {
   ActivityIndicator,
@@ -7,7 +14,6 @@ import {
   Text,
   View,
 } from "react-native";
-import SegmentedControl from "@react-native-segmented-control/segmented-control";
 import { LegendList } from "@legendapp/list";
 import { useNavigation, useRouter } from "expo-router";
 import { Header } from "@/components/header/header";
@@ -18,9 +24,11 @@ import { useMessagingContext } from "@/features/messaging/provider";
 import { useAuth } from "@clerk/clerk-expo";
 import {
   useConversationsQuery,
+  useMyTeams,
   useUserDirectory,
 } from "@/features/messaging/hooks";
 import { Chat, type ChatItem } from "@/components/messages/chat";
+import { Tabs } from "@/components/ui/tabs";
 
 function MessagesHeader({
   socketState,
@@ -50,8 +58,9 @@ export default function Messages() {
   const { userId } = useAuth();
   const { data, isLoading, refetch, isRefetching } = useConversationsQuery();
   const { data: users } = useUserDirectory();
+  const { data: myTeams } = useMyTeams();
   const [filter, setFilter] = useState<"all" | "direct" | "group">("all");
-  const listRef = useRef<any>(null);
+  const listRef = useRef<ComponentRef<typeof LegendList>>(null);
 
   const plusRoute =
     filter === "group" ? "/messages/new/group" : "/messages/new/message";
@@ -75,6 +84,14 @@ export default function Messages() {
     });
     return map;
   }, [users]);
+
+  const teamLogoMap = useMemo(() => {
+    const map = new Map<string, string>();
+    myTeams?.forEach((team) => {
+      if (team.logoUrl) map.set(team.id, team.logoUrl);
+    });
+    return map;
+  }, [myTeams]);
 
   const listData = useMemo<ChatItem[]>(() => {
     if (!data) return [];
@@ -107,6 +124,10 @@ export default function Messages() {
         } else {
           subtitle = "Team chat";
         }
+        const imageUrl =
+          isGroup && conversation.teamId
+            ? (teamLogoMap.get(conversation.teamId) ?? null)
+            : null;
         return {
           id: conversation.id,
           title,
@@ -114,13 +135,14 @@ export default function Messages() {
           preview,
           timestamp,
           group: isGroup,
+          imageUrl: imageUrl ?? undefined,
         } satisfies ChatItem;
       });
-  }, [data, filter, userId, userMap]);
+  }, [data, filter, userId, userMap, teamLogoMap]);
 
   useEffect(() => {
     listRef.current?.scrollToIndex({ index: 0, animated: true });
-  }, [listData.length]);
+  }, [listData]);
 
   const openConversation = (id: string) => router.push(`/messages/${id}`);
 
@@ -129,7 +151,7 @@ export default function Messages() {
   return (
     <ContentArea
       scrollable
-      segmentedControl
+      tabs
       backgroundProps={{ preset: "green" }}
       refreshControl={
         <RefreshControl
@@ -139,7 +161,7 @@ export default function Messages() {
         />
       }
     >
-      <SegmentedControl
+      <Tabs
         values={["All", "Direct", "Groups"]}
         selectedIndex={selectedIndex}
         onValueChange={(value) => {
@@ -147,7 +169,6 @@ export default function Messages() {
           else if (value === "Direct") setFilter("direct");
           else setFilter("group");
         }}
-        style={styles.segmented}
       />
 
       {isLoading || isRefetching ? (
@@ -179,12 +200,9 @@ export default function Messages() {
 }
 
 const styles = StyleSheet.create({
-  segmented: {
-    height: 40,
-  },
   listContent: {
-    marginTop: 8,
-    paddingHorizontal: 14,
+    marginTop: 4,
+    paddingHorizontal: 8,
   },
   separator: {
     height: StyleSheet.hairlineWidth,

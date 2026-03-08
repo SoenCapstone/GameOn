@@ -6,7 +6,7 @@ jest.mock("@/components/header/header", () => {
   const mockReact = jest.requireActual("react");
   const mockView = jest.requireActual("react-native").View;
   return {
-    Header: (props: any) =>
+    Header: (props: Record<string, unknown>) =>
       mockReact.createElement(
         mockView,
         { testID: "header" },
@@ -23,7 +23,7 @@ jest.mock("@/components/ui/button", () => {
     jest.requireActual("react-native").TouchableOpacity;
   const mockText = jest.requireActual("react-native").Text;
   return {
-    Button: (props: any) => {
+    Button: (props: Record<string, unknown>) => {
       const testID = `header-button-${props.type}-${props.label || props.route || props.icon}`;
       return mockReact.createElement(
         mockTouchableOpacity,
@@ -42,7 +42,7 @@ jest.mock("@/components/header/page-title", () => {
   const mockReact = jest.requireActual("react");
   const mockText = jest.requireActual("react-native").Text;
   return {
-    PageTitle: (props: any) =>
+    PageTitle: (props: Record<string, unknown>) =>
       mockReact.createElement(
         mockText,
         { testID: "page-title", ...props },
