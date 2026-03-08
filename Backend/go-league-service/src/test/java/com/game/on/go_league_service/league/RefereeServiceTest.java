@@ -67,6 +67,7 @@ class RefereeServiceTest {
 
         when(refInviteRepository.findByMatchIdAndRefereeUserIdAndStatus(matchId, "ref_1", RefInviteStatus.PENDING))
                 .thenReturn(Optional.of(invite));
+        when(refInviteRepository.save(invite)).thenReturn(invite);
 
         refereeService.acceptRefInvite(matchId);
 

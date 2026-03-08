@@ -14,11 +14,15 @@ import com.game.on.go_messaging_service.exception.ForbiddenException;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
+import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Import;
+import org.springframework.data.auditing.DateTimeProvider;
 
 import java.time.OffsetDateTime;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -26,7 +30,11 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.when;
 
 @DataJpaTest
-@Import({ConversationService.class, ConversationMapper.class})
+@Import({
+        ConversationService.class,
+        ConversationMapper.class,
+        ConversationServiceTest.TestAuditConfig.class
+})
 class ConversationServiceTest {
 
     @Autowired
@@ -37,6 +45,14 @@ class ConversationServiceTest {
 
     @MockBean
     private TeamDirectoryService teamDirectoryService;
+
+    @TestConfiguration
+    static class TestAuditConfig {
+        @Bean(name = "auditingDateTimeProvider")
+        DateTimeProvider auditingDateTimeProvider() {
+            return () -> Optional.of(OffsetDateTime.now());
+        }
+    }
 
     @Test
     void createDirectConversation_createsParticipants() {

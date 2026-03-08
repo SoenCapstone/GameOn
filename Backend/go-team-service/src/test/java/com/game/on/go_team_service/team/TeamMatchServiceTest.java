@@ -66,13 +66,12 @@ class TeamMatchServiceTest {
         awayTeam.setOwnerUserId(otherUserId);
         awayTeam.setSport("soccer");
         awayTeam.setAllowedRegions(List.of("Montreal"));
-
-        when(teamRepository.findByIdAndDeletedAtIsNull(homeTeamId)).thenReturn(Optional.of(homeTeam));
-        when(teamRepository.findByIdAndDeletedAtIsNull(awayTeamId)).thenReturn(Optional.of(awayTeam));
     }
 
     @Test
     void createMatchInvite_whenCallerNotOwner_throwsForbidden() {
+        when(teamRepository.findByIdAndDeletedAtIsNull(homeTeamId)).thenReturn(Optional.of(homeTeam));
+        when(teamRepository.findByIdAndDeletedAtIsNull(awayTeamId)).thenReturn(Optional.of(awayTeam));
         when(userProvider.clerkUserId()).thenReturn(otherUserId);
 
         TeamMatchCreateRequest request = new TeamMatchCreateRequest(
