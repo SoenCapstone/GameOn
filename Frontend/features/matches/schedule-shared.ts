@@ -12,7 +12,7 @@ export type VenueOption = {
 export function buildVenueOptions(venues: Venue[] | undefined): VenueOption[] {
   return (venues ?? []).map((venue) => ({
     id: venue.id,
-    label: `${venue.name} - ${venue.city}`,
+    label: venue.name,
   }));
 }
 
@@ -32,10 +32,7 @@ export function resolveSelectedVenueLabel(
   venueIdToLabel: Record<string, string>,
   newVenueName?: string,
 ) {
-  return (
-    (venueId ? venueIdToLabel[venueId] : undefined) ??
-    (newVenueName ? `${newVenueName} - New` : "")
-  );
+  return (venueId ? venueIdToLabel[venueId] : undefined) ?? (newVenueName ?? "");
 }
 
 export function parseDraftDate(value?: string): Date | undefined {

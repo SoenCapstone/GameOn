@@ -284,7 +284,7 @@ describe("ScheduleTeamMatchScreen", () => {
       expect(getByTestId("menu-away-team-rivals")).toBeTruthy(),
     );
     fireEvent.press(getByTestId("menu-away-team-rivals"));
-    fireEvent.press(getByTestId("menu-venue-stadium---montreal"));
+    fireEvent.press(getByTestId("menu-venue-stadium"));
     await waitForSubmitRefresh(renderCount);
     await submitSchedule();
 
@@ -318,7 +318,7 @@ describe("ScheduleTeamMatchScreen", () => {
       expect(getByTestId("menu-away-team-rivals")).toBeTruthy(),
     );
     fireEvent.press(getByTestId("menu-away-team-rivals"));
-    fireEvent.press(getByTestId("menu-venue-stadium---montreal"));
+    fireEvent.press(getByTestId("menu-venue-stadium"));
     renderCount = await waitForSubmitRefresh(renderCount);
     fireEvent.press(getByTestId("switch-official-match"));
     renderCount = await waitForSubmitRefresh(renderCount);

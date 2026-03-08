@@ -18,6 +18,21 @@ import {
   getTeamContextLeagueId,
 } from "@/utils/match-details";
 
+function renderMatchLoadingState(
+  isMatchLoading: boolean,
+  displayMatch: unknown,
+) {
+  if (isMatchLoading && !displayMatch) {
+    return (
+      <View style={styles.loading}>
+        <ActivityIndicator size="small" color="#fff" />
+      </View>
+    );
+  }
+
+  return null;
+}
+
 export default function MatchDetailsScreen() {
   const params = useLocalSearchParams<{
     id?: string;
@@ -91,13 +106,10 @@ export default function MatchDetailsScreen() {
     teamMatchLoading: teamMatchQuery.isLoading,
     teamMatchesLoading: teamMatchesQuery.isLoading,
   });
+  const loadingState = renderMatchLoadingState(isMatchLoading, displayMatch);
 
-  if (isMatchLoading && !displayMatch) {
-    return (
-      <View style={styles.loading}>
-        <ActivityIndicator size="small" color="#fff" />
-      </View>
-    );
+  if (loadingState) {
+    return loadingState;
   }
 
   if (!displayMatch) {
@@ -118,6 +130,7 @@ export default function MatchDetailsScreen() {
       contextLabel={contextLabel}
       refereeName={refereeName}
       venueName={venue?.name ?? displayMatch.matchLocation}
+      venueLocationLabel={venue ? `${venue.city}, ${venue.province}` : null}
       venueAddress={
         venue
           ? `${venue.street}, ${venue.city}, ${venue.province} ${venue.postalCode}, ${venue.country}`
