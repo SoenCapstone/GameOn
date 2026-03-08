@@ -19,6 +19,7 @@ import TimeAgo from "javascript-time-ago";
 import en from "javascript-time-ago/locale/en.json";
 import { StripeProvider } from "@stripe/stripe-react-native";
 import { RefereeProvider } from "@/contexts/referee-context";
+import { HeaderHeightProvider } from "@/contexts/header-height-context";
 
 TimeAgo.addDefaultLocale(en);
 
@@ -29,9 +30,14 @@ export default function RootLayout() {
   SystemUI.setBackgroundColorAsync("black");
 
   const stripeKey = process.env.EXPO_PUBLIC_STRIPE_PUBLISHABLE_KEY;
+  const clerkKey = process.env.EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY;
 
   if (!stripeKey) {
     throw new Error("Missing EXPO_PUBLIC_STRIPE_PUBLISHABLE_KEY");
+  }
+
+  if (!clerkKey) {
+    throw new Error("Missing EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY");
   }
 
   return (
@@ -43,7 +49,7 @@ export default function RootLayout() {
       <KeyboardProvider>
         <ClerkProvider
           tokenCache={tokenCache}
-          publishableKey={process.env.EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY!}
+          publishableKey={clerkKey}
         >
           <QueryClientProvider client={queryClient}>
             <FeatureFlagsProvider>
@@ -53,7 +59,8 @@ export default function RootLayout() {
                 <ActionSheetProvider>
                   <SearchProvider>
                     <RefereeProvider>
-                      <ClerkLoaded>
+                      <HeaderHeightProvider>
+                        <ClerkLoaded>
                         <Stack>
                           <Stack.Screen
                             name="(auth)"
@@ -79,7 +86,8 @@ export default function RootLayout() {
                           />
                         </Stack>
                         <StatusBar style="auto" />
-                      </ClerkLoaded>
+                        </ClerkLoaded>
+                      </HeaderHeightProvider>
                     </RefereeProvider>
                   </SearchProvider>
                 </ActionSheetProvider>

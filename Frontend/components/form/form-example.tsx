@@ -81,7 +81,7 @@ export function FormExample() {
         <Form.Color
           label="Accent Color"
           selection={accentColor}
-          onValueChanged={setAccentColor}
+          onSelectionChange={setAccentColor}
           onChangeText={setAccentColor}
         />
       </Form.Section>
