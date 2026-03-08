@@ -9,6 +9,7 @@ interface DetailPageHandlersConfig {
   boardPosts: unknown[];
   onRefresh: () => Promise<void>;
   refetchPosts: () => Promise<unknown>; // React Query refetch returns QueryObserverResult
+  refetchOverview?: () => Promise<unknown>; // Optional overview refetch
   deletePostMutation: {
     mutateAsync: (postId: string) => Promise<void>;
   };
@@ -21,6 +22,7 @@ export function useDetailPageHandlers({
   boardPosts,
   onRefresh,
   refetchPosts,
+  refetchOverview,
   deletePostMutation,
   entityName,
 }: DetailPageHandlersConfig) {
@@ -59,6 +61,9 @@ export function useDetailPageHandlers({
       if (currentTab === "board") {
         await refetchPosts();
         log.info("Board posts refreshed", { postCount: boardPosts.length });
+      } else if (currentTab === "overview" && refetchOverview) {
+        await refetchOverview();
+        log.info("Overview data refreshed");
       } else {
         log.info(`${entityName} data refreshed`, { tab: currentTab });
       }
@@ -70,7 +75,7 @@ export function useDetailPageHandlers({
     } finally {
       setRefreshing(false);
     }
-  }, [log, onRefresh, refetchPosts, currentTab, boardPosts.length, entityName]);
+  }, [log, onRefresh, refetchPosts, refetchOverview, currentTab, boardPosts.length, entityName]);
 
   return {
     refreshing,
