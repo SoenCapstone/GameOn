@@ -49,12 +49,14 @@ export function Tabs({
 const styles = StyleSheet.create({
   scroll: {
     position: "absolute",
+    left: 0,
+    right: 0,
     overflow: "visible",
-    paddingHorizontal: 20,
   },
   content: {
     flexDirection: "row",
     gap: 8,
+    paddingHorizontal: 20,
   },
   pressable: {
     height: 40,
