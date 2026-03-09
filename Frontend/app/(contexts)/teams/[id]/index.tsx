@@ -41,6 +41,14 @@ import { errorToString } from "@/utils/error";
 
 type TeamTab = "board" | "matches" | "overview";
 
+const TeamTabs: readonly TeamTab[] = ["board", "matches", "overview"] as const;
+
+const TeamTabLabels: Record<TeamTab, string> = {
+  board: "Board",
+  matches: "Matches",
+  overview: "Overview",
+};
+
 export default function Team() {
   const params = useLocalSearchParams<{ id?: string | string[] }>();
   const rawId = params.id;
@@ -75,9 +83,8 @@ function TeamContent() {
     team,
   } = useTeamDetailContext();
   const canManage =
-    (isActiveMember && role === "OWNER") ||
-    role === "COACH" ||
-    role === "MANAGER";
+    isActiveMember &&
+    (role === "OWNER" || role === "COACH" || role === "MANAGER");
 
   const {
     data: boardPosts = [],
@@ -206,18 +213,7 @@ function TeamContent() {
     },
   );
 
-  function parseTeamTab(value?: string): TeamTab {
-    const normalized = value?.toLowerCase();
-    if (normalized === "matches") return "matches";
-    if (normalized === "overview") return "overview";
-    return "board";
-  }
-
-  const getSelectedIndex = (): number => {
-    if (tab === "board") return 0;
-    if (tab === "matches") return 1;
-    return 2;
-  };
+  const selectedIndex = getTeamTabIndex(tab);
 
   const tiles = overview?.tiles?.length
     ? overview.tiles
@@ -244,10 +240,13 @@ function TeamContent() {
         }
       >
         <Tabs
-          values={["Board", "Matches", "Overview"]}
-          selectedIndex={getSelectedIndex()}
+          values={TeamTabs.map((teamTab) => TeamTabLabels[teamTab])}
+          selectedIndex={selectedIndex}
           onValueChange={(value) => {
-            const newTab = parseTeamTab(value);
+            const index = TeamTabs.findIndex(
+              (teamTab) => TeamTabLabels[teamTab] === value,
+            );
+            const newTab = index >= 0 ? TeamTabs[index] : "board";
             setTab(newTab);
             log.info("Tab changed", { tab: newTab });
           }}
@@ -477,6 +476,15 @@ function TeamContent() {
       ) : null}
     </View>
   );
+}
+
+function parseTeamTab(value?: string): TeamTab {
+  const normalized = value?.toLowerCase() as TeamTab | undefined;
+  return TeamTabs.find((teamTab) => teamTab === normalized) ?? "board";
+}
+
+function getTeamTabIndex(tab: TeamTab): number {
+  return TeamTabs.indexOf(tab);
 }
 
 /**
