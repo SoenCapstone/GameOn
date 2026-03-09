@@ -74,7 +74,7 @@ export function AddVenueScreen({
     name.trim() &&
       street.trim() &&
       city.trim() &&
-      province.trim() &&
+      province?.trim() &&
       postalCode.trim(),
   );
 
@@ -125,7 +125,7 @@ export function AddVenueScreen({
     const payloadAddress = {
       street: street.trim(),
       city: city.trim(),
-      province: province.trim(),
+      province: province!.trim(),
       postalCode: postalCode.trim(),
       country,
     };
