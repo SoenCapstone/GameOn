@@ -1,5 +1,6 @@
 package com.game.on.go_team_service;
 
+import com.game.on.common.dto.UserResponse;
 import com.game.on.go_team_service.client.UserClient;
 import com.game.on.go_team_service.config.CurrentUserProvider;
 import com.game.on.go_team_service.exception.BadRequestException;
@@ -294,6 +295,89 @@ class TeamServiceTest {
         assertEquals(TeamInviteStatus.ACCEPTED, invite.getStatus());
         assertNotNull(invite.getRespondedAt());
         assertEquals(callerUserId, invite.getInviteeUserId());
+    }
+
+    @Test
+    void createInvite_whenRosterIsFull_throwsBadRequest() {
+        UUID teamId = UUID.randomUUID();
+        TeamInviteCreateRequest request = new TeamInviteCreateRequest(
+                teamId,
+                "invitee_999",
+                TeamRole.PLAYER,
+                OffsetDateTime.now().plusDays(3)
+        );
+
+        Team team = new Team();
+        team.setId(teamId);
+        team.setMaxRoster(2);
+
+        TeamMember caller = new TeamMember();
+        caller.setRole(TeamRole.OWNER);
+        caller.setStatus(TeamMemberStatus.ACTIVE);
+
+        UserResponse invitee = new UserResponse(
+                "invitee_999",
+                "invitee@test.com",
+                "John",
+                "Doe"
+        );
+
+        when(teamRepository.findByIdAndDeletedAtIsNull(teamId))
+                .thenReturn(Optional.of(team));
+
+        when(teamMemberRepository.findByTeamIdAndUserId(teamId, callerUserId))
+                .thenReturn(Optional.of(caller));
+
+        when(userClient.getUserById("invitee_999")).thenReturn(invitee);
+
+        when(teamMemberRepository.existsByTeamIdAndUserId(teamId, "invitee_999"))
+                .thenReturn(false);
+
+        when(teamMemberRepository.countByTeamIdAndStatus(teamId, TeamMemberStatus.ACTIVE))
+                .thenReturn(2L);
+
+        assertThrows(BadRequestException.class, () -> teamService.createInvite(request));
+
+        verify(teamInviteRepository, never()).save(any());
+        verify(metricsPublisher, never()).inviteSent();
+    }
+
+    @Test
+    void acceptInvite_whenRosterIsFull_throwsBadRequest() {
+        UUID inviteId = UUID.randomUUID();
+        TeamInvitationReply reply = new TeamInvitationReply(inviteId, true);
+
+        Team team = new Team();
+        team.setId(teamId);
+        team.setMaxRoster(3);
+
+        TeamInvite invite = new TeamInvite();
+        invite.setId(inviteId);
+        invite.setTeam(team);
+        invite.setStatus(TeamInviteStatus.PENDING);
+        invite.setInviteeUserId(callerUserId);
+        invite.setRole(TeamRole.PLAYER);
+        invite.setExpiresAt(OffsetDateTime.now().plusDays(1));
+
+        when(teamInviteRepository.findByIdAndStatus(inviteId, TeamInviteStatus.PENDING))
+                .thenReturn(Optional.of(invite));
+
+        when(teamRepository.findByIdAndDeletedAtIsNull(teamId))
+                .thenReturn(Optional.of(team));
+
+        when(teamMemberRepository.existsByTeamIdAndUserId(teamId, callerUserId))
+                .thenReturn(false);
+
+        when(teamMemberRepository.countByTeamIdAndStatus(teamId, TeamMemberStatus.ACTIVE))
+                .thenReturn(3L);
+
+        assertThrows(BadRequestException.class, () -> teamService.acceptInvite(reply));
+
+        verify(teamMemberRepository, never()).save(any());
+        verify(teamInviteRepository, never()).save(argThat(savedInvite ->
+                savedInvite.getStatus() == TeamInviteStatus.ACCEPTED
+        ));
+        verify(metricsPublisher, never()).inviteAccepted();
     }
 
     @Test
