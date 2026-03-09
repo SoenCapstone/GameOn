@@ -32,7 +32,7 @@ const flattenStyle = (style: unknown) =>
 describe("ContentArea", () => {
   it("renders children", () => {
     const { getByText } = render(
-      <ContentArea backgroundProps={{ preset: "blue" }}>
+      <ContentArea background={{ preset: "blue" }}>
         <Text>Child content</Text>
       </ContentArea>,
     );
@@ -42,7 +42,7 @@ describe("ContentArea", () => {
 
   it("always renders as KeyboardAwareScrollView", () => {
     const { UNSAFE_getByType } = render(
-      <ContentArea backgroundProps={{ preset: "blue" }}>
+      <ContentArea background={{ preset: "blue" }}>
         <Text>Content</Text>
       </ContentArea>,
     );
@@ -52,7 +52,7 @@ describe("ContentArea", () => {
 
   it("applies automatic content inset adjustment behavior", () => {
     const { UNSAFE_getByType } = render(
-      <ContentArea backgroundProps={{ preset: "blue" }}>
+      <ContentArea background={{ preset: "blue" }}>
         <Text>Content</Text>
       </ContentArea>,
     );
@@ -65,7 +65,7 @@ describe("ContentArea", () => {
   it("applies style to the scroll content container", () => {
     const { UNSAFE_getByType } = render(
       <ContentArea
-        backgroundProps={{ preset: "blue" }}
+        background={{ preset: "blue" }}
         style={{ justifyContent: "space-between", paddingBottom: 50 }}
       >
         <Text>Content</Text>
@@ -91,7 +91,7 @@ describe("ContentArea", () => {
 
     const { UNSAFE_getByType } = render(
       <ContentArea
-        backgroundProps={{ preset: "blue" }}
+        background={{ preset: "blue" }}
         refreshControl={refreshControl}
       >
         <Text>Content</Text>
@@ -106,7 +106,7 @@ describe("ContentArea", () => {
   it("renders tabs as a fixed overlay when tabs prop is provided", () => {
     const { getByTestId } = render(
       <ContentArea
-        backgroundProps={{ preset: "blue" }}
+        background={{ preset: "blue" }}
         tabs={{
           values: ["Tab1", "Tab2"],
           selectedIndex: 0,
@@ -122,7 +122,7 @@ describe("ContentArea", () => {
 
   it("does not render tabs when tabs prop is not provided", () => {
     const { queryByTestId } = render(
-      <ContentArea backgroundProps={{ preset: "blue" }}>
+      <ContentArea background={{ preset: "blue" }}>
         <Text>Content</Text>
       </ContentArea>,
     );
@@ -133,7 +133,7 @@ describe("ContentArea", () => {
   it("renders toolbar when toolbar prop is provided", () => {
     const { getByTestId } = render(
       <ContentArea
-        backgroundProps={{ preset: "blue" }}
+        background={{ preset: "blue" }}
         toolbar={<Text testID="toolbar">Toolbar</Text>}
       >
         <Text>Content</Text>
@@ -145,7 +145,7 @@ describe("ContentArea", () => {
 
   it("does not render toolbar when toolbar prop is not provided", () => {
     const { queryByTestId } = render(
-      <ContentArea backgroundProps={{ preset: "blue" }}>
+      <ContentArea background={{ preset: "blue" }}>
         <Text>Content</Text>
       </ContentArea>,
     );

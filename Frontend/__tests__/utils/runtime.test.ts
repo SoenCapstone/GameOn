@@ -2,6 +2,22 @@ beforeEach(() => {
   jest.resetModules();
 });
 
+type RuntimeModule = typeof import("@/utils/runtime");
+
+const loadRuntime = (): RuntimeModule => {
+  let runtimeModule: RuntimeModule | undefined;
+
+  jest.isolateModules(() => {
+    runtimeModule = jest.requireActual("@/utils/runtime") as RuntimeModule;
+  });
+
+  if (!runtimeModule) {
+    throw new TypeError("Runtime module failed to load.");
+  }
+
+  return runtimeModule;
+};
+
 const mockExpo = (inExpoGo: boolean) => {
   jest.doMock("expo", () => ({
     __esModule: true,
@@ -27,7 +43,7 @@ describe("isRunningInExpoGo", () => {
     mockExpo(true);
     mockConstants("bare");
     mockPlatform("ios");
-    const { isRunningInExpoGo, runtime } = require("@/utils/runtime");
+    const { isRunningInExpoGo, runtime } = loadRuntime();
     expect(isRunningInExpoGo).toBe(true);
     expect(runtime.isRunningInExpoGo).toBe(true);
   });
@@ -36,7 +52,7 @@ describe("isRunningInExpoGo", () => {
     mockExpo(false);
     mockConstants("bare");
     mockPlatform("ios");
-    const { isRunningInExpoGo } = require("@/utils/runtime");
+    const { isRunningInExpoGo } = loadRuntime();
     expect(isRunningInExpoGo).toBe(false);
   });
 });
@@ -46,7 +62,7 @@ describe("isBareWorkflow / isStandaloneApp", () => {
     mockExpo(false);
     mockConstants("bare");
     mockPlatform("ios");
-    const { isBareWorkflow, isStandaloneApp } = require("@/utils/runtime");
+    const { isBareWorkflow, isStandaloneApp } = loadRuntime();
     expect(isBareWorkflow).toBe(true);
     expect(isStandaloneApp).toBe(false);
   });
@@ -55,7 +71,7 @@ describe("isBareWorkflow / isStandaloneApp", () => {
     mockExpo(false);
     mockConstants("standalone");
     mockPlatform("ios");
-    const { isBareWorkflow, isStandaloneApp } = require("@/utils/runtime");
+    const { isBareWorkflow, isStandaloneApp } = loadRuntime();
     expect(isBareWorkflow).toBe(false);
     expect(isStandaloneApp).toBe(true);
   });
@@ -64,7 +80,7 @@ describe("isBareWorkflow / isStandaloneApp", () => {
     mockExpo(false);
     mockConstants(undefined);
     mockPlatform("ios");
-    const { isBareWorkflow, isStandaloneApp } = require("@/utils/runtime");
+    const { isBareWorkflow, isStandaloneApp } = loadRuntime();
     expect(isBareWorkflow).toBe(false);
     expect(isStandaloneApp).toBe(false);
   });
@@ -75,7 +91,7 @@ describe("platform flags", () => {
     mockExpo(false);
     mockConstants("bare");
     mockPlatform("ios", "18.0");
-    const { isIOS, isAndroid, runtime } = require("@/utils/runtime");
+    const { isIOS, isAndroid, runtime } = loadRuntime();
     expect(isIOS).toBe(true);
     expect(isAndroid).toBe(false);
     expect(runtime.platformOS).toBe("ios");
@@ -86,7 +102,7 @@ describe("platform flags", () => {
     mockExpo(false);
     mockConstants("bare");
     mockPlatform("android", 34);
-    const { isIOS, isAndroid, runtime } = require("@/utils/runtime");
+    const { isIOS, isAndroid, runtime } = loadRuntime();
     expect(isIOS).toBe(false);
     expect(isAndroid).toBe(true);
     expect(runtime.platformOS).toBe("android");
@@ -99,7 +115,7 @@ describe("runtime object", () => {
     mockExpo(true);
     mockConstants("bare");
     mockPlatform("ios");
-    const { runtime } = require("@/utils/runtime");
+    const { runtime } = loadRuntime();
     expect(runtime.isRunningInExpoGo).toBe(true);
     expect(runtime.isBareWorkflow).toBe(true);
     expect(runtime.isStandaloneApp).toBe(false);
