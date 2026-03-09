@@ -9,7 +9,10 @@ import {
 } from "react-native";
 import { Image } from "expo-image";
 import { getSportLogo } from "@/components/browse/utils";
-import { formatMatchDateTime } from "@/features/matches/utils";
+import {
+  formatMatchDateTime,
+  isCancelledMatchStatus,
+} from "@/features/matches/utils";
 import { Card } from "@/components/ui/card";
 import { useActionSheet } from "@expo/react-native-action-sheet";
 import ContextMenu from "react-native-context-menu-view";
@@ -51,7 +54,7 @@ export function MatchCard({
   const anchorRef = useRef<View>(null);
 
   const renderCenterValue = () => {
-    if (status === "CANCELLED") {
+    if (isCancelledMatchStatus(status)) {
       return <Text style={styles.pending}>Cancelled</Text>;
     }
 

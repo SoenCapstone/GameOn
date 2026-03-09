@@ -1,8 +1,11 @@
-import { StyleSheet, Text, View } from "react-native";
+import { Alert, Linking, StyleSheet, Text, View } from "react-native";
 import { Image } from "expo-image";
 import { getSportLogo } from "@/components/browse/utils";
-import { formatMatchDateTime } from "@/features/matches/utils";
-import MapView from "react-native-maps";
+import {
+  formatMatchDateTime,
+  isCancelledMatchStatus,
+} from "@/features/matches/utils";
+import MapView, { Marker } from "react-native-maps";
 import { IconSymbol } from "@/components/ui/icon-symbol";
 
 interface MatchDetailsContentProps {
@@ -18,6 +21,10 @@ interface MatchDetailsContentProps {
   readonly contextLabel: string;
   readonly refereeName?: string;
   readonly venueName?: string | null;
+  readonly venueLocationLabel?: string | null;
+  readonly venueAddress?: string | null;
+  readonly venueLatitude?: number | null;
+  readonly venueLongitude?: number | null;
 }
 
 export function MatchDetailsContent({
@@ -33,10 +40,63 @@ export function MatchDetailsContent({
   contextLabel,
   refereeName,
   venueName,
+  venueLocationLabel,
+  venueAddress,
+  venueLatitude,
+  venueLongitude,
 }: Readonly<MatchDetailsContentProps>) {
   const hasScore = homeScore != null && awayScore != null;
+  const isCancelled = isCancelledMatchStatus(status);
   const centerValue =
-    status === "CANCELLED" ? "Cancelled" : formatMatchDateTime(startTime);
+    isCancelled ? "Cancelled" : formatMatchDateTime(startTime);
+  const hasCoordinates =
+    typeof venueLatitude === "number" && typeof venueLongitude === "number";
+  const hasVenue = Boolean(venueName?.trim());
+  const hasReferee = Boolean(refereeName?.trim());
+  const venueMetaLabel = venueLocationLabel?.trim()
+    ? `${venueName}, ${venueLocationLabel}`
+    : venueName;
+  const mapRegion = {
+    latitude: venueLatitude as number,
+    longitude: venueLongitude as number,
+    latitudeDelta: 0.01,
+    longitudeDelta: 0.01,
+  };
+
+  const openVenueDirections = async () => {
+    const label = encodeURIComponent(venueName ?? "Venue");
+    const query = encodeURIComponent(
+      venueAddress?.trim() || venueName?.trim() || "Venue",
+    );
+    const appleMapsUrl = hasCoordinates
+      ? `https://maps.apple.com/?daddr=${venueLatitude},${venueLongitude}&q=${label}`
+      : `https://maps.apple.com/?daddr=${query}`;
+
+    const canOpenAppleMaps = await Linking.canOpenURL(appleMapsUrl);
+    if (canOpenAppleMaps) {
+      await Linking.openURL(appleMapsUrl);
+      return;
+    }
+
+    Alert.alert(
+      "Maps unavailable",
+      "Could not open Apple Maps for directions on this device.",
+    );
+  };
+
+  const handleMapPress = () => {
+    if (!venueName && !venueAddress) return;
+
+    Alert.alert("Open in Maps", "Get directions to this venue in Maps.", [
+      { text: "Cancel", style: "cancel" },
+      {
+        text: "Open",
+        onPress: () => {
+          void openVenueDirections();
+        },
+      },
+    ]);
+  };
 
   return (
     <View style={styles.container}>
@@ -55,17 +115,17 @@ export function MatchDetailsContent({
               <Text style={styles.context} numberOfLines={1}>
                 {contextLabel}
               </Text>
-              {status === "CANCELLED" && (
+              {isCancelled && (
                 <Text style={styles.pending}>Cancelled</Text>
               )}
-              {status !== "CANCELLED" && hasScore && (
+              {!isCancelled && hasScore && (
                 <View style={styles.result}>
                   <Text style={styles.score}>{homeScore}</Text>
                   <Text style={styles.dash}>-</Text>
                   <Text style={styles.score}>{awayScore}</Text>
                 </View>
               )}
-              {status !== "CANCELLED" && !hasScore && (
+              {!isCancelled && !hasScore && (
                 <Text style={styles.date}>{centerValue}</Text>
               )}
             </View>
@@ -96,26 +156,38 @@ export function MatchDetailsContent({
           <MapView
             style={styles.map}
             mapPadding={{ top: 8, right: 8, bottom: 8, left: 8 }}
-            zoomEnabled={false}
+            region={mapRegion}
             rotateEnabled={false}
             pitchEnabled={false}
-          />
+          >
+            {hasCoordinates ? (
+              <Marker
+                onPress={handleMapPress}
+                coordinate={{
+                  latitude: venueLatitude,
+                  longitude: venueLongitude,
+                }}
+              />
+            ) : null}
+          </MapView>
         </View>
 
         <View style={styles.metaBlock}>
-          {venueName ? (
-            <View style={styles.venue}>
+          {hasVenue ? (
+            <View style={styles.metaRow}>
               <IconSymbol name="mappin.and.ellipse" color="727272" size={18} />
-              <View style={{ flexDirection: "row", gap: 4 }}>
+              <View style={styles.metaTextRow}>
                 <Text style={styles.meta}>Venue:</Text>
-                <Text style={styles.metaWhite}>{venueName}</Text>
+                <Text style={styles.metaWhite} numberOfLines={2}>
+                  {venueMetaLabel}
+                </Text>
               </View>
             </View>
           ) : null}
-          {refereeName ? (
-            <View style={styles.referee}>
+          {hasReferee ? (
+            <View style={styles.metaRow}>
               <IconSymbol name="flag.fill" color="727272" size={15} />
-              <View style={{ flexDirection: "row", gap: 4 }}>
+              <View style={styles.metaTextRow}>
                 <Text style={styles.meta}>Referee:</Text>
                 <Text style={styles.metaWhite}>{refereeName}</Text>
               </View>
@@ -206,15 +278,15 @@ const styles = StyleSheet.create({
   },
   view: {
     width: "100%",
-    height: 238,
+    height: 220,
     alignItems: "center",
     justifyContent: "center",
     padding: 3,
     borderWidth: 1,
     borderColor: "rgba(108,108,113,0.35)",
     borderRadius: 34,
-    marginTop: 38,
-    marginBottom: 18,
+    marginTop: 30,
+    marginBottom: 14,
   },
   map: {
     width: "100%",
@@ -226,15 +298,18 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     gap: 8,
   },
-  venue: {
+  metaRow: {
     flexDirection: "row",
     gap: 8,
+    alignItems: "flex-start",
   },
-  referee: {
+  metaTextRow: {
     flexDirection: "row",
-    gap: 8,
+    gap: 4,
+    flex: 1,
+    minWidth: 0,
   },
-  metaWhite: { color: "white", fontSize: 14 },
+  metaWhite: { color: "white", fontSize: 14, flexShrink: 1 },
   meta: {
     color: "#727272",
     fontSize: 14,

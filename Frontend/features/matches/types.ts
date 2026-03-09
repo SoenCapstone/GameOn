@@ -2,8 +2,26 @@ export type TeamSummary = {
   id: string;
   name: string;
   sport?: string | null;
+  allowedRegions?: string[] | null;
   logoUrl?: string | null;
   ownerUserId?: string;
+};
+
+export type Venue = {
+  id: string;
+  name: string;
+  street: string;
+  city: string;
+  province: string;
+  postalCode: string;
+  country: string;
+  region: string;
+  latitude?: number | null;
+  longitude?: number | null;
+  googlePlaceId?: string | null;
+  createdByUserId: string;
+  createdAt: string;
+  updatedAt: string;
 };
 
 export type LeagueTeamMembership = {
@@ -32,6 +50,7 @@ export type LeagueMatch = {
   startTime: string;
   endTime: string;
   matchLocation?: string | null;
+  venueId?: string | null;
   requiresReferee: boolean;
   refereeUserId?: string | null;
   createdByUserId: string;
@@ -56,6 +75,7 @@ export type TeamMatch = {
   startTime: string;
   endTime: string;
   matchLocation?: string | null;
+  venueId?: string | null;
   requiresReferee: boolean;
   refereeUserId?: string | null;
   notes?: string | null;
@@ -82,6 +102,8 @@ export type TeamMatchInviteCard = {
   homeTeamName: string;
   awayTeamName: string;
   startTime: string;
+  logoUrl?: string | null;
+  sport?: string | null;
 };
 
 export type RefInviteResponse = {
@@ -101,4 +123,6 @@ export type RefereeMatchInviteCard = {
   homeTeamName: string;
   awayTeamName: string;
   startTime: string;
+  logoUrl?: string | null;
+  sport?: string | null;
 };
