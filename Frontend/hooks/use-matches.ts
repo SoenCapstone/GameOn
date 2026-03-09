@@ -17,6 +17,7 @@ import {
   TeamMatch,
   TeamMatchInviteCard,
   TeamSummary,
+  Venue,
 } from "@/features/matches/types";
 import {
   filterPendingTeamInvitesForOwner,
@@ -242,6 +243,7 @@ export function useCreateLeagueMatch(leagueId: string) {
       awayTeamId: string;
       startTime: string;
       endTime: string;
+      venueId: string;
       matchLocation?: string;
       refereeUserId: string;
     }) => {
@@ -252,6 +254,7 @@ export function useCreateLeagueMatch(leagueId: string) {
           awayTeamId: payload.awayTeamId,
           startTime: payload.startTime,
           endTime: payload.endTime,
+          venueId: payload.venueId,
           matchLocation: payload.matchLocation,
           requiresReferee: true,
           refereeUserId: payload.refereeUserId,
@@ -273,6 +276,7 @@ export function useCreateTeamMatch(teamId: string) {
       sport?: string;
       startTime: string;
       endTime: string;
+      venueId?: string;
       matchRegion?: string;
       requiresReferee: boolean;
       notes?: string;
@@ -286,6 +290,7 @@ export function useCreateTeamMatch(teamId: string) {
           sport: payload.sport,
           startTime: payload.startTime,
           endTime: payload.endTime,
+          venueId: payload.venueId,
           matchRegion: payload.matchRegion,
           requiresReferee: payload.requiresReferee,
           notes: payload.notes,
@@ -308,6 +313,127 @@ export function useCreateTeamMatch(teamId: string) {
       }
 
       return { match: created, refereeInviteSent };
+    },
+  });
+}
+
+export function useTeamVenues(params?: {
+  homeTeamId?: string;
+  awayTeamId?: string;
+  enabled?: boolean;
+}) {
+  const api = useAxiosWithClerk();
+  const { enabled = true, ...queryParams } = params ?? {};
+  return useQuery<Venue[]>({
+    queryKey: [
+      "team-venues",
+      queryParams.homeTeamId ?? "",
+      queryParams.awayTeamId ?? "",
+    ],
+    queryFn: async () => {
+      const resp = await api.get<Venue[]>(GO_TEAM_SERVICE_ROUTES.VENUES, {
+        params: queryParams,
+      });
+      return resp.data ?? [];
+    },
+    enabled,
+    retry: false,
+  });
+}
+
+export function useLeagueVenues(params?: {
+  homeTeamId?: string;
+  awayTeamId?: string;
+  enabled?: boolean;
+}) {
+  const api = useAxiosWithClerk();
+  const { enabled = true, ...queryParams } = params ?? {};
+  return useQuery<Venue[]>({
+    queryKey: [
+      "league-venues",
+      queryParams.homeTeamId ?? "",
+      queryParams.awayTeamId ?? "",
+    ],
+    queryFn: async () => {
+      const resp = await api.get<Venue[]>(GO_LEAGUE_SERVICE_ROUTES.VENUES, {
+        params: queryParams,
+      });
+      return resp.data ?? [];
+    },
+    enabled,
+    retry: false,
+  });
+}
+
+export function useTeamVenue(venueId: string, enabled = true) {
+  const api = useAxiosWithClerk();
+  return useQuery<Venue>({
+    queryKey: ["team-venue", venueId],
+    queryFn: async () => {
+      const resp = await api.get<Venue>(GO_TEAM_SERVICE_ROUTES.VENUE(venueId));
+      return resp.data;
+    },
+    enabled: enabled && Boolean(venueId),
+    retry: false,
+  });
+}
+
+export function useLeagueVenue(venueId: string, enabled = true) {
+  const api = useAxiosWithClerk();
+  return useQuery<Venue>({
+    queryKey: ["league-venue", venueId],
+    queryFn: async () => {
+      const resp = await api.get<Venue>(GO_LEAGUE_SERVICE_ROUTES.VENUE(venueId));
+      return resp.data;
+    },
+    enabled: enabled && Boolean(venueId),
+    retry: false,
+  });
+}
+
+export function useCreateTeamVenue() {
+  const api = useAxiosWithClerk();
+  return useMutation({
+    mutationFn: async (payload: {
+      name: string;
+      street: string;
+      city: string;
+      province: string;
+      postalCode: string;
+      country?: string;
+      region?: string;
+      latitude?: number;
+      longitude?: number;
+      homeTeamId?: string;
+      awayTeamId?: string;
+    }) => {
+      const resp = await api.post<Venue>(GO_TEAM_SERVICE_ROUTES.VENUES, payload);
+      return resp.data;
+    },
+  });
+}
+
+export function useCreateLeagueVenue() {
+  const api = useAxiosWithClerk();
+  return useMutation({
+    mutationFn: async (payload: {
+      name: string;
+      street: string;
+      city: string;
+      province: string;
+      postalCode: string;
+      country?: string;
+      region?: string;
+      latitude?: number;
+      longitude?: number;
+      homeTeamId?: string;
+      awayTeamId?: string;
+    }) => {
+      const resp = await api.post<Venue>(
+        GO_LEAGUE_SERVICE_ROUTES.VENUES,
+        payload,
+      );
+      return resp.data;
     },
   });
 }

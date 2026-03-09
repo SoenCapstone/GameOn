@@ -25,6 +25,9 @@ export function MatchDetailsSection(props: {
     onVenueChange,
     onAddVenue,
   } = props;
+  const uniqueVenueOptions = Array.from(
+    new Set(venue ? [...venueOptions, venue] : venueOptions),
+  );
 
   const now = new Date();
 
@@ -65,13 +68,13 @@ export function MatchDetailsSection(props: {
 
       <Form.Menu
         label="Venue"
-        options={venue ? [...venueOptions, venue] : venueOptions}
+        options={uniqueVenueOptions}
         value={
           venue ||
-          (venueOptions.length === 0 ? "No venues available" : "Select")
+          (uniqueVenueOptions.length === 0 ? "No venues available" : "Select")
         }
         onValueChange={onVenueChange}
-        disabled={venueOptions.length === 0 && !venue}
+        disabled={uniqueVenueOptions.length === 0 && !venue}
       />
       <Form.Button button="Add Venue" onPress={onAddVenue} />
     </Form.Section>

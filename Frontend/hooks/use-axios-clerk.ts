@@ -87,6 +87,9 @@ export const GO_TEAM_SERVICE_ROUTES = {
     buildRoute(VERSIONING.v1, SERVICE.TEAMS, `${teamId}/matches`),
   CREATE_MATCH_INVITE: (teamId: string) =>
     buildRoute(VERSIONING.v1, SERVICE.TEAMS, `${teamId}/matches/create-invite`),
+  VENUES: buildRoute(VERSIONING.v1, SERVICE.TEAMS, "venues"),
+  VENUE: (venueId: string) =>
+    buildRoute(VERSIONING.v1, SERVICE.TEAMS, `venues/${venueId}`),
 
 
   CREATE_PLAY: (teamId: string) =>
@@ -110,6 +113,9 @@ export const GO_LEAGUE_SERVICE_ROUTES = {
     buildRoute(VERSIONING.v1, SERVICE.LEAGUES, `${leagueId}/matches`),
   CREATE_MATCH: (leagueId: string) =>
     buildRoute(VERSIONING.v1, SERVICE.LEAGUES, `${leagueId}/matches/create-match`),
+  VENUES: buildRoute(VERSIONING.v1, SERVICE.LEAGUES, "venues"),
+  VENUE: (venueId: string) =>
+    buildRoute(VERSIONING.v1, SERVICE.LEAGUES, `venues/${venueId}`),
   CANCEL_MATCH: (leagueId: string, matchId: string) =>
     buildRoute(VERSIONING.v1, SERVICE.LEAGUES, `${leagueId}/matches/${matchId}/cancel`),
   SCORE_MATCH: (leagueId: string, matchId: string) =>
