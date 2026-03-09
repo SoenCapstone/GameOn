@@ -19,8 +19,10 @@ public record TeamUpdateRequest(
         @Size(max = 255, message = "location cannot exceed 255 characters")
         String location,
         List<@Size(max = 100, message = "allowedRegions entries cannot exceed 100 characters") String> allowedRegions,
-//        @Positive(message = "maxRoster must be greater than 0")
-//        Integer maxRoster,
+
+        @Positive(message = "maxRoster must be greater than 0")
+        Integer maxRoster,
+
         TeamPrivacy privacy
 ) {
 }
