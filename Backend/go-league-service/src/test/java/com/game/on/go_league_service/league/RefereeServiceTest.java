@@ -10,6 +10,7 @@ import com.game.on.go_league_service.league.model.RefInviteStatus;
 import com.game.on.go_league_service.league.repository.LeagueMatchRepository;
 import com.game.on.go_league_service.league.repository.RefInviteRepository;
 import com.game.on.go_league_service.league.repository.RefereeProfileRepository;
+import com.game.on.go_league_service.league.repository.VenueRepository;
 import com.game.on.go_league_service.league.service.RefereeService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -32,6 +33,7 @@ class RefereeServiceTest {
     @Mock RefereeProfileRepository refereeProfileRepository;
     @Mock RefInviteRepository refInviteRepository;
     @Mock LeagueMatchRepository leagueMatchRepository;
+    @Mock VenueRepository venueRepository;
     @Mock TeamClient teamClient;
     @Mock CurrentUserProvider userProvider;
 
@@ -67,6 +69,8 @@ class RefereeServiceTest {
 
         when(refInviteRepository.findByMatchIdAndRefereeUserIdAndStatus(matchId, "ref_1", RefInviteStatus.PENDING))
                 .thenReturn(Optional.of(invite));
+        when(refInviteRepository.save(any(RefInvite.class))).thenAnswer(invocation -> invocation.getArgument(0));
+        when(refInviteRepository.save(invite)).thenReturn(invite);
 
         refereeService.acceptRefInvite(matchId);
 

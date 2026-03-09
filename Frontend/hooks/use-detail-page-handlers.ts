@@ -8,12 +8,13 @@ interface DetailPageHandlersConfig {
   currentTab: string;
   boardPosts: unknown[];
   onRefresh: () => Promise<void>;
-  refetchPosts: () => Promise<unknown>; // React Query refetch returns QueryObserverResult
-  refetchOverview?: () => Promise<unknown>; // Optional overview refetch
+  refetchPosts: () => Promise<unknown>;
+  refetchOverview?: () => Promise<unknown>;
   deletePostMutation: {
     mutateAsync: (postId: string) => Promise<void>;
   };
-  entityName: string; // "league" or "team" for logging
+  entityName: string;
+  onMatchesRefresh?: () => Promise<void>;
 }
 
 export function useDetailPageHandlers({
@@ -25,6 +26,7 @@ export function useDetailPageHandlers({
   refetchOverview,
   deletePostMutation,
   entityName,
+  onMatchesRefresh,
 }: DetailPageHandlersConfig) {
   const [refreshing, setRefreshing] = useState(false);
   const log = createScopedLog(`${entityName} Detail Page`);
@@ -64,6 +66,9 @@ export function useDetailPageHandlers({
       } else if (currentTab === "overview" && refetchOverview) {
         await refetchOverview();
         log.info("Overview data refreshed");
+      } else if (currentTab === "matches" && onMatchesRefresh) {
+        await onMatchesRefresh();
+        log.info("Matches refreshed");
       } else {
         log.info(`${entityName} data refreshed`, { tab: currentTab });
       }
@@ -75,7 +80,16 @@ export function useDetailPageHandlers({
     } finally {
       setRefreshing(false);
     }
-  }, [log, onRefresh, refetchPosts, refetchOverview, currentTab, boardPosts.length, entityName]);
+  }, [
+    onRefresh,
+    currentTab,
+    refetchOverview,
+    onMatchesRefresh,
+    refetchPosts,
+    log,
+    boardPosts.length,
+    entityName,
+  ]);
 
   return {
     refreshing,

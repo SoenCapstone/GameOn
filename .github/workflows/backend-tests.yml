@@ -7,6 +7,8 @@ on:
       - "Backend/common/**"
       - "Backend/go-user-service/**"
       - "Backend/go-team-service/**"
+      - "Backend/go-league-service/**"
+      - "Backend/go-messaging-service/**"
       - ".github/workflows/backend-tests.yml"
   push:
     branches: [main]
@@ -14,6 +16,8 @@ on:
       - "Backend/common/**"
       - "Backend/go-user-service/**"
       - "Backend/go-team-service/**"
+      - "Backend/go-league-service/**"
+      - "Backend/go-messaging-service/**"
       - ".github/workflows/backend-tests.yml"
 
 jobs:
@@ -37,6 +41,8 @@ jobs:
             Backend/common/pom.xml
             Backend/go-user-service/pom.xml
             Backend/go-team-service/pom.xml
+            Backend/go-league-service/pom.xml
+            Backend/go-messaging-service/pom.xml
 
       - name: Build & install common
         run: |
@@ -63,11 +69,30 @@ jobs:
           cd go-team-service
           mvn -B -ntp -DskipTests package
 
-      # Team service tests need a fix, then this can be uncommented
-      # - name: Run team service Tests
-      #   run: |
-      #     cd go-team-service
-      #     mvn -B -ntp -DskipITs test
+      - name: Run team service Tests
+        run: |
+          cd go-team-service
+          mvn -B -ntp -DskipITs test
+
+      - name: Build league service
+        run: |
+          cd go-league-service
+          mvn -B -ntp -DskipTests package
+
+      - name: Run league service Tests
+        run: |
+          cd go-league-service
+          mvn -B -ntp -DskipITs test
+
+      - name: Build messaging service
+        run: |
+          cd go-messaging-service
+          mvn -B -ntp -DskipTests package
+
+      - name: Run messaging service Tests
+        run: |
+          cd go-messaging-service
+          mvn -B -ntp -DskipITs test
 
       - name: Upload test reports (common)
         if: always()
@@ -85,11 +110,26 @@ jobs:
           path: Backend/go-user-service/target/surefire-reports/**
           if-no-files-found: ignore
 
-      # See comment above
-      # - name: Upload test reports (Team service)
-      #   if: always()
-      #   uses: actions/upload-artifact@v4
-      #   with:
-      #     name: backend-team-service-surefire-reports
-      #     path: Backend/go-team-service/target/surefire-reports/**
-      #     if-no-files-found: ignore
+      - name: Upload test reports (Team service)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: backend-team-service-surefire-reports
+          path: Backend/go-team-service/target/surefire-reports/**
+          if-no-files-found: ignore
+
+      - name: Upload test reports (League service)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: backend-league-service-surefire-reports
+          path: Backend/go-league-service/target/surefire-reports/**
+          if-no-files-found: ignore
+
+      - name: Upload test reports (Messaging service)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: backend-messaging-service-surefire-reports
+          path: Backend/go-messaging-service/target/surefire-reports/**
+          if-no-files-found: ignore

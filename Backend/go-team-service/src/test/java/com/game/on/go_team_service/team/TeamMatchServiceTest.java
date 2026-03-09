@@ -31,6 +31,7 @@ import java.util.UUID;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.lenient;
 
 @ExtendWith(MockitoExtension.class)
 class TeamMatchServiceTest {
@@ -67,12 +68,14 @@ class TeamMatchServiceTest {
         awayTeam.setSport("soccer");
         awayTeam.setAllowedRegions(List.of("Montreal"));
 
-        when(teamRepository.findByIdAndDeletedAtIsNull(homeTeamId)).thenReturn(Optional.of(homeTeam));
-        when(teamRepository.findByIdAndDeletedAtIsNull(awayTeamId)).thenReturn(Optional.of(awayTeam));
+        lenient().when(teamRepository.findByIdAndDeletedAtIsNull(homeTeamId)).thenReturn(Optional.of(homeTeam));
+        lenient().when(teamRepository.findByIdAndDeletedAtIsNull(awayTeamId)).thenReturn(Optional.of(awayTeam));
     }
 
     @Test
     void createMatchInvite_whenCallerNotOwner_throwsForbidden() {
+        when(teamRepository.findByIdAndDeletedAtIsNull(homeTeamId)).thenReturn(Optional.of(homeTeam));
+        when(teamRepository.findByIdAndDeletedAtIsNull(awayTeamId)).thenReturn(Optional.of(awayTeam));
         when(userProvider.clerkUserId()).thenReturn(otherUserId);
 
         TeamMatchCreateRequest request = new TeamMatchCreateRequest(
@@ -81,6 +84,7 @@ class TeamMatchServiceTest {
                 "soccer",
                 OffsetDateTime.now().plusDays(1),
                 OffsetDateTime.now().plusDays(1).plusHours(1),
+                null,
                 "Montreal",
                 true,
                 null
@@ -100,6 +104,7 @@ class TeamMatchServiceTest {
                 "soccer",
                 OffsetDateTime.now().plusDays(1),
                 OffsetDateTime.now().plusDays(1).plusHours(1),
+                null,
                 "Montreal",
                 true,
                 null
