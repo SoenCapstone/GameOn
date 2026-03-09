@@ -14,6 +14,7 @@ jest.mock("@/components/form/form", () => {
       Image: jest.fn(() => null),
       Input: jest.fn(() => null),
       Menu: jest.fn(() => null),
+      Multiselect: jest.fn(() => null),
     },
   };
 });
@@ -34,6 +35,7 @@ describe("TeamForm", () => {
     onSportChange: jest.fn(),
     onScopeChange: jest.fn(),
     onCityChange: jest.fn(),
+    onAllowedRegionsChange: jest.fn(),
     onPickLogo: jest.fn(),
     onRemoveLogo: jest.fn(),
   };
@@ -43,7 +45,8 @@ describe("TeamForm", () => {
     selectedSport: null,
     selectedScope: { id: "casual", label: "Casual" },
     selectedCity: null,
-  } as const;
+    selectedAllowedRegions: ["Toronto"],
+  };
 
   beforeEach(() => {
     jest.clearAllMocks();
@@ -143,5 +146,12 @@ describe("TeamForm", () => {
         label: "Toronto",
       });
     }
+
+    const multiselectProps = (Form.Multiselect as jest.Mock).mock.calls[0][0];
+    multiselectProps.onSelected(["Toronto", "Montreal"]);
+    expect(onChange.onAllowedRegionsChange).toHaveBeenCalledWith([
+      "Toronto",
+      "Montreal",
+    ]);
   });
 });

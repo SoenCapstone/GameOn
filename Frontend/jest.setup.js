@@ -1,4 +1,3 @@
-/* eslint-env jest */
 /* global jest */
 import "@testing-library/jest-native/extend-expect";
 

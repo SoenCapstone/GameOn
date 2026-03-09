@@ -16,6 +16,7 @@ import com.game.on.go_league_service.league.model.LeagueMatch;
 import com.game.on.go_league_service.league.model.LeagueMatchScore;
 import com.game.on.go_league_service.league.model.LeagueMatchStatus;
 import com.game.on.go_league_service.league.model.RefereeProfile;
+import com.game.on.go_league_service.league.model.Venue;
 import com.game.on.go_league_service.league.repository.LeagueMatchRepository;
 import com.game.on.go_league_service.league.repository.LeagueMatchScoreRepository;
 import com.game.on.go_league_service.league.repository.LeagueRepository;
@@ -41,6 +42,7 @@ public class LeagueMatchService {
     private final LeagueMatchRepository leagueMatchRepository;
     private final LeagueMatchScoreRepository leagueMatchScoreRepository;
     private final RefereeProfileRepository refereeProfileRepository;
+    private final VenueService venueService;
     private final TeamClient teamClient;
     private final CurrentUserProvider userProvider;
 
@@ -64,6 +66,8 @@ public class LeagueMatchService {
 
         var homeTeam = teamClient.getTeam(request.homeTeamId());
         var awayTeam = teamClient.getTeam(request.awayTeamId());
+        Venue venue = venueService.requireVenue(request.venueId());
+        venueService.ensureRegionAllowedForMatch(venue, request.homeTeamId(), request.awayTeamId());
 
         String matchSport = resolveMatchSport(homeTeam.sport(), awayTeam.sport());
 
@@ -74,11 +78,20 @@ public class LeagueMatchService {
                 .sport(matchSport)
                 .startTime(request.startTime())
                 .endTime(request.endTime())
-                .matchLocation(trimToNull(request.matchLocation()))
+                .matchLocation(venue.getName())
+                .venueId(venue.getId())
                 .requiresReferee(true)
                 .status(LeagueMatchStatus.CONFIRMED)
                 .createdByUserId(userId)
                 .build();
+
+        var referee = refereeProfileRepository.findById(request.refereeUserId())
+                .orElseThrow(() -> new NotFoundException("Referee not found"));
+        if (!referee.isActive()) {
+            throw new BadRequestException("Referee profile is inactive");
+        }
+        ensureRefereeEligible(referee, match);
+        match.setRefereeUserId(referee.getUserId());
 
         var saved = leagueMatchRepository.save(match);
         log.info("league_match_created matchId={} leagueId={} byUser={}", saved.getId(), leagueId, userId);
@@ -172,12 +185,13 @@ public class LeagueMatchService {
             throw new BadRequestException("Referee does not support this sport");
         }
 
-        if (StringUtils.hasText(match.getMatchLocation())
-                && !containsIgnoreCase(referee.getAllowedRegions(), match.getMatchLocation())) {
+        String matchRegion = resolveMatchRegion(match);
+        if (StringUtils.hasText(matchRegion)
+                && !containsIgnoreCase(referee.getAllowedRegions(), matchRegion)) {
             throw new BadRequestException("Referee does not support the match region");
         }
 
-        if (!StringUtils.hasText(match.getMatchLocation())) {
+        if (!StringUtils.hasText(matchRegion)) {
             var homeTeam = teamClient.getTeam(match.getHomeTeamId());
             var awayTeam = teamClient.getTeam(match.getAwayTeamId());
             if (referee.getAllowedRegions() == null || referee.getAllowedRegions().isEmpty()) {
@@ -238,6 +252,7 @@ public class LeagueMatchService {
                 match.getStartTime(),
                 match.getEndTime(),
                 match.getMatchLocation(),
+                match.getVenueId(),
                 match.isRequiresReferee(),
                 match.getRefereeUserId(),
                 match.getCreatedByUserId(),
@@ -258,5 +273,12 @@ public class LeagueMatchService {
 
     private String trimToNull(String value) {
         return StringUtils.hasText(value) ? value.trim() : null;
+    }
+
+    private String resolveMatchRegion(LeagueMatch match) {
+        if (match.getVenueId() != null) {
+            return trimToNull(venueService.requireVenue(match.getVenueId()).getRegion());
+        }
+        return trimToNull(match.getMatchLocation());
     }
 }
