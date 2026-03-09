@@ -153,7 +153,6 @@ export function MatchDetailsContent({
             style={styles.map}
             mapPadding={{ top: 8, right: 8, bottom: 8, left: 8 }}
             region={mapRegion}
-            scrollEnabled={false}
             rotateEnabled={false}
             pitchEnabled={false}
           >
