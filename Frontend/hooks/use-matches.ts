@@ -593,6 +593,8 @@ export async function fetchIncomingTeamMatchInvites(
     homeTeamName: teamMap[match.homeTeamId]?.name ?? "Home Team",
     awayTeamName: teamMap[match.awayTeamId]?.name ?? "Away Team",
     startTime: match.startTime,
+    logoUrl: teamMap[match.homeTeamId]?.logoUrl,
+    sport: teamMap[match.homeTeamId]?.sport ?? match.sport,
   }));
 }
 
@@ -653,6 +655,8 @@ export async function fetchIncomingRefereeInvites(
     homeTeamName: teamMap[match.homeTeamId]?.name ?? "Home Team",
     awayTeamName: teamMap[match.awayTeamId]?.name ?? "Away Team",
     startTime: match.startTime,
+    logoUrl: teamMap[match.homeTeamId]?.logoUrl,
+    sport: teamMap[match.homeTeamId]?.sport ?? match.sport,
   }));
 }
 

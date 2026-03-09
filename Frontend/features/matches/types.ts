@@ -102,6 +102,8 @@ export type TeamMatchInviteCard = {
   homeTeamName: string;
   awayTeamName: string;
   startTime: string;
+  logoUrl?: string | null;
+  sport?: string | null;
 };
 
 export type RefInviteResponse = {
@@ -121,4 +123,6 @@ export type RefereeMatchInviteCard = {
   homeTeamName: string;
   awayTeamName: string;
   startTime: string;
+  logoUrl?: string | null;
+  sport?: string | null;
 };
