@@ -1,7 +1,10 @@
 import { Alert, Linking, StyleSheet, Text, View } from "react-native";
 import { Image } from "expo-image";
 import { getSportLogo } from "@/components/browse/utils";
-import { formatMatchDateTime } from "@/features/matches/utils";
+import {
+  formatMatchDateTime,
+  isCancelledMatchStatus,
+} from "@/features/matches/utils";
 import MapView, { Marker } from "react-native-maps";
 import { IconSymbol } from "@/components/ui/icon-symbol";
 
@@ -43,8 +46,9 @@ export function MatchDetailsContent({
   venueLongitude,
 }: Readonly<MatchDetailsContentProps>) {
   const hasScore = homeScore != null && awayScore != null;
+  const isCancelled = isCancelledMatchStatus(status);
   const centerValue =
-    status === "CANCELLED" ? "Cancelled" : formatMatchDateTime(startTime);
+    isCancelled ? "Cancelled" : formatMatchDateTime(startTime);
   const hasCoordinates =
     typeof venueLatitude === "number" && typeof venueLongitude === "number";
   const hasVenue = Boolean(venueName?.trim());
@@ -111,17 +115,17 @@ export function MatchDetailsContent({
               <Text style={styles.context} numberOfLines={1}>
                 {contextLabel}
               </Text>
-              {status === "CANCELLED" && (
+              {isCancelled && (
                 <Text style={styles.pending}>Cancelled</Text>
               )}
-              {status !== "CANCELLED" && hasScore && (
+              {!isCancelled && hasScore && (
                 <View style={styles.result}>
                   <Text style={styles.score}>{homeScore}</Text>
                   <Text style={styles.dash}>-</Text>
                   <Text style={styles.score}>{awayScore}</Text>
                 </View>
               )}
-              {status !== "CANCELLED" && !hasScore && (
+              {!isCancelled && !hasScore && (
                 <Text style={styles.date}>{centerValue}</Text>
               )}
             </View>

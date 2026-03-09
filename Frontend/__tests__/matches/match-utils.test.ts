@@ -45,6 +45,13 @@ describe("getMatchSection", () => {
     start.setHours(11, 0, 0, 0);
     expect(getMatchSection(start.toISOString(), "CANCELLED")).toBe("past");
   });
+
+  it("returns 'past' for declined matches scheduled today", () => {
+    const now = new Date();
+    const start = new Date(now);
+    start.setHours(11, 0, 0, 0);
+    expect(getMatchSection(start.toISOString(), "DECLINED")).toBe("past");
+  });
 });
 
 describe("toBadgeStatus", () => {

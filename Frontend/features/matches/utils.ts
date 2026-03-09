@@ -30,7 +30,7 @@ export function getMatchSection(
   const now = new Date();
   const start = new Date(startTime);
 
-  if (status === "CANCELLED") {
+  if (isCancelledMatchStatus(status)) {
     return "past";
   }
 
@@ -47,11 +47,15 @@ export function getMatchSection(
 
 export function toBadgeStatus(status: string): MatchStatusBadge {
   if (status === "PENDING_TEAM_ACCEPTANCE") return "PENDING";
-  if (status === "DECLINED" || status === "CANCELLED") return "CANCELLED";
+  if (isCancelledMatchStatus(status)) return "CANCELLED";
   if (status === "CONFIRMED") {
     return "CONFIRMED";
   }
   return "COMPLETED";
+}
+
+export function isCancelledMatchStatus(status: string) {
+  return status === "DECLINED" || status === "CANCELLED";
 }
 
 export function buildStartEndIso(date: Date, startTime: Date, endTime: Date) {
