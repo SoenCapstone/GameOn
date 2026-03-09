@@ -61,8 +61,8 @@ public class Team {
     @Column(name = "region", length = 100)
     private List<String> allowedRegions = new ArrayList<>();
 
-//    @Column(name = "max_roster")
-//    private Integer maxRoster;
+    @Column(name = "max_roster")
+    private Integer maxRoster;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 20)

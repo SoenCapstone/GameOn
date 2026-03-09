@@ -23,8 +23,9 @@ public record TeamCreateRequest(
         String location,
         List<@Size(max = 100, message = "allowedRegions entries cannot exceed 100 characters") String> allowedRegions,
 
-//        @Positive(message = "maxRoster must be greater than 0")
-//        Integer maxRoster,
+        @Positive(message = "maxRoster must be greater than 0")
+        Integer maxRoster,
+
         TeamPrivacy privacy
 ) {
 }
