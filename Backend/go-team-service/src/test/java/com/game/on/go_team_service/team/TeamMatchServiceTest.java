@@ -31,6 +31,7 @@ import java.util.UUID;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.lenient;
 
 @ExtendWith(MockitoExtension.class)
 class TeamMatchServiceTest {
@@ -66,6 +67,9 @@ class TeamMatchServiceTest {
         awayTeam.setOwnerUserId(otherUserId);
         awayTeam.setSport("soccer");
         awayTeam.setAllowedRegions(List.of("Montreal"));
+
+        lenient().when(teamRepository.findByIdAndDeletedAtIsNull(homeTeamId)).thenReturn(Optional.of(homeTeam));
+        lenient().when(teamRepository.findByIdAndDeletedAtIsNull(awayTeamId)).thenReturn(Optional.of(awayTeam));
     }
 
     @Test
@@ -80,6 +84,7 @@ class TeamMatchServiceTest {
                 "soccer",
                 OffsetDateTime.now().plusDays(1),
                 OffsetDateTime.now().plusDays(1).plusHours(1),
+                null,
                 "Montreal",
                 true,
                 null
@@ -99,6 +104,7 @@ class TeamMatchServiceTest {
                 "soccer",
                 OffsetDateTime.now().plusDays(1),
                 OffsetDateTime.now().plusDays(1).plusHours(1),
+                null,
                 "Montreal",
                 true,
                 null

@@ -58,7 +58,10 @@ export default function CreateTeamScreen() {
     setSelectedScope,
     selectedCity,
     setSelectedCity,
+    selectedAllowedRegions,
+    setSelectedAllowedRegions,
   } = useTeamForm();
+  const [allowedRegionsError, setAllowedRegionsError] = useState("");
 
   const handlePickLogo = useCallback(async () => {
     await pickLogo(setPickedLogo);
@@ -71,6 +74,7 @@ export default function CreateTeamScreen() {
         sport: selectedSport?.id ?? "",
         scope: selectedScope?.id ?? "",
         location: selectedCity?.label ?? "",
+        allowedRegions: selectedAllowedRegions,
         privacy: "PRIVATE",
       };
       log.info("Sending team creation payload:", payload);
@@ -113,8 +117,18 @@ export default function CreateTeamScreen() {
       Alert.alert("Team creation failed", "City is required");
       return;
     }
+    if (selectedAllowedRegions.length === 0) {
+      setAllowedRegionsError("Please select at least one region.");
+      return;
+    }
     createTeamMutation.mutate();
-  }, [teamName, selectedSport, selectedCity, createTeamMutation]);
+  }, [
+    createTeamMutation,
+    selectedAllowedRegions.length,
+    selectedCity,
+    selectedSport,
+    teamName,
+  ]);
 
   const navigation = useNavigation();
   useLayoutEffect(() => {
@@ -140,13 +154,26 @@ export default function CreateTeamScreen() {
             selectedSport,
             selectedScope,
             selectedCity,
+            selectedAllowedRegions,
           }}
           logo={{ pickedLogo }}
+          allowedRegionsError={allowedRegionsError}
           onChange={{
             onTeamNameChange: setTeamName,
             onSportChange: setSelectedSport,
             onScopeChange: setSelectedScope,
-            onCityChange: setSelectedCity,
+            onCityChange: (city) => {
+              setSelectedCity(city);
+              if (allowedRegionsError) {
+                setAllowedRegionsError("");
+              }
+            },
+            onAllowedRegionsChange: (regions) => {
+              setSelectedAllowedRegions(regions);
+              setAllowedRegionsError(
+                regions.length === 0 ? "Please select at least one region." : "",
+              );
+            },
             onPickLogo: handlePickLogo,
             onRemoveLogo: () => setPickedLogo(null),
           }}

@@ -17,6 +17,7 @@ public record TeamMatchCreateRequest(
         OffsetDateTime startTime,
         @NotNull(message = "endTime is required")
         OffsetDateTime endTime,
+        UUID venueId,
         @Size(max = 255, message = "matchRegion cannot exceed 255 characters")
         String matchRegion,
         @NotNull(message = "requiresReferee is required")
