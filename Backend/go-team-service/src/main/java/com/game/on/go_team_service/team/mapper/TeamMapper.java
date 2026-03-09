@@ -25,6 +25,7 @@ public class TeamMapper {
 //                .leagueId(request.leagueId())
                 .scope(trimToNull(request.scope()))
                 .ownerUserId(ownerUserId)
+                .maxRoster(request.maxRoster())
                 .slug(slugGenerator.generateUniqueSlug(request.name()))
                 .logoUrl(trimToNull(request.logoUrl()))
                 .location(trimToNull(request.location()))
@@ -66,7 +67,7 @@ public class TeamMapper {
                 team.getLogoUrl(),
                 team.getLocation(),
                 new ArrayList<>(team.getAllowedRegions()),
-//                team.getMaxRoster(),
+                team.getMaxRoster(),
                 team.getPrivacy(),
                 team.isArchived(),
                 team.getCreatedAt(),
@@ -83,7 +84,7 @@ public class TeamMapper {
                 team.getSlug(),
                 team.getLogoUrl(),
                 team.getPrivacy(),
-//                team.getMaxRoster(),
+                team.getMaxRoster(),
                 team.isArchived(),
                 team.getCreatedAt(),
                 team.getUpdatedAt()

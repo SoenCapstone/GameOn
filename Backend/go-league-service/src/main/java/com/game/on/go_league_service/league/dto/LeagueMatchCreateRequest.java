@@ -16,6 +16,8 @@ public record LeagueMatchCreateRequest(
         OffsetDateTime startTime,
         @NotNull(message = "endTime is required")
         OffsetDateTime endTime,
+        @NotNull(message = "venueId is required")
+        UUID venueId,
         @Size(max = 255, message = "matchLocation cannot exceed 255 characters")
         String matchLocation,
         @NotNull(message = "requiresReferee is required")

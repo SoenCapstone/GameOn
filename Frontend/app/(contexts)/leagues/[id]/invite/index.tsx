@@ -12,7 +12,7 @@ import { MemberRow } from "@/components/teams/member-row";
 import {
   InviteSection,
   inviteSectionStyles as styles,
-} from "@/components/invites/invite-section";
+} from "@/components/invite/invite-section";
 import { useLeagueDetail } from "@/hooks/use-league-detail";
 import {
   GO_LEAGUE_SERVICE_ROUTES,

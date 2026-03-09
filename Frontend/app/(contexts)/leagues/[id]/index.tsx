@@ -67,7 +67,9 @@ export default function LeagueScreen() {
 }
 
 function LeagueContent() {
-  const [tab, setTab] = useState<LeagueTab>("board");
+  const params = useLocalSearchParams<{ tab?: string }>();
+  const initialTab: LeagueTab = resolveLeagueTab(params.tab);
+  const [tab, setTab] = useState<LeagueTab>(initialTab);
   const [fabOpen, setFabOpen] = useState(false);
   const router = useRouter();
   const log = createScopedLog("League Page");
@@ -301,6 +303,13 @@ function LeagueContent() {
       ) : null}
     </View>
   );
+}
+
+function resolveLeagueTab(tab?: string): LeagueTab {
+  if (tab === "matches") return "matches";
+  if (tab === "standings") return "standings";
+  if (tab === "teams") return "teams";
+  return "board";
 }
 
 const styles = StyleSheet.create({

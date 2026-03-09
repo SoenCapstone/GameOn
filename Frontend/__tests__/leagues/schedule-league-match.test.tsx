@@ -5,6 +5,7 @@ import ScheduleLeagueMatchScreen from "@/app/(contexts)/leagues/[id]/matches/sch
 
 const mockSetOptions = jest.fn();
 const mockReplace = jest.fn();
+const mockDismissTo = jest.fn();
 const mockPush = jest.fn();
 const mockBack = jest.fn();
 const mockCreateLeagueMatch = jest.fn();
@@ -15,9 +16,14 @@ let capturedSubmit: (() => void | Promise<void>) | undefined;
 let scheduleHeaderRenderCount = 0;
 
 jest.mock("expo-router", () => ({
-  useLocalSearchParams: () => ({ id: "league-1" }),
+  useLocalSearchParams: () => ({ id: "league-1", tab: "matches" }),
   useNavigation: () => ({ setOptions: mockSetOptions }),
-  useRouter: () => ({ replace: mockReplace, push: mockPush, back: mockBack }),
+  useRouter: () => ({
+    replace: mockReplace,
+    dismissTo: mockDismissTo,
+    push: mockPush,
+    back: mockBack,
+  }),
 }));
 
 jest.mock("@/components/ui/content-area", () => ({
@@ -154,6 +160,12 @@ jest.mock("@/hooks/use-matches", () => ({
     isLoading: false,
     error: null,
   }),
+  useLeagueVenues: () => ({
+    data: [{ id: "venue-1", name: "Stadium", city: "Montreal" }],
+    isLoading: false,
+    error: null,
+    refetch: jest.fn(),
+  }),
 }));
 
 jest.mock("@/hooks/use-axios-clerk", () => ({
@@ -192,11 +204,7 @@ jest.mock("@/features/matches/utils", () => {
 });
 
 jest.mock("@/hooks/use-schedule-header", () => ({
-  useScheduleHeader: ({
-    onSubmit,
-  }: {
-    onSubmit: () => void | Promise<void>;
-  }) => {
+  useScheduleHeader: ({ onSubmit }: { onSubmit: () => void | Promise<void> }) => {
     capturedSubmit = onSubmit;
     scheduleHeaderRenderCount += 1;
   },
@@ -225,10 +233,10 @@ describe("ScheduleLeagueMatchScreen", () => {
     jest.clearAllMocks();
     capturedSubmit = undefined;
     scheduleHeaderRenderCount = 0;
-
+    
     const { Alert } = jest.requireActual("react-native");
     jest.spyOn(Alert, "alert").mockImplementation(mockAlert);
-
+    
     mockCreateLeagueMatch.mockResolvedValue({ id: "m1" });
     mockApiGet.mockImplementation((url: string) => {
       if (url === "/users/ref-1") {
@@ -265,6 +273,7 @@ describe("ScheduleLeagueMatchScreen", () => {
     fireEvent.press(getByTestId("menu-home-team-alpha-fc"));
     renderCount = await waitForSubmitRefresh(renderCount);
     fireEvent.press(getByTestId("menu-away-team-beta-fc"));
+    fireEvent.press(getByTestId("menu-venue-stadium"));
     renderCount = await waitForSubmitRefresh(renderCount);
 
     await waitFor(() =>
@@ -279,10 +288,14 @@ describe("ScheduleLeagueMatchScreen", () => {
       expect.objectContaining({
         homeTeamId: "team-1",
         awayTeamId: "team-2",
+        venueId: "venue-1",
         refereeUserId: "ref-1",
       }) as unknown,
     );
     expect(mockToast).toHaveBeenCalledWith("Match scheduled");
-    expect(mockBack).toHaveBeenCalledTimes(1);
+    expect(mockDismissTo).toHaveBeenCalledWith({
+      pathname: "/leagues/league-1",
+      params: { tab: "matches" },
+    });
   });
 });

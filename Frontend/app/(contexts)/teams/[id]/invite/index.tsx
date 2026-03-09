@@ -14,7 +14,7 @@ import { formatFullName } from "@/components/teams/member-row-utils";
 import {
   InviteSection,
   inviteSectionStyles as styles,
-} from "@/components/invites/invite-section";
+} from "@/components/invite/invite-section";
 import { useTeamDetail } from "@/hooks/use-team-detail";
 import { useGetTeamMembers } from "@/hooks/use-get-team-members/use-get-team-members";
 import { fetchUserDirectory } from "@/features/messaging/api";

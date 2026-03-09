@@ -17,4 +17,5 @@ export default function TeamsLayout() {
   });
 
   return <Stack>{screens}</Stack>;
+  
 }
