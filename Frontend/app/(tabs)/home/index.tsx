@@ -1,8 +1,6 @@
 import { useCallback, useState } from "react";
 import { ContentArea } from "@/components/ui/content-area";
 import { View, Text, RefreshControl, Alert, StyleSheet } from "react-native";
-import { Card } from "@/components/ui/card";
-import { ButtonItem } from "@/components/form/button-item";
 import { AxiosInstance } from "axios";
 import { useAuth } from "@clerk/clerk-expo";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
@@ -15,45 +13,29 @@ import {
   useAxiosWithClerk,
 } from "@/hooks/use-axios-clerk";
 import { errorToString } from "@/utils/error";
-import {
-  fetchLeagueInvitesWithDetails,
-  LeagueInviteCard,
-} from "@/components/leagues/league-invite-utils";
-import {
-  RefereeMatchInviteCard,
-  TeamMatchInviteCard,
-} from "@/features/matches/types";
+import { fetchLeagueInvitesWithDetails } from "@/components/leagues/league-invite-utils";
 import {
   fetchIncomingRefereeInvites,
   fetchIncomingTeamMatchInvites,
 } from "@/hooks/use-matches";
 import { Tabs } from "@/components/ui/tabs";
-
-const denyColor = "rgba(255,255,255,0.75)";
-
-type TeamInviteCard = {
-  kind: "team";
-  id: string;
-  teamName: string;
-  inviterName?: string;
-  teamId: string;
-};
-
-type InviteCard =
-  | TeamInviteCard
-  | LeagueInviteCard
-  | TeamMatchInviteCard
-  | RefereeMatchInviteCard;
-
-function isLeagueInviteCard(invite: InviteCard): invite is LeagueInviteCard {
-  return invite.kind === "league";
-}
+import {
+  InviteCard,
+  InviteCardItem,
+  TeamInviteCard,
+} from "@/components/invite/card";
 
 type TeamInviteResponse = {
   id: string;
   teamId: string;
   invitedByUserId?: string | null;
   status?: string | null;
+};
+
+type TeamInviteMeta = {
+  name: string;
+  logoUrl?: string | null;
+  sport?: string | null;
 };
 
 export default function Home() {
@@ -66,7 +48,7 @@ export default function Home() {
     data: invites = [],
     isFetching,
     refetch,
-  } = useQuery<InviteCard[]>({
+  } = useQuery<InviteCardItem[]>({
     queryKey: ["user-updates", userId],
     queryFn: async () => fetchUpdatesWithDetails(api, userId ?? ""),
     enabled: Boolean(userId),
@@ -84,8 +66,8 @@ export default function Home() {
       ) => {
         const cacheKey = ["user-updates", userId];
         const currentInvites =
-          queryClient.getQueryData<InviteCard[]>(cacheKey) ?? [];
-        queryClient.setQueryData<InviteCard[]>(
+          queryClient.getQueryData<InviteCardItem[]>(cacheKey) ?? [];
+        queryClient.setQueryData<InviteCardItem[]>(
           cacheKey,
           currentInvites.filter(
             (invite) => invite.id !== variables.invitationId,
@@ -151,8 +133,8 @@ export default function Home() {
     onSuccess: async (_data, variables) => {
       const cacheKey = ["user-updates", userId];
       const currentInvites =
-        queryClient.getQueryData<InviteCard[]>(cacheKey) ?? [];
-      queryClient.setQueryData<InviteCard[]>(
+        queryClient.getQueryData<InviteCardItem[]>(cacheKey) ?? [];
+      queryClient.setQueryData<InviteCardItem[]>(
         cacheKey,
         currentInvites.filter(
           (invite) =>
@@ -186,8 +168,8 @@ export default function Home() {
     onSuccess: async (_data, variables) => {
       const cacheKey = ["user-updates", userId];
       const currentInvites =
-        queryClient.getQueryData<InviteCard[]>(cacheKey) ?? [];
-      queryClient.setQueryData<InviteCard[]>(
+        queryClient.getQueryData<InviteCardItem[]>(cacheKey) ?? [];
+      queryClient.setQueryData<InviteCardItem[]>(
         cacheKey,
         currentInvites.filter(
           (invite) =>
@@ -227,7 +209,7 @@ export default function Home() {
   const handleAcceptLeague = useCallback(
     (inviteId: string) => {
       const maybe = invites.find((i) => i.id === inviteId);
-      if (!maybe || !isLeagueInviteCard(maybe)) {
+      if (maybe?.kind !== "league") {
         Alert.alert(
           "Missing league invite",
           "Could not find that league invite.",
@@ -265,145 +247,6 @@ export default function Home() {
     await refetch();
   }, [refetch]);
 
-  const renderInviteContent = useCallback(
-    (invite: InviteCard) => {
-      if (invite.kind === "team") {
-        return (
-          <>
-            <Text style={styles.teamName}>{invite.teamName}</Text>
-            <Text style={styles.inviteText}>
-              You received an invite
-              {invite.inviterName ? ` from ${invite.inviterName}` : ""} to join{" "}
-              {invite.teamName}.
-            </Text>
-            <View style={styles.actionsRow}>
-              <View style={styles.actionButton}>
-                <ButtonItem
-                  button="Accept"
-                  onPress={() => handleAccept(invite.id)}
-                />
-              </View>
-              <View style={styles.actionButton}>
-                <ButtonItem
-                  button="Decline"
-                  color={denyColor}
-                  onPress={() => handleDeny(invite.id)}
-                />
-              </View>
-            </View>
-          </>
-        );
-      }
-
-      if (invite.kind === "team-match") {
-        return (
-          <>
-            <Text style={styles.teamName}>{invite.homeTeamName}</Text>
-            <Text style={styles.inviteText}>
-              Match invite from {invite.homeTeamName} for {invite.awayTeamName}.
-            </Text>
-            <View style={styles.actionsRow}>
-              <View style={styles.actionButton}>
-                <ButtonItem
-                  button="Accept"
-                  onPress={() =>
-                    respondTeamMatchInviteMutation.mutate({
-                      matchId: invite.matchId,
-                      isAccepted: true,
-                    })
-                  }
-                />
-              </View>
-              <View style={styles.actionButton}>
-                <ButtonItem
-                  button="Decline"
-                  color={denyColor}
-                  onPress={() =>
-                    respondTeamMatchInviteMutation.mutate({
-                      matchId: invite.matchId,
-                      isAccepted: false,
-                    })
-                  }
-                />
-              </View>
-            </View>
-          </>
-        );
-      }
-
-      if (invite.kind === "referee-match") {
-        return (
-          <>
-            <Text style={styles.teamName}>
-              {invite.homeTeamName} vs {invite.awayTeamName}
-            </Text>
-            <Text style={styles.inviteText}>
-              You received a referee invitation for this team match.
-            </Text>
-            <View style={styles.actionsRow}>
-              <View style={styles.actionButton}>
-                <ButtonItem
-                  button="Accept"
-                  onPress={() =>
-                    respondRefereeInviteMutation.mutate({
-                      matchId: invite.matchId,
-                      isAccepted: true,
-                    })
-                  }
-                />
-              </View>
-              <View style={styles.actionButton}>
-                <ButtonItem
-                  button="Decline"
-                  color={denyColor}
-                  onPress={() =>
-                    respondRefereeInviteMutation.mutate({
-                      matchId: invite.matchId,
-                      isAccepted: false,
-                    })
-                  }
-                />
-              </View>
-            </View>
-          </>
-        );
-      }
-
-      return (
-        <>
-          <Text style={styles.teamName}>{invite.leagueName}</Text>
-          <Text style={styles.inviteText}>
-            You received an invite to join {invite.leagueName} with{" "}
-            {invite.teamName}.
-          </Text>
-          <View style={styles.actionsRow}>
-            <View style={styles.actionButton}>
-              <ButtonItem
-                button="Accept"
-                onPress={() => handleAcceptLeague(invite.id)}
-              />
-            </View>
-            <View style={styles.actionButton}>
-              <ButtonItem
-                button="Decline"
-                color={denyColor}
-                onPress={() => handleDenyLeague(invite.id)}
-              />
-            </View>
-          </View>
-        </>
-      );
-    },
-    [
-      handleAccept,
-      handleAcceptLeague,
-      handleDeny,
-      handleDenyLeague,
-      respondRefereeInviteMutation,
-      respondTeamMatchInviteMutation,
-    ],
-  );
-
   return (
     <ContentArea
       scrollable
@@ -432,7 +275,20 @@ export default function Home() {
             <Text style={styles.inviteText}>No pending invitations.</Text>
           ) : (
             invites.map((invite) => (
-              <Card key={invite.id}>{renderInviteContent(invite)}</Card>
+              <InviteCard
+                key={invite.id}
+                invite={invite}
+                onAcceptTeam={handleAccept}
+                onDeclineTeam={handleDeny}
+                onAcceptLeague={handleAcceptLeague}
+                onDeclineLeague={handleDenyLeague}
+                onRespondTeamMatch={(matchId, isAccepted) =>
+                  respondTeamMatchInviteMutation.mutate({ matchId, isAccepted })
+                }
+                onRespondRefereeMatch={(matchId, isAccepted) =>
+                  respondRefereeInviteMutation.mutate({ matchId, isAccepted })
+                }
+              />
             ))
           )}
         </View>
@@ -463,7 +319,9 @@ async function fetchUpdatesWithDetails(api: AxiosInstance, userId: string) {
   ];
 }
 
-async function fetchTeamInvitesWithDetails(api: AxiosInstance) {
+async function fetchTeamInvitesWithDetails(
+  api: AxiosInstance,
+): Promise<TeamInviteCard[]> {
   const resp = await api.get<TeamInviteResponse[]>(
     GO_TEAM_SERVICE_ROUTES.USER_INVITES,
   );
@@ -479,7 +337,7 @@ async function fetchTeamInvitesWithDetails(api: AxiosInstance) {
   ) as string[];
 
   const [teamMap, inviterMap] = await Promise.all([
-    fetchTeamNameMap(api, teamIds),
+    fetchTeamMetaMap(api, teamIds),
     fetchUserNameMap(api, inviterIds),
   ]);
 
@@ -487,21 +345,33 @@ async function fetchTeamInvitesWithDetails(api: AxiosInstance) {
     kind: "team" as const,
     id: invite.id,
     teamId: invite.teamId,
-    teamName: teamMap[invite.teamId] ?? "Team",
+    teamName: teamMap[invite.teamId]?.name ?? "Team",
     inviterName: invite.invitedByUserId
       ? (inviterMap[invite.invitedByUserId] ?? "Someone")
       : undefined,
+    logoUrl: teamMap[invite.teamId]?.logoUrl,
+    sport: teamMap[invite.teamId]?.sport,
   }));
 }
 
-async function fetchTeamNameMap(api: AxiosInstance, teamIds: string[]) {
+async function fetchTeamMetaMap(
+  api: AxiosInstance,
+  teamIds: string[],
+): Promise<Record<string, TeamInviteMeta>> {
   const entries = await Promise.all(
     teamIds.map(async (teamId) => {
       try {
         const resp = await api.get(`${GO_TEAM_SERVICE_ROUTES.ALL}/${teamId}`);
-        return [teamId, resp.data?.name ?? "Team"] as const;
+        return [
+          teamId,
+          {
+            name: resp.data?.name ?? "Team",
+            logoUrl: resp.data?.logoUrl ?? null,
+            sport: resp.data?.sport ?? null,
+          },
+        ] as const;
       } catch {
-        return [teamId, "Team"] as const;
+        return [teamId, { name: "Team", logoUrl: null, sport: null }] as const;
       }
     }),
   );
@@ -534,25 +404,10 @@ const styles = StyleSheet.create({
     width: "90%",
   },
   cardWrap: {
-    width: "90%",
-    gap: 12,
-  },
-  teamName: {
-    color: "white",
-    fontSize: 16,
-    fontWeight: "700",
+    gap: 14,
   },
   inviteText: {
     color: "rgba(255,255,255,0.8)",
     marginTop: 8,
-  },
-  actionsRow: {
-    flexDirection: "row",
-    gap: 12,
-    marginTop: 16,
-    justifyContent: "flex-end",
-  },
-  actionButton: {
-    flex: 1,
   },
 });
