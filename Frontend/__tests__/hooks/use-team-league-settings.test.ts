@@ -34,6 +34,7 @@ const mockTeam = {
   sport: "soccer",
   scope: "managed",
   location: "Montreal",
+  allowedRegions: ["Montreal"],
   logoUrl: "https://example.com/logo.png",
   privacy: "PUBLIC" as const,
 };
@@ -44,6 +45,7 @@ const mockUpdatePayload = {
   scope: "league_ready",
   logoUrl: "https://example.com/new-logo.png",
   location: "Toronto",
+  allowedRegions: ["Toronto"],
   privacy: "PRIVATE" as const,
 };
 
