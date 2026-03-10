@@ -1,5 +1,5 @@
 import React from "react";
-import { StyleSheet, type ViewStyle } from "react-native";
+import { StyleSheet } from "react-native";
 import { render } from "@testing-library/react-native";
 import { TeamPerformanceCardPlaceholder } from "@/components/teams/team-performance-card-placeholder";
 
@@ -16,6 +16,11 @@ jest.mock("@/components/ui/card", () => {
 function getFillWidths(root: ReturnType<typeof render>) {
   const widths: string[] = [];
 
+  const hasSizeProps = (
+    style: unknown,
+  ): style is { height?: unknown; width?: unknown } =>
+    Boolean(style) && typeof style === "object";
+
   const visit = (node: unknown) => {
     if (!node || Array.isArray(node) || typeof node !== "object") {
       if (Array.isArray(node)) {
@@ -28,11 +33,13 @@ function getFillWidths(root: ReturnType<typeof render>) {
       props?: { style?: unknown };
       children?: unknown[];
     };
-    const flatStyle = StyleSheet.flatten(candidate.props?.style) as
-      | ViewStyle
-      | undefined;
+    const flatStyle = StyleSheet.flatten(candidate.props?.style);
 
-    if (flatStyle?.height === "100%" && typeof flatStyle.width === "string") {
+    if (
+      hasSizeProps(flatStyle) &&
+      flatStyle.height === "100%" &&
+      typeof flatStyle.width === "string"
+    ) {
       widths.push(flatStyle.width);
     }
 
