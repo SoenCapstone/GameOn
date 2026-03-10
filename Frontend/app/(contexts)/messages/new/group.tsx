@@ -47,6 +47,8 @@ export default function NewGroup() {
   const [creating, setCreating] = useState(false);
   const { startTeamConversation } = useMessagingContext();
   const { data: teams, isLoading: loadingTeams } = useMyTeams();
+  const selectedTeamName =
+    (teams ?? []).find((team) => team.id === selectedTeam)?.name ?? undefined;
 
   const submitTeamChat = useCallback(async () => {
     if (!selectedTeam) {
@@ -105,10 +107,7 @@ Event chats lock membership once created. Only the creator can add members.`}
               label="Team"
               disabled={(teams ?? []).length === 0}
               options={(teams ?? []).map((team) => team.name)}
-              value={
-                selectedTeam ??
-                (teams ?? []).find((team) => team.id === selectedTeam)?.name
-              }
+              value={selectedTeamName}
               placeholder={
                 (teams ?? []).length > 0
                   ? "Select a team"
