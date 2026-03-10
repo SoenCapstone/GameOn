@@ -3,7 +3,6 @@ import {
   View,
   ActivityIndicator,
   RefreshControl,
-  Text,
   StyleSheet,
   Alert,
 } from "react-native";
@@ -26,7 +25,6 @@ import { useTeamBoardPosts, useDeleteBoardPost } from "@/hooks/use-team-board";
 import { BoardList } from "@/components/board/board-list";
 import { useDetailPageHandlers } from "@/hooks/use-detail-page-handlers";
 import { createScopedLog } from "@/utils/logger";
-import { Card } from "@/components/ui/card";
 import { useTeamOverview } from "@/hooks/use-team-overview";
 import { Tabs } from "@/components/ui/tabs";
 import { MatchListSections } from "@/components/matches/match-list-sections";
