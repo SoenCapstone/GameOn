@@ -8,11 +8,11 @@ const OVERVIEW_QUERY_KEY = (teamId: string) => ["team-overview", teamId];
 export type TeamOverviewResponse = {
   seasonLabel?: string;
   record?: string;
-  tiles: Array<{
+  tiles: {
     key: "points" | "matches" | "streak" | "minutes";
     label: string;
     value?: number | string;
-  }>;
+  }[];
   rosterCounts: {
     owner?: number;
     manager?: number;
@@ -33,7 +33,7 @@ export type TeamOverviewResponse = {
  * - returns contract/shape only
  */
 async function fetchTeamOverviewMock(
-  teamId: string
+  teamId: string,
 ): Promise<TeamOverviewResponse> {
   await new Promise((resolve) => setTimeout(resolve, 120));
 
@@ -61,10 +61,8 @@ export function useTeamOverview(teamId: string) {
     queryFn: async () => {
       log.info("Fetching team overview", { teamId });
 
-
       const data = await fetchTeamOverviewMock(teamId);
       return data;
-
     },
 
     enabled: Boolean(teamId),
