@@ -5,10 +5,10 @@ import type { TeamOverviewResponse } from "@/hooks/use-team-overview";
 import { TeamPerformanceCardPlaceholder } from "@/components/teams/team-performance-card-placeholder";
 
 type Props = {
-  overviewLoading: boolean;
-  overviewError: unknown;
-  overview?: TeamOverviewResponse;
-  tiles: TeamOverviewResponse["tiles"];
+  readonly overviewLoading: boolean;
+  readonly overviewError: unknown;
+  readonly overview?: TeamOverviewResponse;
+  readonly tiles: TeamOverviewResponse["tiles"];
 };
 
 export function TeamOverviewTab({
@@ -16,20 +16,18 @@ export function TeamOverviewTab({
   overviewError,
   overview,
   tiles,
-}: Props) {
+}: Readonly<Props>) {
   return (
     <View style={styles.overviewWrap}>
       {overviewLoading && (
-        <ActivityIndicator
-          size="small"
-          color="#fff"
-          style={{ marginTop: 6 }}
-        />
+        <ActivityIndicator size="small" color="#fff" style={{ marginTop: 6 }} />
       )}
 
-      {overviewError && (
-        <Text style={styles.errorText}>{errorToString(overviewError)}</Text>
-      )}
+      {overviewError ? (
+        <Text style={styles.errorText}>
+          {String(errorToString(overviewError))}
+        </Text>
+      ) : null}
 
       <Card>
         <View style={styles.cardFill}>
