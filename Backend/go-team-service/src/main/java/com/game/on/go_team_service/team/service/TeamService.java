@@ -430,8 +430,11 @@ public class TeamService {
     }
 
     @Transactional
-    public TeamMemberResponse demoteSelfToPlayer(UUID teamId, String userId) {
+    public TeamMemberResponse demoteSelfToPlayer(UUID teamId) {
         requireActiveTeam(teamId);
+        
+        String userId = userProvider.clerkUserId();
+
         var membership = requireActiveMembership(teamId, userId);
 
         if (membership.getRole() != TeamRole.MANAGER) {
