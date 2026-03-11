@@ -3,7 +3,6 @@ import {
   View,
   ActivityIndicator,
   RefreshControl,
-  Text,
   StyleSheet,
   Alert,
 } from "react-native";
@@ -26,6 +25,7 @@ import { useTeamBoardPosts, useDeleteBoardPost } from "@/hooks/use-team-board";
 import { BoardList } from "@/components/board/board-list";
 import { useDetailPageHandlers } from "@/hooks/use-detail-page-handlers";
 import { createScopedLog } from "@/utils/logger";
+import { useTeamOverview } from "@/hooks/use-team-overview";
 import { Tabs } from "@/components/ui/tabs";
 import { MatchListSections } from "@/components/matches/match-list-sections";
 import {
@@ -35,9 +35,18 @@ import {
   useTeamsByIds,
 } from "@/hooks/use-matches";
 import { buildMatchCards, splitMatchSections } from "@/features/matches/utils";
+import { TeamOverviewTab } from "@/components/teams/team-overview-tab";
 import { errorToString } from "@/utils/error";
 
 type TeamTab = "board" | "matches" | "overview";
+
+const TeamTabs: readonly TeamTab[] = ["board", "matches", "overview"] as const;
+
+const TeamTabLabels: Record<TeamTab, string> = {
+  board: "Board",
+  matches: "Matches",
+  overview: "Overview",
+};
 
 export default function Team() {
   const params = useLocalSearchParams<{ id?: string | string[] }>();
@@ -53,7 +62,7 @@ export default function Team() {
 
 function TeamContent() {
   const params = useLocalSearchParams<{ tab?: string }>();
-  const initialTab: TeamTab = resolveTeamTab(params.tab);
+  const initialTab: TeamTab = parseTeamTab(params.tab);
   const [tab, setTab] = useState<TeamTab>(initialTab);
   const router = useRouter();
   const log = createScopedLog("Team Page");
@@ -73,9 +82,8 @@ function TeamContent() {
     team,
   } = useTeamDetailContext();
   const canManage =
-    (isActiveMember && role === "OWNER") ||
-    role === "COACH" ||
-    role === "MANAGER";
+    isActiveMember &&
+    (role === "OWNER" || role === "COACH" || role === "MANAGER");
 
   const {
     data: boardPosts = [],
@@ -85,6 +93,12 @@ function TeamContent() {
 
   const deletePostMutation = useDeleteBoardPost(id);
 
+  const {
+    data: overview,
+    isLoading: overviewLoading,
+    error: overviewError,
+    refetch: refetchOverview,
+  } = useTeamOverview(id);
   const {
     data: matches = [],
     isLoading: matchesLoading,
@@ -126,7 +140,7 @@ function TeamContent() {
       const awayOwnerId = teamsQuery.data?.[match.awayTeamId]?.ownerUserId;
       const canCancel = Boolean(
         !isLeagueMatch &&
-        userId &&
+          userId &&
           !match.isPast &&
           match.status !== "CANCELLED" &&
           ((homeOwnerId && homeOwnerId === userId) ||
@@ -191,23 +205,23 @@ function TeamContent() {
       boardPosts,
       onRefresh,
       refetchPosts,
+      refetchOverview,
       deletePostMutation,
       entityName: "Team",
       onMatchesRefresh: handleMatchesRefresh,
     },
   );
 
-  const getTabFromSegmentValue = (value: string): TeamTab => {
-    if (value === "Board") return "board";
-    if (value === "Overview") return "overview";
-    return "matches";
-  };
+  const selectedIndex = getTeamTabIndex(tab);
 
-  const getSelectedIndex = (): number => {
-    if (tab === "board") return 0;
-    if (tab === "matches") return 1;
-    return 2;
-  };
+  const tiles = overview?.tiles?.length
+    ? overview.tiles
+    : [
+        { key: "points" as const, label: "Points" },
+        { key: "matches" as const, label: "Matches" },
+        { key: "streak" as const, label: "Streak" },
+        { key: "minutes" as const, label: "Minutes" },
+      ];
 
   return (
     <View style={{ flex: 1 }}>
@@ -225,10 +239,13 @@ function TeamContent() {
         }
       >
         <Tabs
-          values={["Board", "Matches", "Overview"]}
-          selectedIndex={getSelectedIndex()}
+          values={TeamTabs.map((teamTab) => TeamTabLabels[teamTab])}
+          selectedIndex={selectedIndex}
           onValueChange={(value) => {
-            const newTab = getTabFromSegmentValue(value);
+            const index = TeamTabs.findIndex(
+              (teamTab) => TeamTabLabels[teamTab] === value,
+            );
+            const newTab = index >= 0 ? TeamTabs[index] : "board";
             setTab(newTab);
             log.info("Tab changed", { tab: newTab });
           }}
@@ -272,7 +289,8 @@ function TeamContent() {
                 onRetry={handleMatchesRefresh}
                 onMatchPress={(match) =>
                   router.push({
-                    pathname: `/(sheets)/match/${match.id}` as RelativePathString,
+                    pathname:
+                      `/(sheets)/match/${match.id}` as RelativePathString,
                     params: {
                       context: "team",
                       contextId: id,
@@ -286,10 +304,14 @@ function TeamContent() {
               />
             )}
             {tab === "overview" && (
-              <View>
-                <Text style={{ color: "white", padding: 16 }}>
-                  Overview content here
-                </Text>
+              <View style={styles.overviewSection}>
+                <TeamOverviewTab
+                  overviewLoading={overviewLoading}
+                  overviewError={overviewError}
+                  overview={overview}
+                  tiles={tiles}
+                />
+
                 {canManage && (
                   <Button
                     type="custom"
@@ -335,10 +357,13 @@ function TeamContent() {
   );
 }
 
-function resolveTeamTab(tab?: string): TeamTab {
-  if (tab === "matches") return "matches";
-  if (tab === "overview") return "overview";
-  return "board";
+function parseTeamTab(value?: string): TeamTab {
+  const normalized = value?.toLowerCase() as TeamTab | undefined;
+  return TeamTabs.find((teamTab) => teamTab === normalized) ?? "board";
+}
+
+function getTeamTabIndex(tab: TeamTab): number {
+  return TeamTabs.indexOf(tab);
 }
 
 const styles = StyleSheet.create({
@@ -346,8 +371,13 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
-    minHeight: 200,
   },
+
+  overviewSection: {
+    marginTop: 12,
+    gap: 12,
+  },
+
   fab: {
     position: "absolute",
     bottom: 20,
