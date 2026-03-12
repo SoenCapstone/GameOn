@@ -23,6 +23,7 @@ import {
   InviteCardItem,
   TeamInviteCard,
 } from "@/components/invite/card";
+import * as Haptics from "expo-haptics";
 
 type TeamInviteResponse = {
   id: string;
@@ -243,6 +244,7 @@ export default function Home() {
   );
 
   const onRefresh = useCallback(async () => {
+    void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     await refetch();
   }, [refetch]);
 

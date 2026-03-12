@@ -16,11 +16,11 @@ import { Header } from "@/components/header/header";
 import { Button } from "@/components/ui/button";
 import { PageTitle } from "@/components/header/page-title";
 import type { Shape } from "@/components/play-maker/model";
-
 import {
   GO_TEAM_SERVICE_ROUTES,
   useAxiosWithClerk,
 } from "@/hooks/use-axios-clerk";
+import * as Haptics from "expo-haptics";
 import { errorToString } from "@/utils/error";
 
 function toBackendPayload(shapes: Shape[]) {
@@ -104,6 +104,11 @@ function PlayMakerContent() {
     latestShapesRef.current = shapes;
   }, []);
 
+  const handleRefresh = useCallback(async () => {
+    void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    await onRefresh();
+  }, [onRefresh]);
+
   const onSave = useCallback(async () => {
     const shapes = latestShapesRef.current;
 
@@ -144,7 +149,7 @@ function PlayMakerContent() {
       refreshControl={
         <RefreshControl
           refreshing={refreshing}
-          onRefresh={onRefresh}
+          onRefresh={handleRefresh}
           tintColor="#fff"
         />
       }

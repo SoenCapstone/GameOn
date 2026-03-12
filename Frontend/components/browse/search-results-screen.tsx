@@ -11,6 +11,7 @@ import { ContentArea } from "@/components/ui/content-area";
 import { InfoCard } from "@/components/info-card";
 import { createScopedLog } from "@/utils/logger";
 import { useSearch } from "@/contexts/search-context";
+import * as Haptics from "expo-haptics";
 import type {
   SearchResult,
   Modes,
@@ -71,6 +72,7 @@ export function SearchResultsScreen({
       : Date.now();
 
   const handleRefresh = React.useCallback(async () => {
+    void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     try {
       setRefreshing(true);
       await refetch();
