@@ -1,5 +1,6 @@
 import { useCallback, useState } from "react";
 import { Alert } from "react-native";
+import * as Haptics from "expo-haptics";
 import { errorToString } from "@/utils/error";
 import { createScopedLog } from "@/utils/logger";
 
@@ -55,6 +56,7 @@ export function useDetailPageHandlers({
   };
 
   const handleRefresh = useCallback(async () => {
+    void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     try {
       setRefreshing(true);
       await onRefresh();

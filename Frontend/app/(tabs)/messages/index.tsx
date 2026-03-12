@@ -1,5 +1,6 @@
 import {
   ComponentRef,
+  useCallback,
   useEffect,
   useLayoutEffect,
   useMemo,
@@ -28,6 +29,7 @@ import {
   useUserDirectory,
 } from "@/features/messaging/hooks";
 import { Chat, type ChatItem } from "@/components/messages/chat";
+import * as Haptics from "expo-haptics";
 
 function MessagesHeader({
   socketState,
@@ -143,6 +145,11 @@ export default function Messages() {
     listRef.current?.scrollToIndex({ index: 0, animated: true });
   }, [listData]);
 
+  const handleRefresh = useCallback(async () => {
+    void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    await refetch();
+  }, [refetch]);
+
   const openConversation = (id: string) => router.push(`/messages/${id}`);
 
   const selectedIndex = { all: 0, direct: 1, group: 2 }[filter];
@@ -162,7 +169,7 @@ export default function Messages() {
       refreshControl={
         <RefreshControl
           refreshing={isRefetching}
-          onRefresh={refetch}
+          onRefresh={handleRefresh}
           tintColor="white"
         />
       }
