@@ -1,7 +1,7 @@
 import React from "react";
 import { render, fireEvent, waitFor, act } from "@testing-library/react-native";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import ScheduleLeagueMatchScreen from "@/app/(contexts)/leagues/[id]/matches/schedule";
+import ScheduleLeagueMatchScreen from "@/app/(app)/leagues/[id]/matches/schedule";
 
 const mockSetOptions = jest.fn();
 const mockReplace = jest.fn();
@@ -204,7 +204,11 @@ jest.mock("@/features/matches/utils", () => {
 });
 
 jest.mock("@/hooks/use-schedule-header", () => ({
-  useScheduleHeader: ({ onSubmit }: { onSubmit: () => void | Promise<void> }) => {
+  useScheduleHeader: ({
+    onSubmit,
+  }: {
+    onSubmit: () => void | Promise<void>;
+  }) => {
     capturedSubmit = onSubmit;
     scheduleHeaderRenderCount += 1;
   },
@@ -233,10 +237,10 @@ describe("ScheduleLeagueMatchScreen", () => {
     jest.clearAllMocks();
     capturedSubmit = undefined;
     scheduleHeaderRenderCount = 0;
-    
+
     const { Alert } = jest.requireActual("react-native");
     jest.spyOn(Alert, "alert").mockImplementation(mockAlert);
-    
+
     mockCreateLeagueMatch.mockResolvedValue({ id: "m1" });
     mockApiGet.mockImplementation((url: string) => {
       if (url === "/users/ref-1") {
