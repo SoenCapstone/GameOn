@@ -267,7 +267,6 @@ export default function Home() {
         />
       }
     >
-
       {tab === "updates" ? (
         <View style={styles.cardWrap}>
           {invites.length === 0 ? (

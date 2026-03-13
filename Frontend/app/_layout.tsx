@@ -35,20 +35,7 @@ function RootStack() {
         <Stack.Screen name="(auth)" />
       </Stack.Protected>
       <Stack.Protected guard={Boolean(isSignedIn)}>
-        <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-        <Stack.Screen name="(contexts)" options={{ headerShown: false }} />
-        <Stack.Screen
-          name="(sheets)"
-          options={{
-            presentation: "formSheet",
-            sheetAllowedDetents: "fitToContents",
-            sheetCornerRadius: 58,
-            contentStyle: {
-              backgroundColor: "transparent",
-            },
-            headerShown: false,
-          }}
-        />
+        <Stack.Screen name="(app)" />
       </Stack.Protected>
     </Stack>
   );
