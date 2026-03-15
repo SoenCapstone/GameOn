@@ -15,6 +15,7 @@ public record LeagueMatchResponse(
         OffsetDateTime startTime,
         OffsetDateTime endTime,
         String matchLocation,
+        UUID venueId,
         boolean requiresReferee,
         String refereeUserId,
         String createdByUserId,

@@ -6,9 +6,12 @@ import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import java.util.List;
 import java.util.UUID;
 
 public interface PlayNodeRepository extends JpaRepository<PlayNode, UUID> {
+
+    List<PlayNode> findByPlayId(UUID playId);
 
     @Modifying(clearAutomatically = true, flushAutomatically = true)
     @Query("delete from PlayNode n where n.play.id = :playId")

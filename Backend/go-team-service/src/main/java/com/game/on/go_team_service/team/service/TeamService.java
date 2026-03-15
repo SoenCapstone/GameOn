@@ -107,14 +107,14 @@ public class TeamService {
         if (request.allowedRegions() != null) {
             team.setAllowedRegions(normalizeRegions(request.allowedRegions()));
         }
-//        if (request.maxRoster() != null) {
-//            validateMaxRoster(request.maxRoster());
-//            var activeCount = teamMemberRepository.countByTeamIdAndStatus(teamId, TeamMemberStatus.ACTIVE);
-//           if (request.maxRoster() < activeCount) {
-//                throw new BadRequestException("maxRoster cannot be less than current active members");
-//            }
-//            team.setMaxRoster(request.maxRoster());
-//        }
+        if (request.maxRoster() != null) {
+            validateMaxRoster(request.maxRoster());
+            var activeCount = teamMemberRepository.countByTeamIdAndStatus(teamId, TeamMemberStatus.ACTIVE);
+           if (request.maxRoster() < activeCount) {
+                throw new BadRequestException("maxRoster cannot be less than current active members");
+            }
+            team.setMaxRoster(request.maxRoster());
+        }
         if (request.privacy() != null) {
             team.setPrivacy(request.privacy());
         }
@@ -283,7 +283,7 @@ public class TeamService {
             throw new ConflictException(format("User is already a member of the team %s", teamId));
         }
 
-//        enforceRosterLimit(team);
+        enforceRosterLimit(team);
 
         teamInviteRepository.findByTeamIdAndInviteeUserIdAndStatus(teamId, inviteeUserId, TeamInviteStatus.PENDING)
                 .ifPresent(invite -> {
@@ -357,7 +357,7 @@ public class TeamService {
         }
         log.info("Team member {} does not already exist in team {}", invitationId, userId);
 
-//        enforceRosterLimit(team);
+        enforceRosterLimit(team);
 
         TeamMember newMember = teamMapper.toTeamMember(team, userId, invite.getRole());
         teamMemberRepository.save(newMember);
@@ -497,6 +497,50 @@ public class TeamService {
         return playId;
     }
 
+    @Transactional(readOnly = true)
+    public List<PlayItemDTO> getPlayItems(UUID teamId, UUID playId) {
+        String userId = userProvider.clerkUserId();
+
+        requireActiveTeam(teamId);
+        requireActiveMembership(teamId, userId);
+        ensurePlayBelongsToTeam(playId, teamId);
+
+        var nodes = playNodeRepository.findByPlayId(playId);
+        var edges = playEdgeRepository.findByPlayIdWithNodes(playId);
+
+        return toPlayItemDTOs(nodes, edges);
+    }
+
+    private static List<PlayItemDTO> toPlayItemDTOs(List<PlayNode> nodes, List<PlayEdge> edges) {
+        List<PlayItemDTO> items = new ArrayList<>(nodes.size() + edges.size());
+
+        for (PlayNode n : nodes) {
+            items.add(new PersonNodeDTO(
+                    n.getId(),
+                    n.getX(),
+                    n.getY(),
+                    n.getSize(),
+                    n.getAssociatedPlayerId()
+            ));
+        }
+
+        for (PlayEdge e : edges) {
+            items.add(new ArrowDTO(
+                    e.getId(),
+                    new NodeRefDTO(e.getFrom().getId()),
+                    new NodeRefDTO(e.getTo().getId())
+            ));
+        }
+
+        return items;
+    }
+
+    private void ensurePlayBelongsToTeam(UUID playId, UUID teamId) {
+        if (!playRepository.existsByIdAndTeam_Id(playId, teamId)) {
+            throw new ForbiddenException("Play does not belong to this team");
+        }
+    }
+
     private Team requireActiveTeam(UUID teamId) {
         return teamRepository.findByIdAndDeletedAtIsNull(teamId)
                 .orElseThrow(() -> new NotFoundException("Team not found"));
@@ -514,15 +558,17 @@ public class TeamService {
         }
     }
 
-//    private void enforceRosterLimit(Team team) {
-//        if (team.getMaxRoster() == null) {
-//            return;
-//        }
-//        var activeCount = teamMemberRepository.countByTeamIdAndStatus(team.getId(), TeamMemberStatus.ACTIVE);
-//        if (activeCount >= team.getMaxRoster()) {
-//            throw new BadRequestException("Team roster is full");
-//        }
-//    }
+    private void enforceRosterLimit(Team team) {
+        if (team.getMaxRoster() == null) {
+            return;
+        }
+
+        var activeCount = teamMemberRepository.countByTeamIdAndStatus(team.getId(), TeamMemberStatus.ACTIVE);
+
+        if (activeCount >= team.getMaxRoster()) {
+            throw new BadRequestException("Team roster is full");
+        }
+    }
 
     private void enforceInviteOwnership(TeamInvite invite, String userId) {
         if (invite.getInviteeUserId() != null && !invite.getInviteeUserId().equals(userId)) {

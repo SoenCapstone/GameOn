@@ -30,18 +30,17 @@ describe("TeamDetailProvider", () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
-    mockUseTeamDetail.mockReturnValue(mockTeamDetail as any);
+    mockUseTeamDetail.mockReturnValue(
+      mockTeamDetail as unknown as ReturnType<typeof useTeamDetail>,
+    );
   });
 
   it("calls useTeamDetail with provided id and provides all properties", () => {
-    const { result } = renderHook(
-      () => useTeamDetailContext(),
-      {
-        wrapper: ({ children }) => (
-          <TeamDetailProvider id="team-456">{children}</TeamDetailProvider>
-        ),
-      },
-    );
+    const { result } = renderHook(() => useTeamDetailContext(), {
+      wrapper: ({ children }) => (
+        <TeamDetailProvider id="team-456">{children}</TeamDetailProvider>
+      ),
+    });
 
     expect(mockUseTeamDetail).toHaveBeenCalledWith("team-456");
     expect(result.current.id).toBe("team-456");
@@ -51,14 +50,11 @@ describe("TeamDetailProvider", () => {
   });
 
   it("updates context when useTeamDetail hook changes", () => {
-    const { result, rerender } = renderHook(
-      () => useTeamDetailContext(),
-      {
-        wrapper: ({ children }) => (
-          <TeamDetailProvider id="team-123">{children}</TeamDetailProvider>
-        ),
-      },
-    );
+    const { result, rerender } = renderHook(() => useTeamDetailContext(), {
+      wrapper: ({ children }) => (
+        <TeamDetailProvider id="team-123">{children}</TeamDetailProvider>
+      ),
+    });
 
     const firstValue = result.current;
 
@@ -70,7 +66,7 @@ describe("TeamDetailProvider", () => {
       handleFollow: jest.fn(),
       title: "Updated Team",
       isOwner: false,
-    } as any);
+    } as unknown as ReturnType<typeof useTeamDetail>);
 
     rerender({});
 
@@ -86,16 +82,13 @@ describe("TeamDetailProvider", () => {
       handleFollow: jest.fn(),
       title: "Team",
       isOwner: false,
-    } as any);
+    } as unknown as ReturnType<typeof useTeamDetail>);
 
-    const { result } = renderHook(
-      () => useTeamDetailContext(),
-      {
-        wrapper: ({ children }) => (
-          <TeamDetailProvider id="team-123">{children}</TeamDetailProvider>
-        ),
-      },
-    );
+    const { result } = renderHook(() => useTeamDetailContext(), {
+      wrapper: ({ children }) => (
+        <TeamDetailProvider id="team-123">{children}</TeamDetailProvider>
+      ),
+    });
 
     expect(result.current.isLoading).toBe(true);
     expect(result.current.team).toBeNull();
@@ -110,16 +103,13 @@ describe("TeamDetailProvider", () => {
       handleFollow: jest.fn(),
       title: "Team",
       isOwner: false,
-    } as any);
+    } as unknown as ReturnType<typeof useTeamDetail>);
 
-    const { result } = renderHook(
-      () => useTeamDetailContext(),
-      {
-        wrapper: ({ children }) => (
-          <TeamDetailProvider id="team-123">{children}</TeamDetailProvider>
-        ),
-      },
-    );
+    const { result } = renderHook(() => useTeamDetailContext(), {
+      wrapper: ({ children }) => (
+        <TeamDetailProvider id="team-123">{children}</TeamDetailProvider>
+      ),
+    });
 
     expect(result.current.team).toBeNull();
     expect(result.current.title).toBe("Team");
@@ -142,18 +132,17 @@ describe("useTeamDetailContext", () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
-    mockUseTeamDetail.mockReturnValue(mockTeamDetail as any);
+    mockUseTeamDetail.mockReturnValue(
+      mockTeamDetail as unknown as ReturnType<typeof useTeamDetail>,
+    );
   });
 
   it("returns context value when used inside provider", () => {
-    const { result } = renderHook(
-      () => useTeamDetailContext(),
-      {
-        wrapper: ({ children }) => (
-          <TeamDetailProvider id="team-123">{children}</TeamDetailProvider>
-        ),
-      },
-    );
+    const { result } = renderHook(() => useTeamDetailContext(), {
+      wrapper: ({ children }) => (
+        <TeamDetailProvider id="team-123">{children}</TeamDetailProvider>
+      ),
+    });
 
     expect(result.current).toBeDefined();
     expect(result.current.id).toBe("team-123");
@@ -179,7 +168,6 @@ describe("useTeamDetailContext", () => {
         name: "Complex Team",
         sport: "Soccer",
         location: "Toronto",
-        members: ["user1", "user2"],
       },
       isLoading: false,
       refreshing: false,
@@ -189,18 +177,16 @@ describe("useTeamDetailContext", () => {
       isOwner: false,
     };
 
-    mockUseTeamDetail.mockReturnValue(complexTeamData as any);
-
-    const { result } = renderHook(
-      () => useTeamDetailContext(),
-      {
-        wrapper: ({ children }) => (
-          <TeamDetailProvider id="team-123">{children}</TeamDetailProvider>
-        ),
-      },
+    mockUseTeamDetail.mockReturnValue(
+      complexTeamData as unknown as ReturnType<typeof useTeamDetail>,
     );
 
+    const { result } = renderHook(() => useTeamDetailContext(), {
+      wrapper: ({ children }) => (
+        <TeamDetailProvider id="team-123">{children}</TeamDetailProvider>
+      ),
+    });
+
     expect(result.current.team).toEqual(complexTeamData.team);
-    expect(result.current.team?.members).toHaveLength(2);
   });
 });

@@ -4,6 +4,7 @@ import com.game.on.go_league_service.client.dto.TeamListResponse;
 import com.game.on.go_league_service.client.dto.TeamMatchDetailResponse;
 import com.game.on.go_league_service.client.dto.TeamMembershipResponse;
 import com.game.on.go_league_service.client.dto.TeamSummaryResponse;
+import com.game.on.go_league_service.client.dto.VenueResponse;
 import com.game.on.go_league_service.config.FeignAuthForwardingConfig;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -37,6 +38,9 @@ public interface TeamClient {
 
     @PostMapping("/api/v1/matches/{matchId}/assign-referee")
     void assignReferee(@PathVariable UUID matchId);
+
+    @GetMapping("/api/v1/teams/venues/{venueId}")
+    VenueResponse getVenue(@PathVariable UUID venueId);
 
     @GetMapping("/api/v1/teams/{teamId}/matches")
     List<TeamMatchDetailResponse> getAllTeamMatch(@PathVariable UUID teamId);

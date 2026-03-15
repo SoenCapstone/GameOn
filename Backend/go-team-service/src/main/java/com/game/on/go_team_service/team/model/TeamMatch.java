@@ -60,6 +60,9 @@ public class TeamMatch {
     @Column(name = "match_location", length = 255)
     private String matchLocation;
 
+    @Column(name = "venue_id")
+    private UUID venueId;
+
     @Column(name = "requires_referee", nullable = false)
     private boolean requiresReferee;
 

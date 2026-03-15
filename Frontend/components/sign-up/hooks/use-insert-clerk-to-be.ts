@@ -5,16 +5,27 @@ import {
   useAxiosWithClerk,
 } from "@/hooks/use-axios-clerk";
 import { SIGN_UP_SUCCESS_MESSAGE } from "@/components/sign-up/constants";
+import type { UpsertUserMutation } from "@/components/sign-up/models";
 
-export const useUpsertUser = () => {
+export const useUpsertUser = (): UpsertUserMutation => {
   const api = useAxiosWithClerk();
 
-  return useMutation({
+  const mutation = useMutation({
     retry: 1,
     retryDelay: 100,
-    mutationFn: async (payload) => {
-      return await api.post(GO_USER_SERVICE_ROUTES.CREATE, payload);
+    mutationFn: async (payload: {
+      id: string;
+      email: string;
+      firstname: string;
+      lastname: string;
+    }) => {
+      await api.post(GO_USER_SERVICE_ROUTES.CREATE, payload);
     },
     onSuccess: () => toast(SIGN_UP_SUCCESS_MESSAGE),
   });
+
+  return {
+    mutateAsync: mutation.mutateAsync,
+    isPending: mutation.isPending,
+  };
 };

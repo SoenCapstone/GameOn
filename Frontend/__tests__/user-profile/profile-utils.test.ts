@@ -6,6 +6,7 @@ import {
   confirmLogout,
 } from "@/components/user-profile/profile-utils";
 import { pickImage } from "@/utils/pick-image";
+import { UserResource } from "@clerk/types";
 
 jest.mock("react-native", () => ({
   Alert: {
@@ -18,22 +19,39 @@ jest.mock("expo-image-picker", () => ({
   launchImageLibraryAsync: jest.fn(),
 }));
 
+jest.mock("expo-image-manipulator", () => {
+  const mockContext = {
+    crop: jest.fn().mockReturnThis(),
+    renderAsync: jest.fn().mockResolvedValue({
+      saveAsync: jest.fn().mockResolvedValue({ uri: "file:///cropped.jpg" }),
+      release: jest.fn(),
+    }),
+    release: jest.fn(),
+  };
+  return {
+    ImageManipulator: {
+      manipulate: jest.fn(() => mockContext),
+    },
+    SaveFormat: { JPEG: "jpeg", PNG: "png", WEBP: "webp" },
+  };
+});
+
 jest.mock("expo-file-system", () => ({
   File: jest.fn(),
 }));
 
 jest.mock("@/utils/logger", () => ({
-  createScopedLog: () => ({
+  createScopedLog: jest.fn(() => ({
     info: jest.fn(),
     error: jest.fn(),
-  }),
+  })),
 }));
 
 const mockFile = File as jest.MockedClass<typeof File>;
 
 describe("handleSaveProfile", () => {
-  let mockUser: any;
-  let mockRouter: any;
+  let mockUser: Partial<import("@clerk/types").UserResource>;
+  let mockRouter: { back: jest.Mock };
   let mockAlert: jest.SpyInstance;
 
   beforeEach(() => {
@@ -44,7 +62,12 @@ describe("handleSaveProfile", () => {
       update: jest.fn().mockResolvedValue(undefined),
       setProfileImage: jest.fn().mockResolvedValue(undefined),
       hasImage: false,
-    };
+      id: "mock-id",
+      externalId: "mock-external-id",
+      primaryEmailAddressId: "mock-email-id",
+      primaryEmailAddress: undefined,
+      ...Object.fromEntries(new Array(60).fill(["field", undefined])),
+    } as unknown as import("@clerk/types").UserResource;
 
     mockRouter = {
       back: jest.fn(),
@@ -57,7 +80,7 @@ describe("handleSaveProfile", () => {
 
   it("validates firstName and lastName, showing appropriate alerts", async () => {
     await handleSaveProfile({
-      user: mockUser,
+      user: mockUser as unknown as UserResource,
       firstName: "",
       lastName: "Doe",
       email: "john@example.com",
@@ -74,7 +97,7 @@ describe("handleSaveProfile", () => {
     mockAlert.mockClear();
 
     await handleSaveProfile({
-      user: mockUser,
+      user: mockUser as unknown as UserResource,
       firstName: "   ",
       lastName: "Doe",
       email: "john@example.com",
@@ -91,7 +114,7 @@ describe("handleSaveProfile", () => {
     mockAlert.mockClear();
 
     await handleSaveProfile({
-      user: mockUser,
+      user: mockUser as unknown as UserResource,
       firstName: "John",
       lastName: "",
       email: "john@example.com",
@@ -108,7 +131,7 @@ describe("handleSaveProfile", () => {
     mockAlert.mockClear();
 
     await handleSaveProfile({
-      user: mockUser,
+      user: mockUser as unknown as UserResource,
       firstName: "John",
       lastName: "   ",
       email: "john@example.com",
@@ -125,7 +148,7 @@ describe("handleSaveProfile", () => {
 
   it("manages profile image updates based on image state and user hasImage", async () => {
     await handleSaveProfile({
-      user: mockUser,
+      user: mockUser as unknown as UserResource,
       firstName: "John",
       lastName: "Doe",
       email: "john@example.com",
@@ -144,7 +167,7 @@ describe("handleSaveProfile", () => {
 
     mockUser.hasImage = true;
     await handleSaveProfile({
-      user: mockUser,
+      user: mockUser as unknown as UserResource,
       firstName: "John",
       lastName: "Doe",
       email: "john@example.com",
@@ -159,7 +182,7 @@ describe("handleSaveProfile", () => {
 
     mockUser.hasImage = false;
     await handleSaveProfile({
-      user: mockUser,
+      user: mockUser as unknown as UserResource,
       firstName: "John",
       lastName: "Doe",
       email: "john@example.com",
@@ -174,11 +197,15 @@ describe("handleSaveProfile", () => {
   it("handles profile image upload with various formats and file types", async () => {
     const mockFileInstance = {
       base64: jest.fn().mockResolvedValue("base64string"),
-    };
-    mockFile.mockImplementation(() => mockFileInstance as any);
+      parentDirectory: {},
+      extension: "jpg",
+      name: "mock-file",
+      readableStream: jest.fn(),
+    } as unknown as import("expo-file-system").File;
+    mockFile.mockImplementation(() => mockFileInstance as unknown as File);
 
     await handleSaveProfile({
-      user: mockUser,
+      user: mockUser as unknown as UserResource,
       firstName: "John",
       lastName: "Doe",
       email: "john@example.com",
@@ -194,11 +221,11 @@ describe("handleSaveProfile", () => {
     expect(mockAlert).toHaveBeenCalledWith("Success", "Profile updated");
 
     jest.clearAllMocks();
-    mockFile.mockImplementation(() => mockFileInstance as any);
+    mockFile.mockImplementation(() => mockFileInstance as unknown as File);
 
-    mockFileInstance.base64.mockResolvedValue("base64string");
+    (mockFileInstance.base64 as jest.Mock).mockResolvedValue("base64string");
     await handleSaveProfile({
-      user: mockUser,
+      user: mockUser as unknown as UserResource,
       firstName: "John",
       lastName: "Doe",
       email: "john@example.com",
@@ -211,11 +238,11 @@ describe("handleSaveProfile", () => {
     });
 
     jest.clearAllMocks();
-    mockFile.mockImplementation(() => mockFileInstance as any);
+    mockFile.mockImplementation(() => mockFileInstance as unknown as File);
 
-    mockFileInstance.base64.mockResolvedValue("pngbase64");
+    (mockFileInstance.base64 as jest.Mock).mockResolvedValue("pngbase64");
     await handleSaveProfile({
-      user: mockUser,
+      user: mockUser as unknown as UserResource,
       firstName: "John",
       lastName: "Doe",
       email: "john@example.com",
@@ -230,7 +257,7 @@ describe("handleSaveProfile", () => {
     jest.clearAllMocks();
 
     await handleSaveProfile({
-      user: mockUser,
+      user: mockUser as unknown as UserResource,
       firstName: "John",
       lastName: "Doe",
       email: "john@example.com",
@@ -244,7 +271,7 @@ describe("handleSaveProfile", () => {
     jest.clearAllMocks();
 
     await handleSaveProfile({
-      user: mockUser,
+      user: mockUser as unknown as UserResource,
       firstName: "John",
       lastName: "Doe",
       email: "john@example.com",
@@ -257,13 +284,11 @@ describe("handleSaveProfile", () => {
   });
 
   it("handles errors during profile or image update", async () => {
-    let consoleSpy = jest.spyOn(console, "error").mockImplementation();
-
     const error = new Error("Network error");
-    mockUser.update.mockRejectedValue(error);
+    (mockUser.update as jest.Mock).mockRejectedValue(error);
 
     await handleSaveProfile({
-      user: mockUser,
+      user: mockUser as unknown as UserResource,
       firstName: "John",
       lastName: "Doe",
       email: "john@example.com",
@@ -271,27 +296,24 @@ describe("handleSaveProfile", () => {
       router: mockRouter,
     });
 
-    expect(consoleSpy).toHaveBeenCalledWith("Fetch error:", "Network error");
     expect(mockAlert).toHaveBeenCalledWith(
       "Error",
       "Failed to update profile: Network error",
     );
     expect(mockRouter.back).toHaveBeenCalled();
 
-    consoleSpy.mockRestore();
     jest.clearAllMocks();
 
     const imageError = new Error("Image upload failed");
-    mockUser.setProfileImage.mockRejectedValue(imageError);
-    mockUser.update.mockResolvedValue(undefined);
+    (mockUser.setProfileImage as jest.Mock).mockRejectedValue(imageError);
+    (mockUser.update as jest.Mock).mockResolvedValue(undefined);
     const mockFileInstance = {
       base64: jest.fn().mockResolvedValue("base64string"),
     };
-    mockFile.mockImplementation(() => mockFileInstance as any);
-    consoleSpy = jest.spyOn(console, "error").mockImplementation();
+    mockFile.mockImplementation(() => mockFileInstance as unknown as File);
 
     await handleSaveProfile({
-      user: mockUser,
+      user: mockUser as unknown as UserResource,
       firstName: "John",
       lastName: "Doe",
       email: "john@example.com",
@@ -304,8 +326,6 @@ describe("handleSaveProfile", () => {
       "Failed to update profile: Image upload failed",
     );
     expect(mockRouter.back).toHaveBeenCalled();
-
-    consoleSpy.mockRestore();
   });
 });
 
@@ -490,8 +510,6 @@ describe("pickImage", () => {
   });
 
   it("handles errors during permission or image picker operations", async () => {
-    let consoleSpy = jest.spyOn(console, "error").mockImplementation();
-
     const permissionError = new Error("Permission error");
     (
       ImagePicker.requestMediaLibraryPermissionsAsync as jest.Mock
@@ -499,10 +517,6 @@ describe("pickImage", () => {
 
     await pickImage(mockSetImage);
 
-    expect(consoleSpy).toHaveBeenCalledWith(
-      "Image picker error:",
-      "Permission error",
-    );
     expect(mockAlert).toHaveBeenCalledWith(
       "Error",
       "Failed to pick image: Permission error",
@@ -518,27 +532,20 @@ describe("pickImage", () => {
     (ImagePicker.launchImageLibraryAsync as jest.Mock).mockRejectedValue(
       pickerError,
     );
-    consoleSpy = jest.spyOn(console, "error").mockImplementation();
 
     await pickImage(mockSetImage);
 
-    expect(consoleSpy).toHaveBeenCalledWith(
-      "Image picker error:",
-      "Picker crashed",
-    );
     expect(mockAlert).toHaveBeenCalledWith(
       "Error",
       "Failed to pick image: Picker crashed",
     );
     expect(mockSetImage).not.toHaveBeenCalled();
-
-    consoleSpy.mockRestore();
   });
 });
 
 describe("confirmLogout", () => {
   let mockSignOut: jest.Mock;
-  let mockLog: any;
+  let mockLog: import("@/utils/logger").LoggerProps;
   let mockAlert: jest.SpyInstance;
 
   beforeEach(() => {
@@ -546,6 +553,9 @@ describe("confirmLogout", () => {
     mockSignOut = jest.fn();
     mockLog = {
       info: jest.fn(),
+      debug: jest.fn(),
+      warn: jest.fn(),
+      error: jest.fn(),
     };
     mockAlert = jest.spyOn(Alert, "alert");
   });

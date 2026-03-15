@@ -17,6 +17,7 @@ import com.game.on.go_team_service.team.model.TeamMatchInviteStatus;
 import com.game.on.go_team_service.team.model.TeamMatchScore;
 import com.game.on.go_team_service.team.model.TeamMatchStatus;
 import com.game.on.go_team_service.team.model.TeamMatchType;
+import com.game.on.go_team_service.team.model.Venue;
 import com.game.on.go_team_service.team.repository.TeamMatchInviteRepository;
 import com.game.on.go_team_service.team.repository.TeamMatchRepository;
 import com.game.on.go_team_service.team.repository.TeamMatchScoreRepository;
@@ -42,6 +43,7 @@ public class TeamMatchService {
     private final TeamMatchRepository teamMatchRepository;
     private final TeamMatchInviteRepository teamMatchInviteRepository;
     private final TeamMatchScoreRepository teamMatchScoreRepository;
+    private final VenueService venueService;
     private final CurrentUserProvider userProvider;
     private final LeagueClient leagueClient;
 
@@ -64,7 +66,15 @@ public class TeamMatchService {
         }
 
         String matchSport = resolveMatchSport(request.sport(), homeTeam, awayTeam);
-        validateRegions(homeTeam, awayTeam, request.matchRegion());
+        Venue venue = null;
+        String matchRegion = trimToNull(request.matchRegion());
+        if (request.venueId() != null) {
+            venue = venueService.requireVenue(request.venueId());
+            matchRegion = trimToNull(venue.getRegion());
+            venueService.ensureRegionAllowedForMatch(venue, homeTeam.getId(), awayTeam.getId());
+        } else {
+            validateRegions(homeTeam, awayTeam, matchRegion);
+        }
         validateTimes(request.startTime(), request.endTime());
 
         if(checkHasSchedulingConflicts(homeTeam.getId(), awayTeam.getId(), request.startTime(), request.endTime())) {
@@ -78,7 +88,8 @@ public class TeamMatchService {
                 .sport(matchSport)
                 .startTime(request.startTime())
                 .endTime(request.endTime())
-                .matchLocation(trimToNull(request.matchRegion()))
+                .matchLocation(venue != null ? venue.getName() : matchRegion)
+                .venueId(venue == null ? null : venue.getId())
                 .requiresReferee(Boolean.TRUE.equals(request.requiresReferee()))
                 .status(TeamMatchStatus.PENDING_TEAM_ACCEPTANCE)
                 .notes(trimToNull(request.notes()))
@@ -346,6 +357,7 @@ public class TeamMatchService {
                 match.getStartTime(),
                 match.getEndTime(),
                 match.getMatchLocation(),
+                match.getVenueId(),
                 match.isRequiresReferee(),
                 match.getRefereeUserId(),
                 match.getNotes(),

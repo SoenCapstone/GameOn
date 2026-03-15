@@ -48,7 +48,11 @@ describe("SearchProvider", () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
-    mockUseTeamLeagueResults.mockReturnValue(mockTeamLeagueResults as any);
+    mockUseTeamLeagueResults.mockReturnValue(
+      mockTeamLeagueResults as unknown as ReturnType<
+        typeof useTeamLeagueResults
+      >,
+    );
   });
 
   it("provides initial context values", () => {
@@ -106,7 +110,7 @@ describe("SearchProvider", () => {
     mockUseTeamLeagueResults.mockReturnValue({
       ...mockTeamLeagueResults,
       isLoading: true,
-    } as any);
+    } as unknown as ReturnType<typeof useTeamLeagueResults>);
 
     const { result } = renderHook(() => useSearch(), {
       wrapper: ({ children }) => <SearchProvider>{children}</SearchProvider>,
@@ -120,7 +124,7 @@ describe("SearchProvider", () => {
     mockUseTeamLeagueResults.mockReturnValue({
       ...mockTeamLeagueResults,
       teamError: testError,
-    } as any);
+    } as unknown as ReturnType<typeof useTeamLeagueResults>);
 
     const { result } = renderHook(() => useSearch(), {
       wrapper: ({ children }) => <SearchProvider>{children}</SearchProvider>,
@@ -134,7 +138,7 @@ describe("SearchProvider", () => {
     mockUseTeamLeagueResults.mockReturnValue({
       ...mockTeamLeagueResults,
       leagueError: testError,
-    } as any);
+    } as unknown as ReturnType<typeof useTeamLeagueResults>);
 
     const { result } = renderHook(() => useSearch(), {
       wrapper: ({ children }) => <SearchProvider>{children}</SearchProvider>,
@@ -150,7 +154,7 @@ describe("SearchProvider", () => {
       ...mockTeamLeagueResults,
       teamError: teamErr,
       leagueError: leagueErr,
-    } as any);
+    } as unknown as ReturnType<typeof useTeamLeagueResults>);
 
     const { result } = renderHook(() => useSearch(), {
       wrapper: ({ children }) => <SearchProvider>{children}</SearchProvider>,
@@ -165,7 +169,7 @@ describe("SearchProvider", () => {
     mockUseTeamLeagueResults.mockReturnValue({
       ...mockTeamLeagueResults,
       refetch: mockRefetch,
-    } as any);
+    } as unknown as ReturnType<typeof useTeamLeagueResults>);
 
     const { result } = renderHook(() => useSearch(), {
       wrapper: ({ children }) => <SearchProvider>{children}</SearchProvider>,
@@ -233,7 +237,7 @@ describe("SearchProvider", () => {
     mockUseTeamLeagueResults.mockReturnValue({
       ...mockTeamLeagueResults,
       data: newResults,
-    } as any);
+    } as unknown as ReturnType<typeof useTeamLeagueResults>);
 
     rerender({});
 
@@ -244,7 +248,7 @@ describe("SearchProvider", () => {
     mockUseTeamLeagueResults.mockReturnValue({
       ...mockTeamLeagueResults,
       data: [],
-    } as any);
+    } as unknown as ReturnType<typeof useTeamLeagueResults>);
 
     const { result } = renderHook(() => useSearch(), {
       wrapper: ({ children }) => <SearchProvider>{children}</SearchProvider>,
@@ -265,7 +269,11 @@ describe("useSearch", () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
-    mockUseTeamLeagueResults.mockReturnValue(mockTeamLeagueResults as any);
+    mockUseTeamLeagueResults.mockReturnValue(
+      mockTeamLeagueResults as unknown as ReturnType<
+        typeof useTeamLeagueResults
+      >,
+    );
   });
 
   it("throws error when used outside provider", () => {
