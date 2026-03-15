@@ -1,6 +1,15 @@
-"use client"
-
-import { Badge } from "@/components/ui/badge"
+import {
+  AddTeamIcon,
+  Calendar03Icon,
+  ChampionIcon,
+  FileIcon,
+  Flag01Icon,
+  Location01Icon,
+  MailIcon,
+  UserIcon,
+} from "@hugeicons/core-free-icons";
+import { HugeiconsIcon } from "@hugeicons/react";
+import { Badge } from "@/components/ui/badge";
 import {
   Card,
   CardAction,
@@ -8,101 +17,111 @@ import {
   CardFooter,
   CardHeader,
   CardTitle,
-} from "@/components/ui/card"
-import { HugeiconsIcon } from "@hugeicons/react"
-import { ChartUpIcon, ChartDownIcon } from "@hugeicons/core-free-icons"
+} from "@/components/ui/card";
 
-export function SectionCards() {
+type SectionCardsProps = {
+  totals: {
+    users: number;
+    teams: number;
+    matches: number;
+    leagues: number;
+    posts: number;
+    messages: number;
+    referees: number;
+    venues: number;
+  };
+};
+
+const cardDefinitions: Array<{
+  key: keyof SectionCardsProps["totals"];
+  title: string;
+  footer: string;
+  icon: typeof UserIcon;
+}> = [
+  {
+    key: "users",
+    title: "Users",
+    footer: "Total accounts",
+    icon: UserIcon,
+  },
+  {
+    key: "teams",
+    title: "Teams",
+    footer: "Active teams",
+    icon: AddTeamIcon,
+  },
+  {
+    key: "matches",
+    title: "Matches",
+    footer: "Total matches",
+    icon: Calendar03Icon,
+  },
+  {
+    key: "leagues",
+    title: "Leagues",
+    footer: "Active leagues",
+    icon: ChampionIcon,
+  },
+  {
+    key: "posts",
+    title: "Posts",
+    footer: "Published posts",
+    icon: FileIcon,
+  },
+  {
+    key: "messages",
+    title: "Messages",
+    footer: "Visible chat messages",
+    icon: MailIcon,
+  },
+  {
+    key: "referees",
+    title: "Referees",
+    footer: "Referee profiles",
+    icon: Flag01Icon,
+  },
+  {
+    key: "venues",
+    title: "Venues",
+    footer: "Saved match locations",
+    icon: Location01Icon,
+  },
+];
+
+function formatTotal(value: number): string {
+  return value.toLocaleString("en-US");
+}
+
+export function SectionCards({ totals }: SectionCardsProps) {
   return (
-    <div className="*:data-[slot=card]:from-primary/5 *:data-[slot=card]:to-card dark:*:data-[slot=card]:bg-card grid grid-cols-1 gap-4 px-4 *:data-[slot=card]:bg-gradient-to-t *:data-[slot=card]:shadow-xs lg:px-6 @xl/main:grid-cols-2 @5xl/main:grid-cols-4">
-      <Card className="@container/card">
-        <CardHeader>
-          <CardDescription>Total Revenue</CardDescription>
-          <CardTitle className="text-2xl font-semibold tabular-nums @[250px]/card:text-3xl">
-            $1,250.00
-          </CardTitle>
-          <CardAction>
-            <Badge variant="outline">
-              <HugeiconsIcon icon={ChartUpIcon} strokeWidth={2} />
-              +12.5%
-            </Badge>
-          </CardAction>
-        </CardHeader>
-        <CardFooter className="flex-col items-start gap-1.5 text-sm">
-          <div className="line-clamp-1 flex gap-2 font-medium">
-            Trending up this month{" "}
-            <HugeiconsIcon icon={ChartUpIcon} strokeWidth={2} className="size-4" />
-          </div>
-          <div className="text-muted-foreground">
-            Visitors for the last 6 months
-          </div>
-        </CardFooter>
-      </Card>
-      <Card className="@container/card">
-        <CardHeader>
-          <CardDescription>New Customers</CardDescription>
-          <CardTitle className="text-2xl font-semibold tabular-nums @[250px]/card:text-3xl">
-            1,234
-          </CardTitle>
-          <CardAction>
-            <Badge variant="outline">
-              <HugeiconsIcon icon={ChartDownIcon} strokeWidth={2} />
-              -20%
-            </Badge>
-          </CardAction>
-        </CardHeader>
-        <CardFooter className="flex-col items-start gap-1.5 text-sm">
-          <div className="line-clamp-1 flex gap-2 font-medium">
-            Down 20% this period{" "}
-            <HugeiconsIcon icon={ChartDownIcon} strokeWidth={2} className="size-4" />
-          </div>
-          <div className="text-muted-foreground">
-            Acquisition needs attention
-          </div>
-        </CardFooter>
-      </Card>
-      <Card className="@container/card">
-        <CardHeader>
-          <CardDescription>Active Accounts</CardDescription>
-          <CardTitle className="text-2xl font-semibold tabular-nums @[250px]/card:text-3xl">
-            45,678
-          </CardTitle>
-          <CardAction>
-            <Badge variant="outline">
-              <HugeiconsIcon icon={ChartUpIcon} strokeWidth={2} />
-              +12.5%
-            </Badge>
-          </CardAction>
-        </CardHeader>
-        <CardFooter className="flex-col items-start gap-1.5 text-sm">
-          <div className="line-clamp-1 flex gap-2 font-medium">
-            Strong user retention{" "}
-            <HugeiconsIcon icon={ChartUpIcon} strokeWidth={2} className="size-4" />
-          </div>
-          <div className="text-muted-foreground">Engagement exceed targets</div>
-        </CardFooter>
-      </Card>
-      <Card className="@container/card">
-        <CardHeader>
-          <CardDescription>Growth Rate</CardDescription>
-          <CardTitle className="text-2xl font-semibold tabular-nums @[250px]/card:text-3xl">
-            4.5%
-          </CardTitle>
-          <CardAction>
-            <Badge variant="outline">
-              <HugeiconsIcon icon={ChartUpIcon} strokeWidth={2} />
-              +4.5%
-            </Badge>
-          </CardAction>
-        </CardHeader>
-        <CardFooter className="flex-col items-start gap-1.5 text-sm">
-          <div className="line-clamp-1 flex gap-2 font-medium">
-            Steady performance increase{" "}
-            <HugeiconsIcon icon={ChartUpIcon} strokeWidth={2} className="size-4" />
-          </div>
-          <div className="text-muted-foreground">Meets growth projections</div>
-        </CardFooter>
-      </Card>
+    <div className="grid grid-cols-1 gap-4 px-4 md:grid-cols-2 lg:px-6 @5xl/main:grid-cols-4">
+      {cardDefinitions.map((card) => (
+        <Card
+          key={card.key}
+          className="from-primary/5 to-card bg-gradient-to-t shadow-xs"
+        >
+          <CardHeader>
+            <CardDescription>{card.title}</CardDescription>
+            <CardTitle className="text-2xl font-semibold tabular-nums @[250px]/card:text-3xl">
+              {formatTotal(totals[card.key])}
+            </CardTitle>
+            <CardAction>
+              <Badge
+                variant="outline"
+                className="size-8 justify-center p-0 [&>svg]:size-4!"
+              >
+                <HugeiconsIcon
+                  icon={card.icon}
+                  strokeWidth={2}
+                />
+              </Badge>
+            </CardAction>
+          </CardHeader>
+          <CardFooter className="text-muted-foreground text-sm">
+            {card.footer}
+          </CardFooter>
+        </Card>
+      ))}
     </div>
-  )
+  );
 }
