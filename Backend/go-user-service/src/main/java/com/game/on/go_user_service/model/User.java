@@ -19,4 +19,7 @@ public class User {
     private String lastname;
 
     private String email;
+
+    @Column(name = "image_url")
+    private String imageUrl;
 }

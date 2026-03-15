@@ -9,4 +9,6 @@ public interface UserRequest {
     String firstname();
 
     String lastname();
+
+    String imageUrl();
 }
