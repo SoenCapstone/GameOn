@@ -80,8 +80,9 @@ public class TeamMatchService {
         }
         validateTimes(request.startTime(), request.endTime());
 
-        if(checkHasSchedulingConflicts(homeTeam.getId(), awayTeam.getId(), request.startTime(), request.endTime())) {
-            throw new ConflictException("Unable to create invite, another match is booked during this time.");
+        if(checkHasSchedulingConflicts(homeTeam.getId(), request.startTime(), request.endTime()) ||
+            checkHasSchedulingConflicts(awayTeam.getId(), request.startTime(), request.endTime())) {
+            throw new ConflictException("Unable to create invite, another match is booked during this time or you have exceeded the daily limit.");
         }
 
         TeamMatch match = TeamMatch.builder()
@@ -144,14 +145,15 @@ public class TeamMatchService {
             throw new ForbiddenException("Only the away team owner can accept the invite");
         }
 
-        if(checkHasSchedulingConflicts(match.getHomeTeamId(), match.getAwayTeamId(), match.getStartTime(), match.getEndTime())) {
+        if(checkHasSchedulingConflicts(match.getHomeTeamId(), match.getStartTime(), match.getEndTime())
+                || checkHasSchedulingConflicts(match.getAwayTeamId(), match.getStartTime(), match.getEndTime())) {
             invite.setStatus(TeamMatchInviteStatus.DECLINED);
             invite.setRespondedAt(OffsetDateTime.now());
             teamMatchInviteRepository.save(invite);
 
             match.setStatus(TeamMatchStatus.CANCELLED);
             teamMatchRepository.save(match);
-            throw new ConflictException("Another match was confirmed in this time slot before this match was confirmed.");
+            throw new ConflictException("Another match was confirmed in this time slot before this match was confirmed, or your daily limit is exceeded at the time of acceptance.");
         }
 
         invite.setStatus(TeamMatchInviteStatus.ACCEPTED);
@@ -277,21 +279,21 @@ public class TeamMatchService {
         }
     }
 
-    private boolean checkHasSchedulingConflicts(UUID homeTeam, UUID awayTeam, OffsetDateTime startTime, OffsetDateTime endTime) {
-        var allTeamMatches = teamMatchRepository.findByHomeTeamIdOrAwayTeamIdOrderByStartTimeDesc(homeTeam, homeTeam);
-        allTeamMatches.addAll(teamMatchRepository.findByHomeTeamIdOrAwayTeamIdOrderByStartTimeDesc(awayTeam, awayTeam));
+    private boolean checkHasSchedulingConflicts(UUID team, OffsetDateTime startTime, OffsetDateTime endTime) {
+        var allTeamMatches = teamMatchRepository.findByHomeTeamIdOrAwayTeamIdOrderByStartTimeDesc(team, team);
 
         int curMatchCount = 0;
 
         for(var match : allTeamMatches) {
             boolean isSameDay = (match.getStartTime().getYear() == startTime.getYear()
                     && match.getStartTime().getDayOfYear() == startTime.getDayOfYear());
+            boolean isConfirmed = match.getStatus() == TeamMatchStatus.CONFIRMED;
 
-            if(isSameDay) {
+            if(isSameDay && isConfirmed) {
                 curMatchCount++;
             }
 
-            if(curMatchCount > MAX_MATCHES_PER_DAY){
+            if(curMatchCount >= MAX_MATCHES_PER_DAY){
                 return true;
             }
 
@@ -300,25 +302,27 @@ public class TeamMatchService {
                     && match.getStartTime().isBefore(endTime.plusMinutes(MIN_REST_TIME_MINUTES)))
                     || (match.getEndTime().isAfter(startTime.minusMinutes(MIN_REST_TIME_MINUTES))
                     && match.getEndTime().isBefore(endTime.plusMinutes(MIN_REST_TIME_MINUTES)));
-            boolean isConfirmed = match.getStatus() == TeamMatchStatus.CONFIRMED;
 
-            if(isBetweenStartAndEndTime && isConfirmed) {
+            boolean isOverlapped = ((startTime.isBefore(match.getStartTime()) && endTime.isAfter(match.getEndTime()))
+                                || (match.getStartTime().isBefore(startTime) && match.getEndTime().isAfter(endTime)));
+
+            if((isBetweenStartAndEndTime || isOverlapped) && isConfirmed) {
                 return true;
             }
         }
 
-        var allLeagueMatches = leagueClient.getLeagueMatchesForTeam(homeTeam);
-        allLeagueMatches.addAll(leagueClient.getLeagueMatchesForTeam(awayTeam));
+        var allLeagueMatches = leagueClient.getLeagueMatchesForTeam(team);
 
         for(var match : allLeagueMatches) {
             boolean isSameDay = (match.startTime().getYear() == startTime.getYear()
                     && match.startTime().getDayOfYear() == startTime.getDayOfYear());
+            boolean isConfirmed = match.status().equalsIgnoreCase("confirmed");
 
-            if(isSameDay) {
+            if(isSameDay && isConfirmed) {
                 curMatchCount++;
             }
 
-            if(curMatchCount > MAX_MATCHES_PER_DAY){
+            if(curMatchCount >= MAX_MATCHES_PER_DAY){
                 return true;
             }
 
@@ -327,9 +331,11 @@ public class TeamMatchService {
                     && match.startTime().isBefore(endTime.plusMinutes(MIN_REST_TIME_MINUTES)))
                     || (match.endTime().isAfter(startTime.minusMinutes(MIN_REST_TIME_MINUTES))
                     && match.endTime().isBefore(endTime.plusMinutes(MIN_REST_TIME_MINUTES)));
-            boolean isConfirmed = match.status().equalsIgnoreCase("confirmed");
 
-            if(isBetweenStartAndEndTime && isConfirmed) {
+            boolean isOverlapped = ((startTime.isBefore(match.startTime()) && endTime.isAfter(match.endTime()))
+                    || (match.startTime().isBefore(startTime) && match.endTime().isAfter(endTime)));
+
+            if((isBetweenStartAndEndTime || isOverlapped) && isConfirmed) {
                 return true;
             }
         }
