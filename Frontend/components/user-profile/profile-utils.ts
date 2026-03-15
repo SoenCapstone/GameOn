@@ -3,9 +3,12 @@ import { createScopedLog, LoggerProps } from "@/utils/logger";
 import { File } from "expo-file-system";
 import { errorToString } from "@/utils/error";
 import { UserResource } from "@clerk/types";
+import { AxiosInstance } from "axios";
+import { GO_USER_SERVICE_ROUTES } from "@/hooks/use-axios-clerk";
 
 const log = createScopedLog("Profile");
 interface HandleSaveParams {
+  api: AxiosInstance;
   user: UserResource | null;
   firstName: string;
   lastName: string;
@@ -15,6 +18,7 @@ interface HandleSaveParams {
 }
 
 export const handleSaveProfile = async ({
+  api,
   user,
   firstName,
   lastName,
@@ -40,6 +44,8 @@ export const handleSaveProfile = async ({
 
   try {
     if (user) {
+      let imageUrl: string | null = user.imageUrl ?? null;
+
       await user.update({
         firstName,
         lastName,
@@ -47,6 +53,7 @@ export const handleSaveProfile = async ({
 
       if (image === null && user.hasImage) {
         await user.setProfileImage({ file: null });
+        imageUrl = null;
         log.info("Profile image deleted successfully");
       } else if (
         image !== null &&
@@ -60,8 +67,20 @@ export const handleSaveProfile = async ({
         await user.setProfileImage({
           file: `data:${mimeType};base64,${base64}`,
         });
+        await user.reload();
+        imageUrl = user.imageUrl ?? null;
         log.info("Profile image updated successfully");
+      } else if (user.hasImage) {
+        imageUrl = user.imageUrl ?? null;
       }
+
+      await api.put(GO_USER_SERVICE_ROUTES.UPDATE, {
+        id: user.id,
+        firstname: firstName,
+        lastname: lastName,
+        email,
+        imageUrl,
+      });
     }
 
     Alert.alert("Success", "Profile updated");

@@ -36,35 +36,36 @@ public class UserServiceTest {
     @Mock
     private UserMapper userMapper;
 
-    private static UserRequestCreate requestCreate(String id, String firstname, String lastname, String email){
-        return new UserRequestCreate(id, firstname, lastname, email);
+    private static UserRequestCreate requestCreate(String id, String firstname, String lastname, String email, String imageUrl){
+        return new UserRequestCreate(id, firstname, lastname, email, imageUrl);
     }
 
-    private static UserRequestUpdate requestUpdate(String id, String firstname, String lastname, String email){
-        return new UserRequestUpdate(id, firstname, lastname, email);
+    private static UserRequestUpdate requestUpdate(String id, String firstname, String lastname, String email, String imageUrl){
+        return new UserRequestUpdate(id, firstname, lastname, email, imageUrl);
     }
 
-    private static User user(String id, String firstname, String lastname, String email){
+    private static User user(String id, String firstname, String lastname, String email, String imageUrl){
         return User.builder()
                 .id(id)
                 .firstname(firstname)
                 .lastname(lastname)
                 .email(email)
+                .imageUrl(imageUrl)
                 .build();
     }
 
-    private static UserResponse response(String id, String firstname, String lastname, String email){
-        return new UserResponse(id, email, firstname, lastname);
+    private static UserResponse response(String id, String firstname, String lastname, String email, String imageUrl){
+        return new UserResponse(id, email, firstname, lastname, imageUrl);
     }
 
     @Test
     void getAllUsersTest(){
-        var user1 = user("1234", "Person","One","test1@email.com");
-        var user2 = user("5678", "Person", "Two","test2@email.com");
+        var user1 = user("1234", "Person","One","test1@email.com", "https://example.com/1.png");
+        var user2 = user("5678", "Person", "Two","test2@email.com", "https://example.com/2.png");
 
         when(userRepository.findAll()).thenReturn(List.of(user1, user2));
-        when(userMapper.toUserResponse(user1)).thenReturn(response("1234","Person", "One", "test1@email.com"));
-        when(userMapper.toUserResponse(user2)).thenReturn(response("5678","Person", "Two", "test2@email.com"));
+        when(userMapper.toUserResponse(user1)).thenReturn(response("1234","Person", "One", "test1@email.com", "https://example.com/1.png"));
+        when(userMapper.toUserResponse(user2)).thenReturn(response("5678","Person", "Two", "test2@email.com", "https://example.com/2.png"));
 
         var getAllUsersResponse = userService.getAllUsers();
 
@@ -79,10 +80,10 @@ public class UserServiceTest {
 
     @Test
     void fetchUserByEmailTest(){
-        var u = user("1234", "Person","One","test1@email.com");
+        var u = user("1234", "Person","One","test1@email.com", "https://example.com/1.png");
 
         when(userRepository.findByEmail("test1@email.com")).thenReturn(Optional.of(u));
-        when(userMapper.toUserResponse(u)).thenReturn(response("1234","Person", "One", "test1@email.com"));
+        when(userMapper.toUserResponse(u)).thenReturn(response("1234","Person", "One", "test1@email.com", "https://example.com/1.png"));
 
         var res = userService.fetchUserByEmail("test1@email.com");
 
@@ -106,8 +107,8 @@ public class UserServiceTest {
 
     @Test
     public void createUserTest(){
-        var req = requestCreate("1234","Person","One","test1@email.com");
-        var u = user("1234","Person","One","test1@email.com");
+        var req = requestCreate("1234","Person","One","test1@email.com", "https://example.com/1.png");
+        var u = user("1234","Person","One","test1@email.com", "https://example.com/1.png");
 
         when(userRepository.findById("1234")).thenReturn(Optional.empty());
         when(userMapper.toUser(req)).thenReturn(u);
@@ -126,9 +127,9 @@ public class UserServiceTest {
 
     @Test
     void createUserUserAlreadyExistsExceptionTest() {
-        var req = requestCreate("1234","Person", "One", "test1@email.com");
+        var req = requestCreate("1234","Person", "One", "test1@email.com", null);
         when(userRepository.findById("1234")).thenReturn(Optional.of(
-                user("1234","Person", "One", "test1@email.com")));
+                user("1234","Person", "One", "test1@email.com", null)));
 
         assertThatThrownBy(() -> userService.createUser(req))
                 .isInstanceOf(UserAlreadyExistsException.class)
@@ -141,9 +142,9 @@ public class UserServiceTest {
 
     @Test
     void updateUserSomeFieldsTest() {
-        var existing = user("1234", "oldFirstname", "oldLastname","test1@email.com");
-        var req = requestUpdate("1234","newFirstname","","test1@email.com");
-        var newInfo = user("1234","newFirstname", "   ","test1@email.com"); // lastname blank -> ignored
+        var existing = user("1234", "oldFirstname", "oldLastname","test1@email.com", "https://example.com/old.png");
+        var req = requestUpdate("1234","newFirstname","","test1@email.com", "");
+        var newInfo = user("1234","newFirstname", "   ","test1@email.com", ""); // lastname blank -> ignored
 
         when(userRepository.findById("1234")).thenReturn(Optional.of(existing));
         when(userMapper.toUser(req)).thenReturn(newInfo);
@@ -162,9 +163,9 @@ public class UserServiceTest {
 
     @Test
     void updateUserAllFieldsTest() {
-        var existing = user("1234", "oldFirstname", "oldLastname","test1@email.com");
-        var req = requestUpdate("1234","newFirstname", "newLastname", "test1@email.com");
-        var newInfo = user("1234", "newFirstname", "newLastname", "test1@email.com");
+        var existing = user("1234", "oldFirstname", "oldLastname","test1@email.com", "https://example.com/old.png");
+        var req = requestUpdate("1234","newFirstname", "newLastname", "test1@email.com", "https://example.com/new.png");
+        var newInfo = user("1234", "newFirstname", "newLastname", "test1@email.com", "https://example.com/new.png");
 
         when(userRepository.findById("1234")).thenReturn(Optional.of(existing));
         when(userMapper.toUser(req)).thenReturn(newInfo);
@@ -178,11 +179,12 @@ public class UserServiceTest {
         assertThat(existing.getFirstname()).isEqualTo("newFirstname");
         assertThat(existing.getLastname()).isEqualTo("newLastname");
         assertThat(existing.getEmail()).isEqualTo("test1@email.com");
+        assertThat(existing.getImageUrl()).isEqualTo("https://example.com/new.png");
     }
 
     @Test
     void updateUserUserNotFoundExceptionTest() {
-        var req = requestUpdate("1234","Person", "One","test1@email.com");
+        var req = requestUpdate("1234","Person", "One","test1@email.com", null);
         when(userRepository.findById("1234")).thenReturn(Optional.empty());
 
         assertThatThrownBy(() -> userService.updateUser(req))
@@ -196,7 +198,7 @@ public class UserServiceTest {
 
     @Test
     void deleteUserTest() {
-        var existing = user("1234", "firstname", "lastname", "test1@email.com");
+        var existing = user("1234", "firstname", "lastname", "test1@email.com", null);
 
         when(userRepository.findById("1234")).thenReturn(Optional.of(existing));
 

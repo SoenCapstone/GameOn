@@ -55,6 +55,7 @@ const buildRoute = (version: string, service: string, path?: string) => {
 export const GO_USER_SERVICE_ROUTES = {
   TEST: buildRoute(VERSIONING.v1, SERVICE.USER, "test"),
   CREATE: buildRoute(VERSIONING.v1, SERVICE.USER, "create"),
+  UPDATE: buildRoute(VERSIONING.v1, SERVICE.USER, "update"),
   ALL: buildRoute(VERSIONING.v1, SERVICE.USER, "getAllUsers"),
   BY_EMAIL: (email: string) => buildRoute(VERSIONING.v1, SERVICE.USER, email),
   BY_ID: (userId: string) =>

@@ -16,10 +16,17 @@ public class UserMapper {
                .firstname(userRequest.firstname())
                .lastname(userRequest.lastname())
                .email(userRequest.email())
+               .imageUrl(userRequest.imageUrl())
                .build();
     }
 
     public UserResponse toUserResponse(User user){
-        return new UserResponse(user.getId(), user.getEmail(), user.getFirstname(), user.getLastname());
+        return new UserResponse(
+                user.getId(),
+                user.getEmail(),
+                user.getFirstname(),
+                user.getLastname(),
+                user.getImageUrl()
+        );
     }
 }
