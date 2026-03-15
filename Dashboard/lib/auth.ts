@@ -1,11 +1,11 @@
 import { clerkClient } from "@clerk/nextjs/server";
 
-const ADMIN_ROLE = "admin";
+const adminRole = "admin";
 
 function isAdminRole(value: unknown): boolean {
   return (
     typeof value === "string" &&
-    value.trim().toLowerCase() === ADMIN_ROLE
+    value.trim().toLowerCase() === adminRole
   );
 }
 
