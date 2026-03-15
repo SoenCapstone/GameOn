@@ -1,4 +1,5 @@
 import * as Yup from "yup";
+import type { SignInResource, SetActive } from "@clerk/types";
 import {
   VALIDATION_EMAIL_FORMAT_MESSAGE_FORMAT,
   VALIDATION_EMAIL_FORMAT_MESSAGE_REQUIRED,
@@ -7,7 +8,7 @@ import {
   VALIDATION_PASSWORD_MESSAGE_REQUIRED,
   EMAIL_VERIFICATION_STATUS,
 } from "@/components/sign-up/constants";
-import { SetActiveFn, UserSignIn } from "@/components/sign-up/models";
+import { UserSignIn } from "@/components/sign-up/models";
 import { humanizeClerkError, toast } from "@/components/sign-up/utils";
 import { createScopedLog } from "@/utils/logger";
 
@@ -24,24 +25,28 @@ export const SignInSchema = Yup.object({
 
 export const login = async (
   values: UserSignIn,
-  signIn: any,
-  setActive: SetActiveFn,
+  signIn: SignInResource,
+  setActive: SetActive,
   isLoaded: boolean,
-) => {
+): Promise<void> => {
   if (!isLoaded) return;
 
   try {
     const result = await signIn.create({
-      identifier: values?.emailAddress,
-      password: values?.password,
+      identifier: values.emailAddress,
+      password: values.password,
     });
 
     if (result.status === EMAIL_VERIFICATION_STATUS) {
+      if (!result.createdSessionId) {
+        log.info("Session ID not created");
+        return;
+      }
       await setActive({ session: result.createdSessionId });
     } else {
       log.info("Additional verification required:", result);
     }
-  } catch (err) {
+  } catch (err: unknown) {
     toast(humanizeClerkError(err));
   }
 };

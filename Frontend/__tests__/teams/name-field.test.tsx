@@ -11,8 +11,11 @@ describe("TeamNameField", () => {
   });
 
   it("renders correctly with empty and provided team name, displays Name label", () => {
-    const { getByPlaceholderText: getByPlaceholderText1, getByText: getByText1 } = render(
-      <TeamNameField teamName="" onChangeTeamName={mockOnChangeTeamName} />
+    const {
+      getByPlaceholderText: getByPlaceholderText1,
+      getByText: getByText1,
+    } = render(
+      <TeamNameField teamName="" onChangeTeamName={mockOnChangeTeamName} />,
     );
 
     const input1 = getByPlaceholderText1("Team Name");
@@ -24,7 +27,7 @@ describe("TeamNameField", () => {
       <TeamNameField
         teamName="My Team"
         onChangeTeamName={mockOnChangeTeamName}
-      />
+      />,
     );
 
     const input2 = getByPlaceholderText2("Team Name");
@@ -33,7 +36,7 @@ describe("TeamNameField", () => {
 
   it("handles text changes and clear button interaction", () => {
     const { getByPlaceholderText } = render(
-      <TeamNameField teamName="" onChangeTeamName={mockOnChangeTeamName} />
+      <TeamNameField teamName="" onChangeTeamName={mockOnChangeTeamName} />,
     );
 
     const input = getByPlaceholderText("Team Name");
@@ -47,7 +50,7 @@ describe("TeamNameField", () => {
       <TeamNameField
         teamName="Old Team"
         onChangeTeamName={mockOnChangeTeamName}
-      />
+      />,
     );
 
     const input2 = getByPlaceholderText2("Team Name");
@@ -61,7 +64,7 @@ describe("TeamNameField", () => {
       <TeamNameField
         teamName="My Team"
         onChangeTeamName={mockOnChangeTeamName}
-      />
+      />,
     );
 
     const clearButton = getByText("✕");
@@ -72,7 +75,7 @@ describe("TeamNameField", () => {
 
   it("manages clear button visibility based on team name presence", () => {
     const { queryByText: queryByText1 } = render(
-      <TeamNameField teamName="" onChangeTeamName={mockOnChangeTeamName} />
+      <TeamNameField teamName="" onChangeTeamName={mockOnChangeTeamName} />,
     );
 
     let clearButton = queryByText1("✕");
@@ -82,21 +85,21 @@ describe("TeamNameField", () => {
       <TeamNameField
         teamName="My Team"
         onChangeTeamName={mockOnChangeTeamName}
-      />
+      />,
     );
 
     clearButton = getByText1("✕");
     expect(clearButton).toBeTruthy();
 
     const { getByText: getByText2 } = render(
-      <TeamNameField teamName="A" onChangeTeamName={mockOnChangeTeamName} />
+      <TeamNameField teamName="A" onChangeTeamName={mockOnChangeTeamName} />,
     );
 
     clearButton = getByText2("✕");
     expect(clearButton).toBeTruthy();
 
     const { getByText: getByText3 } = render(
-      <TeamNameField teamName="   " onChangeTeamName={mockOnChangeTeamName} />
+      <TeamNameField teamName="   " onChangeTeamName={mockOnChangeTeamName} />,
     );
 
     clearButton = getByText3("✕");
@@ -106,7 +109,10 @@ describe("TeamNameField", () => {
   it("handles various text formats (long, special, unicode, numeric, whitespace)", () => {
     const longName = "A".repeat(100);
     const { getByPlaceholderText: getByPlaceholderText1 } = render(
-      <TeamNameField teamName={longName} onChangeTeamName={mockOnChangeTeamName} />
+      <TeamNameField
+        teamName={longName}
+        onChangeTeamName={mockOnChangeTeamName}
+      />,
     );
 
     let input = getByPlaceholderText1("Team Name");
@@ -117,7 +123,7 @@ describe("TeamNameField", () => {
       <TeamNameField
         teamName={specialName}
         onChangeTeamName={mockOnChangeTeamName}
-      />
+      />,
     );
 
     input = getByPlaceholderText2("Team Name");
@@ -128,7 +134,7 @@ describe("TeamNameField", () => {
       <TeamNameField
         teamName={unicodeName}
         onChangeTeamName={mockOnChangeTeamName}
-      />
+      />,
     );
 
     input = getByPlaceholderText3("Team Name");
@@ -139,14 +145,17 @@ describe("TeamNameField", () => {
       <TeamNameField
         teamName={whitespaceName}
         onChangeTeamName={mockOnChangeTeamName}
-      />
+      />,
     );
 
     input = getByPlaceholderText4("Team Name");
     expect(input.props.value).toBe(whitespaceName);
 
     const { getByPlaceholderText: getByPlaceholderText5 } = render(
-      <TeamNameField teamName="123456" onChangeTeamName={mockOnChangeTeamName} />
+      <TeamNameField
+        teamName="123456"
+        onChangeTeamName={mockOnChangeTeamName}
+      />,
     );
 
     input = getByPlaceholderText5("Team Name");
@@ -156,7 +165,7 @@ describe("TeamNameField", () => {
       <TeamNameField
         teamName="Team123"
         onChangeTeamName={mockOnChangeTeamName}
-      />
+      />,
     );
 
     input = getByPlaceholderText6("Team Name");
@@ -168,7 +177,7 @@ describe("TeamNameField", () => {
       <TeamNameField
         teamName="Initial"
         onChangeTeamName={mockOnChangeTeamName}
-      />
+      />,
     );
 
     expect(getByText("✕")).toBeTruthy();
@@ -177,14 +186,14 @@ describe("TeamNameField", () => {
     expect(mockOnChangeTeamName).toHaveBeenCalledWith("");
 
     rerender(
-      <TeamNameField teamName="" onChangeTeamName={mockOnChangeTeamName} />
+      <TeamNameField teamName="" onChangeTeamName={mockOnChangeTeamName} />,
     );
     expect(queryByText("✕")).toBeNull();
 
     mockOnChangeTeamName.mockClear();
 
     const { getByPlaceholderText } = render(
-      <TeamNameField teamName="" onChangeTeamName={mockOnChangeTeamName} />
+      <TeamNameField teamName="" onChangeTeamName={mockOnChangeTeamName} />,
     );
 
     const input = getByPlaceholderText("Team Name");
@@ -199,7 +208,9 @@ describe("TeamNameField", () => {
       onChangeTeamName: mockOnChangeTeamName,
     } as const;
 
-    const { getByPlaceholderText, getByText } = render(<TeamNameField {...props} />);
+    const { getByPlaceholderText, getByText } = render(
+      <TeamNameField {...props} />,
+    );
 
     const input = getByPlaceholderText("Team Name");
     expect(input.props.value).toBe("Test Team");

@@ -1,25 +1,27 @@
 import React from "react";
 import { Text } from "react-native";
 import { render, fireEvent } from "@testing-library/react-native";
-import { PlayMakerBoard } from "../../components/play-maker/play-maker-board";
+import { PlayMakerBoard } from "@/components/play-maker/play-maker-board";
 
 jest.mock(
-  "../../components/play-maker/play-maker-board-configurations/play-maker-default-board",
+  "@/components/play-maker/play-maker-board-configurations/play-maker-default-board",
   () => ({
-    DefaultBoard: ({ children }: any) => <>{children}</>,
-  })
+    DefaultBoard: ({ children }: { children?: React.ReactNode }) => (
+      <>{children}</>
+    ),
+  }),
 );
 
 describe("PlayMakerBoard", () => {
   it("renders children", () => {
     const { getByText } = render(
       <PlayMakerBoard
-        boardConfig={undefined as any}
-        selectedTool={"person" as any}
+        boardConfig={undefined}
+        selectedTool={"person"}
         selectedShapeId={null}
       >
         <Text>Child</Text>
-      </PlayMakerBoard>
+      </PlayMakerBoard>,
     );
 
     expect(getByText("Child")).toBeTruthy();
@@ -31,12 +33,12 @@ describe("PlayMakerBoard", () => {
     const { getByTestId } = render(
       <PlayMakerBoard
         onBoardPress={onBoardPress}
-        boardConfig={undefined as any}
-        selectedTool={"person" as any}
+        boardConfig={undefined}
+        selectedTool={"person"}
         selectedShapeId={null}
       >
         <Text>Child</Text>
-      </PlayMakerBoard>
+      </PlayMakerBoard>,
     );
 
     fireEvent.press(getByTestId("playmaker-board-pressable"), {
@@ -50,12 +52,12 @@ describe("PlayMakerBoard", () => {
   it("does nothing if onBoardPress is not provided", () => {
     const { getByTestId } = render(
       <PlayMakerBoard
-        boardConfig={undefined as any}
-        selectedTool={"person" as any}
+        boardConfig={undefined}
+        selectedTool={"person"}
         selectedShapeId={null}
       >
         <Text>Child</Text>
-      </PlayMakerBoard>
+      </PlayMakerBoard>,
     );
 
     fireEvent.press(getByTestId("playmaker-board-pressable"), {

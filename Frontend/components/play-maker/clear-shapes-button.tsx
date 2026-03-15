@@ -1,6 +1,6 @@
 import { Pressable, StyleSheet, View, Text } from "react-native";
-import { CLEAR_SHAPES_BUTTON_CONFIG, ClearShapesButtonProps } from "./model";
-import { IconContainer } from "./play-maker-icon/icon-container";
+import { CLEAR_SHAPES_BUTTON_CONFIG, ClearShapesButtonProps } from "@/components/play-maker/model";
+import { IconContainer } from "@/components/play-maker/play-maker-icon/icon-container";
 
 export const ClearShapesButton = ({
   setShapes,

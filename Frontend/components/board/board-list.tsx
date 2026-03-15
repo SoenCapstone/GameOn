@@ -1,4 +1,4 @@
-import React from "react";
+import React, { ComponentRef } from "react";
 import { View, Text, ActivityIndicator, StyleSheet } from "react-native";
 import { BoardPost } from "@/components/board/board-types";
 import { Post } from "@/components/board/post";
@@ -25,7 +25,7 @@ export function BoardList({
   onDeletePost,
   canDelete = false,
 }: Readonly<BoardListProps>) {
-  const listRef = React.useRef<any>(null);
+  const listRef = React.useRef<ComponentRef<typeof LegendList>>(null);
 
   const handleContentSizeChange = React.useCallback(() => {
     listRef.current?.scrollToIndex({ index: 0, animated: true });

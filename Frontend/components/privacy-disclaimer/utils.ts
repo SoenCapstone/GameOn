@@ -1,6 +1,6 @@
 import * as WebBrowser from "expo-web-browser";
 import { Alert } from "react-native";
-import { POLICY_URL } from "./constants";
+import { POLICY_URL } from "@/components/privacy-disclaimer/constants";
 
 export const openPolicy = async () => {
   try {

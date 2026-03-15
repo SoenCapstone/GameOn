@@ -18,6 +18,7 @@ import { ActionSheetProvider } from "@expo/react-native-action-sheet";
 import TimeAgo from "javascript-time-ago";
 import en from "javascript-time-ago/locale/en.json";
 import { StripeProvider } from "@stripe/stripe-react-native";
+import { RefereeProvider } from "@/contexts/referee-context";
 
 TimeAgo.addDefaultLocale(en);
 
@@ -51,23 +52,35 @@ export default function RootLayout() {
               >
                 <ActionSheetProvider>
                   <SearchProvider>
-                    <ClerkLoaded>
-                      <Stack>
-                        <Stack.Screen
-                          name="(auth)"
-                          options={{ headerShown: false }}
-                        />
-                        <Stack.Screen
-                          name="(tabs)"
-                          options={{ headerShown: false }}
-                        />
-                        <Stack.Screen
-                          name="(contexts)"
-                          options={{ headerShown: false }}
-                        />
-                      </Stack>
-                      <StatusBar style="auto" />
-                    </ClerkLoaded>
+                    <RefereeProvider>
+                      <ClerkLoaded>
+                        <Stack>
+                          <Stack.Screen
+                            name="(auth)"
+                            options={{ headerShown: false }}
+                          />
+                          <Stack.Screen
+                            name="(tabs)"
+                            options={{ headerShown: false }}
+                          />
+                          <Stack.Screen
+                            name="(contexts)"
+                            options={{ headerShown: false }}
+                          />
+                          <Stack.Screen
+                            name="(sheets)"
+                            options={{
+                              presentation: "formSheet",
+                              sheetAllowedDetents: "fitToContents",
+                              sheetCornerRadius: 58,
+                              contentStyle: { backgroundColor: "transparent" },
+                              headerShown: false,
+                            }}
+                          />
+                        </Stack>
+                        <StatusBar style="auto" />
+                      </ClerkLoaded>
+                    </RefereeProvider>
                   </SearchProvider>
                 </ActionSheetProvider>
               </ThemeProvider>

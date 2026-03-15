@@ -14,11 +14,14 @@ import com.game.on.go_league_service.league.dto.RefereeRegisterRequest;
 import com.game.on.go_league_service.league.model.RefInvite;
 import com.game.on.go_league_service.league.model.RefInviteStatus;
 import com.game.on.go_league_service.league.model.RefereeProfile;
+import com.game.on.go_league_service.league.repository.VenueRepository;
 import com.game.on.go_league_service.league.repository.LeagueMatchRepository;
 import com.game.on.go_league_service.league.repository.RefInviteRepository;
 import com.game.on.go_league_service.league.repository.RefereeProfileRepository;
+import jakarta.validation.constraints.NotEmpty;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.hibernate.Hibernate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
@@ -26,6 +29,7 @@ import org.springframework.util.StringUtils;
 import java.time.OffsetDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 @Slf4j
@@ -36,6 +40,7 @@ public class RefereeService {
     private final RefereeProfileRepository refereeProfileRepository;
     private final RefInviteRepository refInviteRepository;
     private final LeagueMatchRepository leagueMatchRepository;
+    private final VenueRepository venueRepository;
     private final TeamClient teamClient;
     private final CurrentUserProvider userProvider;
 
@@ -185,6 +190,17 @@ public class RefereeService {
         return toResponse(saved);
     }
 
+    @Transactional(readOnly = true)
+    public List<RefInviteResponse> listMyPendingRefInvites() {
+        String userId = userProvider.clerkUserId();
+
+        return refInviteRepository
+                .findByRefereeUserIdAndStatusOrderByCreatedAtDesc(userId, RefInviteStatus.PENDING)
+                .stream()
+                .map(this::toResponse)
+                .toList();
+    }
+
     private MatchContext resolveMatchContext(UUID matchId) {
         var leagueMatch = leagueMatchRepository.findById(matchId).orElse(null);
         if (leagueMatch != null) {
@@ -192,7 +208,7 @@ public class RefereeService {
                     leagueMatch.getHomeTeamId(),
                     leagueMatch.getAwayTeamId(),
                     leagueMatch.getSport(),
-                    trimToNull(leagueMatch.getMatchLocation())
+                    resolveLeagueMatchRegion(leagueMatch.getVenueId(), leagueMatch.getMatchLocation())
             );
         }
 
@@ -201,7 +217,7 @@ public class RefereeService {
                 teamMatch.homeTeamId(),
                 teamMatch.awayTeamId(),
                 teamMatch.sport(),
-                trimToNull(teamMatch.matchLocation())
+                resolveTeamMatchRegion(teamMatch.venueId(), teamMatch.matchLocation())
         );
     }
 
@@ -221,7 +237,7 @@ public class RefereeService {
             throw new BadRequestException("Referee does not support this sport");
         }
 
-        String matchRegion = trimToNull(match.matchLocation());
+        String matchRegion = resolveTeamMatchRegion(match.venueId(), match.matchLocation());
         if (matchRegion != null && !containsIgnoreCase(referee.getAllowedRegions(), matchRegion)) {
             throw new BadRequestException("Referee does not support the match region");
         }
@@ -246,10 +262,17 @@ public class RefereeService {
     }
 
     private RefereeProfileResponse toResponse(RefereeProfile profile) {
+        List<String> sports = profile.getSports() == null
+                ? List.of()
+                : new ArrayList<>(profile.getSports());
+        List<String> allowedRegions = profile.getAllowedRegions() == null
+                ? List.of()
+                : new ArrayList<>(profile.getAllowedRegions());
+
         return new RefereeProfileResponse(
                 profile.getUserId(),
-                profile.getSports(),
-                profile.getAllowedRegions(),
+                sports,
+                allowedRegions,
                 profile.isActive(),
                 profile.getCreatedAt(),
                 profile.getUpdatedAt()
@@ -298,6 +321,89 @@ public class RefereeService {
         return StringUtils.hasText(value) ? value.trim() : null;
     }
 
+    private String resolveLeagueMatchRegion(UUID venueId, String fallback) {
+        if (venueId != null) {
+            return venueRepository.findById(venueId)
+                    .map(venue -> trimToNull(venue.getRegion()))
+                    .orElse(null);
+        }
+        return trimToNull(fallback);
+    }
+
+    private String resolveTeamMatchRegion(UUID venueId, String fallback) {
+        if (venueId != null) {
+            var venue = teamClient.getVenue(venueId);
+            return venue == null ? null : trimToNull(venue.region());
+        }
+        return trimToNull(fallback);
+    }
+
     private record MatchContext(UUID homeTeamId, UUID awayTeamId, String sport, String matchRegion) {
+    }
+
+    public boolean isReferee() {
+        String userId = userProvider.clerkUserId();
+        return refereeProfileRepository.existsByUserId(userId);
+    }
+
+    public boolean isActive() {
+        String userId = userProvider.clerkUserId();
+        RefereeProfile referee = refereeProfileRepository.findByUserId(userId)
+                .orElseThrow(() -> new NotFoundException("Referee not found"));
+        return referee.isActive();
+    }
+
+    @Transactional
+    public RefereeProfileResponse getByUserId() {
+        String userId = userProvider.clerkUserId();
+        RefereeProfile referee = refereeProfileRepository.findByUserId(userId)
+                .orElseThrow(() -> new NotFoundException("Referee not found"));
+        Hibernate.initialize(referee.getSports());
+        Hibernate.initialize(referee.getAllowedRegions());
+
+        List<String> sports = referee.getSports();
+
+        List<String> allowedRegions = referee.getAllowedRegions();
+        return new RefereeProfileResponse(
+                referee.getUserId(),
+                sports,
+                allowedRegions,
+                referee.isActive(),
+                referee.getCreatedAt(),
+                referee.getUpdatedAt()
+        );
+    }
+
+    public void updateSports(List<String> sports) {
+        String userId = userProvider.clerkUserId();
+
+        RefereeProfile referee = refereeProfileRepository.findByUserId(userId)
+                .orElseThrow(() -> new NotFoundException("Referee not found"));
+        if (sports != null) {
+            referee.setSports(normalizeList(sports));
+            refereeProfileRepository.save(referee);
+        }
+    }
+
+    public void updateRegions(List<String> regions){
+        String userId = userProvider.clerkUserId();
+
+        var referee = refereeProfileRepository.findByUserId(userId)
+                .orElseThrow(() -> new NotFoundException("Referee not found"));
+        if (regions != null) {
+            referee.setAllowedRegions(normalizeList(regions));
+            refereeProfileRepository.save(referee);
+        }
+    }
+
+    public void updateStatus(boolean isActive) {
+        String userId = userProvider.clerkUserId();
+        var referee = refereeProfileRepository.findByUserId(userId)
+                .orElseThrow(() -> new NotFoundException("Referee not found"));
+
+
+        referee.setActive(isActive);
+
+        refereeProfileRepository.save(referee);
     }
 }

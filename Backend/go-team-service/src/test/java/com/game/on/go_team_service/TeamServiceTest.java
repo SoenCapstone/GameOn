@@ -1,5 +1,6 @@
 package com.game.on.go_team_service;
 
+import com.game.on.common.dto.UserResponse;
 import com.game.on.go_team_service.client.UserClient;
 import com.game.on.go_team_service.config.CurrentUserProvider;
 import com.game.on.go_team_service.exception.BadRequestException;
@@ -22,6 +23,7 @@ import org.springframework.data.jpa.domain.Specification;
 import java.time.OffsetDateTime;
 import java.util.*;
 
+import static org.assertj.core.api.AssertionsForInterfaceTypes.assertThat;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
@@ -296,6 +298,89 @@ class TeamServiceTest {
     }
 
     @Test
+    void createInvite_whenRosterIsFull_throwsBadRequest() {
+        UUID teamId = UUID.randomUUID();
+        TeamInviteCreateRequest request = new TeamInviteCreateRequest(
+                teamId,
+                "invitee_999",
+                TeamRole.PLAYER,
+                OffsetDateTime.now().plusDays(3)
+        );
+
+        Team team = new Team();
+        team.setId(teamId);
+        team.setMaxRoster(2);
+
+        TeamMember caller = new TeamMember();
+        caller.setRole(TeamRole.OWNER);
+        caller.setStatus(TeamMemberStatus.ACTIVE);
+
+        UserResponse invitee = new UserResponse(
+                "invitee_999",
+                "invitee@test.com",
+                "John",
+                "Doe"
+        );
+
+        when(teamRepository.findByIdAndDeletedAtIsNull(teamId))
+                .thenReturn(Optional.of(team));
+
+        when(teamMemberRepository.findByTeamIdAndUserId(teamId, callerUserId))
+                .thenReturn(Optional.of(caller));
+
+        when(userClient.getUserById("invitee_999")).thenReturn(invitee);
+
+        when(teamMemberRepository.existsByTeamIdAndUserId(teamId, "invitee_999"))
+                .thenReturn(false);
+
+        when(teamMemberRepository.countByTeamIdAndStatus(teamId, TeamMemberStatus.ACTIVE))
+                .thenReturn(2L);
+
+        assertThrows(BadRequestException.class, () -> teamService.createInvite(request));
+
+        verify(teamInviteRepository, never()).save(any());
+        verify(metricsPublisher, never()).inviteSent();
+    }
+
+    @Test
+    void acceptInvite_whenRosterIsFull_throwsBadRequest() {
+        UUID inviteId = UUID.randomUUID();
+        TeamInvitationReply reply = new TeamInvitationReply(inviteId, true);
+
+        Team team = new Team();
+        team.setId(teamId);
+        team.setMaxRoster(3);
+
+        TeamInvite invite = new TeamInvite();
+        invite.setId(inviteId);
+        invite.setTeam(team);
+        invite.setStatus(TeamInviteStatus.PENDING);
+        invite.setInviteeUserId(callerUserId);
+        invite.setRole(TeamRole.PLAYER);
+        invite.setExpiresAt(OffsetDateTime.now().plusDays(1));
+
+        when(teamInviteRepository.findByIdAndStatus(inviteId, TeamInviteStatus.PENDING))
+                .thenReturn(Optional.of(invite));
+
+        when(teamRepository.findByIdAndDeletedAtIsNull(teamId))
+                .thenReturn(Optional.of(team));
+
+        when(teamMemberRepository.existsByTeamIdAndUserId(teamId, callerUserId))
+                .thenReturn(false);
+
+        when(teamMemberRepository.countByTeamIdAndStatus(teamId, TeamMemberStatus.ACTIVE))
+                .thenReturn(3L);
+
+        assertThrows(BadRequestException.class, () -> teamService.acceptInvite(reply));
+
+        verify(teamMemberRepository, never()).save(any());
+        verify(teamInviteRepository, never()).save(argThat(savedInvite ->
+                savedInvite.getStatus() == TeamInviteStatus.ACCEPTED
+        ));
+        verify(metricsPublisher, never()).inviteAccepted();
+    }
+
+    @Test
     void createPlay_happyPath_savesPlayNodesAndEdges_andReturnsPlayId() {
         UUID n1 = UUID.randomUUID();
         UUID n2 = UUID.randomUUID();
@@ -365,6 +450,105 @@ class TeamServiceTest {
         assertEquals(savedPlay, e.getPlay());
         assertSame(savedN1, e.getFrom());
         assertSame(savedN2, e.getTo());
+    }
+
+    @Test
+    void getPlayItems_whenMemberAndPlayBelongsToTeam_returnsMappedItems() {
+        UUID teamId = UUID.randomUUID();
+        UUID playId = UUID.randomUUID();
+        String userId = "clerk_user_123";
+
+        when(userProvider.clerkUserId()).thenReturn(userId);
+
+        Team team = new Team();
+        team.setId(teamId);
+        team.setDeletedAt(null);
+
+        when(teamRepository.findByIdAndDeletedAtIsNull(teamId))
+                .thenReturn(Optional.of(team));
+
+        TeamMember membership = new TeamMember();
+        membership.setTeam(team);
+        membership.setUserId(userId);
+        membership.setStatus(TeamMemberStatus.ACTIVE);
+
+        when(teamMemberRepository.findByTeamIdAndUserId(teamId, userId))
+                .thenReturn(Optional.of(membership));
+
+        when(playRepository.existsByIdAndTeam_Id(playId, teamId)).thenReturn(true);
+
+        UUID node1Id = UUID.randomUUID();
+        UUID node2Id = UUID.randomUUID();
+        UUID edgeId = UUID.randomUUID();
+
+        Play play = Play.builder().id(playId).build();
+
+        PlayNode node1 = PlayNode.builder()
+                .id(node1Id)
+                .play(play)
+                .type(PlayMakerShapeType.PERSON)
+                .x(10.0).y(20.0).size(30.0)
+                .associatedPlayerId("p1")
+                .build();
+
+        PlayNode node2 = PlayNode.builder()
+                .id(node2Id)
+                .play(play)
+                .type(PlayMakerShapeType.PERSON)
+                .x(11.0).y(21.0).size(31.0)
+                .associatedPlayerId(null)
+                .build();
+
+        when(playNodeRepository.findByPlayId(playId)).thenReturn(List.of(node1, node2));
+
+        PlayEdge edge = PlayEdge.builder()
+                .id(edgeId)
+                .play(play)
+                .from(node1)
+                .to(node2)
+                .build();
+
+        when(playEdgeRepository.findByPlayIdWithNodes(playId)).thenReturn(List.of(edge));
+        List<PlayItemDTO> result = teamService.getPlayItems(teamId, playId);
+
+        assertThat(result).hasSize(3);
+        assertThat(result).anySatisfy(item -> {
+            assertThat(item).isInstanceOf(PersonNodeDTO.class);
+            PersonNodeDTO dto = (PersonNodeDTO) item;
+            if (dto.id().equals(node1Id)) {
+                assertThat(dto.x()).isEqualTo(10.0);
+                assertThat(dto.y()).isEqualTo(20.0);
+                assertThat(dto.size()).isEqualTo(30.0);
+                assertThat(dto.associatedPlayerId()).isEqualTo("p1");
+            }
+        });
+
+        assertThat(result).anySatisfy(item -> {
+            assertThat(item).isInstanceOf(PersonNodeDTO.class);
+            PersonNodeDTO dto = (PersonNodeDTO) item;
+            if (dto.id().equals(node2Id)) {
+                assertThat(dto.x()).isEqualTo(11.0);
+                assertThat(dto.y()).isEqualTo(21.0);
+                assertThat(dto.size()).isEqualTo(31.0);
+                assertThat(dto.associatedPlayerId()).isNull();
+            }
+        });
+
+        assertThat(result).anySatisfy(item -> {
+            assertThat(item).isInstanceOf(ArrowDTO.class);
+            ArrowDTO dto = (ArrowDTO) item;
+            assertThat(dto.id()).isEqualTo(edgeId);
+            assertThat(dto.from().id()).isEqualTo(node1Id);
+            assertThat(dto.to().id()).isEqualTo(node2Id);
+        });
+
+        verify(teamRepository).findByIdAndDeletedAtIsNull(teamId);
+        verify(teamMemberRepository).findByTeamIdAndUserId(teamId, userId);
+        verify(playRepository).existsByIdAndTeam_Id(playId, teamId);
+        verify(playNodeRepository).findByPlayId(playId);
+        verify(playEdgeRepository).findByPlayIdWithNodes(playId);
+
+        verifyNoMoreInteractions(playNodeRepository, playEdgeRepository);
     }
 
 }

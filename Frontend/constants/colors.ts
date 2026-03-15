@@ -3,8 +3,8 @@ export const Colors = {
   purple: "#58175D",
   green: "#005D29",
   orange: "#CE680A",
-  red: "#8E0000",
-  salmon: "#FA8072"
+  red: "#860000",
+  salmon: "#FA8072",
 } as const;
 
 export const AccentColors = {

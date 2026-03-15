@@ -6,18 +6,25 @@ import { Image } from "expo-image";
 
 jest.mock("expo-blur", () => {
   const ReactMock = jest.requireActual("react");
-  const { View } = require("react-native");
+  const { View } = jest.requireActual("react-native");
   return {
-    BlurView: ({ children, ...props }: any) =>
-      ReactMock.createElement(View, props, children),
+    BlurView: jest.fn(
+      ({
+        children,
+        ...props
+      }: {
+        children?: React.ReactNode;
+        [key: string]: unknown;
+      }) => ReactMock.createElement(View, props, children),
+    ),
   };
 });
 
 jest.mock("expo-image", () => {
   const ReactMock = jest.requireActual("react");
-  const { View } = require("react-native");
+  const { View } = jest.requireActual("react-native");
   return {
-    Image: jest.fn((props: any) =>
+    Image: jest.fn((props: { [key: string]: unknown }) =>
       ReactMock.createElement(View, { testID: "expo-image", ...props }),
     ),
   };
@@ -46,7 +53,7 @@ describe("MenuCardItem", () => {
       />,
     );
 
-    expect((Image as jest.Mock).mock.calls[0][0].source).toEqual({
+    expect((Image as unknown as jest.Mock).mock.calls[0][0].source).toEqual({
       uri: "https://example.com/alex.png",
     });
 

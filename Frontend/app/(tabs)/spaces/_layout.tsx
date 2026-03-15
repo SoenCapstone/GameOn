@@ -1,6 +1,6 @@
 import { Stack } from "expo-router";
 import React from "react";
-import { Alert } from "react-native";
+import { Alert, View } from "react-native";
 import { Header } from "@/components/header/header";
 import { Logo } from "@/components/header/logo";
 import { PageTitle } from "@/components/header/page-title";
@@ -28,7 +28,7 @@ function SpacesHeader() {
     <Header
       left={<Logo />}
       center={<PageTitle title="Spaces" />}
-      right={right}
+      right={<View style={{ marginRight: 52 }}>{right}</View>}
     />
   );
 }
@@ -54,7 +54,7 @@ function SpacesLayoutContent() {
           headerTitle: () => <SpacesHeader />,
           headerSearchBarOptions: {
             hideNavigationBar: false,
-            placement: "automatic",
+            placement: "integrated",
             onChangeText: (event) => {
               const text = event.nativeEvent.text || "";
               setQuery(text);

@@ -18,7 +18,7 @@ export const SignUpDatePicker: React.FC = () => {
   const [textValue, setTextValue] = useState("");
   const [pickerDate, setPickerDate] = useState(new Date());
 
-  const handlePickerChange = (_: any, date?: Date) => {
+  const handlePickerChange = (_: unknown, date?: Date) => {
     if (date) {
       setPickerDate(date);
       setTextValue(formatDate(date));

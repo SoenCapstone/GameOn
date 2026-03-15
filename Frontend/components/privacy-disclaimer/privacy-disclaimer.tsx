@@ -1,6 +1,6 @@
 import { Text, View, StyleSheet } from "react-native";
-import { openPolicy } from "./utils";
-import { POLICY_DISCLAIMER_MESSAGE } from "./constants";
+import { openPolicy } from "@/components/privacy-disclaimer/utils";
+import { POLICY_DISCLAIMER_MESSAGE } from "@/components/privacy-disclaimer/constants";
 
 export const PrivacyDisclaimer = () => {
   return (

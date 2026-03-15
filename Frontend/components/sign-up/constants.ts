@@ -1,3 +1,5 @@
+import type { SignUpInputLabel } from "@/components/sign-up/models";
+
 const FIRST_NAME_LABEL = "First name";
 const FIRST_NAME_FIELD = "firstname";
 const FIRST_NAME_AUTO_CAPITALIZE = "words" as const;
@@ -46,7 +48,7 @@ export const initialSignUpValues = {
   password: EMPTY_STRING,
 };
 
-export const passwordInput = (showPassword: boolean) => ({
+export const passwordInput = (showPassword: boolean): SignUpInputLabel => ({
   label: PASSWORD_LABEL,
   placeholder: PASSWORD_PLACEHOLDER,
   field: PASSWORD_FIELD,
@@ -54,7 +56,7 @@ export const passwordInput = (showPassword: boolean) => ({
   rightIcon: true,
 });
 
-export const signUpInputLabels = (showPassword: boolean) => [
+export const signUpInputLabels = (showPassword: boolean): SignUpInputLabel[] => ([
   {
     label: FIRST_NAME_LABEL,
     placeholder: FIRST_NAME_PLACEHOLDER,
@@ -75,7 +77,7 @@ export const signUpInputLabels = (showPassword: boolean) => [
     keyboardType: EMAIL_KEYBOARD_TYPE,
   },
   passwordInput(showPassword),
-];
+] as SignUpInputLabel[]);
 
 export const EMAIL_VERIFICATION_STATUS = "complete";
 export const SIGN_UP_SUCCESS_MESSAGE = "Profile created successfully!";

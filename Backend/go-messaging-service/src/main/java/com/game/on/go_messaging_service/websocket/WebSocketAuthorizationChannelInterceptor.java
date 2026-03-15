@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.simp.stomp.StompHeaderAccessor;
+import org.springframework.messaging.support.MessageBuilder;
 import org.springframework.messaging.support.MessageHeaderAccessor;
 import org.springframework.messaging.support.ExecutorChannelInterceptor;
 import org.springframework.stereotype.Component;
@@ -23,11 +24,21 @@ public class WebSocketAuthorizationChannelInterceptor implements ExecutorChannel
         if (token != null && !token.isBlank()) {
             authorizationContext.setBearerToken(token);
             if (accessor != null) {
+                if (!accessor.isMutable()) {
+                    var mutable = StompHeaderAccessor.wrap(message);
+                    mutable.setHeader(TOKEN_HEADER, token);
+                    return MessageBuilder.createMessage(message.getPayload(), mutable.getMessageHeaders());
+                }
                 accessor.setHeader(TOKEN_HEADER, token);
             }
         } else {
             authorizationContext.clear();
             if (accessor != null) {
+                if (!accessor.isMutable()) {
+                    var mutable = StompHeaderAccessor.wrap(message);
+                    mutable.removeHeader(TOKEN_HEADER);
+                    return MessageBuilder.createMessage(message.getPayload(), mutable.getMessageHeaders());
+                }
                 accessor.removeHeader(TOKEN_HEADER);
             }
         }

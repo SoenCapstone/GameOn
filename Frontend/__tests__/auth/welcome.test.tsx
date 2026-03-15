@@ -1,7 +1,9 @@
 import React from "react";
 import { render, screen, fireEvent } from "@testing-library/react-native";
+import WelcomeScreen from "@/app/(auth)";
+import { ViewStyle } from "react-native";
 
-(globalThis as any).__DEV__ = false;
+(globalThis as Record<string, unknown>).__DEV__ = false;
 
 const mockPush = jest.fn();
 jest.mock("expo-router", () => ({
@@ -10,15 +12,15 @@ jest.mock("expo-router", () => ({
 }));
 
 jest.mock("expo-blur", () => ({
-  BlurView: ({ children }: any) => {
-    const { View } = require("react-native");
+  BlurView: ({ children }: { children?: React.ReactNode }) => {
+    const { View } = jest.requireActual("react-native");
     return <View>{children}</View>;
   },
 }));
 
 jest.mock("expo-glass-effect", () => ({
-  GlassView: ({ children }: any) => {
-    const { View } = require("react-native");
+  GlassView: ({ children }: { children?: React.ReactNode }) => {
+    const { View } = jest.requireActual("react-native");
     return <View>{children}</View>;
   },
   isLiquidGlassAvailable: () => false,
@@ -47,7 +49,7 @@ jest.mock("@/constants/auth-styles", () => ({
 
 jest.mock("@/components/auth/welcome-hero", () => ({
   WelcomeHero: () => {
-    const { Text, View } = require("react-native");
+    const { Text, View } = jest.requireActual("react-native");
     return (
       <View testID="welcome-hero">
         <Text>Welcome to GameOn</Text>
@@ -61,15 +63,21 @@ jest.mock("@/components/privacy-disclaimer/privacy-disclaimer", () => ({
 }));
 
 jest.mock("@/components/ui/content-area", () => ({
-  ContentArea: ({ children, style }: any) => {
-    const { View } = require("react-native");
+  ContentArea: ({
+    children,
+    style,
+  }: {
+    children?: React.ReactNode;
+    style?: ViewStyle;
+  }) => {
+    const { View } = jest.requireActual("react-native");
     return <View style={style}>{children}</View>;
   },
 }));
 
 jest.mock("@/components/ui/background", () => ({
-  Background: ({ children }: any) => {
-    const { View } = require("react-native");
+  Background: ({ children }: { children?: React.ReactNode }) => {
+    const { View } = jest.requireActual("react-native");
     return <View>{children}</View>;
   },
 }));
@@ -77,8 +85,6 @@ jest.mock("@/components/ui/background", () => ({
 jest.mock("@/components/auth/dev-login", () => ({
   DevTools: () => null,
 }));
-
-import WelcomeScreen from "@/app/(auth)";
 
 describe("WelcomeScreen", () => {
   beforeEach(() => {
