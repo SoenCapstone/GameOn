@@ -3,7 +3,6 @@ import { auth } from "@clerk/nextjs/server";
 import { isAdmin } from "@/lib/auth";
 import { DashboardShell } from "@/components/dashboard-shell";
 import { ChartAreaInteractive } from "@/components/chart-area-interactive";
-import { DataTable } from "@/components/data-table";
 import { SectionCards } from "@/components/section-cards";
 import {
   getTotalLeagues,
@@ -15,7 +14,6 @@ import {
   getTotalUsers,
   getTotalVenues,
 } from "@/lib/metrics";
-import data from "./dashboard/data.json";
 
 export default async function Page() {
   const { userId } = await auth();
@@ -68,7 +66,6 @@ export default async function Page() {
         <div className="px-4 lg:px-6">
           <ChartAreaInteractive />
         </div>
-        <DataTable data={data} />
       </div>
     </DashboardShell>
   )
