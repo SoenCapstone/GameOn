@@ -70,3 +70,7 @@ export async function getTotalMessages(): Promise<number> {
 export async function getTotalRefereeProfiles(): Promise<number> {
   return getCount("SELECT COUNT(*)::int AS total FROM referee_profiles");
 }
+
+export async function getTotalVenues(): Promise<number> {
+  return getCount("SELECT COUNT(*)::int AS total FROM venues");
+}
