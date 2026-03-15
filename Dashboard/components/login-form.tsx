@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { useSignIn } from "@clerk/nextjs";
+import { useClerk, useSignIn } from "@clerk/nextjs";
 import { HugeiconsIcon } from "@hugeicons/react";
 import {
   Loading03Icon,
@@ -23,31 +23,54 @@ import { Input } from "@/components/ui/input";
 
 export function LoginForm({
   className,
-  message,
+  shouldClearSession = false,
   ...props
-}: React.ComponentProps<"div"> & { message?: string }) {
+}: React.ComponentProps<"div"> & {
+  shouldClearSession?: boolean;
+}) {
   const router = useRouter();
+  const { signOut } = useClerk();
   const { isLoaded, signIn, setActive } = useSignIn();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isClearingSession, setIsClearingSession] = useState(shouldClearSession);
 
   useEffect(() => {
-    if (!message) {
+    if (!shouldClearSession) {
+      setIsClearingSession(false);
       return;
     }
 
     toast.error("Access denied", {
-      description: message,
+      description: "This dashboard is restricted to admin accounts.",
       id: "access-denied",
     });
-  }, [message]);
+
+    let isMounted = true;
+
+    async function clearSession() {
+      try {
+        await signOut({ redirectUrl: "/login" });
+      } catch {
+        if (isMounted) {
+          setIsClearingSession(false);
+        }
+      }
+    }
+
+    void clearSession();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [shouldClearSession, signOut]);
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
 
-    if (!isLoaded) {
+    if (!isLoaded || isClearingSession) {
       return;
     }
 
@@ -185,9 +208,9 @@ export function LoginForm({
             <Button
               type="submit"
               className="h-12 text-base"
-              disabled={!isLoaded || isSubmitting}
+              disabled={!isLoaded || isSubmitting || isClearingSession}
             >
-              {isSubmitting ? (
+              {isSubmitting || isClearingSession ? (
                 <HugeiconsIcon
                   icon={Loading03Icon}
                   strokeWidth={2}

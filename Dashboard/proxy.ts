@@ -9,18 +9,16 @@ export default clerkMiddleware(async (auth, req) => {
     return NextResponse.next();
   }
 
-  const { userId } = await auth();
+  const { userId, sessionClaims } = await auth();
 
   if (!userId) {
     return NextResponse.redirect(new URL("/login", req.url));
   }
 
-  const isAdminAccount = await isAdmin({ userId });
+  const isAdminAccount = await isAdmin({ userId, sessionClaims });
 
   if (!isAdminAccount) {
-    return NextResponse.redirect(
-      new URL("/login?reason=admin_required", req.url),
-    );
+    return NextResponse.redirect(new URL("/login", req.url));
   }
 
   return NextResponse.next();

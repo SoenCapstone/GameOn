@@ -6,7 +6,7 @@ import { NextResponse } from "next/server";
 import { isAdmin } from "@/lib/auth";
 
 export async function requireAdminApi() {
-  const { userId } = await auth();
+  const { userId, sessionClaims } = await auth();
 
   if (!userId) {
     return {
@@ -15,7 +15,7 @@ export async function requireAdminApi() {
     };
   }
 
-  const isAdminAccount = await isAdmin({ userId });
+  const isAdminAccount = await isAdmin({ userId, sessionClaims });
 
   if (!isAdminAccount) {
     return {

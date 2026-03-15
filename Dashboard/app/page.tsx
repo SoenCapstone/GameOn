@@ -1,8 +1,6 @@
-import { redirect } from "next/navigation";
-import { auth } from "@clerk/nextjs/server";
-import { isAdmin } from "@/lib/auth";
 import { DashboardShell } from "@/components/dashboard-shell";
 import { ChartAreaInteractive } from "@/components/chart-area-interactive";
+import { DataTable } from "@/components/data-table";
 import { SectionCards } from "@/components/section-cards";
 import {
   getTotalLeagues,
@@ -14,20 +12,9 @@ import {
   getTotalUsers,
   getTotalVenues,
 } from "@/lib/metrics";
+import data from "./dashboard/data.json";
 
 export default async function Page() {
-  const { userId } = await auth();
-
-  if (!userId) {
-    redirect("/login");
-  }
-
-  const isAdminAccount = await isAdmin({ userId });
-
-  if (!isAdminAccount) {
-    redirect("/login?reason=admin_required");
-  }
-
   const [users, teams, matches, leagues, posts, messages, referees, venues] =
     await Promise.all([
       getTotalUsers(),
