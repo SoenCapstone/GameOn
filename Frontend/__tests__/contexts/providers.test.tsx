@@ -5,7 +5,6 @@ import { Providers } from "@/contexts/providers";
 import { useColorScheme } from "@/hooks/use-color-scheme";
 import {
   DarkTheme,
-  DefaultTheme,
   ThemeProvider,
 } from "@react-navigation/native";
 import { StripeProvider } from "@stripe/stripe-react-native";
@@ -136,12 +135,12 @@ jest.mock("@/contexts/referee-context", () => {
   };
 });
 
-jest.mock("@/contexts/header-height-context", () => {
+jest.mock("@/features/messaging/provider", () => {
   const ReactModule =
     jest.requireActual<typeof import("react")>("react");
 
   return {
-    HeaderHeightProvider: ({
+    MessagingProvider: ({
       children,
     }: {
       children: React.ReactNode;
@@ -179,7 +178,7 @@ describe("providers", () => {
     }
   });
 
-  it("renders children with the default theme and provider keys", () => {
+  it("renders children with the configured provider keys", () => {
     const { getByText } = render(
       <Providers>
         <Text>child content</Text>
@@ -188,7 +187,7 @@ describe("providers", () => {
 
     expect(getByText("child content")).toBeTruthy();
     expect(mockedThemeProvider).toHaveBeenCalledWith(
-      expect.objectContaining({ value: DefaultTheme }),
+      expect.objectContaining({ value: DarkTheme }),
       undefined,
     );
     expect(mockedStripeProvider).toHaveBeenCalledWith(
@@ -207,7 +206,7 @@ describe("providers", () => {
     );
   });
 
-  it("uses the dark navigation theme when the color scheme is dark", () => {
+  it("uses the dark navigation theme", () => {
     mockedUseColorScheme.mockReturnValue("dark");
 
     render(

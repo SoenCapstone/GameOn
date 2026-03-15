@@ -3,7 +3,7 @@ import { StyleSheet, View } from "react-native";
 import { render, fireEvent } from "@testing-library/react-native";
 import { Tabs } from "@/components/ui/tabs";
 
-jest.mock("@/contexts/header-height-context", () => ({
+jest.mock("@/hooks/use-header-height", () => ({
   useHeaderHeight: jest.fn(() => 0),
 }));
 

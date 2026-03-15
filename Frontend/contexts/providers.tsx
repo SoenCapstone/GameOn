@@ -8,13 +8,8 @@ import { FeatureFlagsProvider } from "@/components/feature-flags/feature-flags-c
 import { ActionSheetProvider } from "@expo/react-native-action-sheet";
 import { SearchProvider } from "@/contexts/search-context";
 import { RefereeProvider } from "@/contexts/referee-context";
-import { HeaderHeightProvider } from "@/contexts/header-height-context";
-import { useColorScheme } from "@/hooks/use-color-scheme";
-import {
-  DarkTheme,
-  DefaultTheme,
-  ThemeProvider,
-} from "@react-navigation/native";
+import { DarkTheme, ThemeProvider } from "@react-navigation/native";
+import { MessagingProvider } from "@/features/messaging/provider";
 
 interface ProvidersProps {
   readonly children: ReactNode;
@@ -23,7 +18,6 @@ interface ProvidersProps {
 const queryClient = new QueryClient();
 
 export function Providers({ children }: Readonly<ProvidersProps>) {
-  const colorScheme = useColorScheme();
   const stripeKey = process.env.EXPO_PUBLIC_STRIPE_PUBLISHABLE_KEY;
   const clerkKey = process.env.EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY;
 
@@ -36,7 +30,7 @@ export function Providers({ children }: Readonly<ProvidersProps>) {
   }
 
   return (
-    <ThemeProvider value={colorScheme === "dark" ? DarkTheme : DefaultTheme}>
+    <ThemeProvider value={DarkTheme}>
       <StripeProvider
         publishableKey={stripeKey}
         merchantIdentifier="merchant.com.gameon"
@@ -49,7 +43,7 @@ export function Providers({ children }: Readonly<ProvidersProps>) {
                 <ActionSheetProvider>
                   <SearchProvider>
                     <RefereeProvider>
-                      <HeaderHeightProvider>{children}</HeaderHeightProvider>
+                      <MessagingProvider>{children}</MessagingProvider>
                     </RefereeProvider>
                   </SearchProvider>
                 </ActionSheetProvider>
