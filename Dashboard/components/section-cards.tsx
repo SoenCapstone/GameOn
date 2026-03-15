@@ -1,12 +1,12 @@
 import {
-  AddTeamIcon,
   Calendar03Icon,
   ChampionIcon,
   FileIcon,
   Flag01Icon,
   Location01Icon,
   MailIcon,
-  UserIcon,
+  User03Icon,
+  UserMultiple02Icon,
 } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { Badge } from "@/components/ui/badge";
@@ -36,19 +36,19 @@ const cardDefinitions: Array<{
   key: keyof SectionCardsProps["totals"];
   title: string;
   footer: string;
-  icon: typeof UserIcon;
+  icon: typeof User03Icon;
 }> = [
   {
     key: "users",
     title: "Users",
     footer: "Total accounts",
-    icon: UserIcon,
+    icon: User03Icon,
   },
   {
     key: "teams",
     title: "Teams",
     footer: "Active teams",
-    icon: AddTeamIcon,
+    icon: UserMultiple02Icon,
   },
   {
     key: "matches",

@@ -16,7 +16,7 @@ import {
 } from "@/components/ui/sidebar"
 
 import { HugeiconsIcon } from "@hugeicons/react"
-import { DashboardSquare01Icon, UserIcon, AddTeamIcon, ChampionIcon, Calendar03Icon, Shield02Icon } from "@hugeicons/core-free-icons"
+import { DashboardSquare01Icon, UserIcon, UserMultiple02Icon, ChampionIcon, Calendar03Icon, Shield02Icon } from "@hugeicons/core-free-icons"
 import Image from "next/image"
 
 const data = {
@@ -44,7 +44,7 @@ const data = {
       title: "Teams",
       url: "/teams",
       icon: (
-        <HugeiconsIcon icon={AddTeamIcon} strokeWidth={2} />
+        <HugeiconsIcon icon={UserMultiple02Icon} strokeWidth={2} />
       ),
     },
     {
