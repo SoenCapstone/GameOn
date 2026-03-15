@@ -1,5 +1,6 @@
 package com.game.on.go_team_service.team.service;
 
+import com.game.on.go_team_service.client.LeagueClient;
 import com.game.on.go_team_service.config.CurrentUserProvider;
 import com.game.on.go_team_service.exception.BadRequestException;
 import com.game.on.go_team_service.exception.ConflictException;
@@ -37,6 +38,9 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class TeamMatchService {
 
+    private final int MIN_REST_TIME_MINUTES = 60;
+    private final int MAX_MATCHES_PER_DAY = 3;
+
     private final TeamRepository teamRepository;
     private final TeamMemberRepository teamMemberRepository;
     private final TeamMatchRepository teamMatchRepository;
@@ -44,6 +48,7 @@ public class TeamMatchService {
     private final TeamMatchScoreRepository teamMatchScoreRepository;
     private final VenueService venueService;
     private final CurrentUserProvider userProvider;
+    private final LeagueClient leagueClient;
 
     @Transactional
     public TeamMatchResponse createMatchInvite(UUID teamId, TeamMatchCreateRequest request) {
@@ -74,6 +79,10 @@ public class TeamMatchService {
             validateRegions(homeTeam, awayTeam, matchRegion);
         }
         validateTimes(request.startTime(), request.endTime());
+
+        if(checkHasSchedulingConflicts(homeTeam.getId(), awayTeam.getId(), request.startTime(), request.endTime())) {
+            throw new ConflictException("Unable to create invite, another match is booked during this time.");
+        }
 
         TeamMatch match = TeamMatch.builder()
                 .matchType(TeamMatchType.TEAM_MATCH)
@@ -133,6 +142,16 @@ public class TeamMatchService {
         Team awayTeam = requireActiveTeam(match.getAwayTeamId());
         if (!awayTeam.getOwnerUserId().equals(userId)) {
             throw new ForbiddenException("Only the away team owner can accept the invite");
+        }
+
+        if(checkHasSchedulingConflicts(match.getHomeTeamId(), match.getAwayTeamId(), match.getStartTime(), match.getEndTime())) {
+            invite.setStatus(TeamMatchInviteStatus.DECLINED);
+            invite.setRespondedAt(OffsetDateTime.now());
+            teamMatchInviteRepository.save(invite);
+
+            match.setStatus(TeamMatchStatus.CANCELLED);
+            teamMatchRepository.save(match);
+            throw new ConflictException("Another match was confirmed in this time slot before this match was confirmed.");
         }
 
         invite.setStatus(TeamMatchInviteStatus.ACCEPTED);
@@ -256,6 +275,66 @@ public class TeamMatchService {
         if (startTime == null || endTime == null || !startTime.isBefore(endTime)) {
             throw new BadRequestException("startTime must be before endTime");
         }
+    }
+
+    private boolean checkHasSchedulingConflicts(UUID homeTeam, UUID awayTeam, OffsetDateTime startTime, OffsetDateTime endTime) {
+        var allTeamMatches = teamMatchRepository.findByHomeTeamIdOrAwayTeamIdOrderByStartTimeDesc(homeTeam, homeTeam);
+        allTeamMatches.addAll(teamMatchRepository.findByHomeTeamIdOrAwayTeamIdOrderByStartTimeDesc(awayTeam, awayTeam));
+
+        int curMatchCount = 0;
+
+        for(var match : allTeamMatches) {
+            boolean isSameDay = (match.getStartTime().getYear() == startTime.getYear()
+                    && match.getStartTime().getDayOfYear() == startTime.getDayOfYear());
+
+            if(isSameDay) {
+                curMatchCount++;
+            }
+
+            if(curMatchCount > MAX_MATCHES_PER_DAY){
+                return true;
+            }
+
+            // Rest time included
+            boolean isBetweenStartAndEndTime = (match.getStartTime().isAfter(startTime.minusMinutes(MIN_REST_TIME_MINUTES))
+                    && match.getStartTime().isBefore(endTime.plusMinutes(MIN_REST_TIME_MINUTES)))
+                    || (match.getEndTime().isAfter(startTime.minusMinutes(MIN_REST_TIME_MINUTES))
+                    && match.getEndTime().isBefore(endTime.plusMinutes(MIN_REST_TIME_MINUTES)));
+            boolean isConfirmed = match.getStatus() == TeamMatchStatus.CONFIRMED;
+
+            if(isBetweenStartAndEndTime && isConfirmed) {
+                return true;
+            }
+        }
+
+        var allLeagueMatches = leagueClient.getLeagueMatchesForTeam(homeTeam);
+        allLeagueMatches.addAll(leagueClient.getLeagueMatchesForTeam(awayTeam));
+
+        for(var match : allLeagueMatches) {
+            boolean isSameDay = (match.startTime().getYear() == startTime.getYear()
+                    && match.startTime().getDayOfYear() == startTime.getDayOfYear());
+
+            if(isSameDay) {
+                curMatchCount++;
+            }
+
+            if(curMatchCount > MAX_MATCHES_PER_DAY){
+                return true;
+            }
+
+            // Rest time included
+            boolean isBetweenStartAndEndTime = (match.startTime().isAfter(startTime.minusMinutes(MIN_REST_TIME_MINUTES))
+                    && match.startTime().isBefore(endTime.plusMinutes(MIN_REST_TIME_MINUTES)))
+                    || (match.endTime().isAfter(startTime.minusMinutes(MIN_REST_TIME_MINUTES))
+                    && match.endTime().isBefore(endTime.plusMinutes(MIN_REST_TIME_MINUTES)));
+            boolean isConfirmed = match.status().equalsIgnoreCase("confirmed");
+
+            if(isBetweenStartAndEndTime && isConfirmed) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     private String resolveMatchSport(String requestedSport, Team homeTeam, Team awayTeam) {
