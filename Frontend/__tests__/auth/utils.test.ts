@@ -375,6 +375,7 @@ describe("completeVerificationAndUpsert", () => {
       email: "john@example.com",
       firstname: "John",
       lastname: "Doe",
+      imageUrl: null,
     });
   });
 
