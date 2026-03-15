@@ -1,6 +1,6 @@
 import { Pressable, ScrollView, StyleSheet, Text } from "react-native";
 import { GlassView } from "expo-glass-effect";
-import { useHeaderHeight } from "@/contexts/header-height-context";
+import { useHeaderHeight } from "@/hooks/use-header-height";
 
 interface TabsProps {
   readonly values: string[];
