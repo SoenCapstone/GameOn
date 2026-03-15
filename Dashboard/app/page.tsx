@@ -28,25 +28,17 @@ export default async function Page() {
     redirect("/login?reason=admin_required");
   }
 
-  const [
-    users,
-    teams,
-    matches,
-    leagues,
-    posts,
-    messages,
-    referees,
-    venues,
-  ] = await Promise.all([
-    getTotalUsers(),
-    getTotalTeams(),
-    getTotalMatches(),
-    getTotalLeagues(),
-    getTotalPosts(),
-    getTotalMessages(),
-    getTotalRefereeProfiles(),
-    getTotalVenues(),
-  ]);
+  const [users, teams, matches, leagues, posts, messages, referees, venues] =
+    await Promise.all([
+      getTotalUsers(),
+      getTotalTeams(),
+      getTotalMatches(),
+      getTotalLeagues(),
+      getTotalPosts(),
+      getTotalMessages(),
+      getTotalRefereeProfiles(),
+      getTotalVenues(),
+    ]);
 
   return (
     <DashboardShell title="Overview">
@@ -68,5 +60,5 @@ export default async function Page() {
         </div>
       </div>
     </DashboardShell>
-  )
+  );
 }

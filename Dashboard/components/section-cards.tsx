@@ -110,10 +110,7 @@ export function SectionCards({ totals }: SectionCardsProps) {
                 variant="outline"
                 className="size-8 justify-center p-0 [&>svg]:size-4!"
               >
-                <HugeiconsIcon
-                  icon={card.icon}
-                  strokeWidth={2}
-                />
+                <HugeiconsIcon icon={card.icon} strokeWidth={2} />
               </Badge>
             </CardAction>
           </CardHeader>

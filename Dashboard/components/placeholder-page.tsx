@@ -1,11 +1,17 @@
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 
 export function PlaceholderPage({
   title,
   description,
 }: {
-  title: string
-  description: string
+  title: string;
+  description: string;
 }) {
   return (
     <div className="flex flex-1 flex-col px-4 py-4 md:gap-6 md:px-6 md:py-6">
@@ -21,5 +27,5 @@ export function PlaceholderPage({
         </CardContent>
       </Card>
     </div>
-  )
+  );
 }

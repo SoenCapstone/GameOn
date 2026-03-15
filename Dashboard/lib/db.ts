@@ -18,9 +18,10 @@ function getDatabaseUrl(): string {
 function createPool(): Pool {
   return new Pool({
     connectionString: getDatabaseUrl(),
-    ssl: process.env.DATABASE_SSL === "true"
-      ? { rejectUnauthorized: false }
-      : false,
+    ssl:
+      process.env.DATABASE_SSL === "true"
+        ? { rejectUnauthorized: false }
+        : false,
   });
 }
 

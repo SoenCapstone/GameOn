@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation";
 import { auth } from "@clerk/nextjs/server";
-import { LoginForm } from "@/components/login-form"
+import { LoginForm } from "@/components/login-form";
 import { isAdmin } from "@/lib/auth";
 
 type LoginPageProps = {
@@ -26,5 +26,5 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
         <LoginForm message={message} />
       </div>
     </div>
-  )
+  );
 }

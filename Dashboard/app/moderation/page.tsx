@@ -1,20 +1,20 @@
-import { redirect } from "next/navigation"
-import { auth } from "@clerk/nextjs/server"
-import { DashboardShell } from "@/components/dashboard-shell"
-import { PlaceholderPage } from "@/components/placeholder-page"
-import { isAdmin } from "@/lib/auth"
+import { redirect } from "next/navigation";
+import { auth } from "@clerk/nextjs/server";
+import { DashboardShell } from "@/components/dashboard-shell";
+import { PlaceholderPage } from "@/components/placeholder-page";
+import { isAdmin } from "@/lib/auth";
 
 export default async function ModerationPage() {
-  const { userId } = await auth()
+  const { userId } = await auth();
 
   if (!userId) {
-    redirect("/login")
+    redirect("/login");
   }
 
-  const isAdminAccount = await isAdmin({ userId })
+  const isAdminAccount = await isAdmin({ userId });
 
   if (!isAdminAccount) {
-    redirect("/login?reason=admin_required")
+    redirect("/login?reason=admin_required");
   }
 
   return (
@@ -24,5 +24,5 @@ export default async function ModerationPage() {
         description="Use this section for reviewing reports, flagged content, and future moderation workflows."
       />
     </DashboardShell>
-  )
+  );
 }

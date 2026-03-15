@@ -27,10 +27,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import {
-  ToggleGroup,
-  ToggleGroupItem,
-} from "@/components/ui/toggle-group";
+import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 
 type ActivityEntity = "teams" | "leagues" | "matches" | "posts" | "messages";
 type ActivityPeriod = "7d" | "30d" | "1y";
@@ -86,11 +83,15 @@ function formatChartDate(value: string, period: ActivityPeriod): string {
 }
 
 function getEntityLabel(entity: ActivityEntity): string {
-  return entityOptions.find((option) => option.value === entity)?.label ?? entity;
+  return (
+    entityOptions.find((option) => option.value === entity)?.label ?? entity
+  );
 }
 
 function getPeriodLabel(period: ActivityPeriod): string {
-  return periodOptions.find((option) => option.value === period)?.label ?? period;
+  return (
+    periodOptions.find((option) => option.value === period)?.label ?? period
+  );
 }
 
 async function fetchActivitySeries(
@@ -282,7 +283,10 @@ export function ChartAreaInteractive() {
             config={chartConfig}
             className={`aspect-auto ${chartHeightClass} w-full`}
           >
-            <AreaChart data={points} margin={{ top: 16, right: 8, left: 8, bottom: 0 }}>
+            <AreaChart
+              data={points}
+              margin={{ top: 16, right: 8, left: 8, bottom: 0 }}
+            >
               <defs>
                 <linearGradient id="fillTotal" x1="0" y1="0" x2="0" y2="1">
                   <stop
@@ -310,7 +314,9 @@ export function ChartAreaInteractive() {
                 cursor={false}
                 content={
                   <ChartTooltipContent
-                    labelFormatter={(value) => formatChartDate(String(value), period)}
+                    labelFormatter={(value) =>
+                      formatChartDate(String(value), period)
+                    }
                     indicator="dot"
                   />
                 }

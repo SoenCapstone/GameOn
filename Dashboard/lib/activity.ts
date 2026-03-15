@@ -140,7 +140,10 @@ function getSourceSql(entity: ActivityEntity): string {
   }
 }
 
-function buildExpectedKeys(period: ActivityPeriod, config: PeriodConfig): string[] {
+function buildExpectedKeys(
+  period: ActivityPeriod,
+  config: PeriodConfig,
+): string[] {
   const keys: string[] = [];
 
   if (config.bucket === "day") {

@@ -15,9 +15,9 @@ export async function GET() {
 }
 
 export async function POST(request: Request) {
-  const body = (await request.json().catch(() => null)) as
-    | { email?: string }
-    | null;
+  const body = (await request.json().catch(() => null)) as {
+    email?: string;
+  } | null;
   const email = body?.email?.trim();
 
   if (!email) {
