@@ -38,6 +38,9 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class TeamMatchService {
 
+    private final int MIN_REST_TIME_MINUTES = 60;
+    private final int MAX_MATCHES_PER_DAY = 3;
+
     private final TeamRepository teamRepository;
     private final TeamMemberRepository teamMemberRepository;
     private final TeamMatchRepository teamMatchRepository;
@@ -278,9 +281,25 @@ public class TeamMatchService {
         var allTeamMatches = teamMatchRepository.findByHomeTeamIdOrAwayTeamIdOrderByStartTimeDesc(homeTeam, homeTeam);
         allTeamMatches.addAll(teamMatchRepository.findByHomeTeamIdOrAwayTeamIdOrderByStartTimeDesc(awayTeam, awayTeam));
 
+        int curMatchCount = 0;
+
         for(var match : allTeamMatches) {
-            boolean isBetweenStartAndEndTime = (match.getStartTime().isAfter(startTime) && match.getStartTime().isBefore(endTime))
-                    || (match.getEndTime().isAfter(startTime) && match.getEndTime().isBefore(endTime));
+            boolean isSameDay = (match.getStartTime().getYear() == startTime.getYear()
+                    && match.getStartTime().getDayOfYear() == startTime.getDayOfYear());
+
+            if(isSameDay) {
+                curMatchCount++;
+            }
+
+            if(curMatchCount > MAX_MATCHES_PER_DAY){
+                return true;
+            }
+
+            // Rest time included
+            boolean isBetweenStartAndEndTime = (match.getStartTime().isAfter(startTime.minusMinutes(MIN_REST_TIME_MINUTES))
+                    && match.getStartTime().isBefore(endTime.plusMinutes(MIN_REST_TIME_MINUTES)))
+                    || (match.getEndTime().isAfter(startTime.minusMinutes(MIN_REST_TIME_MINUTES))
+                    && match.getEndTime().isBefore(endTime.plusMinutes(MIN_REST_TIME_MINUTES)));
             boolean isConfirmed = match.getStatus() == TeamMatchStatus.CONFIRMED;
 
             if(isBetweenStartAndEndTime && isConfirmed) {
@@ -292,8 +311,22 @@ public class TeamMatchService {
         allLeagueMatches.addAll(leagueClient.getLeagueMatchesForTeam(awayTeam));
 
         for(var match : allLeagueMatches) {
-            boolean isBetweenStartAndEndTime = (match.startTime().isAfter(startTime) && match.startTime().isBefore(endTime))
-                    || (match.endTime().isAfter(startTime) && match.endTime().isBefore(endTime));
+            boolean isSameDay = (match.startTime().getYear() == startTime.getYear()
+                    && match.startTime().getDayOfYear() == startTime.getDayOfYear());
+
+            if(isSameDay) {
+                curMatchCount++;
+            }
+
+            if(curMatchCount > MAX_MATCHES_PER_DAY){
+                return true;
+            }
+
+            // Rest time included
+            boolean isBetweenStartAndEndTime = (match.startTime().isAfter(startTime.minusMinutes(MIN_REST_TIME_MINUTES))
+                    && match.startTime().isBefore(endTime.plusMinutes(MIN_REST_TIME_MINUTES)))
+                    || (match.endTime().isAfter(startTime.minusMinutes(MIN_REST_TIME_MINUTES))
+                    && match.endTime().isBefore(endTime.plusMinutes(MIN_REST_TIME_MINUTES)));
             boolean isConfirmed = match.status().equalsIgnoreCase("confirmed");
 
             if(isBetweenStartAndEndTime && isConfirmed) {

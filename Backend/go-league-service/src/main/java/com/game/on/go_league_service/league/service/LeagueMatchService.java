@@ -244,11 +244,12 @@ public class LeagueMatchService {
         allLeagueMatches.addAll(leagueMatchRepository.findByHomeTeamIdOrAwayTeamId(awayTeam, awayTeam));
 
         for(var match : allLeagueMatches) {
-            boolean isBetweenStartAndEndTime = (match.getStartTime().isAfter(startTime) && match.getStartTime().isBefore(endTime))
-                    || (match.getEndTime().isAfter(startTime) && match.getEndTime().isBefore(endTime));
+            boolean isSameDay = (match.getStartTime().getYear() == startTime.getYear()
+                    && match.getStartTime().getDayOfYear() == startTime.getDayOfYear());
+            
             boolean isConfirmed = match.getStatus() == LeagueMatchStatus.CONFIRMED;
 
-            if(isBetweenStartAndEndTime && isConfirmed) {
+            if(isSameDay && isConfirmed) {
                 throw new ConflictException("Scheduling conflict, another match is booked for one of the teams during this time.");
             }
         }
@@ -258,11 +259,12 @@ public class LeagueMatchService {
         allTeamMatches.addAll(teamClient.getAllTeamMatch(awayTeam));
 
         for(var match : allTeamMatches) {
-            boolean isBetweenStartAndEndTime = (match.startTime().isAfter(startTime) && match.startTime().isBefore(endTime))
-                    || (match.endTime().isAfter(startTime) && match.endTime().isBefore(endTime));
+            boolean isSameDay = (match.startTime().getYear() == startTime.getYear()
+                    && match.startTime().getDayOfYear() == startTime.getDayOfYear());
+
             boolean isConfirmed = match.status().equalsIgnoreCase("confirmed");
 
-            if(isBetweenStartAndEndTime && isConfirmed) {
+            if(isSameDay && isConfirmed) {
                 throw new ConflictException("Scheduling conflict, another match is booked for one of the teams during this time.");
             }
         }
