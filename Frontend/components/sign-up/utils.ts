@@ -139,6 +139,7 @@ export const completeVerificationAndUpsert = async (
           email: values.emailAddress,
           firstname: values.firstname,
           lastname: values.lastname,
+          imageUrl: null,
         });
       } catch {
         await deleteUserOnError();

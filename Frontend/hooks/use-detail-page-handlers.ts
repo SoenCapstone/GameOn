@@ -10,6 +10,7 @@ interface DetailPageHandlersConfig {
   boardPosts: unknown[];
   onRefresh: () => Promise<void>;
   refetchPosts: () => Promise<unknown>;
+  refetchOverview?: () => Promise<unknown>;
   deletePostMutation: {
     mutateAsync: (postId: string) => Promise<void>;
   };
@@ -23,6 +24,7 @@ export function useDetailPageHandlers({
   boardPosts,
   onRefresh,
   refetchPosts,
+  refetchOverview,
   deletePostMutation,
   entityName,
   onMatchesRefresh,
@@ -63,6 +65,9 @@ export function useDetailPageHandlers({
       if (currentTab === "board") {
         await refetchPosts();
         log.info("Board posts refreshed", { postCount: boardPosts.length });
+      } else if (currentTab === "overview" && refetchOverview) {
+        await refetchOverview();
+        log.info("Overview data refreshed");
       } else if (currentTab === "matches" && onMatchesRefresh) {
         await onMatchesRefresh();
         log.info("Matches refreshed");
@@ -78,13 +83,14 @@ export function useDetailPageHandlers({
       setRefreshing(false);
     }
   }, [
-    log,
     onRefresh,
-    refetchPosts,
     currentTab,
+    refetchOverview,
+    onMatchesRefresh,
+    refetchPosts,
+    log,
     boardPosts.length,
     entityName,
-    onMatchesRefresh,
   ]);
 
   return {

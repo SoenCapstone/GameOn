@@ -64,6 +64,8 @@ public class LeagueMatchService {
         }
         validateTimes(request.startTime(), request.endTime());
 
+        checkForScheduleConflicts(request.homeTeamId(), request.awayTeamId(), request.startTime(), request.endTime());
+
         var homeTeam = teamClient.getTeam(request.homeTeamId());
         var awayTeam = teamClient.getTeam(request.awayTeamId());
         Venue venue = venueService.requireVenue(request.venueId());
@@ -102,6 +104,13 @@ public class LeagueMatchService {
     public List<LeagueMatchResponse> listMatches(UUID leagueId) {
         requireActiveLeague(leagueId);
         return leagueMatchRepository.findByLeague_IdOrderByStartTimeDesc(leagueId)
+                .stream()
+                .map(this::toResponse)
+                .toList();
+    }
+
+    public List<LeagueMatchResponse> listTeamMatches(UUID teamId) {
+        return leagueMatchRepository.findByHomeTeamIdOrAwayTeamId(teamId, teamId)
                 .stream()
                 .map(this::toResponse)
                 .toList();
@@ -226,6 +235,38 @@ public class LeagueMatchService {
     private void validateTimes(OffsetDateTime startTime, OffsetDateTime endTime) {
         if (startTime == null || endTime == null || !startTime.isBefore(endTime)) {
             throw new BadRequestException("startTime must be before endTime");
+        }
+    }
+
+    private void checkForScheduleConflicts(UUID homeTeam, UUID awayTeam, OffsetDateTime startTime, OffsetDateTime endTime) {
+
+        var allLeagueMatches = leagueMatchRepository.findByHomeTeamIdOrAwayTeamId(homeTeam, homeTeam);
+        allLeagueMatches.addAll(leagueMatchRepository.findByHomeTeamIdOrAwayTeamId(awayTeam, awayTeam));
+
+        for(var match : allLeagueMatches) {
+            boolean isSameDay = (match.getStartTime().getYear() == startTime.getYear()
+                    && match.getStartTime().getDayOfYear() == startTime.getDayOfYear());
+            
+            boolean isConfirmed = match.getStatus() == LeagueMatchStatus.CONFIRMED;
+
+            if(isSameDay && isConfirmed) {
+                throw new ConflictException("Scheduling conflict, another match is booked for one of the teams during this time.");
+            }
+        }
+
+
+        var allTeamMatches = teamClient.getAllTeamMatch(homeTeam);
+        allTeamMatches.addAll(teamClient.getAllTeamMatch(awayTeam));
+
+        for(var match : allTeamMatches) {
+            boolean isSameDay = (match.startTime().getYear() == startTime.getYear()
+                    && match.startTime().getDayOfYear() == startTime.getDayOfYear());
+
+            boolean isConfirmed = match.status().equalsIgnoreCase("confirmed");
+
+            if(isSameDay && isConfirmed) {
+                throw new ConflictException("Scheduling conflict, another match is booked for one of the teams during this time.");
+            }
         }
     }
 

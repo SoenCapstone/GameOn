@@ -15,6 +15,8 @@ public record UserRequestUpdate(
         String lastname,
 
         @Email(message = VALIDATION_PATTERN_EMAIL)
-        String email
+        String email,
+
+        String imageUrl
 ) implements UserRequest {
 }

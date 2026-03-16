@@ -9,6 +9,7 @@ import { Header } from "@/components/header/header";
 import { Button } from "@/components/ui/button";
 import { PageTitle } from "@/components/header/page-title";
 import { handleSaveProfile } from "@/components/user-profile/profile-utils";
+import { useAxiosWithClerk } from "@/hooks/use-axios-clerk";
 import { pickImage } from "@/utils/pick-image";
 
 function EditProfileHeader({ onSave }: Readonly<{ onSave: () => void }>) {
@@ -25,6 +26,7 @@ export default function Edit() {
   const { isLoaded, isSignedIn, user } = useUser();
   const router = useRouter();
   const navigation = useNavigation();
+  const api = useAxiosWithClerk();
 
   const [firstName, setFirstName] = useState(user?.firstName ?? "");
   const [lastName, setLastName] = useState(user?.lastName ?? "");
@@ -37,6 +39,7 @@ export default function Edit() {
 
   const handleSave = useCallback(async () => {
     await handleSaveProfile({
+      api,
       user: user ?? null,
       firstName,
       lastName,
@@ -44,7 +47,7 @@ export default function Edit() {
       image,
       router,
     });
-  }, [user, firstName, lastName, email, image, router]);
+  }, [api, user, firstName, lastName, email, image, router]);
 
   const headerTitle = useCallback(
     () => <EditProfileHeader onSave={handleSave} />,

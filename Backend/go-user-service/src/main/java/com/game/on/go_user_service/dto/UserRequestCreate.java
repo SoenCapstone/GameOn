@@ -18,5 +18,7 @@ public record UserRequestCreate(
 
          @Email(message = VALIDATION_PATTERN_EMAIL)
          @NotNull(message = VALIDATION_REQUIRED_EMAIL)
-         String email
+         String email,
+
+         String imageUrl
 ) implements UserRequest {}
