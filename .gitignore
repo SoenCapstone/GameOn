@@ -147,7 +147,7 @@ vite.config.ts.timestamp-*
 .vscode
 
 # agents
-/.agent/
-/.agents/
-/.claude/
-/skills-lock.json
+.agent/
+.agents/
+.claude/
+skills-lock.json
