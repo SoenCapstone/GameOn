@@ -41,6 +41,7 @@ export type UpsertUserMutation = {
     email: string;
     firstname: string;
     lastname: string;
+    imageUrl: string | null;
   }) => Promise<void>;
   isPending?: boolean;
 };
