@@ -7,5 +7,7 @@ public record UserResponse(
 
         String firstname,
 
-        String lastname
+        String lastname,
+
+        String imageUrl
 ) {}

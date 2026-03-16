@@ -127,6 +127,7 @@ describe("Route Builders", () => {
     const staticRoutes = [
       [GO_USER_SERVICE_ROUTES.TEST, "api/v1/user/test"],
       [GO_USER_SERVICE_ROUTES.CREATE, "api/v1/user/create"],
+      [GO_USER_SERVICE_ROUTES.UPDATE, "api/v1/user/update"],
       [GO_USER_SERVICE_ROUTES.ALL, "api/v1/user/getAllUsers"],
       [GO_TEAM_SERVICE_ROUTES.ALL, "api/v1/teams"],
       [GO_TEAM_SERVICE_ROUTES.CREATE, "api/v1/teams/create"],

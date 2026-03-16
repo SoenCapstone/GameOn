@@ -319,7 +319,8 @@ class TeamServiceTest {
                 "invitee_999",
                 "invitee@test.com",
                 "John",
-                "Doe"
+                "Doe",
+                null
         );
 
         when(teamRepository.findByIdAndDeletedAtIsNull(teamId))

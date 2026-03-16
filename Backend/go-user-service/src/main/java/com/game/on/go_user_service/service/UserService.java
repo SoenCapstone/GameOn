@@ -60,7 +60,13 @@ public class UserService {
         }
 
         userRepository.save(userMapper.toUser(userRequestCreate));
-        return new UserResponse(userRequestCreate.id(), userRequestCreate.email(), userRequestCreate.firstname(), userRequestCreate.lastname());
+        return new UserResponse(
+                userRequestCreate.id(),
+                userRequestCreate.email(),
+                userRequestCreate.firstname(),
+                userRequestCreate.lastname(),
+                userRequestCreate.imageUrl()
+        );
     }
 
     @Transactional
@@ -93,6 +99,11 @@ public class UserService {
         }
         if(StringUtils.isNotBlank(newUserInfo.getEmail())){
             user.setEmail(newUserInfo.getEmail());
+        }
+        if(StringUtils.isNotBlank(newUserInfo.getImageUrl())){
+            user.setImageUrl(newUserInfo.getImageUrl());
+        } else if (newUserInfo.getImageUrl() == null) {
+            user.setImageUrl(null);
         }
     }
 }
