@@ -11,6 +11,7 @@ import {
   GO_LEAGUE_INVITE_ROUTES,
   GO_MESSAGING_ROUTES,
   GO_INVITE_ROUTES,
+  GO_MATCH_ROUTES,
 } from "@/hooks/use-axios-clerk";
 
 const mockUseAuth = jest.fn();
@@ -126,6 +127,7 @@ describe("Route Builders", () => {
     const staticRoutes = [
       [GO_USER_SERVICE_ROUTES.TEST, "api/v1/user/test"],
       [GO_USER_SERVICE_ROUTES.CREATE, "api/v1/user/create"],
+      [GO_USER_SERVICE_ROUTES.UPDATE, "api/v1/user/update"],
       [GO_USER_SERVICE_ROUTES.ALL, "api/v1/user/getAllUsers"],
       [GO_TEAM_SERVICE_ROUTES.ALL, "api/v1/teams"],
       [GO_TEAM_SERVICE_ROUTES.CREATE, "api/v1/teams/create"],
@@ -234,5 +236,175 @@ describe("Route Builders", () => {
     const callCount2 = axiosMock.create.mock.calls.length;
 
     expect(callCount1).toBe(callCount2);
+  });
+});
+
+describe("GO_TEAM_SERVICE_ROUTES", () => {
+  it("TEAM_LOGO returns route", () => {
+    expect(typeof GO_TEAM_SERVICE_ROUTES.TEAM_LOGO("team1")).toBe("string");
+  });
+  it("GET_TEAM_MEMBERS returns route", () => {
+    expect(typeof GO_TEAM_SERVICE_ROUTES.GET_TEAM_MEMBERS("team1")).toBe(
+      "string",
+    );
+  });
+  it("REMOVE_TEAM_MEMBER returns route", () => {
+    expect(
+      typeof GO_TEAM_SERVICE_ROUTES.REMOVE_TEAM_MEMBER("team1", "user1"),
+    ).toBe("string");
+  });
+  it("CREATE_INVITE returns route", () => {
+    expect(typeof GO_TEAM_SERVICE_ROUTES.CREATE_INVITE).toBe("string");
+  });
+  it("TEAM_INVITES returns route", () => {
+    expect(typeof GO_TEAM_SERVICE_ROUTES.TEAM_INVITES("team1")).toBe("string");
+  });
+  it("USER_INVITES returns route", () => {
+    expect(typeof GO_TEAM_SERVICE_ROUTES.USER_INVITES).toBe("string");
+  });
+  it("TEAM_POSTS returns route", () => {
+    expect(typeof GO_TEAM_SERVICE_ROUTES.TEAM_POSTS("team1")).toBe("string");
+  });
+  it("TEAM_POST returns route", () => {
+    expect(typeof GO_TEAM_SERVICE_ROUTES.TEAM_POST("team1", "post1")).toBe(
+      "string",
+    );
+  });
+  it("MATCHES returns route", () => {
+    expect(typeof GO_TEAM_SERVICE_ROUTES.MATCHES("team1")).toBe("string");
+  });
+  it("CREATE_MATCH_INVITE returns route", () => {
+    expect(typeof GO_TEAM_SERVICE_ROUTES.CREATE_MATCH_INVITE("team1")).toBe(
+      "string",
+    );
+  });
+  it("CREATE_PLAY returns route", () => {
+    expect(typeof GO_TEAM_SERVICE_ROUTES.CREATE_PLAY("team1")).toBe("string");
+  });
+});
+
+describe("GO_LEAGUE_SERVICE_ROUTES", () => {
+  it("ALL returns route", () => {
+    expect(typeof GO_LEAGUE_SERVICE_ROUTES.ALL).toBe("string");
+  });
+  it("CREATE returns route", () => {
+    expect(typeof GO_LEAGUE_SERVICE_ROUTES.CREATE).toBe("string");
+  });
+  it("LEAGUE_LOGO returns route", () => {
+    expect(typeof GO_LEAGUE_SERVICE_ROUTES.LEAGUE_LOGO("league1")).toBe(
+      "string",
+    );
+  });
+  it("GET returns route", () => {
+    expect(typeof GO_LEAGUE_SERVICE_ROUTES.GET("league1")).toBe("string");
+  });
+  it("TEAMS returns route", () => {
+    expect(typeof GO_LEAGUE_SERVICE_ROUTES.TEAMS("league1")).toBe("string");
+  });
+  it("REMOVE_TEAM returns route", () => {
+    expect(
+      typeof GO_LEAGUE_SERVICE_ROUTES.REMOVE_TEAM("league1", "team1"),
+    ).toBe("string");
+  });
+  it("INVITES returns route", () => {
+    expect(typeof GO_LEAGUE_SERVICE_ROUTES.INVITES("league1")).toBe("string");
+  });
+  it("MATCHES returns route", () => {
+    expect(typeof GO_LEAGUE_SERVICE_ROUTES.MATCHES("league1")).toBe("string");
+  });
+  it("CREATE_MATCH returns route", () => {
+    expect(typeof GO_LEAGUE_SERVICE_ROUTES.CREATE_MATCH("league1")).toBe(
+      "string",
+    );
+  });
+  it("CANCEL_MATCH returns route", () => {
+    expect(
+      typeof GO_LEAGUE_SERVICE_ROUTES.CANCEL_MATCH("league1", "match1"),
+    ).toBe("string");
+  });
+  it("SCORE_MATCH returns route", () => {
+    expect(
+      typeof GO_LEAGUE_SERVICE_ROUTES.SCORE_MATCH("league1", "match1"),
+    ).toBe("string");
+  });
+  it("ASSIGN_REFEREE returns route", () => {
+    expect(
+      typeof GO_LEAGUE_SERVICE_ROUTES.ASSIGN_REFEREE("league1", "match1"),
+    ).toBe("string");
+  });
+  it("LEAGUE_POSTS returns route", () => {
+    expect(typeof GO_LEAGUE_SERVICE_ROUTES.LEAGUE_POSTS("league1")).toBe(
+      "string",
+    );
+  });
+  it("LEAGUE_POST returns route", () => {
+    expect(
+      typeof GO_LEAGUE_SERVICE_ROUTES.LEAGUE_POST("league1", "post1"),
+    ).toBe("string");
+  });
+});
+
+describe("GO_LEAGUE_INVITE_ROUTES", () => {
+  it("TEAM_INVITES returns route", () => {
+    expect(typeof GO_LEAGUE_INVITE_ROUTES.TEAM_INVITES("team1")).toBe("string");
+  });
+  it("ACCEPT returns route", () => {
+    expect(typeof GO_LEAGUE_INVITE_ROUTES.ACCEPT("invite1")).toBe("string");
+  });
+  it("DECLINE returns route", () => {
+    expect(typeof GO_LEAGUE_INVITE_ROUTES.DECLINE("invite1")).toBe("string");
+  });
+});
+
+describe("GO_MESSAGING_ROUTES", () => {
+  it("CONVERSATIONS returns route", () => {
+    expect(typeof GO_MESSAGING_ROUTES.CONVERSATIONS).toBe("string");
+  });
+  it("DIRECT_CONVERSATION returns route", () => {
+    expect(typeof GO_MESSAGING_ROUTES.DIRECT_CONVERSATION).toBe("string");
+  });
+  it("TEAM_CONVERSATIONS returns route", () => {
+    expect(typeof GO_MESSAGING_ROUTES.TEAM_CONVERSATIONS("team1")).toBe(
+      "string",
+    );
+  });
+  it("MESSAGES returns route", () => {
+    expect(typeof GO_MESSAGING_ROUTES.MESSAGES("conv1")).toBe("string");
+  });
+});
+
+describe("GO_INVITE_ROUTES", () => {
+  it("RESPOND returns route", () => {
+    expect(typeof GO_INVITE_ROUTES.RESPOND).toBe("string");
+  });
+});
+
+describe("GO_MATCH_ROUTES", () => {
+  it("GET returns route", () => {
+    expect(typeof GO_MATCH_ROUTES.GET("match1")).toBe("string");
+  });
+  it("ACCEPT_TEAM_INVITE returns route", () => {
+    expect(typeof GO_MATCH_ROUTES.ACCEPT_TEAM_INVITE("match1")).toBe("string");
+  });
+  it("DECLINE_TEAM_INVITE returns route", () => {
+    expect(typeof GO_MATCH_ROUTES.DECLINE_TEAM_INVITE("match1")).toBe("string");
+  });
+  it("CANCEL returns route", () => {
+    expect(typeof GO_MATCH_ROUTES.CANCEL("match1")).toBe("string");
+  });
+  it("SCORE returns route", () => {
+    expect(typeof GO_MATCH_ROUTES.SCORE("match1")).toBe("string");
+  });
+  it("ASSIGN_REFEREE returns route", () => {
+    expect(typeof GO_MATCH_ROUTES.ASSIGN_REFEREE("match1")).toBe("string");
+  });
+  it("REF_INVITE returns route", () => {
+    expect(typeof GO_MATCH_ROUTES.REF_INVITE("match1")).toBe("string");
+  });
+  it("ACCEPT_REF_INVITE returns route", () => {
+    expect(typeof GO_MATCH_ROUTES.ACCEPT_REF_INVITE("match1")).toBe("string");
+  });
+  it("DECLINE_REF_INVITE returns route", () => {
+    expect(typeof GO_MATCH_ROUTES.DECLINE_REF_INVITE("match1")).toBe("string");
   });
 });

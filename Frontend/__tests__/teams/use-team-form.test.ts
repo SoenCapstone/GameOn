@@ -1,14 +1,25 @@
 import { renderHook, act } from "@testing-library/react-native";
 import { useTeamForm } from "@/hooks/use-team-form";
 import { SCOPE_OPTIONS } from "@/constants/form-constants";
+import type { TeamDetailResponse } from "@/hooks/use-team-detail";
 
-interface TeamFormInitialData {
-  readonly name: string;
-  readonly sport?: string;
-  readonly scope?: string;
-  readonly location?: string;
-  readonly logoUrl?: string;
-  readonly privacy?: "PUBLIC" | "PRIVATE";
+type TeamFormInitialData = TeamDetailResponse;
+
+function makeInitialData(
+  overrides: Partial<TeamDetailResponse> = {},
+): TeamDetailResponse {
+  return {
+    id: "team-1",
+    name: "Test Team",
+    sport: null,
+    location: null,
+    allowedRegions: null,
+    logoUrl: null,
+    scope: null,
+    privacy: "PUBLIC",
+    ownerUserId: "owner-1",
+    ...overrides,
+  };
 }
 
 describe("useTeamForm", () => {
@@ -25,14 +36,15 @@ describe("useTeamForm", () => {
   });
 
   it("initializes with provided initial data", () => {
-    const initialData = {
+    const initialData = makeInitialData({
       name: "Test Team",
       sport: "Soccer",
       scope: "managed",
       location: "Montreal",
+      allowedRegions: ["Montreal"],
       logoUrl: "https://example.com/logo.png",
       privacy: "PUBLIC",
-    };
+    });
 
     const { result } = renderHook(() => useTeamForm({ initialData }));
 
@@ -54,10 +66,10 @@ describe("useTeamForm", () => {
   });
 
   it("sets privacy to false when initial data is PRIVATE", () => {
-    const initialData = {
+    const initialData = makeInitialData({
       name: "Private Team",
       privacy: "PRIVATE",
-    };
+    });
 
     const { result } = renderHook(() => useTeamForm({ initialData }));
 
@@ -159,10 +171,10 @@ describe("useTeamForm", () => {
   });
 
   it("handles case-insensitive sport matching", () => {
-    const initialData = {
+    const initialData = makeInitialData({
       name: "Test Team",
       sport: "BASKETBALL",
-    };
+    });
 
     const { result } = renderHook(() => useTeamForm({ initialData }));
 
@@ -173,10 +185,10 @@ describe("useTeamForm", () => {
   });
 
   it("handles case-insensitive scope matching", () => {
-    const initialData = {
+    const initialData = makeInitialData({
       name: "Test Team",
       scope: "LEAGUE_READY",
-    };
+    });
 
     const { result } = renderHook(() => useTeamForm({ initialData }));
 
@@ -187,10 +199,10 @@ describe("useTeamForm", () => {
   });
 
   it("handles case-insensitive city matching", () => {
-    const initialData = {
+    const initialData = makeInitialData({
       name: "Test Team",
       location: "VANCOUVER",
-    };
+    });
 
     const { result } = renderHook(() => useTeamForm({ initialData }));
 
@@ -201,10 +213,10 @@ describe("useTeamForm", () => {
   });
 
   it("handles missing sport in initial data gracefully", () => {
-    const initialData = {
+    const initialData = makeInitialData({
       name: "Test Team",
       sport: "NonExistentSport",
-    };
+    });
 
     const { result } = renderHook(() => useTeamForm({ initialData }));
 
@@ -212,10 +224,10 @@ describe("useTeamForm", () => {
   });
 
   it("handles missing scope in initial data gracefully", () => {
-    const initialData = {
+    const initialData = makeInitialData({
       name: "Test Team",
       scope: "nonexistent",
-    };
+    });
 
     const { result } = renderHook(() => useTeamForm({ initialData }));
 
@@ -223,10 +235,10 @@ describe("useTeamForm", () => {
   });
 
   it("handles missing city in initial data gracefully", () => {
-    const initialData = {
+    const initialData = makeInitialData({
       name: "Test Team",
       location: "NonExistentCity",
-    };
+    });
 
     const { result } = renderHook(() => useTeamForm({ initialData }));
 
@@ -234,9 +246,15 @@ describe("useTeamForm", () => {
   });
 
   it("handles empty initial data object", () => {
-    const initialData = {
+    const initialData = makeInitialData({
       name: "",
-    };
+      sport: null,
+      scope: null,
+      location: null,
+      allowedRegions: null,
+      logoUrl: null,
+      privacy: "PRIVATE",
+    });
 
     const { result } = renderHook(() => useTeamForm({ initialData }));
 
@@ -252,9 +270,11 @@ describe("useTeamForm", () => {
         useTeamForm({ initialData: props.initialData }),
       {
         initialProps: {
-          initialData: {
-            name: "First Team",
-            sport: "Soccer",
+        initialData: {
+            ...makeInitialData({
+              name: "First Team",
+              sport: "Soccer",
+            }),
           },
         },
       },
@@ -268,8 +288,10 @@ describe("useTeamForm", () => {
 
     rerender({
       initialData: {
-        name: "Second Team",
-        sport: "Basketball",
+        ...makeInitialData({
+          name: "Second Team",
+          sport: "Basketball",
+        }),
       },
     });
 

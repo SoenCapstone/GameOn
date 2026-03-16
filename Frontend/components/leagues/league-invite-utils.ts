@@ -31,6 +31,8 @@ export type LeagueInviteCard = {
   teamId: string;
   teamName: string;
   leaguePrivacy: LeaguePrivacy;
+  logoUrl?: string | null;
+  sport?: string | null;
 };
 
 export async function fetchPendingLeagueInvites(
@@ -79,49 +81,59 @@ export async function fetchLeagueInvitesWithDetails(
 
   const leagueIds = Array.from(new Set(flatInvites.map((i) => i.leagueId)));
 
-  const [leagueMap, privacyMap] = await Promise.all([
-    fetchLeagueNameMap(api, leagueIds),
-    fetchLeaguePrivacyMap(api, leagueIds),
-  ]);
+  const leagueMap = await fetchLeagueMetaMap(api, leagueIds);
 
   return flatInvites.map((invite) => ({
     kind: "league" as const,
     id: invite.id,
     leagueId: invite.leagueId,
-    leagueName: leagueMap[invite.leagueId] ?? "League",
+    leagueName: leagueMap[invite.leagueId]?.name ?? "League",
     teamId: invite.teamId,
     teamName: invite.teamName ?? "Team",
-    leaguePrivacy: privacyMap[invite.leagueId] ?? LeaguePrivacy.PRIVATE, 
+    leaguePrivacy:
+      leagueMap[invite.leagueId]?.privacy ?? LeaguePrivacy.PRIVATE,
+    logoUrl: leagueMap[invite.leagueId]?.logoUrl,
+    sport: leagueMap[invite.leagueId]?.sport,
   }));
 }
 
-async function fetchLeagueNameMap(api: AxiosInstance, leagueIds: string[]) {
-  const entries = await Promise.all(
-    leagueIds.map(async (leagueId) => {
-      try {
-        const resp = await api.get(GO_LEAGUE_SERVICE_ROUTES.GET(leagueId));
-        return [leagueId, resp.data?.name ?? "League"] as const;
-      } catch {
-        return [leagueId, "League"] as const;
-      }
-    }),
-  );
-
-  return Object.fromEntries(entries);
-}
-
-async function fetchLeaguePrivacyMap(
+async function fetchLeagueMetaMap(
   api: AxiosInstance,
   leagueIds: string[],
-): Promise<Record<string, LeaguePrivacy>> {
+): Promise<
+  Record<
+    string,
+    {
+      name: string;
+      privacy: LeaguePrivacy;
+      logoUrl?: string | null;
+      sport?: string | null;
+    }
+  >
+> {
   const entries = await Promise.all(
     leagueIds.map(async (leagueId) => {
       try {
         const resp = await api.get(GO_LEAGUE_SERVICE_ROUTES.GET(leagueId));
-        const privacy = parseLeaguePrivacy(resp.data?.privacy);
-        return [leagueId, privacy ?? LeaguePrivacy.PRIVATE] as const;
+        return [
+          leagueId,
+          {
+            name: resp.data?.name ?? "League",
+            privacy: parseLeaguePrivacy(resp.data?.privacy) ?? LeaguePrivacy.PRIVATE,
+            logoUrl: resp.data?.logoUrl ?? null,
+            sport: resp.data?.sport ?? null,
+          },
+        ] as const;
       } catch {
-        return [leagueId, LeaguePrivacy.PRIVATE] as const;
+        return [
+          leagueId,
+          {
+            name: "League",
+            privacy: LeaguePrivacy.PRIVATE,
+            logoUrl: null,
+            sport: null,
+          },
+        ] as const;
       }
     }),
   );

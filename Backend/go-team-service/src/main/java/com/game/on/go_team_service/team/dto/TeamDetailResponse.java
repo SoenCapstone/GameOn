@@ -17,7 +17,7 @@ public record TeamDetailResponse(
         String logoUrl,
         String location,
         List<String> allowedRegions,
-//        Integer maxRoster,
+        Integer maxRoster,
         TeamPrivacy privacy,
         boolean archived,
         OffsetDateTime createdAt,

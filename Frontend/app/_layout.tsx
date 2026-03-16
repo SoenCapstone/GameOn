@@ -67,6 +67,16 @@ export default function RootLayout() {
                             name="(contexts)"
                             options={{ headerShown: false }}
                           />
+                          <Stack.Screen
+                            name="(sheets)"
+                            options={{
+                              presentation: "formSheet",
+                              sheetAllowedDetents: "fitToContents",
+                              sheetCornerRadius: 58,
+                              contentStyle: { backgroundColor: "transparent" },
+                              headerShown: false,
+                            }}
+                          />
                         </Stack>
                         <StatusBar style="auto" />
                       </ClerkLoaded>

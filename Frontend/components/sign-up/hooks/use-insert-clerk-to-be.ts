@@ -18,6 +18,7 @@ export const useUpsertUser = (): UpsertUserMutation => {
       email: string;
       firstname: string;
       lastname: string;
+      imageUrl: string | null;
     }) => {
       await api.post(GO_USER_SERVICE_ROUTES.CREATE, payload);
     },

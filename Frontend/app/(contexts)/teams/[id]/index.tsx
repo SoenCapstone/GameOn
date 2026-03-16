@@ -1,12 +1,18 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import {
   View,
   ActivityIndicator,
   RefreshControl,
-  Text,
   StyleSheet,
+  Alert,
 } from "react-native";
-import { useLocalSearchParams, useRouter } from "expo-router";
+import {
+  RelativePathString,
+  useLocalSearchParams,
+  useRouter,
+} from "expo-router";
+import { useQueryClient } from "@tanstack/react-query";
+import { useAuth } from "@clerk/clerk-expo";
 import { ContentArea } from "@/components/ui/content-area";
 import { Button } from "@/components/ui/button";
 import { getSportLogo } from "@/components/browse/utils";
@@ -19,7 +25,28 @@ import { useTeamBoardPosts, useDeleteBoardPost } from "@/hooks/use-team-board";
 import { BoardList } from "@/components/board/board-list";
 import { useDetailPageHandlers } from "@/hooks/use-detail-page-handlers";
 import { createScopedLog } from "@/utils/logger";
+import { useTeamOverview } from "@/hooks/use-team-overview";
 import { Tabs } from "@/components/ui/tabs";
+import { MatchListSections } from "@/components/matches/match-list-sections";
+import {
+  useCancelTeamMatch,
+  useLeaguesByIds,
+  useTeamMatches,
+  useTeamsByIds,
+} from "@/hooks/use-matches";
+import { buildMatchCards, splitMatchSections } from "@/features/matches/utils";
+import { TeamOverviewTab } from "@/components/teams/team-overview-tab";
+import { errorToString } from "@/utils/error";
+
+type TeamTab = "board" | "matches" | "overview";
+
+const TeamTabs: readonly TeamTab[] = ["board", "matches", "overview"] as const;
+
+const TeamTabLabels: Record<TeamTab, string> = {
+  board: "Board",
+  matches: "Matches",
+  overview: "Overview",
+};
 
 export default function Team() {
   const params = useLocalSearchParams<{ id?: string | string[] }>();
@@ -34,9 +61,13 @@ export default function Team() {
 }
 
 function TeamContent() {
-  const [tab, setTab] = useState<"board" | "matches" | "overview">("board");
+  const params = useLocalSearchParams<{ tab?: string }>();
+  const initialTab: TeamTab = parseTeamTab(params.tab);
+  const [tab, setTab] = useState<TeamTab>(initialTab);
   const router = useRouter();
   const log = createScopedLog("Team Page");
+  const queryClient = useQueryClient();
+  const { userId } = useAuth();
 
   const {
     id,
@@ -44,15 +75,15 @@ function TeamContent() {
     onRefresh,
     handleFollow,
     title,
+    isOwner,
     isMember,
     isActiveMember,
     role,
     team,
   } = useTeamDetailContext();
   const canManage =
-    (isActiveMember && role === "OWNER") ||
-    role === "COACH" ||
-    role === "MANAGER";
+    isActiveMember &&
+    (role === "OWNER" || role === "COACH" || role === "MANAGER");
 
   const {
     data: boardPosts = [],
@@ -62,7 +93,110 @@ function TeamContent() {
 
   const deletePostMutation = useDeleteBoardPost(id);
 
+  const {
+    data: overview,
+    isLoading: overviewLoading,
+    error: overviewError,
+    refetch: refetchOverview,
+  } = useTeamOverview(id);
+  const {
+    data: matches = [],
+    isLoading: matchesLoading,
+    error: matchesError,
+    refetch: refetchMatches,
+  } = useTeamMatches(id);
+  const cancelTeamMutation = useCancelTeamMatch();
+
+  const teamIds = useMemo(
+    () =>
+      Array.from(new Set(matches.flatMap((m) => [m.homeTeamId, m.awayTeamId]))),
+    [matches],
+  );
+  const leagueIds = useMemo(
+    () =>
+      Array.from(
+        new Set(
+          matches.flatMap((match) =>
+            "leagueId" in match && match.leagueId ? [match.leagueId] : [],
+          ),
+        ),
+      ),
+    [matches],
+  );
+  const teamsQuery = useTeamsByIds(teamIds);
+  const leaguesQuery = useLeaguesByIds(leagueIds);
+
+  const matchItems = useMemo(() => {
+    const items = buildMatchCards(matches, teamsQuery.data, (match) => {
+      if ("leagueId" in match && match.leagueId) {
+        return leaguesQuery.data?.[match.leagueId]?.name ?? "League Match";
+      }
+      return "Team Match";
+    });
+
+    return items.map((match) => {
+      const isLeagueMatch = "leagueId" in match && Boolean(match.leagueId);
+      const homeOwnerId = teamsQuery.data?.[match.homeTeamId]?.ownerUserId;
+      const awayOwnerId = teamsQuery.data?.[match.awayTeamId]?.ownerUserId;
+      const canCancel = Boolean(
+        !isLeagueMatch &&
+          userId &&
+          !match.isPast &&
+          match.status !== "CANCELLED" &&
+          ((homeOwnerId && homeOwnerId === userId) ||
+            (awayOwnerId && awayOwnerId === userId)),
+      );
+
+      return {
+        ...match,
+        canCancel,
+        onConfirmCancel: canCancel
+          ? async () => {
+              try {
+                await cancelTeamMutation.mutateAsync({ matchId: match.id });
+                await Promise.all([
+                  queryClient.invalidateQueries({
+                    queryKey: ["team-match", match.id],
+                  }),
+                  queryClient.invalidateQueries({
+                    queryKey: ["team-matches", id],
+                  }),
+                ]);
+              } catch (err) {
+                Alert.alert("Cancel failed", errorToString(err));
+              }
+            }
+          : undefined,
+      };
+    });
+  }, [
+    matches,
+    teamsQuery.data,
+    leaguesQuery.data,
+    userId,
+    cancelTeamMutation,
+    queryClient,
+    id,
+  ]);
+
+  const {
+    today: todayMatches,
+    upcoming: upcomingMatches,
+    past: pastMatches,
+  } = useMemo(() => splitMatchSections(matchItems), [matchItems]);
+
   useTeamHeader({ title, id, isMember, onFollow: handleFollow });
+
+  const handleMatchesRefresh = useMemo(
+    () => async () => {
+      await Promise.all([
+        refetchMatches(),
+        teamsQuery.refetch(),
+        leaguesQuery.refetch(),
+      ]);
+    },
+    [refetchMatches, teamsQuery, leaguesQuery],
+  );
 
   const { refreshing, handleDeletePost, handleRefresh } = useDetailPageHandlers(
     {
@@ -71,24 +205,23 @@ function TeamContent() {
       boardPosts,
       onRefresh,
       refetchPosts,
+      refetchOverview,
       deletePostMutation,
       entityName: "Team",
+      onMatchesRefresh: handleMatchesRefresh,
     },
   );
 
-  const getTabFromSegmentValue = (
-    value: string,
-  ): "board" | "matches" | "overview" => {
-    if (value === "Board") return "board";
-    if (value === "Overview") return "overview";
-    return "matches";
-  };
+  const selectedIndex = getTeamTabIndex(tab);
 
-  const getSelectedIndex = (): number => {
-    if (tab === "board") return 0;
-    if (tab === "matches") return 1;
-    return 2;
-  };
+  const tiles = overview?.tiles?.length
+    ? overview.tiles
+    : [
+        { key: "points" as const, label: "Points" },
+        { key: "matches" as const, label: "Matches" },
+        { key: "streak" as const, label: "Streak" },
+        { key: "minutes" as const, label: "Minutes" },
+      ];
 
   return (
     <View style={{ flex: 1 }}>
@@ -106,10 +239,13 @@ function TeamContent() {
         }
       >
         <Tabs
-          values={["Board", "Matches", "Overview"]}
-          selectedIndex={getSelectedIndex()}
+          values={TeamTabs.map((teamTab) => TeamTabLabels[teamTab])}
+          selectedIndex={selectedIndex}
           onValueChange={(value) => {
-            const newTab = getTabFromSegmentValue(value);
+            const index = TeamTabs.findIndex(
+              (teamTab) => TeamTabLabels[teamTab] === value,
+            );
+            const newTab = index >= 0 ? TeamTabs[index] : "board";
             setTab(newTab);
             log.info("Tab changed", { tab: newTab });
           }}
@@ -121,7 +257,9 @@ function TeamContent() {
           </View>
         ) : (
           <>
-            {refreshing && <ActivityIndicator size="small" color="#fff" />}
+            {refreshing && !isLoading && (
+              <ActivityIndicator size="small" color="#fff" />
+            )}
 
             {tab === "board" && (
               <BoardList
@@ -138,13 +276,42 @@ function TeamContent() {
               />
             )}
             {tab === "matches" && (
-              <Text style={{ color: "white" }}>Games content here</Text>
+              <MatchListSections
+                today={[...todayMatches]}
+                upcoming={[...upcomingMatches]}
+                past={[...pastMatches]}
+                isLoading={
+                  matchesLoading ||
+                  teamsQuery.isLoading ||
+                  leaguesQuery.isLoading
+                }
+                errorText={matchesError ? "Could not load matches." : null}
+                onRetry={handleMatchesRefresh}
+                onMatchPress={(match) =>
+                  router.push({
+                    pathname:
+                      `/(sheets)/match/${match.id}` as RelativePathString,
+                    params: {
+                      context: "team",
+                      contextId: id,
+                      homeName: match.homeName,
+                      awayName: match.awayName,
+                      homeLogoUrl: match.homeLogoUrl ?? "",
+                      awayLogoUrl: match.awayLogoUrl ?? "",
+                    },
+                  })
+                }
+              />
             )}
             {tab === "overview" && (
-              <View>
-                <Text style={{ color: "white", padding: 16 }}>
-                  Overview content here
-                </Text>
+              <View style={styles.overviewSection}>
+                <TeamOverviewTab
+                  overviewLoading={overviewLoading}
+                  overviewError={overviewError}
+                  overview={overview}
+                  tiles={tiles}
+                />
+
                 {canManage && (
                   <Button
                     type="custom"
@@ -158,15 +325,8 @@ function TeamContent() {
         )}
       </ContentArea>
 
-      {/* Create Post Button */}
-      {canManage && tab === "board" && (
-        <View
-          style={{
-            position: "absolute",
-            bottom: 20,
-            right: 20,
-          }}
-        >
+      {canManage && tab === "board" ? (
+        <View style={styles.fab}>
           <Button
             type="custom"
             icon="plus"
@@ -182,9 +342,28 @@ function TeamContent() {
             }
           />
         </View>
-      )}
+      ) : null}
+
+      {isOwner && tab === "matches" ? (
+        <View style={styles.fab}>
+          <Button
+            type="custom"
+            icon="plus"
+            onPress={() => router.push(`/teams/${id}/matches/schedule`)}
+          />
+        </View>
+      ) : null}
     </View>
   );
+}
+
+function parseTeamTab(value?: string): TeamTab {
+  const normalized = value?.toLowerCase() as TeamTab | undefined;
+  return TeamTabs.find((teamTab) => teamTab === normalized) ?? "board";
+}
+
+function getTeamTabIndex(tab: TeamTab): number {
+  return TeamTabs.indexOf(tab);
 }
 
 const styles = StyleSheet.create({
@@ -192,6 +371,16 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
-    minHeight: 200,
+  },
+
+  overviewSection: {
+    marginTop: 12,
+    gap: 12,
+  },
+
+  fab: {
+    position: "absolute",
+    bottom: 20,
+    right: 20,
   },
 });

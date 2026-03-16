@@ -7,7 +7,7 @@ interface CardProps {
   readonly children: React.ReactNode;
 }
 
-export function Card({ isInteractive=true, children }: Readonly<CardProps>) {
+export function Card({ isInteractive = true, children }: Readonly<CardProps>) {
   return (
     <GlassView
       isInteractive={isInteractive}
@@ -25,6 +25,5 @@ const styles = StyleSheet.create({
     width: "100%",
     padding: 24,
     borderRadius: 34,
-
   },
 });

@@ -60,7 +60,15 @@ function PlaymakerHeader({ title, saving, onSave }: PlaymakerHeaderProps) {
     <Header
       left={<Button type="back" />}
       center={<PageTitle title={title} subtitle="Playmaker" />}
-      right={<Button type="custom" label="Save" onPress={onSave} loading={saving} />}
+      right={
+        <Button
+          isInteractive
+          type="custom"
+          label="Save"
+          onPress={onSave}
+          loading={saving}
+        />
+      }
     />
   );
 }
@@ -68,7 +76,7 @@ function PlaymakerHeader({ title, saving, onSave }: PlaymakerHeaderProps) {
 export default function PlayMaker() {
   const params = useLocalSearchParams<{ id?: string | string[] }>();
   const rawId = params.id;
-  const id = Array.isArray(rawId) ? rawId[0] : rawId ?? "";
+  const id = Array.isArray(rawId) ? rawId[0] : (rawId ?? "");
 
   return (
     <TeamDetailProvider id={id}>
@@ -78,8 +86,13 @@ export default function PlayMaker() {
 }
 
 function PlayMakerContent() {
-  const { isLoading, refreshing, onRefresh, title, id: teamId } =
-    useTeamDetailContext();
+  const {
+    isLoading,
+    refreshing,
+    onRefresh,
+    title,
+    id: teamId,
+  } = useTeamDetailContext();
 
   const navigation = useNavigation();
   const api = useAxiosWithClerk();
@@ -117,7 +130,7 @@ function PlayMakerContent() {
 
   const headerTitle = useCallback(
     () => <PlaymakerHeader title={title} saving={saving} onSave={onSave} />,
-    [title, saving, onSave]
+    [title, saving, onSave],
   );
 
   useLayoutEffect(() => {

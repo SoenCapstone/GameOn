@@ -5,8 +5,10 @@ import {
   handleSaveProfile,
   confirmLogout,
 } from "@/components/user-profile/profile-utils";
+import { GO_USER_SERVICE_ROUTES } from "@/hooks/use-axios-clerk";
 import { pickImage } from "@/utils/pick-image";
 import { UserResource } from "@clerk/types";
+import { AxiosInstance } from "axios";
 
 jest.mock("react-native", () => ({
   Alert: {
@@ -47,11 +49,18 @@ jest.mock("@/utils/logger", () => ({
   })),
 }));
 
+jest.mock("@/hooks/use-axios-clerk", () => ({
+  GO_USER_SERVICE_ROUTES: {
+    UPDATE: "api/v1/user/update",
+  },
+}));
+
 const mockFile = File as jest.MockedClass<typeof File>;
 
 describe("handleSaveProfile", () => {
   let mockUser: Partial<import("@clerk/types").UserResource>;
   let mockRouter: { back: jest.Mock };
+  let mockApi: Pick<AxiosInstance, "put">;
   let mockAlert: jest.SpyInstance;
 
   beforeEach(() => {
@@ -61,7 +70,9 @@ describe("handleSaveProfile", () => {
     mockUser = {
       update: jest.fn().mockResolvedValue(undefined),
       setProfileImage: jest.fn().mockResolvedValue(undefined),
+      reload: jest.fn().mockResolvedValue(undefined),
       hasImage: false,
+      imageUrl: "https://clerk.test/original.jpg",
       id: "mock-id",
       externalId: "mock-external-id",
       primaryEmailAddressId: "mock-email-id",
@@ -72,6 +83,9 @@ describe("handleSaveProfile", () => {
     mockRouter = {
       back: jest.fn(),
     };
+    mockApi = {
+      put: jest.fn().mockResolvedValue(undefined),
+    };
   });
 
   afterEach(() => {
@@ -80,6 +94,7 @@ describe("handleSaveProfile", () => {
 
   it("validates firstName and lastName, showing appropriate alerts", async () => {
     await handleSaveProfile({
+      api: mockApi as AxiosInstance,
       user: mockUser as unknown as UserResource,
       firstName: "",
       lastName: "Doe",
@@ -97,6 +112,7 @@ describe("handleSaveProfile", () => {
     mockAlert.mockClear();
 
     await handleSaveProfile({
+      api: mockApi as AxiosInstance,
       user: mockUser as unknown as UserResource,
       firstName: "   ",
       lastName: "Doe",
@@ -114,6 +130,7 @@ describe("handleSaveProfile", () => {
     mockAlert.mockClear();
 
     await handleSaveProfile({
+      api: mockApi as AxiosInstance,
       user: mockUser as unknown as UserResource,
       firstName: "John",
       lastName: "",
@@ -131,6 +148,7 @@ describe("handleSaveProfile", () => {
     mockAlert.mockClear();
 
     await handleSaveProfile({
+      api: mockApi as AxiosInstance,
       user: mockUser as unknown as UserResource,
       firstName: "John",
       lastName: "   ",
@@ -148,6 +166,7 @@ describe("handleSaveProfile", () => {
 
   it("manages profile image updates based on image state and user hasImage", async () => {
     await handleSaveProfile({
+      api: mockApi as AxiosInstance,
       user: mockUser as unknown as UserResource,
       firstName: "John",
       lastName: "Doe",
@@ -160,6 +179,13 @@ describe("handleSaveProfile", () => {
       firstName: "John",
       lastName: "Doe",
     });
+    expect(mockApi.put).toHaveBeenCalledWith(GO_USER_SERVICE_ROUTES.UPDATE, {
+      id: "mock-id",
+      firstname: "John",
+      lastname: "Doe",
+      email: "john@example.com",
+      imageUrl: "https://clerk.test/original.jpg",
+    });
     expect(mockAlert).toHaveBeenCalledWith("Success", "Profile updated");
     expect(mockRouter.back).toHaveBeenCalled();
 
@@ -167,6 +193,7 @@ describe("handleSaveProfile", () => {
 
     mockUser.hasImage = true;
     await handleSaveProfile({
+      api: mockApi as AxiosInstance,
       user: mockUser as unknown as UserResource,
       firstName: "John",
       lastName: "Doe",
@@ -176,12 +203,20 @@ describe("handleSaveProfile", () => {
     });
 
     expect(mockUser.setProfileImage).toHaveBeenCalledWith({ file: null });
+    expect(mockApi.put).toHaveBeenCalledWith(GO_USER_SERVICE_ROUTES.UPDATE, {
+      id: "mock-id",
+      firstname: "John",
+      lastname: "Doe",
+      email: "john@example.com",
+      imageUrl: null,
+    });
     expect(mockAlert).toHaveBeenCalledWith("Success", "Profile updated");
 
     jest.clearAllMocks();
 
     mockUser.hasImage = false;
     await handleSaveProfile({
+      api: mockApi as AxiosInstance,
       user: mockUser as unknown as UserResource,
       firstName: "John",
       lastName: "Doe",
@@ -205,6 +240,7 @@ describe("handleSaveProfile", () => {
     mockFile.mockImplementation(() => mockFileInstance as unknown as File);
 
     await handleSaveProfile({
+      api: mockApi as AxiosInstance,
       user: mockUser as unknown as UserResource,
       firstName: "John",
       lastName: "Doe",
@@ -215,6 +251,7 @@ describe("handleSaveProfile", () => {
 
     expect(mockFile).toHaveBeenCalledWith("file:///local/image.jpg");
     expect(mockFileInstance.base64).toHaveBeenCalled();
+    expect(mockUser.reload).toHaveBeenCalled();
     expect(mockUser.setProfileImage).toHaveBeenCalledWith({
       file: "data:image/jpeg;base64,base64string",
     });
@@ -225,6 +262,7 @@ describe("handleSaveProfile", () => {
 
     (mockFileInstance.base64 as jest.Mock).mockResolvedValue("base64string");
     await handleSaveProfile({
+      api: mockApi as AxiosInstance,
       user: mockUser as unknown as UserResource,
       firstName: "John",
       lastName: "Doe",
@@ -242,6 +280,7 @@ describe("handleSaveProfile", () => {
 
     (mockFileInstance.base64 as jest.Mock).mockResolvedValue("pngbase64");
     await handleSaveProfile({
+      api: mockApi as AxiosInstance,
       user: mockUser as unknown as UserResource,
       firstName: "John",
       lastName: "Doe",
@@ -257,6 +296,7 @@ describe("handleSaveProfile", () => {
     jest.clearAllMocks();
 
     await handleSaveProfile({
+      api: mockApi as AxiosInstance,
       user: mockUser as unknown as UserResource,
       firstName: "John",
       lastName: "Doe",
@@ -271,6 +311,7 @@ describe("handleSaveProfile", () => {
     jest.clearAllMocks();
 
     await handleSaveProfile({
+      api: mockApi as AxiosInstance,
       user: mockUser as unknown as UserResource,
       firstName: "John",
       lastName: "Doe",
@@ -288,6 +329,7 @@ describe("handleSaveProfile", () => {
     (mockUser.update as jest.Mock).mockRejectedValue(error);
 
     await handleSaveProfile({
+      api: mockApi as AxiosInstance,
       user: mockUser as unknown as UserResource,
       firstName: "John",
       lastName: "Doe",
@@ -313,6 +355,7 @@ describe("handleSaveProfile", () => {
     mockFile.mockImplementation(() => mockFileInstance as unknown as File);
 
     await handleSaveProfile({
+      api: mockApi as AxiosInstance,
       user: mockUser as unknown as UserResource,
       firstName: "John",
       lastName: "Doe",
