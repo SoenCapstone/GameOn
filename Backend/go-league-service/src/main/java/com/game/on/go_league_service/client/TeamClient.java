@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
+import java.util.List;
 import java.util.UUID;
 
 @FeignClient(
@@ -40,4 +41,7 @@ public interface TeamClient {
 
     @GetMapping("/api/v1/teams/venues/{venueId}")
     VenueResponse getVenue(@PathVariable UUID venueId);
+
+    @GetMapping("/api/v1/teams/{teamId}/matches")
+    List<TeamMatchDetailResponse> getAllTeamMatch(@PathVariable UUID teamId);
 }
