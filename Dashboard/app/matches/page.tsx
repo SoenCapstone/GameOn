@@ -1,13 +1,13 @@
 import { DashboardShell } from "@/components/dashboard-shell";
-import { PlaceholderPage } from "@/components/placeholder-page";
+import { MatchesGrid } from "@/components/matches-grid";
+import { getMatches } from "@/lib/matches";
 
 export default async function MatchesPage() {
+  const initialMatches = await getMatches();
+
   return (
     <DashboardShell title="Matches">
-      <PlaceholderPage
-        title="Matches"
-        description="Track scheduled matches and reserve this area for future match administration tools."
-      />
+      <MatchesGrid initialMatches={initialMatches} />
     </DashboardShell>
   );
 }

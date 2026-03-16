@@ -1,13 +1,13 @@
 import { DashboardShell } from "@/components/dashboard-shell";
-import { PlaceholderPage } from "@/components/placeholder-page";
+import { TeamsTable } from "@/components/teams-table";
+import { getTeams } from "@/lib/teams";
 
 export default async function TeamsPage() {
+  const initialData = await getTeams({ limit: 9, offset: 0 });
+
   return (
     <DashboardShell title="Teams">
-      <PlaceholderPage
-        title="Teams"
-        description="Review team records, ownership, and team-related administration from one place."
-      />
+      <TeamsTable initialData={initialData} />
     </DashboardShell>
   );
 }

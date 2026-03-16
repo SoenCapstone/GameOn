@@ -8,27 +8,17 @@ import {
   ArrowRightDoubleIcon,
 } from "@hugeicons/core-free-icons";
 import { Button } from "@/components/ui/button";
-import {
-  Select,
-  SelectContent,
-  SelectGroup,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 
 export function UsersPagination({
   page,
   pageSize,
   total,
   onPageChange,
-  onPageSizeChange,
 }: {
   page: number;
   pageSize: number;
   total: number;
   onPageChange: (page: number) => void;
-  onPageSizeChange: (pageSize: number) => void;
 }) {
   const pageCount = Math.max(1, Math.ceil(total / pageSize));
   const canGoPrevious = page > 1;
@@ -37,28 +27,6 @@ export function UsersPagination({
   return (
     <div className="flex items-center justify-end px-4">
       <div className="flex w-full items-center gap-8 lg:w-fit">
-        <div className="hidden items-center gap-2 lg:flex">
-          <span className="text-sm font-medium">Rows per page</span>
-          <Select
-            value={String(pageSize)}
-            onValueChange={(value) => {
-              onPageSizeChange(Number(value));
-            }}
-          >
-            <SelectTrigger size="sm" className="w-20" id="rows-per-page">
-              <SelectValue placeholder={pageSize} />
-            </SelectTrigger>
-            <SelectContent side="top">
-              <SelectGroup>
-                {[10, 20, 30, 40, 50].map((value) => (
-                  <SelectItem key={value} value={String(value)}>
-                    {value}
-                  </SelectItem>
-                ))}
-              </SelectGroup>
-            </SelectContent>
-          </Select>
-        </div>
         <div className="flex w-fit items-center justify-center text-sm font-medium">
           Page {page} of {pageCount}
         </div>

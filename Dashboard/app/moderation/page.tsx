@@ -1,13 +1,13 @@
 import { DashboardShell } from "@/components/dashboard-shell";
-import { PlaceholderPage } from "@/components/placeholder-page";
+import { ModerationQueue } from "@/components/moderation-queue";
+import { getModerationQueueItems } from "@/lib/moderation";
 
 export default async function ModerationPage() {
+  const initialQueue = await getModerationQueueItems();
+
   return (
     <DashboardShell title="Moderation">
-      <PlaceholderPage
-        title="Moderation"
-        description="Use this section for reviewing reports, flagged content, and future moderation workflows."
-      />
+      <ModerationQueue initialQueue={initialQueue} />
     </DashboardShell>
   );
 }

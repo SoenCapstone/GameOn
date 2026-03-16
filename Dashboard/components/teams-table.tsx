@@ -3,8 +3,8 @@
 import { useCallback, useEffect, useState } from "react";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { Loading03Icon, Search01Icon } from "@hugeicons/core-free-icons";
-import { CreateUserDialog } from "@/components/create-user-sheet";
-import { UserRowActions } from "@/components/user-row-actions";
+import { CreateTeamDialog } from "@/components/create-team-dialog";
+import { TeamRowActions } from "@/components/team-row-actions";
 import { UsersPagination } from "@/components/users-pagination";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
@@ -19,42 +19,46 @@ import {
   TableRow,
 } from "@/components/ui/table";
 
-type DashboardUser = {
+type DashboardTeam = {
   id: string;
-  firstName: string | null;
-  lastName: string | null;
-  email: string | null;
-  imageUrl: string | null;
-  locked: boolean;
+  name: string;
+  sport: string | null;
+  scope: string | null;
+  slug: string;
+  logoUrl: string | null;
+  location: string | null;
+  maxRoster: number | null;
+  privacy: "PUBLIC" | "PRIVATE";
+  ownerUserId: string;
+  createdAt: string;
+  owner: {
+    id: string;
+    firstName: string | null;
+    lastName: string | null;
+    email: string | null;
+    imageUrl: string | null;
+  };
 };
 
-type DashboardUsersResponse = {
-  users: DashboardUser[];
+type DashboardTeamsResponse = {
+  teams: DashboardTeam[];
   total: number;
   limit: number;
   offset: number;
 };
 
-function getDisplayName(user: {
-  firstName: string | null;
-  lastName: string | null;
-  email: string | null;
-}) {
-  const fullName = [user.firstName, user.lastName].filter(Boolean).join(" ").trim();
+function getOwnerDisplayName(owner: DashboardTeam["owner"]) {
+  const fullName = [owner.firstName, owner.lastName].filter(Boolean).join(" ").trim();
 
   if (fullName) {
     return fullName;
   }
 
-  return user.email ?? "Unnamed user";
+  return owner.email ?? owner.id;
 }
 
-function getInitials(user: {
-  firstName: string | null;
-  lastName: string | null;
-  email: string | null;
-}) {
-  const initials = [user.firstName, user.lastName]
+function getOwnerInitials(owner: DashboardTeam["owner"]) {
+  const initials = [owner.firstName, owner.lastName]
     .filter(Boolean)
     .map((value) => value!.charAt(0).toUpperCase())
     .join("")
@@ -64,24 +68,33 @@ function getInitials(user: {
     return initials;
   }
 
-  return (user.email ?? "U").charAt(0).toUpperCase();
+  return (owner.email ?? "U").charAt(0).toUpperCase();
 }
 
-export function UsersTable({
+function formatSport(value: string | null) {
+  if (!value) {
+    return "No sport";
+  }
+
+  return value.charAt(0).toUpperCase() + value.slice(1).toLowerCase();
+}
+
+export function TeamsTable({
   initialData,
 }: {
-  initialData: DashboardUsersResponse;
+  initialData: DashboardTeamsResponse;
 }) {
   const [page, setPage] = useState(1);
   const pageSize = initialData.limit;
-  const [users, setUsers] = useState<DashboardUser[]>(initialData.users);
+  const [teams, setTeams] = useState<DashboardTeam[]>(initialData.teams);
   const [total, setTotal] = useState(initialData.total);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [searchInput, setSearchInput] = useState("");
   const [search, setSearch] = useState("");
+  const [reloadToken, setReloadToken] = useState(0);
 
-  const loadUsers = useCallback(
+  const loadTeams = useCallback(
     async (signal?: AbortSignal) => {
       setIsLoading(true);
       setError(null);
@@ -96,15 +109,15 @@ export function UsersTable({
           params.set("search", search);
         }
 
-        const response = await fetch(`/api/users?${params.toString()}`, {
+        const response = await fetch(`/api/teams?${params.toString()}`, {
           signal,
         });
 
         if (!response.ok) {
-          throw new Error("Failed to load users.");
+          throw new Error("Failed to load teams.");
         }
 
-        const data = (await response.json()) as DashboardUsersResponse;
+        const data = (await response.json()) as DashboardTeamsResponse;
         const totalPages = Math.max(1, Math.ceil(data.total / pageSize));
 
         if (page > totalPages) {
@@ -112,14 +125,14 @@ export function UsersTable({
           return;
         }
 
-        setUsers(data.users);
+        setTeams(data.teams);
         setTotal(data.total);
       } catch (fetchError) {
         if ((fetchError as Error).name === "AbortError") {
           return;
         }
 
-        setError("Unable to load users right now.");
+        setError("Unable to load teams right now.");
       } finally {
         if (!signal?.aborted) {
           setIsLoading(false);
@@ -141,10 +154,10 @@ export function UsersTable({
   useEffect(() => {
     const controller = new AbortController();
 
-    void loadUsers(controller.signal);
+    void loadTeams(controller.signal);
 
     return () => controller.abort();
-  }, [loadUsers]);
+  }, [loadTeams, reloadToken]);
 
   return (
     <div className="flex flex-1 flex-col px-4 py-4 md:gap-6 md:px-6 md:py-6">
@@ -158,44 +171,48 @@ export function UsersTable({
           <Input
             value={searchInput}
             onChange={(event) => setSearchInput(event.target.value)}
-            placeholder="Search users"
+            placeholder="Search teams"
             className="h-11 rounded-2xl border-white/10 bg-white/5 pl-11"
           />
         </div>
-        <CreateUserDialog />
+        <CreateTeamDialog
+          onCreated={() => {
+            setPage(1);
+            setReloadToken((current) => current + 1);
+          }}
+        />
       </div>
       <Card className="gap-3 border-white/10 bg-white/5 py-3 backdrop-blur-md">
         <CardContent className="px-6 py-0">
           <Table className="table-fixed">
             <colgroup>
-              <col className="w-[34%]" />
-              <col className="w-[22%]" />
+              <col className="w-[28%]" />
+              <col className="w-[14%]" />
               <col className="w-[24%]" />
-              <col className="w-[10%]" />
-              <col className="w-[10%]" />
+              <col className="w-[12%]" />
+              <col className="w-[14%]" />
+              <col className="w-[8%]" />
             </colgroup>
             <TableHeader>
               <TableRow className="border-white/10">
-                <TableHead>User</TableHead>
-                <TableHead>Email</TableHead>
+                <TableHead>Team</TableHead>
+                <TableHead>Sport</TableHead>
+                <TableHead>Owner</TableHead>
+                <TableHead>Privacy</TableHead>
                 <TableHead>Id</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead className="w-0 text-right">Actions</TableHead>
+                <TableHead className="text-right">Actions</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {error ? (
                 <TableRow className="border-white/10">
-                  <TableCell
-                    colSpan={5}
-                    className="text-muted-foreground h-24 text-center"
-                  >
+                  <TableCell colSpan={6} className="text-muted-foreground h-24 text-center">
                     {error}
                   </TableCell>
                 </TableRow>
-              ) : isLoading && users.length === 0 ? (
+              ) : isLoading && teams.length === 0 ? (
                 <TableRow className="border-white/10">
-                  <TableCell colSpan={5} className="h-24">
+                  <TableCell colSpan={6} className="h-24">
                     <div className="text-muted-foreground flex items-center justify-center">
                       <HugeiconsIcon
                         icon={Loading03Icon}
@@ -206,66 +223,73 @@ export function UsersTable({
                   </TableCell>
                 </TableRow>
               ) : (
-                users.map((user) => (
-                  <TableRow
-                    key={user.id}
-                    className="border-white/10 hover:bg-white/5"
-                  >
+                teams.map((team) => (
+                    <TableRow key={team.id} className="border-white/10 hover:bg-white/5">
+                      <TableCell>
+                        <div className="flex items-center gap-3">
+                          <div className="flex size-10 shrink-0 items-center justify-center overflow-hidden rounded-none">
+                            {team.logoUrl ? (
+                              <img
+                                src={team.logoUrl}
+                                alt={team.name}
+                                className="h-full w-full object-cover"
+                              />
+                            ) : (
+                              <span className="text-muted-foreground text-xs font-medium">
+                                {team.sport?.slice(0, 3).toUpperCase() ?? "LOGO"}
+                              </span>
+                            )}
+                          </div>
+                          <div className="min-w-0">
+                            <p className="truncate font-medium">{team.name}</p>
+                            <p className="text-muted-foreground truncate text-xs">
+                              {team.location ?? team.slug}
+                            </p>
+                          </div>
+                        </div>
+                      </TableCell>
+                    <TableCell className="text-muted-foreground">
+                      <span className="block truncate">{formatSport(team.sport)}</span>
+                    </TableCell>
                     <TableCell>
                       <div className="flex items-center gap-3">
                         <Avatar size="lg">
                           <AvatarImage
-                            src={user.imageUrl ?? undefined}
-                            alt={getDisplayName(user)}
+                            src={team.owner.imageUrl ?? undefined}
+                            alt={getOwnerDisplayName(team.owner)}
                           />
-                          <AvatarFallback>{getInitials(user)}</AvatarFallback>
+                          <AvatarFallback>{getOwnerInitials(team.owner)}</AvatarFallback>
                         </Avatar>
                         <div className="min-w-0">
                           <p className="truncate font-medium">
-                            {getDisplayName(user)}
+                            {getOwnerDisplayName(team.owner)}
+                          </p>
+                          <p className="text-muted-foreground truncate text-xs">
+                            {team.owner.email ?? team.owner.id}
                           </p>
                         </div>
                       </div>
                     </TableCell>
-                    <TableCell className="text-muted-foreground">
-                      <span className="block truncate">
-                        {user.email ?? "No email"}
-                      </span>
-                    </TableCell>
-                    <TableCell className="text-muted-foreground font-mono text-xs">
-                      <span className="block truncate">{user.id}</span>
-                    </TableCell>
                     <TableCell>
                       <Badge
-                        variant={user.locked ? "destructive" : "outline"}
-                        className={
-                          user.locked
-                            ? undefined
-                            : "border-white/10 bg-white/5 text-muted-foreground"
-                        }
+                        variant="outline"
+                        className="border-white/10 bg-white/5 text-muted-foreground"
                       >
-                        {user.locked ? "Locked" : "Unlocked"}
+                        {team.privacy}
                       </Badge>
                     </TableCell>
+                    <TableCell className="text-muted-foreground font-mono text-xs">
+                      <span className="block truncate">{team.id}</span>
+                    </TableCell>
                     <TableCell className="text-right">
-                      <UserRowActions
-                        userId={user.id}
-                        displayName={getDisplayName(user)}
-                        isLocked={user.locked}
-                        onDeleted={(deletedUserId) => {
-                          setUsers((currentUsers) =>
-                            currentUsers.filter((currentUser) => currentUser.id !== deletedUserId),
+                      <TeamRowActions
+                        teamId={team.id}
+                        teamName={team.name}
+                        onDeleted={(deletedTeamId) => {
+                          setTeams((currentTeams) =>
+                            currentTeams.filter((currentTeam) => currentTeam.id !== deletedTeamId),
                           );
                           setTotal((currentTotal) => Math.max(0, currentTotal - 1));
-
-                          if (users.length === 1 && page > 1) {
-                            setPage((current) => current - 1);
-                          } else {
-                            void loadUsers();
-                          }
-                        }}
-                        onChanged={() => {
-                          void loadUsers();
                         }}
                       />
                     </TableCell>
