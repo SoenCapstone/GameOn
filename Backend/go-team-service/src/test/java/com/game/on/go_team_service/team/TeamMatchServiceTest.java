@@ -16,6 +16,7 @@ import com.game.on.go_team_service.team.repository.TeamMatchScoreRepository;
 import com.game.on.go_team_service.team.repository.TeamMemberRepository;
 import com.game.on.go_team_service.team.repository.TeamRepository;
 import com.game.on.go_team_service.team.service.TeamMatchService;
+import com.game.on.go_team_service.team.service.VenueService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -28,6 +29,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
@@ -42,6 +44,7 @@ class TeamMatchServiceTest {
     @Mock TeamMatchInviteRepository teamMatchInviteRepository;
     @Mock TeamMatchScoreRepository teamMatchScoreRepository;
     @Mock CurrentUserProvider userProvider;
+    @Mock VenueService venueService; // ADDED FOR STORY #352 / #359
 
     @InjectMocks
     TeamMatchService teamMatchService;
@@ -61,15 +64,26 @@ class TeamMatchServiceTest {
         homeTeam.setOwnerUserId(ownerUserId);
         homeTeam.setSport("soccer");
         homeTeam.setAllowedRegions(List.of("Montreal", "Laval"));
+        homeTeam.setTotalPoints(0);
+        homeTeam.setTotalMatches(0);
+        homeTeam.setWinStreak(0);
+        homeTeam.setMinutesPlayed(0);
 
         awayTeam = new Team();
         awayTeam.setId(awayTeamId);
         awayTeam.setOwnerUserId(otherUserId);
         awayTeam.setSport("soccer");
         awayTeam.setAllowedRegions(List.of("Montreal"));
+        awayTeam.setTotalPoints(0);
+        awayTeam.setTotalMatches(0);
+        awayTeam.setWinStreak(0);
+        awayTeam.setMinutesPlayed(0);
 
         lenient().when(teamRepository.findByIdAndDeletedAtIsNull(homeTeamId)).thenReturn(Optional.of(homeTeam));
         lenient().when(teamRepository.findByIdAndDeletedAtIsNull(awayTeamId)).thenReturn(Optional.of(awayTeam));
+        lenient().when(teamRepository.save(any(Team.class))).thenAnswer(invocation -> invocation.getArgument(0));
+        lenient().when(teamMatchRepository.save(any(TeamMatch.class))).thenAnswer(invocation -> invocation.getArgument(0));
+        lenient().when(teamMatchScoreRepository.save(any(TeamMatchScore.class))).thenAnswer(invocation -> invocation.getArgument(0));
     }
 
     @Test
@@ -115,23 +129,96 @@ class TeamMatchServiceTest {
     }
 
     @Test
-    void submitScore_whenNoReferee_onlyCreatorAllowed() {
-        String creator = "creator_1";
-        when(userProvider.clerkUserId()).thenReturn("other_user");
+    void submitScore_whenNoReferee_onlyTeamOwnersAllowed() {
+        when(userProvider.clerkUserId()).thenReturn("random_user");
 
         TeamMatch match = new TeamMatch();
         match.setId(UUID.randomUUID());
         match.setMatchType(TeamMatchType.TEAM_MATCH);
         match.setStatus(TeamMatchStatus.CONFIRMED);
-        match.setCreatedByUserId(creator);
-        match.setRefereeUserId(null);
+        match.setCreatedByUserId("creator_1");
+        match.setRequiresReferee(false);
+        match.setHomeTeamId(homeTeamId);
+        match.setAwayTeamId(awayTeamId);
+        match.setStartTime(OffsetDateTime.now().minusHours(2));
 
         when(teamMatchRepository.findById(match.getId())).thenReturn(Optional.of(match));
         when(teamMatchScoreRepository.findByMatch_Id(match.getId())).thenReturn(Optional.empty());
 
-        TeamMatchScoreRequest request = new TeamMatchScoreRequest(1, 2);
+        TeamMatchScoreRequest request = new TeamMatchScoreRequest(
+                1,
+                2,
+                OffsetDateTime.now().minusHours(1)
+        );
 
         assertThrows(ForbiddenException.class, () -> teamMatchService.submitScore(match.getId(), request));
         verify(teamMatchScoreRepository, never()).save(any(TeamMatchScore.class));
+    }
+
+    @Test
+    void submitScore_whenRequiresReferee_onlyAssignedRefereeAllowed() {
+        when(userProvider.clerkUserId()).thenReturn("not_the_referee");
+
+        TeamMatch match = new TeamMatch();
+        match.setId(UUID.randomUUID());
+        match.setMatchType(TeamMatchType.TEAM_MATCH);
+        match.setStatus(TeamMatchStatus.CONFIRMED);
+        match.setRequiresReferee(true);
+        match.setRefereeUserId("ref_123");
+        match.setHomeTeamId(homeTeamId);
+        match.setAwayTeamId(awayTeamId);
+        match.setStartTime(OffsetDateTime.now().minusHours(2));
+
+        when(teamMatchRepository.findById(match.getId())).thenReturn(Optional.of(match));
+        when(teamMatchScoreRepository.findByMatch_Id(match.getId())).thenReturn(Optional.empty());
+
+        TeamMatchScoreRequest request = new TeamMatchScoreRequest(
+                2,
+                1,
+                OffsetDateTime.now().minusHours(1)
+        );
+
+        assertThrows(ForbiddenException.class, () -> teamMatchService.submitScore(match.getId(), request));
+        verify(teamMatchScoreRepository, never()).save(any(TeamMatchScore.class));
+    }
+
+    @Test
+    void submitScore_whenValid_updatesStatsAndCompletesMatch() {
+        when(userProvider.clerkUserId()).thenReturn(ownerUserId);
+
+        OffsetDateTime start = OffsetDateTime.now().minusHours(2);
+        OffsetDateTime end = OffsetDateTime.now().minusMinutes(30);
+
+        TeamMatch match = new TeamMatch();
+        match.setId(UUID.randomUUID());
+        match.setMatchType(TeamMatchType.TEAM_MATCH);
+        match.setStatus(TeamMatchStatus.CONFIRMED);
+        match.setRequiresReferee(false);
+        match.setHomeTeamId(homeTeamId);
+        match.setAwayTeamId(awayTeamId);
+        match.setStartTime(start);
+        match.setEndTime(start.plusHours(1));
+
+        when(teamMatchRepository.findById(match.getId())).thenReturn(Optional.of(match));
+        when(teamMatchScoreRepository.findByMatch_Id(match.getId())).thenReturn(Optional.empty());
+
+        TeamMatchScoreRequest request = new TeamMatchScoreRequest(3, 1, end);
+
+        teamMatchService.submitScore(match.getId(), request);
+
+        assertEquals(TeamMatchStatus.COMPLETED, match.getStatus());
+        assertEquals(end, match.getEndTime());
+
+        assertEquals(3, homeTeam.getTotalPoints());
+        assertEquals(1, homeTeam.getTotalMatches());
+        assertEquals(1, homeTeam.getWinStreak());
+
+        assertEquals(0, awayTeam.getTotalPoints());
+        assertEquals(1, awayTeam.getTotalMatches());
+        assertEquals(0, awayTeam.getWinStreak());
+
+        verify(teamMatchScoreRepository, times(1)).save(any(TeamMatchScore.class));
+        verify(teamRepository, atLeast(2)).save(any(Team.class));
+        verify(teamMatchRepository, times(1)).save(match);
     }
 }
