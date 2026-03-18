@@ -30,6 +30,10 @@ export function getMatchSection(
   const now = new Date();
   const start = new Date(startTime);
 
+  if (status === "COMPLETED") {
+    return "past";
+  }
+
   if (isCancelledMatchStatus(status)) {
     return "past";
   }
@@ -125,6 +129,10 @@ export type MatchCardItem = {
   id: string;
   homeTeamId: string;
   awayTeamId: string;
+  requiresReferee: boolean;
+  refereeUserId?: string | null;
+  homeScore?: number | null;
+  awayScore?: number | null;
   homeName: string;
   awayName: string;
   homeLogoUrl?: string | null;
@@ -146,20 +154,26 @@ export function buildMatchCards(
   return matches.map((match) => {
     const home = teamMap?.[match.homeTeamId];
     const away = teamMap?.[match.awayTeamId];
-    const section = getMatchSection(match.startTime, match.status);
+    const hasScore = match.homeScore != null && match.awayScore != null;
+    const resolvedStatus = hasScore ? "COMPLETED" : match.status;
+    const section = getMatchSection(match.startTime, resolvedStatus);
     const resolvedContextLabel =
       typeof contextLabel === "function" ? contextLabel(match) : contextLabel;
     return {
       id: match.id,
       homeTeamId: match.homeTeamId,
       awayTeamId: match.awayTeamId,
+      requiresReferee: match.requiresReferee,
+      refereeUserId: match.refereeUserId,
+      homeScore: match.homeScore,
+      awayScore: match.awayScore,
       homeName: home?.name ?? "Home Team",
       awayName: away?.name ?? "Away Team",
       homeLogoUrl: home?.logoUrl,
       awayLogoUrl: away?.logoUrl,
       sport: match.sport,
       contextLabel: resolvedContextLabel,
-      status: match.status,
+      status: resolvedStatus,
       startTime: match.startTime,
       section,
       isPast: section === "past",
