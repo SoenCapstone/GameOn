@@ -122,11 +122,14 @@ export function useTeamMatches(teamId: string) {
           "team-matches",
           teamId,
         ]) ?? [];
-      const previousById = new Map(previousMatches.map((match) => [match.id, match]));
+      const previousById = new Map(
+        previousMatches.map((match) => [match.id, match]),
+      );
 
       return Array.from(dedupedById.values()).map((match) => {
         const previousMatch = previousById.get(match.id);
-        const fetchedHasScore = match.homeScore != null && match.awayScore != null;
+        const fetchedHasScore =
+          match.homeScore != null && match.awayScore != null;
         const previousHasScore =
           previousMatch?.homeScore != null && previousMatch?.awayScore != null;
 

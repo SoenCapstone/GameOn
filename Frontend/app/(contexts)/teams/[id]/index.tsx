@@ -155,9 +155,7 @@ function TeamContent() {
         !isLeagueMatch &&
           userId &&
           isConfirmed &&
-          (match.requiresReferee
-            ? match.refereeUserId === userId
-            : isOwner),
+          (match.requiresReferee ? match.refereeUserId === userId : isOwner),
       );
 
       return {
