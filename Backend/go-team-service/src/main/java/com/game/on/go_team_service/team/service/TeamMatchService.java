@@ -29,6 +29,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
+import java.time.Duration;
 import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.UUID;
@@ -214,31 +215,52 @@ public class TeamMatchService {
 
     @Transactional
     public void submitScore(UUID matchId, TeamMatchScoreRequest request) {
+
         String userId = userProvider.clerkUserId();
 
         var match = teamMatchRepository.findById(matchId)
                 .orElseThrow(() -> new NotFoundException("Match not found"));
 
+        if (match.getStatus() != TeamMatchStatus.CONFIRMED) {
+            throw new BadRequestException("Only confirmed matches can have a final score submitted");
+        }
+
         teamMatchScoreRepository.findByMatch_Id(matchId).ifPresent(score -> {
             throw new ConflictException("Final score already submitted");
         });
 
-        if (StringUtils.hasText(match.getRefereeUserId())) {
-            if (!match.getRefereeUserId().equals(userId)) {
-                throw new ForbiddenException("Only the referee can submit the score");
-            }
-        } else if (!match.getCreatedByUserId().equals(userId)) {
-            throw new ForbiddenException("Only the match creator can submit the score when no referee is assigned");
-        }
+        Team homeTeam = requireActiveTeam(match.getHomeTeamId());
+        Team awayTeam = requireActiveTeam(match.getAwayTeamId());
+
+        validateScoreSubmissionPermissions(match, homeTeam, awayTeam, userId);
+        validateSubmittedEndTime(match.getStartTime(), request.endTime());
 
         TeamMatchScore score = TeamMatchScore.builder()
                 .match(match)
                 .homeScore(request.homeScore())
                 .awayScore(request.awayScore())
+                .officialEndTime(request.endTime())
                 .submittedByUserId(userId)
                 .build();
         teamMatchScoreRepository.save(score);
+
+        match.setEndTime(request.endTime());
+        match.setStatus(TeamMatchStatus.COMPLETED);
+        teamMatchRepository.save(match);
+
+        updateTeamStatistics(
+                homeTeam,
+                awayTeam,
+                request.homeScore(),
+                request.awayScore(),
+                match.getStartTime(),
+                request.endTime()
+        );
+
+        log.info("team_match_score_submitted matchId={} submittedBy={} homeScore={} awayScore={}",
+                matchId, userId, request.homeScore(), request.awayScore());
     }
+
 
     @Transactional
     public void assignReferee(UUID matchId) {
@@ -429,5 +451,81 @@ public class TeamMatchService {
             return false;
         }
         return values.stream().anyMatch(value -> value != null && value.equalsIgnoreCase(target));
+    }
+
+    private void validateScoreSubmissionPermissions(TeamMatch match, Team homeTeam, Team awayTeam, String userId) {
+        if (match.isRequiresReferee()) {
+            if (!StringUtils.hasText(match.getRefereeUserId())) {
+                throw new BadRequestException("This match requires a referee before a score can be submitted");
+            }
+
+            if (!match.getRefereeUserId().equals(userId)) {
+                throw new ForbiddenException("Only the assigned referee can submit the score");
+            }
+            return;
+        }
+
+        boolean isHomeOwner = homeTeam.getOwnerUserId().equals(userId);
+        boolean isAwayOwner = awayTeam.getOwnerUserId().equals(userId);
+
+        if (!isHomeOwner && !isAwayOwner) {
+            throw new ForbiddenException("Only one of the team owners can submit the score when no referee is required");
+        }
+    }
+
+    private void validateSubmittedEndTime(OffsetDateTime startTime, OffsetDateTime submittedEndTime) {
+        if (submittedEndTime == null) {
+            throw new BadRequestException("endTime is required");
+        }
+        if (startTime == null) {
+            throw new BadRequestException("Match start time is missing");
+        }
+        if (!submittedEndTime.isAfter(startTime)) {
+            throw new BadRequestException("Submitted endTime must be after the match startTime");
+        }
+    }
+
+    private void updateTeamStatistics(
+            Team homeTeam,
+            Team awayTeam,
+            int homeScore,
+            int awayScore,
+            OffsetDateTime startTime,
+            OffsetDateTime endTime
+    ) {
+        int playedMinutes = (int) Math.max(0, Duration.between(startTime, endTime).toMinutes());
+
+        incrementCommonStats(homeTeam, playedMinutes);
+        incrementCommonStats(awayTeam, playedMinutes);
+
+        if (homeScore > awayScore) {
+            homeTeam.setTotalPoints(safeInt(homeTeam.getTotalPoints()) + 3);
+            homeTeam.setWinStreak(safeInt(homeTeam.getWinStreak()) + 1);
+
+            awayTeam.setWinStreak(0);
+        } else if (awayScore > homeScore) {
+            awayTeam.setTotalPoints(safeInt(awayTeam.getTotalPoints()) + 3);
+            awayTeam.setWinStreak(safeInt(awayTeam.getWinStreak()) + 1);
+
+            homeTeam.setWinStreak(0);
+        } else {
+            homeTeam.setTotalPoints(safeInt(homeTeam.getTotalPoints()) + 1);
+            awayTeam.setTotalPoints(safeInt(awayTeam.getTotalPoints()) + 1);
+
+            homeTeam.setWinStreak(0);
+            awayTeam.setWinStreak(0);
+        }
+
+        teamRepository.save(homeTeam);
+        teamRepository.save(awayTeam);
+    }
+
+    private void incrementCommonStats(Team team, int playedMinutes) {
+        team.setTotalMatches(safeInt(team.getTotalMatches()) + 1);
+        team.setMinutesPlayed(safeInt(team.getMinutesPlayed()) + playedMinutes);
+    }
+
+    private int safeInt(Integer value) {
+        return value == null ? 0 : value;
     }
 }
