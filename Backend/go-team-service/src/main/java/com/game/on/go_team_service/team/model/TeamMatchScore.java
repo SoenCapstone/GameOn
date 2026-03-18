@@ -48,6 +48,9 @@ public class TeamMatchScore {
     @Column(name = "away_score", nullable = false)
     private int awayScore;
 
+    @Column(name = "official_end_time", nullable = false)
+    private OffsetDateTime officialEndTime;
+
     @Column(name = "submitted_by_user_id", nullable = false, length = 255)
     private String submittedByUserId;
 

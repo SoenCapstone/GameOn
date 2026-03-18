@@ -31,6 +31,10 @@ public class TeamMapper {
                 .location(trimToNull(request.location()))
                 .allowedRegions(normalizeRegions(request.allowedRegions()))
                 .privacy(request.privacy() == null ? TeamPrivacy.PUBLIC : request.privacy())
+                .totalPoints(0)
+                .totalMatches(0)
+                .winStreak(0)
+                .minutesPlayed(0)
                 .build();
     }
 
@@ -69,6 +73,10 @@ public class TeamMapper {
                 new ArrayList<>(team.getAllowedRegions()),
                 team.getMaxRoster(),
                 team.getPrivacy(),
+                team.getTotalPoints(),
+                team.getTotalMatches(),
+                team.getWinStreak(),
+                team.getMinutesPlayed(),
                 team.isArchived(),
                 team.getCreatedAt(),
                 team.getUpdatedAt()
