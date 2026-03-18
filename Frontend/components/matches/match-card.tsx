@@ -124,7 +124,9 @@ export function MatchCard({
         },
         (buttonIndex) => {
           const selectedAction =
-            buttonIndex != null ? actionByIndex.get(buttonIndex) : undefined;
+            typeof buttonIndex === "number"
+              ? actionByIndex.get(buttonIndex)
+              : undefined;
           if (selectedAction === "cancel-match") {
             showCancelConfirm();
             return;

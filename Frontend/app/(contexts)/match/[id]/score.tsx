@@ -156,9 +156,7 @@ export default function MatchScoreScreen() {
         );
       }
 
-      await Promise.all([
-        queryClient.invalidateQueries({ queryKey: ["user-updates"] }),
-      ]);
+      await queryClient.invalidateQueries({ queryKey: ["user-updates"] });
 
       router.dismissTo({
         pathname: contextId
