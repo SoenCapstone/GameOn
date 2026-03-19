@@ -1,19 +1,29 @@
 import React from "react";
 import { StyleSheet, Text, View } from "react-native";
+import { Image } from "expo-image";
 import { getInitials } from "@/components/teams/member-row-utils";
 
 type MemberRowProps = {
   readonly name: string;
   readonly email?: string | null;
+  readonly imageUrl?: string | null;
   readonly right?: React.ReactNode;
 };
 
-export function MemberRow({ name, email, right }: Readonly<MemberRowProps>) {
+export function MemberRow({ name, email, imageUrl, right }: Readonly<MemberRowProps>) {
   return (
     <View style={styles.memberRow}>
-      <View style={styles.avatar}>
-        <Text style={styles.avatarText}>{getInitials(name, email)}</Text>
-      </View>
+      {imageUrl ? (
+        <Image
+          source={{ uri: imageUrl }}
+          style={styles.avatarImage}
+          contentFit="cover"
+        />
+      ) : (
+        <View style={styles.avatar}>
+          <Text style={styles.avatarText}>{getInitials(name, email)}</Text>
+        </View>
+      )}
 
       <View style={styles.memberInfo}>
         <Text style={styles.memberName}>{name}</Text>
@@ -38,6 +48,11 @@ const styles = StyleSheet.create({
     backgroundColor: "rgba(255,255,255,0.18)",
     alignItems: "center",
     justifyContent: "center",
+  },
+  avatarImage: {
+    width: 46,
+    height: 46,
+    borderRadius: 23,
   },
   avatarText: {
     color: "#fff",

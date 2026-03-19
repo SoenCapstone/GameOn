@@ -233,6 +233,7 @@ public class TeamService {
                             user.email(),
                             user.firstname(),
                             user.lastname(),
+                            user.imageUrl(),
                             member.getRole(),
                             member.getStatus(),
                             member.getJoinedAt()
