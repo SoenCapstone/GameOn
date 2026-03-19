@@ -69,7 +69,6 @@ const formatRole = (role?: string | null) => {
   return role[0] + role.slice(1).toLowerCase();
 };
 
-// ── Extracted: Members content (fixes S3358 nested ternary) ───────────
 
 function MembersContent({
   isLoading,
@@ -128,8 +127,6 @@ function MembersContent({
   );
 }
 
-// ── Extracted: Single member card (fixes S2004 deep nesting) ──────────
-
 function MemberCard({
   member,
   isAdmin,
@@ -152,31 +149,31 @@ function MemberCard({
   const canRemove = isAdmin && memberRole !== "OWNER" && !removePending;
   const canEditRole = isAdmin && memberRole !== "OWNER";
 
+  const handleAlertOption = (label: string) => {
+    if (label === "Cancel") return;
+    const selectedRole = ASSIGNABLE_ROLES.find(
+      (r) => formatRole(r) === label,
+    );
+    if (selectedRole) {
+      onRoleChange(
+        member as { id: string; role?: TeamRoleType | null; userId?: string },
+        selectedRole,
+      );
+    }
+  };
+
   const handleRolePicker = () => {
     const otherRoles = ASSIGNABLE_ROLES.filter((r) => r !== memberRole);
     const options = otherRoles.map(formatRole);
     options.push("Cancel");
 
-    Alert.alert(
-      "Change Role",
-      `Current role: ${roleLabel}`,
-      options.map((label) => ({
-        text: label,
-        style: label === "Cancel" ? ("cancel" as const) : ("default" as const),
-        onPress: () => {
-          if (label === "Cancel") return;
-          const selectedRole = ASSIGNABLE_ROLES.find(
-            (r) => formatRole(r) === label,
-          );
-          if (selectedRole) {
-            onRoleChange(
-              member as { id: string; role?: TeamRoleType | null; userId?: string },
-              selectedRole,
-            );
-          }
-        },
-      })),
-    );
+    const buttons = options.map((label) => ({
+      text: label,
+      style: label === "Cancel" ? ("cancel" as const) : ("default" as const),
+      onPress: () => handleAlertOption(label),
+    }));
+
+    Alert.alert("Change Role", `Current role: ${roleLabel}`, buttons);
   };
 
   return (
