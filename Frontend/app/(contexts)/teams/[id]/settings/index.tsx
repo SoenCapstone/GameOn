@@ -49,7 +49,8 @@ function TeamSettingsContent() {
   const navigation = useNavigation();
   const router = useRouter();
   const api = useAxiosWithClerk();
-  const { id, team, isLoading, isOwner } = useTeamDetailContext();
+  const { id, team, isLoading, isOwner, role } = useTeamDetailContext();
+  const canAccessSettings = isOwner || role === "MANAGER";
 
   const [isPublic, setIsPublic] = useState(false);
 
@@ -160,7 +161,7 @@ function TeamSettingsContent() {
     );
   }
 
-  if (!isOwner && team) {
+  if (!canAccessSettings && team) {
     return (
       <ContentArea backgroundProps={{ preset: "red" }}>
         <View style={settingsStyles.container}>
@@ -219,16 +220,18 @@ function TeamSettingsContent() {
           )}
         </Form.Section>
 
-        <Form.Section>
-          <Form.Button
-            button={
-              deleteTeamMutation.isPending ? "Deleting..." : "Delete Team"
-            }
-            color={AccentColors.red}
-            onPress={handleDeleteTeam}
-            disabled={deleteTeamMutation.isPending}
-          />
-        </Form.Section>
+        {isOwner && (
+          <Form.Section>
+            <Form.Button
+              button={
+                deleteTeamMutation.isPending ? "Deleting..." : "Delete Team"
+              }
+              color={AccentColors.red}
+              onPress={handleDeleteTeam}
+              disabled={deleteTeamMutation.isPending}
+            />
+          </Form.Section>
+        )}
       </Form>
     </ContentArea>
   );
