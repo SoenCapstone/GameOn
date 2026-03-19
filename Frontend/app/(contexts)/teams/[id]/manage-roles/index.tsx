@@ -9,6 +9,7 @@ import {
 } from "react-native";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useNavigation } from "@react-navigation/native";
+import { useAuth } from "@clerk/clerk-expo";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Ionicons } from "@expo/vector-icons";
 import { ContentArea } from "@/components/ui/content-area";
@@ -61,21 +62,43 @@ const AVAILABLE_ROLES: {
   },
 ];
 
-/** Roles an admin (OWNER/MANAGER) is allowed to assign to other members. */
-const ASSIGNABLE_ROLES: TeamRoleType[] = ["MANAGER", "PLAYER", "COACH"];
-
 const formatRole = (role?: string | null) => {
   if (!role) return "Player";
   return role[0] + role.slice(1).toLowerCase();
 };
 
-// ── Extracted: Members content (fixes S3358 nested ternary) ───────────
+/**
+ * Returns the role options a caller can assign to a given target member.
+ *  - Owners can assign MANAGER, PLAYER, COACH to any non-owner.
+ *  - Managers can change PLAYER and COACH roles between PLAYER and COACH (not MANAGER).
+ *  - Returns empty array if no changes are allowed.
+ */
+function getAssignableRoles(
+  callerRole: string | undefined,
+  targetRole: TeamRoleType | undefined,
+): TeamRoleType[] {
+  if (!callerRole || targetRole === "OWNER") return [];
+
+  if (callerRole === "OWNER") {
+    return ["MANAGER", "PLAYER", "COACH"];
+  }
+
+  if (callerRole === "MANAGER" && (targetRole === "PLAYER" || targetRole === "COACH")) {
+    return ["PLAYER", "COACH"];
+  }
+
+  return [];
+}
+
+// ── Extracted: Members content ────────────────────────────────────────
 
 function MembersContent({
   isLoading,
   isError,
   members,
   isAdmin,
+  callerRole,
+  currentUserId,
   removePending,
   onRetry,
   onRemove,
@@ -85,6 +108,8 @@ function MembersContent({
   isError: boolean;
   members: TeamMember[];
   isAdmin: boolean;
+  callerRole: string | undefined;
+  currentUserId: string | null;
   removePending: boolean;
   onRetry: () => void;
   onRemove: (memberId: string, name: string) => void;
@@ -119,6 +144,8 @@ function MembersContent({
           key={member.id}
           member={member}
           isAdmin={isAdmin}
+          callerRole={callerRole}
+          currentUserId={currentUserId}
           removePending={removePending}
           onRemove={onRemove}
           onRoleChange={onRoleChange}
@@ -128,17 +155,21 @@ function MembersContent({
   );
 }
 
-// ── Extracted: Single member card (fixes S2004 deep nesting) ──────────
+// ── Extracted: Single member card ─────────────────────────────────────
 
 function MemberCard({
   member,
   isAdmin,
+  callerRole,
+  currentUserId,
   removePending,
   onRemove,
   onRoleChange,
 }: Readonly<{
   member: TeamMember;
   isAdmin: boolean;
+  callerRole: string | undefined;
+  currentUserId: string | null;
   removePending: boolean;
   onRemove: (memberId: string, name: string) => void;
   onRoleChange: (
@@ -149,12 +180,30 @@ function MemberCard({
   const name = formatFullName(member.firstname, member.lastname);
   const roleLabel = formatRole(member.role);
   const memberRole = member.role as TeamRoleType | undefined;
-  const canRemove = isAdmin && memberRole !== "OWNER" && !removePending;
-  const canEditRole = isAdmin && memberRole !== "OWNER";
+  const memberId = member.userId ?? member.id;
+  const isSelf = memberId === currentUserId;
+
+  // Remove rules:
+  // - Cannot remove the owner
+  // - Cannot remove yourself
+  // - Managers cannot remove other managers
+  const canRemove =
+    isAdmin &&
+    !isSelf &&
+    memberRole !== "OWNER" &&
+    !(callerRole === "MANAGER" && memberRole === "MANAGER") &&
+    !removePending;
+
+  // Role edit rules: delegate to getAssignableRoles
+  // - Cannot edit your own role
+  const assignableRoles = isSelf
+    ? []
+    : getAssignableRoles(callerRole, memberRole);
+  const canEditRole = assignableRoles.length > 1;
 
   const handleAlertOption = (label: string) => {
     if (label === "Cancel") return;
-    const selectedRole = ASSIGNABLE_ROLES.find(
+    const selectedRole = assignableRoles.find(
       (r) => formatRole(r) === label,
     );
     if (selectedRole) {
@@ -166,8 +215,9 @@ function MemberCard({
   };
 
   const handleRolePicker = () => {
-    const otherRoles = ASSIGNABLE_ROLES.filter((r) => r !== memberRole);
-    const options = otherRoles.map(formatRole);
+    const options = assignableRoles
+      .filter((r) => r !== memberRole)
+      .map(formatRole);
     options.push("Cancel");
 
     const buttons = options.map((label) => ({
@@ -203,7 +253,7 @@ function MemberCard({
             {canRemove && (
               <Pressable
                 style={styles.removeButton}
-                onPress={() => onRemove(member.userId ?? member.id, name)}
+                onPress={() => onRemove(memberId, name)}
               >
                 <Text style={styles.removeButtonText}>Remove</Text>
               </Pressable>
@@ -225,9 +275,11 @@ export default function ManageRolesScreen() {
   const navigation = useNavigation();
   const router = useRouter();
   const queryClient = useQueryClient();
+  const { userId } = useAuth();
 
   const { isOwner, role: myRole } = useTeamDetail(teamId);
   const isAdmin = isOwner || myRole === "MANAGER";
+  const canInvite = isAdmin || myRole === "COACH";
 
   const {
     data: members = [],
@@ -258,14 +310,14 @@ export default function ManageRolesScreen() {
 
   const updateRoleMutation = useMutation({
     mutationFn: async ({
-      userId,
+      targetUserId,
       role,
     }: {
-      userId: string;
+      targetUserId: string;
       role: TeamRoleType;
     }) => {
       await api.patch(
-        GO_TEAM_SERVICE_ROUTES.UPDATE_MEMBER_ROLE(teamId, userId),
+        GO_TEAM_SERVICE_ROUTES.UPDATE_MEMBER_ROLE(teamId, targetUserId),
         { role },
       );
     },
@@ -286,7 +338,7 @@ export default function ManageRolesScreen() {
         left={<Button type="back" />}
         center={<PageTitle title="Manage Roles" />}
         right={
-          isOwner && teamId ? (
+          canInvite && teamId ? (
             <Button
               type="custom"
               icon="plus"
@@ -300,7 +352,7 @@ export default function ManageRolesScreen() {
     navigation.setOptions({
       headerTitle: renderHeader,
     });
-  }, [navigation, isOwner, router, teamId]);
+  }, [navigation, canInvite, router, teamId]);
 
   const handleRemoveMember = (memberId: string, name: string) => {
     Alert.alert("Remove from Team", `Remove ${name} from this team?`, [
@@ -333,7 +385,7 @@ export default function ManageRolesScreen() {
         {
           text: "Confirm",
           onPress: () =>
-            updateRoleMutation.mutate({ userId: memberId, role: newRole }),
+            updateRoleMutation.mutate({ targetUserId: memberId, role: newRole }),
         },
       ],
     );
@@ -398,6 +450,8 @@ export default function ManageRolesScreen() {
             isError={membersError}
             members={members}
             isAdmin={isAdmin}
+            callerRole={myRole}
+            currentUserId={userId ?? null}
             removePending={removeMemberMutation.isPending}
             onRetry={() => refetchMembers()}
             onRemove={handleRemoveMember}

@@ -185,7 +185,7 @@ function TeamContent() {
     past: pastMatches,
   } = useMemo(() => splitMatchSections(matchItems), [matchItems]);
 
-  useTeamHeader({ title, id, isMember, onFollow: handleFollow });
+  useTeamHeader({ title, id, isMember, role, onFollow: handleFollow });
 
   const handleMatchesRefresh = useMemo(
     () => async () => {
