@@ -18,12 +18,14 @@ import {
 import {
   useCreateTeamMatch,
   useReferees,
+  useValidateTeamMatchSchedule,
   useTeamVenues,
 } from "@/hooks/use-matches";
 import { buildStartEndIso, isValidTimeRange } from "@/features/matches/utils";
 import {
   buildVenueOptionMaps,
   buildVenueOptions,
+  getBlockedScheduleValidationMessage,
   resolveSelectedVenueLabel,
 } from "@/features/matches/schedule-shared";
 import { toast } from "@/components/sign-up/utils";
@@ -156,6 +158,7 @@ export default function ScheduleTeamMatchScreen() {
   });
 
   const createMutation = useCreateTeamMatch(teamId);
+  const validateMutation = useValidateTeamMatchSchedule(teamId);
 
   const teamNameToId = useMemo(
     () =>
@@ -199,6 +202,10 @@ export default function ScheduleTeamMatchScreen() {
       Alert.alert("Match schedule failed", "Away team is required");
       return;
     }
+    if (awayTeamId === teamId) {
+      Alert.alert("Match schedule failed", "Home and away teams must be different");
+      return;
+    }
     if (!venueId) {
       Alert.alert("Match schedule failed", "Venue is required");
       return;
@@ -222,6 +229,22 @@ export default function ScheduleTeamMatchScreen() {
     );
 
     try {
+      const validation = await validateMutation.mutateAsync({
+        homeTeamId: teamId,
+        awayTeamId,
+        sport: team?.sport ?? undefined,
+        startTime,
+        endTime,
+        venueId,
+        requiresReferee,
+      });
+
+      const validationMessage = getBlockedScheduleValidationMessage(validation);
+      if (validationMessage) {
+        Alert.alert("Match schedule failed", validationMessage);
+        return;
+      }
+
       const result = await createMutation.mutateAsync({
         homeTeamId: teamId,
         awayTeamId,
@@ -262,6 +285,7 @@ export default function ScheduleTeamMatchScreen() {
     requiresReferee,
     refereeUserId,
     createMutation,
+    validateMutation,
     teamId,
     team?.sport,
     queryClient,
@@ -271,7 +295,7 @@ export default function ScheduleTeamMatchScreen() {
   useScheduleHeader({
     navigation,
     onSubmit: handleSubmit,
-    isPending: createMutation.isPending,
+    isPending: createMutation.isPending || validateMutation.isPending,
   });
 
   return (
@@ -295,6 +319,7 @@ export default function ScheduleTeamMatchScreen() {
             onValueChange={(value) => setAwayTeamId(teamNameToId[value])}
             disabled={
               createMutation.isPending ||
+              validateMutation.isPending ||
               teamSearch.isLoading ||
               awayTeamOptions.length === 0
             }
@@ -357,11 +382,12 @@ export default function ScheduleTeamMatchScreen() {
               onValueChange={(value) =>
                 setRefereeUserId(refereeLabelToId[value] ?? value)
               }
-              disabled={
-                createMutation.isPending ||
-                refereesQuery.isLoading ||
-                refereeOptions.length === 0
-              }
+            disabled={
+              createMutation.isPending ||
+              validateMutation.isPending ||
+              refereesQuery.isLoading ||
+              refereeOptions.length === 0
+            }
             />
           ) : null}
         </Form.Section>
