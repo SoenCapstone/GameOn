@@ -10,6 +10,7 @@ import com.game.on.go_league_service.league.dto.AssignRefereeRequest;
 import com.game.on.go_league_service.league.dto.LeagueMatchCancelRequest;
 import com.game.on.go_league_service.league.dto.LeagueMatchCreateRequest;
 import com.game.on.go_league_service.league.dto.LeagueMatchResponse;
+import com.game.on.go_league_service.league.dto.LeagueMatchScheduleValidationResponse;
 import com.game.on.go_league_service.league.dto.LeagueMatchScoreRequest;
 import com.game.on.go_league_service.league.model.League;
 import com.game.on.go_league_service.league.model.LeagueMatch;
@@ -36,6 +37,9 @@ import java.util.UUID;
 @Service
 @RequiredArgsConstructor
 public class LeagueMatchService {
+    private static final String LEAGUE_TEAM_SAME_DAY_CONFLICT_CODE = "LEAGUE_TEAM_SAME_DAY_CONFLICT";
+    private static final String LEAGUE_TEAM_SAME_DAY_CONFLICT_MESSAGE =
+            "One of these teams already has a confirmed match on this day. League teams are limited to one match per day.";
 
     private final LeagueRepository leagueRepository;
     private final LeagueTeamRepository leagueTeamRepository;
@@ -45,6 +49,29 @@ public class LeagueMatchService {
     private final VenueService venueService;
     private final TeamClient teamClient;
     private final CurrentUserProvider userProvider;
+
+    @Transactional(readOnly = true)
+    public LeagueMatchScheduleValidationResponse validateMatch(UUID leagueId, LeagueMatchCreateRequest request) {
+        String userId = userProvider.clerkUserId();
+        League league = requireActiveLeague(leagueId);
+        ensureLeagueOwner(league, userId);
+
+        if (request.homeTeamId().equals(request.awayTeamId())) {
+            throw new BadRequestException("homeTeamId and awayTeamId must be different");
+        }
+        if (!leagueTeamRepository.existsByLeague_IdAndTeamId(leagueId, request.homeTeamId())
+                || !leagueTeamRepository.existsByLeague_IdAndTeamId(leagueId, request.awayTeamId())) {
+            throw new BadRequestException("Both teams must be part of the league");
+        }
+        validateTimes(request.startTime(), request.endTime());
+
+        return validateScheduleAvailability(
+                request.homeTeamId(),
+                request.awayTeamId(),
+                request.startTime(),
+                request.endTime()
+        );
+    }
 
     @Transactional
     public LeagueMatchResponse createMatch(UUID leagueId, LeagueMatchCreateRequest request) {
@@ -64,7 +91,15 @@ public class LeagueMatchService {
         }
         validateTimes(request.startTime(), request.endTime());
 
-        checkForScheduleConflicts(request.homeTeamId(), request.awayTeamId(), request.startTime(), request.endTime());
+        var validation = validateScheduleAvailability(
+                request.homeTeamId(),
+                request.awayTeamId(),
+                request.startTime(),
+                request.endTime()
+        );
+        if (!validation.allowed()) {
+            throw new ConflictException(validation.code(), validation.message());
+        }
 
         var homeTeam = teamClient.getTeam(request.homeTeamId());
         var awayTeam = teamClient.getTeam(request.awayTeamId());
@@ -238,7 +273,12 @@ public class LeagueMatchService {
         }
     }
 
-    private void checkForScheduleConflicts(UUID homeTeam, UUID awayTeam, OffsetDateTime startTime, OffsetDateTime endTime) {
+    private LeagueMatchScheduleValidationResponse validateScheduleAvailability(
+            UUID homeTeam,
+            UUID awayTeam,
+            OffsetDateTime startTime,
+            OffsetDateTime endTime
+    ) {
 
         var allLeagueMatches = leagueMatchRepository.findByHomeTeamIdOrAwayTeamId(homeTeam, homeTeam);
         allLeagueMatches.addAll(leagueMatchRepository.findByHomeTeamIdOrAwayTeamId(awayTeam, awayTeam));
@@ -250,7 +290,10 @@ public class LeagueMatchService {
             boolean isConfirmed = match.getStatus() == LeagueMatchStatus.CONFIRMED;
 
             if(isSameDay && isConfirmed) {
-                throw new ConflictException("Scheduling conflict, another match is booked for one of the teams during this time.");
+                return LeagueMatchScheduleValidationResponse.blockedResult(
+                        LEAGUE_TEAM_SAME_DAY_CONFLICT_CODE,
+                        LEAGUE_TEAM_SAME_DAY_CONFLICT_MESSAGE
+                );
             }
         }
 
@@ -265,9 +308,14 @@ public class LeagueMatchService {
             boolean isConfirmed = match.status().equalsIgnoreCase("confirmed");
 
             if(isSameDay && isConfirmed) {
-                throw new ConflictException("Scheduling conflict, another match is booked for one of the teams during this time.");
+                return LeagueMatchScheduleValidationResponse.blockedResult(
+                        LEAGUE_TEAM_SAME_DAY_CONFLICT_CODE,
+                        LEAGUE_TEAM_SAME_DAY_CONFLICT_MESSAGE
+                );
             }
         }
+
+        return LeagueMatchScheduleValidationResponse.allowedResult();
     }
 
     private String resolveMatchSport(String homeSport, String awaySport) {
