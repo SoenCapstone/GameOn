@@ -2,9 +2,12 @@ package com.game.on.go_team_service.team;
 
 import com.game.on.go_team_service.config.CurrentUserProvider;
 import com.game.on.go_team_service.exception.BadRequestException;
+import com.game.on.go_team_service.exception.ConflictException;
 import com.game.on.go_team_service.exception.ForbiddenException;
+import com.game.on.go_team_service.team.dto.TeamMatchScheduleValidationResponse;
 import com.game.on.go_team_service.team.dto.TeamMatchCreateRequest;
 import com.game.on.go_team_service.team.dto.TeamMatchScoreRequest;
+import com.game.on.go_team_service.client.LeagueClient;
 import com.game.on.go_team_service.team.model.Team;
 import com.game.on.go_team_service.team.model.TeamMatch;
 import com.game.on.go_team_service.team.model.TeamMatchScore;
@@ -43,8 +46,9 @@ class TeamMatchServiceTest {
     @Mock TeamMatchRepository teamMatchRepository;
     @Mock TeamMatchInviteRepository teamMatchInviteRepository;
     @Mock TeamMatchScoreRepository teamMatchScoreRepository;
+    @Mock VenueService venueService;
+    @Mock LeagueClient leagueClient;
     @Mock CurrentUserProvider userProvider;
-    @Mock VenueService venueService; // ADDED FOR STORY #352 / #359
 
     @InjectMocks
     TeamMatchService teamMatchService;
@@ -126,6 +130,83 @@ class TeamMatchServiceTest {
 
         assertThrows(BadRequestException.class, () -> teamMatchService.createMatchInvite(UUID.randomUUID(), request));
         verify(teamMatchRepository, never()).save(any());
+    }
+
+    @Test
+    void validateMatchInvite_whenTimeConflict_returnsConflictCode() {
+        when(userProvider.clerkUserId()).thenReturn(ownerUserId);
+
+        TeamMatch existingMatch = new TeamMatch();
+        existingMatch.setId(UUID.randomUUID());
+        existingMatch.setStatus(TeamMatchStatus.CONFIRMED);
+        existingMatch.setStartTime(OffsetDateTime.parse("2026-03-20T14:30:00Z"));
+        existingMatch.setEndTime(OffsetDateTime.parse("2026-03-20T15:30:00Z"));
+
+        when(teamMatchRepository.findByHomeTeamIdOrAwayTeamIdOrderByStartTimeDesc(homeTeamId, homeTeamId))
+                .thenReturn(List.of(existingMatch));
+
+        TeamMatchCreateRequest request = new TeamMatchCreateRequest(
+                homeTeamId,
+                awayTeamId,
+                "soccer",
+                OffsetDateTime.parse("2026-03-20T16:00:00Z"),
+                OffsetDateTime.parse("2026-03-20T17:00:00Z"),
+                null,
+                "Montreal",
+                false,
+                null
+        );
+
+        TeamMatchScheduleValidationResponse response =
+                teamMatchService.validateMatchInvite(homeTeamId, request);
+
+        assertEquals(false, response.allowed());
+        assertEquals("TEAM_TIME_SLOT_CONFLICT", response.code());
+    }
+
+    @Test
+    void createMatchInvite_whenDailyLimitConflict_throwsConflictWithCode() {
+        when(userProvider.clerkUserId()).thenReturn(ownerUserId);
+
+        TeamMatch first = new TeamMatch();
+        first.setId(UUID.randomUUID());
+        first.setStatus(TeamMatchStatus.CONFIRMED);
+        first.setStartTime(OffsetDateTime.parse("2026-03-20T08:00:00Z"));
+        first.setEndTime(OffsetDateTime.parse("2026-03-20T09:00:00Z"));
+
+        TeamMatch second = new TeamMatch();
+        second.setId(UUID.randomUUID());
+        second.setStatus(TeamMatchStatus.CONFIRMED);
+        second.setStartTime(OffsetDateTime.parse("2026-03-20T10:00:00Z"));
+        second.setEndTime(OffsetDateTime.parse("2026-03-20T11:00:00Z"));
+
+        TeamMatch third = new TeamMatch();
+        third.setId(UUID.randomUUID());
+        third.setStatus(TeamMatchStatus.CONFIRMED);
+        third.setStartTime(OffsetDateTime.parse("2026-03-20T12:00:00Z"));
+        third.setEndTime(OffsetDateTime.parse("2026-03-20T13:00:00Z"));
+
+        when(teamMatchRepository.findByHomeTeamIdOrAwayTeamIdOrderByStartTimeDesc(homeTeamId, homeTeamId))
+                .thenReturn(List.of(first, second, third));
+
+        TeamMatchCreateRequest request = new TeamMatchCreateRequest(
+                homeTeamId,
+                awayTeamId,
+                "soccer",
+                OffsetDateTime.parse("2026-03-20T16:00:00Z"),
+                OffsetDateTime.parse("2026-03-20T17:00:00Z"),
+                null,
+                "Montreal",
+                false,
+                null
+        );
+
+        ConflictException ex = assertThrows(
+                ConflictException.class,
+                () -> teamMatchService.createMatchInvite(homeTeamId, request)
+        );
+
+        assertEquals("TEAM_DAILY_LIMIT_EXCEEDED", ex.getCode());
     }
 
     @Test
