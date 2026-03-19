@@ -87,6 +87,17 @@ export type TeamMatch = {
   updatedAt: string;
 };
 
+export type ScheduleConflictCode =
+  | "LEAGUE_TEAM_SAME_DAY_CONFLICT"
+  | "TEAM_DAILY_LIMIT_EXCEEDED"
+  | "TEAM_TIME_SLOT_CONFLICT";
+
+export type MatchScheduleValidationResult = {
+  allowed: boolean;
+  code?: ScheduleConflictCode | null;
+  message?: string | null;
+};
+
 export type MatchStatusBadge =
   | "PENDING"
   | "CONFIRMED"
