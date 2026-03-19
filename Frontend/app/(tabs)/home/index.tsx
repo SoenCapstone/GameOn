@@ -13,6 +13,7 @@ import {
   useAxiosWithClerk,
 } from "@/hooks/use-axios-clerk";
 import { errorToString } from "@/utils/error";
+import { getScheduleApiErrorMessage } from "@/utils/schedule-errors";
 import { fetchLeagueInvitesWithDetails } from "@/components/leagues/league-invite-utils";
 import {
   fetchIncomingRefereeInvites,
@@ -56,6 +57,21 @@ export default function Home() {
 
   const handleInviteResponseError = useCallback((err: unknown) => {
     Alert.alert("Action failed", errorToString(err));
+  }, []);
+
+  const handleTeamMatchInviteResponseError = useCallback((err: unknown) => {
+    const { message } = getScheduleApiErrorMessage(
+      err as import("axios").AxiosError<{
+        message?: string;
+        code?:
+          | "LEAGUE_TEAM_SAME_DAY_CONFLICT"
+          | "TEAM_DAILY_LIMIT_EXCEEDED"
+          | "TEAM_TIME_SLOT_CONFLICT"
+          | null;
+      }>,
+      "Only the invited team owner can respond to this match invite.",
+    );
+    Alert.alert("Match action failed", message);
   }, []);
 
   const handleInviteResponseSuccess = useCallback(
@@ -155,7 +171,7 @@ export default function Home() {
           : "The team match invite was declined.",
       );
     },
-    onError: handleInviteResponseError,
+    onError: handleTeamMatchInviteResponseError,
   });
 
   const respondRefereeInviteMutation = useMutation({
