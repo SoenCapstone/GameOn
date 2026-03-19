@@ -10,6 +10,7 @@ public record TeamMemberProfileResponse(
         String email,
         String firstname,
         String lastname,
+        String imageUrl,
         TeamRole role,
         TeamMemberStatus status,
         OffsetDateTime joinedAt

@@ -69,6 +69,8 @@ const formatRole = (role?: string | null) => {
   return role[0] + role.slice(1).toLowerCase();
 };
 
+// ── Extracted: Members content (fixes S3358 nested ternary) ───────────
+
 function MembersContent({
   isLoading,
   isError,
@@ -126,6 +128,8 @@ function MembersContent({
   );
 }
 
+// ── Extracted: Single member card (fixes S2004 deep nesting) ──────────
+
 function MemberCard({
   member,
   isAdmin,
@@ -180,6 +184,7 @@ function MemberCard({
       <MemberRow
         name={name}
         email={member.email}
+        imageUrl={member.imageUrl}
         right={
           <View style={styles.memberActions}>
             {canEditRole ? (
@@ -234,7 +239,6 @@ export default function ManageRolesScreen() {
   const [rolesOpen, setRolesOpen] = useState(false);
   const [membersOpen, setMembersOpen] = useState(true);
 
-  // ── Remove member mutation ──
   const removeMemberMutation = useMutation({
     mutationFn: async (memberId: string) => {
       await api.delete(
@@ -252,7 +256,6 @@ export default function ManageRolesScreen() {
     },
   });
 
-  // ── Self-demote mutation (manager → player) ──
   const selfDemoteMutation = useMutation({
     mutationFn: async (userId: string) => {
       await api.post(
@@ -338,7 +341,6 @@ export default function ManageRolesScreen() {
       backgroundProps={{ preset: "red" }}
       paddingBottom={24}
     >
-      {/* ── Available Roles (collapsed by default) ── */}
       <View style={styles.section}>
         <Pressable
           style={styles.collapsibleHeader}
@@ -373,7 +375,6 @@ export default function ManageRolesScreen() {
         )}
       </View>
 
-      {/* ── Team Members (expanded by default) ── */}
       <View style={styles.section}>
         <Pressable
           style={styles.collapsibleHeader}
