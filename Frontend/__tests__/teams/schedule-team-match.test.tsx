@@ -2,6 +2,7 @@ import React from "react";
 import { render, fireEvent, waitFor, act } from "@testing-library/react-native";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import ScheduleTeamMatchScreen from "@/app/(contexts)/teams/[id]/matches/schedule";
+import { TEAM_TIME_CONFLICT_MESSAGE } from "@/features/matches/schedule-shared";
 
 const mockSetOptions = jest.fn();
 const mockReplace = jest.fn();
@@ -9,6 +10,7 @@ const mockDismissTo = jest.fn();
 const mockPush = jest.fn();
 const mockBack = jest.fn();
 const mockCreateTeamMatch = jest.fn();
+const mockValidateTeamMatchSchedule = jest.fn();
 const mockApiGet = jest.fn();
 const mockToast = jest.fn();
 const mockAlert = jest.fn();
@@ -164,6 +166,10 @@ jest.mock("@/hooks/use-matches", () => ({
     mutateAsync: mockCreateTeamMatch,
     isPending: false,
   }),
+  useValidateTeamMatchSchedule: () => ({
+    mutateAsync: mockValidateTeamMatchSchedule,
+    isPending: false,
+  }),
   useReferees: () => ({
     data: [{ userId: "ref-1" }],
     isLoading: false,
@@ -247,6 +253,7 @@ describe("ScheduleTeamMatchScreen", () => {
       match: { id: "m1" },
       refereeInviteSent: true,
     });
+    mockValidateTeamMatchSchedule.mockResolvedValue({ allowed: true });
     mockApiGet.mockImplementation((url: string) => {
       if (url === "/teams") {
         return Promise.resolve({
@@ -295,6 +302,7 @@ describe("ScheduleTeamMatchScreen", () => {
     await submitSchedule();
 
     await waitFor(() => expect(mockCreateTeamMatch).toHaveBeenCalledTimes(1));
+    expect(mockValidateTeamMatchSchedule).toHaveBeenCalledTimes(1);
 
     expect(mockCreateTeamMatch).toHaveBeenCalledWith(
       expect.objectContaining({
@@ -337,6 +345,7 @@ describe("ScheduleTeamMatchScreen", () => {
     await submitSchedule();
 
     await waitFor(() => expect(mockCreateTeamMatch).toHaveBeenCalledTimes(1));
+    expect(mockValidateTeamMatchSchedule).toHaveBeenCalledTimes(1);
 
     expect(mockCreateTeamMatch).toHaveBeenCalledWith(
       expect.objectContaining({
@@ -346,6 +355,33 @@ describe("ScheduleTeamMatchScreen", () => {
         requiresReferee: true,
         refereeUserId: "ref-1",
       }) as unknown,
+    );
+  });
+
+  it("blocks submission when backend validation reports a schedule conflict", async () => {
+    mockValidateTeamMatchSchedule.mockResolvedValue({
+      allowed: false,
+      code: "TEAM_TIME_SLOT_CONFLICT",
+    });
+
+    const { getByTestId } = render(
+      <QueryClientProvider client={queryClient}>
+        <ScheduleTeamMatchScreen />
+      </QueryClientProvider>,
+    );
+
+    await waitFor(() =>
+      expect(getByTestId("menu-away-team-rivals")).toBeTruthy(),
+    );
+    fireEvent.press(getByTestId("menu-away-team-rivals"));
+    fireEvent.press(getByTestId("menu-venue-stadium"));
+    await submitSchedule();
+
+    expect(mockValidateTeamMatchSchedule).toHaveBeenCalledTimes(1);
+    expect(mockCreateTeamMatch).not.toHaveBeenCalled();
+    expect(mockAlert).toHaveBeenCalledWith(
+      "Match schedule failed",
+      TEAM_TIME_CONFLICT_MESSAGE,
     );
   });
 });

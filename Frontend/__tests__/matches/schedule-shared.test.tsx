@@ -1,6 +1,11 @@
 import React from "react";
 import { render } from "@testing-library/react-native";
 import { getScheduleApiErrorMessage } from "@/utils/schedule-errors";
+import {
+  getScheduleConflictMessage,
+  LEAGUE_SAME_DAY_CONFLICT_MESSAGE,
+  TEAM_TIME_CONFLICT_MESSAGE,
+} from "@/features/matches/schedule-shared";
 import { MatchDetailsSection } from "@/components/matches/match-details-section";
 import { AxiosError } from "axios";
 jest.mock("expo-router", () => ({}));
@@ -115,6 +120,40 @@ describe("getScheduleApiErrorMessage", () => {
     );
     expect(result.status).toBe(500);
     expect(result.message).toBe("fail");
+  });
+
+  it("maps structured conflict codes to frontend copy", () => {
+    const err = {
+      isAxiosError: true,
+      toJSON: () => ({}),
+      name: "AxiosError",
+      message: "",
+      response: {
+        status: 409,
+        data: {
+          code: "TEAM_TIME_SLOT_CONFLICT",
+          message: "backend message",
+        },
+      },
+    };
+    const result = getScheduleApiErrorMessage(
+      err as AxiosError<{ message?: string; code?: "TEAM_TIME_SLOT_CONFLICT" }>,
+      "Forbidden!",
+    );
+    expect(result.status).toBe(409);
+    expect(result.message).toBe(TEAM_TIME_CONFLICT_MESSAGE);
+  });
+});
+
+describe("getScheduleConflictMessage", () => {
+  it("returns the mapped copy for a known conflict code", () => {
+    expect(
+      getScheduleConflictMessage("LEAGUE_TEAM_SAME_DAY_CONFLICT", "fallback"),
+    ).toBe(LEAGUE_SAME_DAY_CONFLICT_MESSAGE);
+  });
+
+  it("falls back to the provided backend message when code is missing", () => {
+    expect(getScheduleConflictMessage(undefined, "fallback")).toBe("fallback");
   });
 });
 
