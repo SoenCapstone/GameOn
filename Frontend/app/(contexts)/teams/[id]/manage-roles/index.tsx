@@ -20,6 +20,7 @@ import { MemberRow } from "@/components/teams/member-row";
 import { formatFullName } from "@/components/teams/member-row-utils";
 import { useTeamDetail } from "@/hooks/use-team-detail";
 import { useGetTeamMembers } from "@/hooks/use-get-team-members/use-get-team-members";
+import { TeamMember } from "@/hooks/use-get-team-members/model";
 import {
   GO_TEAM_SERVICE_ROUTES,
   useAxiosWithClerk,
@@ -62,6 +63,154 @@ const AVAILABLE_ROLES: {
 
 /** Roles an admin (OWNER/MANAGER) is allowed to assign to other members. */
 const ASSIGNABLE_ROLES: TeamRoleType[] = ["MANAGER", "PLAYER", "COACH"];
+
+const formatRole = (role?: string | null) => {
+  if (!role) return "Player";
+  return role[0] + role.slice(1).toLowerCase();
+};
+
+function MembersContent({
+  isLoading,
+  isError,
+  members,
+  isAdmin,
+  removePending,
+  onRetry,
+  onRemove,
+  onRoleChange,
+}: Readonly<{
+  isLoading: boolean;
+  isError: boolean;
+  members: TeamMember[];
+  isAdmin: boolean;
+  removePending: boolean;
+  onRetry: () => void;
+  onRemove: (memberId: string, name: string) => void;
+  onRoleChange: (
+    member: { id: string; role?: TeamRoleType | null; userId?: string },
+    newRole: TeamRoleType,
+  ) => void;
+}>) {
+  if (isLoading) {
+    return <ActivityIndicator size="small" color="#fff" />;
+  }
+
+  if (isError) {
+    return (
+      <View style={styles.errorContainer}>
+        <Text style={styles.emptyText}>Failed to load members.</Text>
+        <Pressable style={styles.retryButton} onPress={onRetry}>
+          <Text style={styles.retryButtonText}>Retry</Text>
+        </Pressable>
+      </View>
+    );
+  }
+
+  if (members.length === 0) {
+    return <Text style={styles.emptyText}>No members found.</Text>;
+  }
+
+  return (
+    <View style={styles.memberList}>
+      {members.map((member) => (
+        <MemberCard
+          key={member.id}
+          member={member}
+          isAdmin={isAdmin}
+          removePending={removePending}
+          onRemove={onRemove}
+          onRoleChange={onRoleChange}
+        />
+      ))}
+    </View>
+  );
+}
+
+function MemberCard({
+  member,
+  isAdmin,
+  removePending,
+  onRemove,
+  onRoleChange,
+}: Readonly<{
+  member: TeamMember;
+  isAdmin: boolean;
+  removePending: boolean;
+  onRemove: (memberId: string, name: string) => void;
+  onRoleChange: (
+    member: { id: string; role?: TeamRoleType | null; userId?: string },
+    newRole: TeamRoleType,
+  ) => void;
+}>) {
+  const name = formatFullName(member.firstname, member.lastname);
+  const roleLabel = formatRole(member.role);
+  const memberRole = member.role as TeamRoleType | undefined;
+  const canRemove = isAdmin && memberRole !== "OWNER" && !removePending;
+  const canEditRole = isAdmin && memberRole !== "OWNER";
+
+  const handleRolePicker = () => {
+    const otherRoles = ASSIGNABLE_ROLES.filter((r) => r !== memberRole);
+    const options = otherRoles.map(formatRole);
+    options.push("Cancel");
+
+    Alert.alert(
+      "Change Role",
+      `Current role: ${roleLabel}`,
+      options.map((label) => ({
+        text: label,
+        style: label === "Cancel" ? ("cancel" as const) : ("default" as const),
+        onPress: () => {
+          if (label === "Cancel") return;
+          const selectedRole = ASSIGNABLE_ROLES.find(
+            (r) => formatRole(r) === label,
+          );
+          if (selectedRole) {
+            onRoleChange(
+              member as { id: string; role?: TeamRoleType | null; userId?: string },
+              selectedRole,
+            );
+          }
+        },
+      })),
+    );
+  };
+
+  return (
+    <Card>
+      <MemberRow
+        name={name}
+        email={member.email}
+        right={
+          <View style={styles.memberActions}>
+            {canEditRole ? (
+              <Pressable style={styles.rolePicker} onPress={handleRolePicker}>
+                <Text style={styles.rolePickerText}>{roleLabel}</Text>
+                <Ionicons
+                  name="chevron-forward"
+                  size={14}
+                  color="rgba(255,255,255,0.5)"
+                />
+              </Pressable>
+            ) : (
+              <Text style={styles.memberRole}>{roleLabel}</Text>
+            )}
+
+            {canRemove && (
+              <Pressable
+                style={styles.removeButton}
+                onPress={() => onRemove(member.userId ?? member.id, name)}
+              >
+                <Text style={styles.removeButtonText}>Remove</Text>
+              </Pressable>
+            )}
+          </View>
+        }
+      />
+    </Card>
+  );
+}
+
+// ── Main screen ───────────────────────────────────────────────────────
 
 export default function ManageRolesScreen() {
   const params = useLocalSearchParams<{ id?: string }>();
@@ -163,11 +312,7 @@ export default function ManageRolesScreen() {
 
     if (newRole === currentRole) return;
 
-    // Currently the backend only supports self-demote (MANAGER → PLAYER)
-    // and transfer-ownership. For unsupported transitions we show an alert.
     if (currentRole === "MANAGER" && newRole === "PLAYER") {
-      // Owner demoting a manager → use self-demote endpoint
-      // (backend also exposes demoteManagerToPlayer but no dedicated controller route yet)
       Alert.alert(
         "Change Role",
         `Demote this member from Manager to Player?`,
@@ -243,131 +388,21 @@ export default function ManageRolesScreen() {
         </Pressable>
 
         {membersOpen && (
-          <>
-            {membersLoading ? (
-              <ActivityIndicator size="small" color="#fff" />
-            ) : membersError ? (
-              <View style={styles.errorContainer}>
-                <Text style={styles.emptyText}>
-                  Failed to load members.
-                </Text>
-                <Pressable
-                  style={styles.retryButton}
-                  onPress={() => refetchMembers()}
-                >
-                  <Text style={styles.retryButtonText}>Retry</Text>
-                </Pressable>
-              </View>
-            ) : members.length === 0 ? (
-              <Text style={styles.emptyText}>No members found.</Text>
-            ) : (
-              <View style={styles.memberList}>
-                {members.map((member) => {
-                  const name = formatFullName(member.firstname, member.lastname);
-                  const roleLabel = formatRole(member.role);
-                  const memberRole = member.role as TeamRoleType | undefined;
-
-                  const canRemove =
-                    isAdmin &&
-                    memberRole !== "OWNER" &&
-                    !removeMemberMutation.isPending;
-
-                  // Admins can edit roles of non-owner members
-                  const canEditRole = isAdmin && memberRole !== "OWNER";
-
-                  return (
-                    <Card key={member.id}>
-                      <MemberRow
-                        name={name}
-                        email={member.email}
-                        right={
-                          <View style={styles.memberActions}>
-                            {canEditRole ? (
-                              <Pressable
-                                style={styles.rolePicker}
-                                onPress={() => {
-                                  const otherRoles = ASSIGNABLE_ROLES.filter(
-                                    (r) => r !== memberRole,
-                                  );
-                                  const options = otherRoles.map(formatRole);
-                                  options.push("Cancel");
-
-                                  Alert.alert(
-                                    "Change Role",
-                                    `Current role: ${roleLabel}`,
-                                    options.map((label) => ({
-                                      text: label,
-                                      style:
-                                        label === "Cancel"
-                                          ? "cancel"
-                                          : "default",
-                                      onPress: () => {
-                                        if (label === "Cancel") return;
-                                        const selectedRole = ASSIGNABLE_ROLES.find(
-                                          (r) => formatRole(r) === label,
-                                        );
-                                        if (selectedRole) {
-                                          handleRoleChange(
-                                            member as {
-                                              id: string;
-                                              role?: TeamRoleType | null;
-                                              userId?: string;
-                                            },
-                                            selectedRole,
-                                          );
-                                        }
-                                      },
-                                    })),
-                                  );
-                                }}
-                              >
-                                <Text style={styles.rolePickerText}>
-                                  {roleLabel}
-                                </Text>
-                                <Ionicons
-                                  name="chevron-forward"
-                                  size={14}
-                                  color="rgba(255,255,255,0.5)"
-                                />
-                              </Pressable>
-                            ) : (
-                              <Text style={styles.memberRole}>{roleLabel}</Text>
-                            )}
-
-                            {canRemove && (
-                              <Pressable
-                                style={styles.removeButton}
-                                onPress={() =>
-                                  handleRemoveMember(
-                                    member.userId ?? member.id,
-                                    name,
-                                  )
-                                }
-                              >
-                                <Text style={styles.removeButtonText}>
-                                  Remove
-                                </Text>
-                              </Pressable>
-                            )}
-                          </View>
-                        }
-                      />
-                    </Card>
-                  );
-                })}
-              </View>
-            )}
-          </>
+          <MembersContent
+            isLoading={membersLoading}
+            isError={membersError}
+            members={members}
+            isAdmin={isAdmin}
+            removePending={removeMemberMutation.isPending}
+            onRetry={() => refetchMembers()}
+            onRemove={handleRemoveMember}
+            onRoleChange={handleRoleChange}
+          />
         )}
       </View>
     </ContentArea>
   );
 }
-
-const formatRole = (role?: string | null) => {
-  if (!role) return "Player";
-  return role[0] + role.slice(1).toLowerCase();
-};
 
 const styles = StyleSheet.create({
   section: {
