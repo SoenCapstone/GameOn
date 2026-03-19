@@ -90,8 +90,6 @@ function getAssignableRoles(
   return [];
 }
 
-// ── Extracted: Members content ────────────────────────────────────────
-
 function MembersContent({
   isLoading,
   isError,
@@ -154,8 +152,6 @@ function MembersContent({
     </View>
   );
 }
-
-// ── Extracted: Single member card ─────────────────────────────────────
 
 function MemberCard({
   member,
