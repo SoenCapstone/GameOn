@@ -69,6 +69,7 @@ const formatRole = (role?: string | null) => {
   return role[0] + role.slice(1).toLowerCase();
 };
 
+// ── Extracted: Members content (fixes S3358 nested ternary) ───────────
 
 function MembersContent({
   isLoading,
@@ -126,6 +127,8 @@ function MembersContent({
     </View>
   );
 }
+
+// ── Extracted: Single member card (fixes S2004 deep nesting) ──────────
 
 function MemberCard({
   member,
@@ -253,10 +256,17 @@ export default function ManageRolesScreen() {
     },
   });
 
-  const selfDemoteMutation = useMutation({
-    mutationFn: async (userId: string) => {
-      await api.post(
-        `${GO_TEAM_SERVICE_ROUTES.ALL}/${teamId}/members/self-demote/${userId}`,
+  const updateRoleMutation = useMutation({
+    mutationFn: async ({
+      userId,
+      role,
+    }: {
+      userId: string;
+      role: TeamRoleType;
+    }) => {
+      await api.patch(
+        GO_TEAM_SERVICE_ROUTES.UPDATE_MEMBER_ROLE(teamId, userId),
+        { role },
       );
     },
     onSuccess: async () => {
@@ -266,7 +276,7 @@ export default function ManageRolesScreen() {
       ]);
     },
     onError: (err) => {
-      Alert.alert("Demote failed", errorToString(err));
+      Alert.alert("Role change failed", errorToString(err));
     },
   });
 
@@ -312,24 +322,21 @@ export default function ManageRolesScreen() {
 
     if (newRole === currentRole) return;
 
-    if (currentRole === "MANAGER" && newRole === "PLAYER") {
-      Alert.alert(
-        "Change Role",
-        `Demote this member from Manager to Player?`,
-        [
-          { text: "Cancel", style: "cancel" },
-          {
-            text: "Confirm",
-            onPress: () => selfDemoteMutation.mutate(memberId),
-          },
-        ],
-      );
-    } else {
-      Alert.alert(
-        "Role Change",
-        `Changing role from ${formatRole(currentRole)} to ${formatRole(newRole)} is not yet supported by the server. This feature will be available in a future update.`,
-      );
-    }
+    const currentLabel = formatRole(currentRole);
+    const newLabel = formatRole(newRole);
+
+    Alert.alert(
+      "Change Role",
+      `Change role from ${currentLabel} to ${newLabel}?`,
+      [
+        { text: "Cancel", style: "cancel" },
+        {
+          text: "Confirm",
+          onPress: () =>
+            updateRoleMutation.mutate({ userId: memberId, role: newRole }),
+        },
+      ],
+    );
   };
 
   return (

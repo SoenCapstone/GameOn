@@ -446,6 +446,47 @@ public class TeamService {
     }
 
     @Transactional
+    public TeamMemberResponse updateMemberRole(UUID teamId, String targetUserId, TeamRole newRole) {
+        String callerId = userProvider.clerkUserId();
+
+        requireActiveTeam(teamId);
+        var callerMembership = requireActiveMembership(teamId, callerId);
+        var targetMembership = teamMemberRepository.findByTeamIdAndUserId(teamId, targetUserId)
+                .filter(m -> m.getStatus() == TeamMemberStatus.ACTIVE)
+                .orElseThrow(() -> new NotFoundException("Member not found"));
+
+        // Cannot change the owner's role — use transfer-ownership instead
+        if (targetMembership.getRole() == TeamRole.OWNER) {
+            throw new ForbiddenException("Cannot change the owner's role. Use transfer ownership instead.");
+        }
+
+        // Cannot assign OWNER via this endpoint - use transfer-ownership instead
+        if (newRole == TeamRole.OWNER) {
+            throw new BadRequestException("Cannot assign OWNER role. Use the transfer ownership endpoint.");
+        }
+
+        if (targetMembership.getRole() == newRole) {
+            return teamMapper.toMember(targetMembership);
+        }
+
+        // Permission check: only OWNER and MANAGER can change roles
+        ensureRole(callerMembership, Set.of(TeamRole.OWNER, TeamRole.MANAGER),
+                "Only owners or managers can change member roles");
+
+        // Managers can only change PLAYER roles (cannot promote/demote other managers or coaches)
+        if (callerMembership.getRole() == TeamRole.MANAGER
+                && targetMembership.getRole() != TeamRole.PLAYER) {
+            throw new ForbiddenException("Managers can only change the role of players");
+        }
+
+        targetMembership.setRole(newRole);
+        var saved = teamMemberRepository.save(targetMembership);
+        log.info("Role updated: teamId={} targetUserId={} newRole={} byUser={}",
+                teamId, targetUserId, newRole, callerId);
+        return teamMapper.toMember(saved);
+    }
+
+    @Transactional
     public TeamMemberResponse demoteManagerToPlayer(UUID teamId, String userId, String targetUserId) {
         requireActiveTeam(teamId);
 
