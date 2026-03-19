@@ -40,7 +40,7 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(ConflictException.class)
     public ResponseEntity<ErrorResponse> handleConflict(ConflictException ex) {
-        return build(HttpStatus.CONFLICT, ex.getMessage());
+        return build(HttpStatus.CONFLICT, ex.getMessage(), ex.getCode());
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
@@ -85,5 +85,9 @@ public class GlobalExceptionHandler {
 
     private ResponseEntity<ErrorResponse> build(HttpStatus status, String message) {
         return new ResponseEntity<>(ErrorResponse.of(status.name(), message), new HttpHeaders(), status);
+    }
+
+    private ResponseEntity<ErrorResponse> build(HttpStatus status, String message, String code) {
+        return new ResponseEntity<>(ErrorResponse.of(status.name(), code, message), new HttpHeaders(), status);
     }
 }

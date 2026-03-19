@@ -3,6 +3,7 @@ package com.game.on.go_team_service.team.controller;
 import com.game.on.go_team_service.team.dto.TeamMatchCancelRequest;
 import com.game.on.go_team_service.team.dto.TeamMatchCreateRequest;
 import com.game.on.go_team_service.team.dto.TeamMatchResponse;
+import com.game.on.go_team_service.team.dto.TeamMatchScheduleValidationResponse;
 import com.game.on.go_team_service.team.dto.TeamMatchScoreRequest;
 import com.game.on.go_team_service.team.service.TeamMatchService;
 import jakarta.validation.Valid;
@@ -31,6 +32,14 @@ public class TeamMatchController {
                                                                @Valid @RequestBody TeamMatchCreateRequest request) {
         var response = teamMatchService.createMatchInvite(teamId, request);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
+    }
+
+    @PostMapping("/teams/{teamId}/matches/validate")
+    public ResponseEntity<TeamMatchScheduleValidationResponse> validateMatchInvite(
+            @PathVariable UUID teamId,
+            @Valid @RequestBody TeamMatchCreateRequest request
+    ) {
+        return ResponseEntity.ok(teamMatchService.validateMatchInvite(teamId, request));
     }
 
     @GetMapping("/teams/{teamId}/matches")
