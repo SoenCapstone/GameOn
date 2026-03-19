@@ -56,11 +56,14 @@ jest.mock("@/hooks/use-axios-clerk", () => ({
   useAxiosWithClerk: () => ({
     delete: jest.fn().mockResolvedValue({}),
     post: jest.fn().mockResolvedValue({}),
+    patch: jest.fn().mockResolvedValue({}),
   }),
   GO_TEAM_SERVICE_ROUTES: {
     ALL: "api/v1/teams",
     REMOVE_TEAM_MEMBER: (teamId: string, userId: string) =>
       `api/v1/teams/${teamId}/delete/${userId}`,
+    UPDATE_MEMBER_ROLE: (teamId: string, userId: string) =>
+      `api/v1/teams/${teamId}/members/${userId}/role`,
   },
 }));
 
