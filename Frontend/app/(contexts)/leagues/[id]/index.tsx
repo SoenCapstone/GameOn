@@ -34,6 +34,8 @@ import { buildMatchCards, splitMatchSections } from "@/features/matches/utils";
 import { Card } from "@/components/ui/card";
 import { Tabs } from "@/components/ui/tabs";
 import { errorToString } from "@/utils/error";
+import { useLeagueStandings } from "@/hooks/use-league-standings";
+import { LeagueStandings } from "@/components/leagues/league-standings";
 
 type LeagueTab = "board" | "matches" | "standings" | "teams";
 
@@ -64,6 +66,7 @@ export default function LeagueScreen() {
 }
 
 function LeagueContent() {
+
   const params = useLocalSearchParams<{ tab?: string }>();
   const initialTab: LeagueTab = resolveLeagueTab(params.tab);
   const [tab, setTab] = useState<LeagueTab>(initialTab);
@@ -71,7 +74,12 @@ function LeagueContent() {
   const router = useRouter();
   const log = createScopedLog("League Page");
   const queryClient = useQueryClient();
-
+  const {
+      data: standings = [],
+      isLoading: standingsLoading,
+      error: standingsError,
+      refetch: refetchStandings,
+  } = useLeagueStandings(id);
   const {
     id,
     isLoading,
@@ -251,7 +259,14 @@ function LeagueContent() {
                 }
               />
             )}
-
+            {tab === "standings" && (
+              <LeagueStandings
+                standings={standings}
+                isLoading={standingsLoading}
+                error={standingsError ? "Could not load standings." : null}
+                onRetry={refetchStandings}
+              />
+            )}
             {tab === "teams" && (
               <LeagueBrowserTeams
                 leagueId={id}
