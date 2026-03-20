@@ -3,6 +3,7 @@ package com.game.on.go_league_service.league.controller;
 import com.game.on.common.dto.PaymentDTO;
 import com.game.on.go_league_service.kafka.PaymentProducer;
 import com.game.on.go_league_service.league.dto.*;
+import com.game.on.go_league_service.league.model.StandingScore;
 import com.game.on.go_league_service.league.service.LeagueService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -135,5 +136,10 @@ public class LeagueController {
     @PostMapping("/payment-event")
     public void producePaymentEvent(@RequestBody PaymentDTO paymentDTO) {
         paymentProducer.sendEvent("go-payment", paymentDTO);
+    }
+
+    @GetMapping("/{leagueId}/standings")
+    public ResponseEntity<List<StandingScore>> getLeagueStandings(@PathVariable UUID leagueId) {
+        return ResponseEntity.ok(leagueService.getLeagueStandings(leagueId));
     }
 }
