@@ -99,9 +99,9 @@ public class TeamController {
         return ResponseEntity.ok(teamService.transferOwnership(request));
     }
 
-    @PostMapping("/{teamId}/members/self-demote/{userId}")
-    public ResponseEntity<TeamMemberResponse> demoteSelf(@PathVariable String userId, @PathVariable UUID teamId) {
-        return ResponseEntity.ok(teamService.demoteSelfToPlayer(teamId, userId));
+    @PostMapping("/{teamId}/members/self-demote")
+    public ResponseEntity<TeamMemberResponse> demoteSelf(@PathVariable UUID teamId) {
+        return ResponseEntity.ok(teamService.demoteSelfToPlayer(teamId));
     }
 
     @PostMapping("/{teamId}/play-maker")
