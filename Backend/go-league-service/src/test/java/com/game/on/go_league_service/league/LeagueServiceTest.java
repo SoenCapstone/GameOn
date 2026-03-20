@@ -12,12 +12,8 @@ import com.game.on.go_league_service.league.dto.LeagueUpdateRequest;
 import com.game.on.go_league_service.league.mapper.LeagueMapper;
 import com.game.on.go_league_service.league.mapper.LeagueTeamMapper;
 import com.game.on.go_league_service.league.metrics.LeagueMetricsPublisher;
-import com.game.on.go_league_service.league.model.League;
-import com.game.on.go_league_service.league.model.LeagueLevel;
-import com.game.on.go_league_service.league.model.LeaguePrivacy;
-import com.game.on.go_league_service.league.repository.LeagueRepository;
-import com.game.on.go_league_service.league.repository.LeagueSeasonRepository;
-import com.game.on.go_league_service.league.repository.LeagueTeamRepository;
+import com.game.on.go_league_service.league.model.*;
+import com.game.on.go_league_service.league.repository.*;
 import com.game.on.go_league_service.league.service.LeagueService;
 import com.game.on.go_league_service.league.util.SlugGenerator;
 import org.junit.jupiter.api.BeforeEach;
@@ -71,6 +67,12 @@ class LeagueServiceTest {
     @Mock
     private TeamClient client;
 
+    @Mock
+    private LeagueMatchRepository leagueMatchRepository;
+
+    @Mock
+    private LeagueMatchScoreRepository leagueMatchScoreRepository;
+
     private LeagueService leagueService;
 
     @BeforeEach
@@ -84,7 +86,9 @@ class LeagueServiceTest {
                 leagueTeamMapper,
                 client,
                 currentUserProvider,
-                metricsPublisher
+                metricsPublisher,
+                leagueMatchRepository,
+                leagueMatchScoreRepository
         );
     }
 
@@ -348,5 +352,298 @@ class LeagueServiceTest {
 
         verify(leagueTeamRepository, never()).findByLeague_IdAndTeamId(any(), any());
         verify(leagueTeamMapper, never()).toResponse(any());
+    }
+
+    @Test
+    void getLeagueStandings_calculatesSoccerStandingsCorrectly() {
+        UUID leagueId = UUID.randomUUID();
+        String userId = "user_1";
+
+        UUID teamA = UUID.randomUUID();
+        UUID teamB = UUID.randomUUID();
+        UUID teamC = UUID.randomUUID();
+
+        League league = League.builder()
+                .id(leagueId)
+                .name("Test League")
+                .sport("soccer")
+                .ownerUserId(userId)
+                .privacy(LeaguePrivacy.PUBLIC)
+                .level(LeagueLevel.COMPETITIVE)
+                .build();
+
+        LeagueService service = spy(leagueService);
+
+        doReturn(userId).when(currentUserProvider).clerkUserId();
+        doReturn(league).when(service).requireActiveLeague(leagueId);
+        doNothing().when(service).ensureCanView(league, userId);
+
+        LeagueTeam lt1 = mock(LeagueTeam.class);
+        LeagueTeam lt2 = mock(LeagueTeam.class);
+        LeagueTeam lt3 = mock(LeagueTeam.class);
+
+        when(lt1.getTeamId()).thenReturn(teamA);
+        when(lt2.getTeamId()).thenReturn(teamB);
+        when(lt3.getTeamId()).thenReturn(teamC);
+
+        when(leagueTeamRepository.findByLeague_IdOrderByCreatedAtDesc(leagueId))
+                .thenReturn(List.of(lt1, lt2, lt3));
+
+        LeagueMatch match1 = LeagueMatch.builder()
+                .id(UUID.randomUUID())
+                .league(league)
+                .homeTeamId(teamA)
+                .awayTeamId(teamB)
+                .sport("soccer")
+                .startTime(OffsetDateTime.now().minusDays(2))
+                .endTime(OffsetDateTime.now().minusDays(2).plusHours(1))
+                .requiresReferee(false)
+                .status(LeagueMatchStatus.CONFIRMED)
+                .createdByUserId(userId)
+                .build();
+
+        LeagueMatch match2 = LeagueMatch.builder()
+                .id(UUID.randomUUID())
+                .league(league)
+                .homeTeamId(teamB)
+                .awayTeamId(teamC)
+                .sport("soccer")
+                .startTime(OffsetDateTime.now().minusDays(1))
+                .endTime(OffsetDateTime.now().minusDays(1).plusHours(1))
+                .requiresReferee(false)
+                .status(LeagueMatchStatus.CONFIRMED)
+                .createdByUserId(userId)
+                .build();
+
+        when(leagueMatchRepository.findByLeague_IdOrderByStartTimeDesc(leagueId))
+                .thenReturn(List.of(match1, match2));
+
+        LeagueMatchScore score1 = LeagueMatchScore.builder()
+                .id(UUID.randomUUID())
+                .match(match1)
+                .homeScore(2)
+                .awayScore(1)
+                .submittedByUserId(userId)
+                .build();
+
+        LeagueMatchScore score2 = LeagueMatchScore.builder()
+                .id(UUID.randomUUID())
+                .match(match2)
+                .homeScore(0)
+                .awayScore(0)
+                .submittedByUserId(userId)
+                .build();
+
+        when(leagueMatchScoreRepository.findByMatch_League_Id(leagueId))
+                .thenReturn(List.of(score1, score2));
+
+        List<StandingScore> standings = service.getLeagueStandings(leagueId);
+
+        assertThat(standings).hasSize(3);
+        assertThat(standings.stream().map(StandingScore::getTeamId).toList())
+                .containsExactly(teamA, teamB, teamC);
+
+        StandingScore teamAStanding = standings.stream()
+                .filter(score -> score.getTeamId().equals(teamA))
+                .findFirst()
+                .orElseThrow();
+
+        StandingScore teamBStanding = standings.stream()
+                .filter(score -> score.getTeamId().equals(teamB))
+                .findFirst()
+                .orElseThrow();
+
+        StandingScore teamCStanding = standings.stream()
+                .filter(score -> score.getTeamId().equals(teamC))
+                .findFirst()
+                .orElseThrow();
+
+        assertThat(teamAStanding.getPlayed()).isEqualTo(1);
+        assertThat(teamAStanding.getWins()).isEqualTo(1);
+        assertThat(teamAStanding.getDraws()).isZero();
+        assertThat(teamAStanding.getLosses()).isZero();
+        assertThat(teamAStanding.getGoalsFor()).isEqualTo(2);
+        assertThat(teamAStanding.getGoalsAgainst()).isEqualTo(1);
+        assertThat(teamAStanding.getGoalDifference()).isEqualTo(1);
+        assertThat(teamAStanding.getPoints()).isEqualTo(3);
+
+        assertThat(teamBStanding.getPlayed()).isEqualTo(2);
+        assertThat(teamBStanding.getWins()).isZero();
+        assertThat(teamBStanding.getDraws()).isEqualTo(1);
+        assertThat(teamBStanding.getLosses()).isEqualTo(1);
+        assertThat(teamBStanding.getGoalsFor()).isEqualTo(1);
+        assertThat(teamBStanding.getGoalsAgainst()).isEqualTo(2);
+        assertThat(teamBStanding.getGoalDifference()).isEqualTo(1);
+        assertThat(teamBStanding.getPoints()).isEqualTo(1);
+
+        assertThat(teamCStanding.getPlayed()).isEqualTo(1);
+        assertThat(teamCStanding.getWins()).isZero();
+        assertThat(teamCStanding.getDraws()).isEqualTo(1);
+        assertThat(teamCStanding.getLosses()).isZero();
+        assertThat(teamCStanding.getGoalsFor()).isZero();
+        assertThat(teamCStanding.getGoalsAgainst()).isZero();
+        assertThat(teamCStanding.getGoalDifference()).isZero();
+        assertThat(teamCStanding.getPoints()).isEqualTo(1);
+    }
+
+
+    @Test
+    void getLeagueStandings_ignoresMatchesWithoutSubmittedScores() {
+        UUID leagueId = UUID.randomUUID();
+        String userId = "user_1";
+
+        UUID teamA = UUID.randomUUID();
+        UUID teamB = UUID.randomUUID();
+
+        League league = League.builder()
+                .id(leagueId)
+                .name("Test League")
+                .sport("soccer")
+                .ownerUserId(userId)
+                .privacy(LeaguePrivacy.PUBLIC)
+                .level(LeagueLevel.COMPETITIVE)
+                .build();
+
+        LeagueService service = spy(leagueService);
+
+        doReturn(userId).when(currentUserProvider).clerkUserId();
+        doReturn(league).when(service).requireActiveLeague(leagueId);
+        doNothing().when(service).ensureCanView(league, userId);
+
+        LeagueTeam lt1 = mock(LeagueTeam.class);
+        LeagueTeam lt2 = mock(LeagueTeam.class);
+
+        when(lt1.getTeamId()).thenReturn(teamA);
+        when(lt2.getTeamId()).thenReturn(teamB);
+
+        when(leagueTeamRepository.findByLeague_IdOrderByCreatedAtDesc(leagueId))
+                .thenReturn(List.of(lt1, lt2));
+
+        LeagueMatch match = LeagueMatch.builder()
+                .id(UUID.randomUUID())
+                .league(league)
+                .homeTeamId(teamA)
+                .awayTeamId(teamB)
+                .sport("soccer")
+                .startTime(OffsetDateTime.now())
+                .endTime(OffsetDateTime.now().plusHours(1))
+                .requiresReferee(false)
+                .status(LeagueMatchStatus.CONFIRMED)
+                .createdByUserId(userId)
+                .build();
+
+        when(leagueMatchRepository.findByLeague_IdOrderByStartTimeDesc(leagueId))
+                .thenReturn(List.of(match));
+
+        when(leagueMatchScoreRepository.findByMatch_League_Id(leagueId))
+                .thenReturn(Collections.emptyList());
+
+        List<StandingScore> standings = service.getLeagueStandings(leagueId);
+
+        assertThat(standings).hasSize(2);
+        assertThat(standings)
+                .allSatisfy(score -> {
+                    assertThat(score.getPlayed()).isZero();
+                    assertThat(score.getPoints()).isZero();
+                });
+    }
+
+
+    @Test
+    void getLeagueStandings_returnsEmpty_whenLeagueHasNoTeams() {
+        UUID leagueId = UUID.randomUUID();
+        String userId = "user_1";
+
+        League league = League.builder()
+                .id(leagueId)
+                .name("Test League")
+                .sport("soccer")
+                .ownerUserId(userId)
+                .privacy(LeaguePrivacy.PUBLIC)
+                .level(LeagueLevel.COMPETITIVE)
+                .build();
+
+        LeagueService service = spy(leagueService);
+
+        doReturn(userId).when(currentUserProvider).clerkUserId();
+        doReturn(league).when(service).requireActiveLeague(leagueId);
+        doNothing().when(service).ensureCanView(league, userId);
+
+        when(leagueTeamRepository.findByLeague_IdOrderByCreatedAtDesc(leagueId))
+                .thenReturn(Collections.emptyList());
+
+        when(leagueMatchRepository.findByLeague_IdOrderByStartTimeDesc(leagueId))
+                .thenReturn(Collections.emptyList());
+
+        when(leagueMatchScoreRepository.findByMatch_League_Id(leagueId))
+                .thenReturn(Collections.emptyList());
+
+        List<StandingScore> standings = service.getLeagueStandings(leagueId);
+
+        assertThat(standings).isEmpty();
+    }
+
+
+    @Test
+    void getLeagueStandings_ignoresMatchWhenTeamNotInLeague() {
+        UUID leagueId = UUID.randomUUID();
+        String userId = "user_1";
+
+        UUID teamA = UUID.randomUUID();
+        UUID teamB = UUID.randomUUID();
+
+        League league = League.builder()
+                .id(leagueId)
+                .name("Test League")
+                .sport("soccer")
+                .ownerUserId(userId)
+                .privacy(LeaguePrivacy.PUBLIC)
+                .level(LeagueLevel.COMPETITIVE)
+                .build();
+
+        LeagueService service = spy(leagueService);
+
+        doReturn(userId).when(currentUserProvider).clerkUserId();
+        doReturn(league).when(service).requireActiveLeague(leagueId);
+        doNothing().when(service).ensureCanView(league, userId);
+
+        LeagueTeam lt1 = mock(LeagueTeam.class);
+        when(lt1.getTeamId()).thenReturn(teamA);
+
+        when(leagueTeamRepository.findByLeague_IdOrderByCreatedAtDesc(leagueId))
+                .thenReturn(List.of(lt1));
+
+        LeagueMatch match = LeagueMatch.builder()
+                .id(UUID.randomUUID())
+                .league(league)
+                .homeTeamId(teamA)
+                .awayTeamId(teamB)
+                .sport("soccer")
+                .startTime(OffsetDateTime.now())
+                .endTime(OffsetDateTime.now().plusHours(1))
+                .requiresReferee(false)
+                .status(LeagueMatchStatus.CONFIRMED)
+                .createdByUserId(userId)
+                .build();
+
+        when(leagueMatchRepository.findByLeague_IdOrderByStartTimeDesc(leagueId))
+                .thenReturn(List.of(match));
+
+        LeagueMatchScore score = LeagueMatchScore.builder()
+                .id(UUID.randomUUID())
+                .match(match)
+                .homeScore(3)
+                .awayScore(0)
+                .submittedByUserId(userId)
+                .build();
+
+        when(leagueMatchScoreRepository.findByMatch_League_Id(leagueId))
+                .thenReturn(List.of(score));
+
+        List<StandingScore> standings = service.getLeagueStandings(leagueId);
+
+        assertThat(standings).hasSize(1);
+        assertThat(standings.get(0).getPlayed()).isZero();
+        assertThat(standings.get(0).getPoints()).isZero();
     }
 }

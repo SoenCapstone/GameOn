@@ -9,14 +9,10 @@ import com.game.on.go_league_service.exception.NotFoundException;
 import com.game.on.go_league_service.league.dto.*;
 import com.game.on.go_league_service.league.mapper.LeagueMapper;
 import com.game.on.go_league_service.league.metrics.LeagueMetricsPublisher;
-import com.game.on.go_league_service.league.model.League;
-import com.game.on.go_league_service.league.model.LeaguePrivacy;
-import com.game.on.go_league_service.league.model.LeagueSeason;
+import com.game.on.go_league_service.league.model.*;
 import com.game.on.go_league_service.league.mapper.LeagueTeamMapper;
-import com.game.on.go_league_service.league.repository.LeagueRepository;
-import com.game.on.go_league_service.league.repository.LeagueSeasonRepository;
+import com.game.on.go_league_service.league.repository.*;
 import com.game.on.go_league_service.league.repository.LeagueSeasonRepository.LeagueSeasonCountProjection;
-import com.game.on.go_league_service.league.repository.LeagueTeamRepository;
 import com.game.on.go_league_service.league.util.SlugGenerator;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -35,10 +31,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.UUID;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import static com.game.on.go_league_service.league.service.LeagueSpecifications.*;
-import static java.lang.String.format;
 
 @Slf4j
 @Service
@@ -53,6 +49,8 @@ public class LeagueService {
     private final TeamClient teamClient;
     private final CurrentUserProvider userProvider;
     private final LeagueMetricsPublisher metricsPublisher;
+    private final LeagueMatchRepository leagueMatchRepository;
+    private final LeagueMatchScoreRepository leagueMatchScoreRepository;
 
     @Transactional
     public LeagueDetailResponse createLeague(LeagueCreateRequest request) {
@@ -313,6 +311,32 @@ public class LeagueService {
         log.info("league_season_archived leagueId={} seasonId={} byUser={}",
                 leagueId, seasonId, userId);
         // metricsPublisher.seasonArchived(); // optional
+    }
+
+    public List<StandingScore> getLeagueStandings(UUID leagueId) {
+        String userId = userProvider.clerkUserId();
+        League league = requireActiveLeague(leagueId);
+        ensureCanView(league, userId);
+
+        List<UUID> teamIds = leagueTeamRepository.findByLeague_IdOrderByCreatedAtDesc(leagueId)
+                .stream()
+                .map(LeagueTeam::getTeamId)
+                .distinct()
+                .toList();
+
+        List<LeagueMatch> matches = leagueMatchRepository.findByLeague_IdOrderByStartTimeDesc(leagueId);
+
+        Map<UUID, LeagueMatchScore> scoresByMatchId = leagueMatchScoreRepository
+                .findByMatch_League_Id(leagueId)
+                .stream()
+                .collect(Collectors.toMap(
+                        score -> score.getMatch().getId(),
+                        Function.identity()
+                ));
+
+        StandingStrategy strategy = StandingStrategyFactory.createStandingStrategy(league.getSport());
+
+        return strategy.calculateStanding(teamIds, matches, scoresByMatchId);
     }
 
     public List<LeagueTeamResponse> getMyLeagueMemberships(UUID leagueId) {
