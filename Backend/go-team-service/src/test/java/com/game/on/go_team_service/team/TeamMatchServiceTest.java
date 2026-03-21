@@ -218,6 +218,7 @@ class TeamMatchServiceTest {
         assertEquals("TEAM_DAILY_LIMIT_EXCEEDED", ex.getCode());
     }
 
+    @Test
     void validateMatchInvite_whenRequestedLateEveningMatchesStoredUtcDay_returnsDailyLimitConflict() {
         when(userProvider.clerkUserId()).thenReturn(ownerUserId);
 
