@@ -4,7 +4,6 @@ import { getScheduleApiErrorMessage } from "@/utils/schedule-errors";
 import {
   getScheduleConflictMessage,
   LEAGUE_SAME_DAY_CONFLICT_MESSAGE,
-  TEAM_TIME_CONFLICT_MESSAGE,
 } from "@/features/matches/schedule-shared";
 import { MatchDetailsSection } from "@/components/matches/match-details-section";
 import { AxiosError } from "axios";
