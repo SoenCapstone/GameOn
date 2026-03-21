@@ -1,9 +1,7 @@
 package com.game.on.go_team_service.team.controller;
 
-import com.game.on.go_team_service.team.dto.TeamMatchCancelRequest;
-import com.game.on.go_team_service.team.dto.TeamMatchCreateRequest;
-import com.game.on.go_team_service.team.dto.TeamMatchResponse;
-import com.game.on.go_team_service.team.dto.TeamMatchScoreRequest;
+import com.game.on.go_team_service.team.dto.*;
+import com.game.on.go_team_service.team.model.TeamMatchMember;
 import com.game.on.go_team_service.team.service.TeamMatchService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -17,6 +15,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 @RestController
@@ -71,4 +70,30 @@ public class TeamMatchController {
         teamMatchService.assignReferee(matchId);
         return ResponseEntity.noContent().build();
     }
+
+    @PostMapping("/matches/{matchId}/members/attendance")
+    public ResponseEntity<Void> updateAttendance(
+            @PathVariable UUID matchId,
+            @RequestBody UpdateMatchAttendanceRequest request
+    ) {
+        teamMatchService.updateAttendance(matchId, request);
+        return ResponseEntity.noContent().build();
+    }
+
+    @GetMapping("/matches/{matchId}/members")
+    public ResponseEntity<Map<UUID, List<TeamMatchMember>>> getMatchMembers(@PathVariable UUID matchId) {
+        return ResponseEntity.ok(teamMatchService.getMatchMembers(matchId));
+
+    }
+
+    @GetMapping("/matches/{matchId}/teams/{teamId}/members")
+    public ResponseEntity<List<TeamMatchMember>> getTeamMembers(
+            @PathVariable UUID matchId,
+            @PathVariable UUID teamId
+    ) {
+        List<TeamMatchMember> members = teamMatchService.getMatchMembersByTeam(matchId, teamId);
+        return ResponseEntity.ok(members);
+    }
+
+
 }

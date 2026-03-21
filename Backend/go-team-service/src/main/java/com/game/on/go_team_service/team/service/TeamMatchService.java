@@ -6,23 +6,9 @@ import com.game.on.go_team_service.exception.BadRequestException;
 import com.game.on.go_team_service.exception.ConflictException;
 import com.game.on.go_team_service.exception.ForbiddenException;
 import com.game.on.go_team_service.exception.NotFoundException;
-import com.game.on.go_team_service.team.dto.TeamMatchCancelRequest;
-import com.game.on.go_team_service.team.dto.TeamMatchCreateRequest;
-import com.game.on.go_team_service.team.dto.TeamMatchResponse;
-import com.game.on.go_team_service.team.dto.TeamMatchScoreRequest;
-import com.game.on.go_team_service.team.model.Team;
-import com.game.on.go_team_service.team.model.TeamMatch;
-import com.game.on.go_team_service.team.model.TeamMatchInvite;
-import com.game.on.go_team_service.team.model.TeamMatchInviteStatus;
-import com.game.on.go_team_service.team.model.TeamMatchScore;
-import com.game.on.go_team_service.team.model.TeamMatchStatus;
-import com.game.on.go_team_service.team.model.TeamMatchType;
-import com.game.on.go_team_service.team.model.Venue;
-import com.game.on.go_team_service.team.repository.TeamMatchInviteRepository;
-import com.game.on.go_team_service.team.repository.TeamMatchRepository;
-import com.game.on.go_team_service.team.repository.TeamMatchScoreRepository;
-import com.game.on.go_team_service.team.repository.TeamMemberRepository;
-import com.game.on.go_team_service.team.repository.TeamRepository;
+import com.game.on.go_team_service.team.dto.*;
+import com.game.on.go_team_service.team.model.*;
+import com.game.on.go_team_service.team.repository.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -32,7 +18,9 @@ import org.springframework.util.StringUtils;
 import java.time.Duration;
 import java.time.OffsetDateTime;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -47,6 +35,7 @@ public class TeamMatchService {
     private final TeamMatchRepository teamMatchRepository;
     private final TeamMatchInviteRepository teamMatchInviteRepository;
     private final TeamMatchScoreRepository teamMatchScoreRepository;
+    private final TeamMatchMemberRepository teamMatchMemberRepository;
     private final VenueService venueService;
     private final CurrentUserProvider userProvider;
     private final LeagueClient leagueClient;
@@ -102,6 +91,9 @@ public class TeamMatchService {
                 .build();
 
         var savedMatch = teamMatchRepository.save(match);
+
+        addTeamMembersToMatch(savedMatch, homeTeam.getId(), true);
+        addTeamMembersToMatch(savedMatch, awayTeam.getId(), false);
 
         TeamMatchInvite invite = TeamMatchInvite.builder()
                 .match(savedMatch)
@@ -525,7 +517,63 @@ public class TeamMatchService {
         team.setMinutesPlayed(safeInt(team.getMinutesPlayed()) + playedMinutes);
     }
 
+    private void addTeamMembersToMatch(TeamMatch match, UUID teamId, Boolean isHomeTeam) {
+        List<TeamMember> players = teamMemberRepository
+                .findByTeamIdAndRole(teamId, TeamRole.PLAYER);
+
+        AttendanceStatus status = isHomeTeam
+                ? AttendanceStatus.CONFIRMED
+                : AttendanceStatus.PENDING;
+
+        List<TeamMatchMember> matchMembers = players.stream()
+                .map(member -> TeamMatchMember.builder()
+                        .match(match)
+                        .teamMember(member)
+                        .teamId(teamId)
+                        .role(member.getRole())
+                        .attending(status)
+                        .joinedAt(OffsetDateTime.now())
+                        .build()
+                )
+                .toList();
+
+        teamMatchMemberRepository.saveAll(matchMembers);
+    }
+
     private int safeInt(Integer value) {
         return value == null ? 0 : value;
+    }
+
+    public void updateAttendance(UUID matchId, UpdateMatchAttendanceRequest request) {
+        String userId = userProvider.clerkUserId();
+
+        if (request.attending() == null) {
+            throw new BadRequestException("Attendance status must be provided");
+        }
+
+        if (request.attending() == AttendanceStatus.PENDING) {
+            throw new BadRequestException("Cannot set status to PENDING");
+        }
+
+        TeamMatchMember member = teamMatchMemberRepository
+                .findByMatch_IdAndTeamMember_UserId(matchId, userId)
+                .orElseThrow(() -> new NotFoundException("Player not found in match"));
+
+        if (member.getAttending() == request.attending()) {
+            return;
+        }
+
+        member.setAttending(request.attending());
+
+        teamMatchMemberRepository.save(member);
+    }
+
+    public Map<UUID, List<TeamMatchMember>> getMatchMembers(UUID matchId) {
+        List<TeamMatchMember> allMembers = teamMatchMemberRepository.findByMatch_Id(matchId);
+        return allMembers.stream()
+                .collect(Collectors.groupingBy(TeamMatchMember::getTeamId));
+    }
+    public List<TeamMatchMember> getMatchMembersByTeam(UUID matchId, UUID teamId) {
+        return teamMatchMemberRepository.findByMatch_IdAndTeamId(matchId, teamId);
     }
 }
