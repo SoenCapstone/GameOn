@@ -14,6 +14,7 @@ import {
 } from "@/hooks/use-axios-clerk";
 import { errorToString } from "@/utils/error";
 import { getScheduleApiErrorMessage } from "@/utils/schedule-errors";
+import { ScheduleConflictCode } from "@/features/matches/types";
 import { fetchLeagueInvitesWithDetails } from "@/components/leagues/league-invite-utils";
 import {
   fetchIncomingRefereeInvites,
@@ -63,11 +64,7 @@ export default function Home() {
     const { message } = getScheduleApiErrorMessage(
       err as import("axios").AxiosError<{
         message?: string;
-        code?:
-          | "LEAGUE_TEAM_SAME_DAY_CONFLICT"
-          | "TEAM_DAILY_LIMIT_EXCEEDED"
-          | "TEAM_TIME_SLOT_CONFLICT"
-          | null;
+        code?: ScheduleConflictCode | null;
       }>,
       "Only the invited team owner can respond to this match invite.",
     );
