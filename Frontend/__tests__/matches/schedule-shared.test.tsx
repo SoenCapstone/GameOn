@@ -133,15 +133,23 @@ describe("getScheduleApiErrorMessage", () => {
         data: {
           code: "TEAM_TIME_SLOT_CONFLICT",
           message: "backend message",
+          conflictingTeamIds: ["team-2"],
         },
       },
     };
     const result = getScheduleApiErrorMessage(
-      err as AxiosError<{ message?: string; code?: "TEAM_TIME_SLOT_CONFLICT" }>,
+      err as AxiosError<{
+        message?: string;
+        code?: "TEAM_TIME_SLOT_CONFLICT";
+        conflictingTeamIds?: string[];
+      }>,
       "Forbidden!",
+      { "team-2": "Barcelona" },
     );
     expect(result.status).toBe(409);
-    expect(result.message).toBe(TEAM_TIME_CONFLICT_MESSAGE);
+    expect(result.message).toBe(
+      "Barcelona already has a confirmed match that overlaps this time or falls within the required 60-minute buffer.",
+    );
   });
 });
 
@@ -150,6 +158,17 @@ describe("getScheduleConflictMessage", () => {
     expect(
       getScheduleConflictMessage("LEAGUE_TEAM_SAME_DAY_CONFLICT", "fallback"),
     ).toBe(LEAGUE_SAME_DAY_CONFLICT_MESSAGE);
+  });
+
+  it("uses team names when conflicting ids are provided", () => {
+    expect(
+      getScheduleConflictMessage(
+        "TEAM_DAILY_LIMIT_EXCEEDED",
+        "fallback",
+        ["home-id", "away-id"],
+        { "home-id": "Real Madrid", "away-id": "Barcelona" },
+      ),
+    ).toBe("Real Madrid and Barcelona already have 3 confirmed matches on this day.");
   });
 
   it("falls back to the provided backend message when code is missing", () => {

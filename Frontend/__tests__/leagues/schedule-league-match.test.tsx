@@ -2,8 +2,6 @@ import React from "react";
 import { render, fireEvent, waitFor, act } from "@testing-library/react-native";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import ScheduleLeagueMatchScreen from "@/app/(contexts)/leagues/[id]/matches/schedule";
-import { LEAGUE_SAME_DAY_CONFLICT_MESSAGE } from "@/features/matches/schedule-shared";
-
 const mockSetOptions = jest.fn();
 const mockReplace = jest.fn();
 const mockDismissTo = jest.fn();
@@ -311,6 +309,7 @@ describe("ScheduleLeagueMatchScreen", () => {
     mockValidateLeagueMatchSchedule.mockResolvedValue({
       allowed: false,
       code: "LEAGUE_TEAM_SAME_DAY_CONFLICT",
+      conflictingTeamIds: ["team-2"],
     });
 
     const { getByTestId } = render(
@@ -335,7 +334,7 @@ describe("ScheduleLeagueMatchScreen", () => {
     expect(mockCreateLeagueMatch).not.toHaveBeenCalled();
     expect(mockAlert).toHaveBeenCalledWith(
       "Match schedule failed",
-      LEAGUE_SAME_DAY_CONFLICT_MESSAGE,
+      "Beta FC already has a confirmed match on this day. League teams are limited to one match per day.",
     );
   });
 });
