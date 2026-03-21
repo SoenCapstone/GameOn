@@ -5,15 +5,22 @@ import { ScheduleConflictCode } from "@/features/matches/types";
 
 export function getScheduleApiErrorMessage(
   err:
-    | AxiosError<{ message?: string; code?: ScheduleConflictCode | null }>
+    | AxiosError<{
+        message?: string;
+        code?: ScheduleConflictCode | null;
+        conflictingTeamIds?: string[] | null;
+      }>
     | undefined,
   forbiddenMessage: string,
+  teamNamesById?: Record<string, string>,
 ) {
   const status = err?.response?.status;
   const message =
     getScheduleConflictMessage(
       err?.response?.data?.code,
       err?.response?.data?.message ?? "Could not schedule the match.",
+      err?.response?.data?.conflictingTeamIds,
+      teamNamesById,
     ) ?? "Could not schedule the match.";
 
   if (!err?.response)
@@ -26,13 +33,16 @@ export function showScheduleSubmitError(
   err: unknown,
   unauthorizedMessage: string,
   onRetry: () => void,
+  teamNamesById?: Record<string, string>,
 ) {
   const { status, message } = getScheduleApiErrorMessage(
     err as AxiosError<{
       message?: string;
       code?: ScheduleConflictCode | null;
+      conflictingTeamIds?: string[] | null;
     }>,
     unauthorizedMessage,
+    teamNamesById,
   );
   if (status === 0) {
     Alert.alert("Network error", message, [
