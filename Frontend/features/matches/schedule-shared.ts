@@ -9,12 +9,35 @@ export type VenueOption = {
   label: string;
 };
 
+const GENERIC_CONFLICT_SUBJECT = "One of these teams";
+
+const SCHEDULE_CONFLICT_MESSAGE_BUILDERS: Record<
+  ScheduleConflictCode,
+  (subject: string, isPlural: boolean) => string
+> = {
+  LEAGUE_TEAM_SAME_DAY_CONFLICT: (subject, isPlural) =>
+    `${subject} already ${isPlural ? "have" : "has"} a confirmed match on this day. League teams are limited to one match per day.`,
+  TEAM_DAILY_LIMIT_EXCEEDED: (subject, isPlural) =>
+    `${subject} already ${isPlural ? "have" : "has"} 3 confirmed matches on this day.`,
+  TEAM_TIME_SLOT_CONFLICT: (subject, isPlural) =>
+    `${subject} already ${isPlural ? "have" : "has"} a confirmed match that overlaps this time or falls within the required 60-minute buffer.`,
+};
+
 export const LEAGUE_SAME_DAY_CONFLICT_MESSAGE =
-  "One of these teams already has a confirmed match on this day. League teams are limited to one match per day.";
+  SCHEDULE_CONFLICT_MESSAGE_BUILDERS.LEAGUE_TEAM_SAME_DAY_CONFLICT(
+    GENERIC_CONFLICT_SUBJECT,
+    false,
+  );
 export const TEAM_DAILY_LIMIT_CONFLICT_MESSAGE =
-  "One of these teams already has 3 confirmed matches on this day.";
+  SCHEDULE_CONFLICT_MESSAGE_BUILDERS.TEAM_DAILY_LIMIT_EXCEEDED(
+    GENERIC_CONFLICT_SUBJECT,
+    false,
+  );
 export const TEAM_TIME_CONFLICT_MESSAGE =
-  "One of these teams already has a confirmed match that overlaps this time or falls within the required 60-minute buffer.";
+  SCHEDULE_CONFLICT_MESSAGE_BUILDERS.TEAM_TIME_SLOT_CONFLICT(
+    GENERIC_CONFLICT_SUBJECT,
+    false,
+  );
 
 const SCHEDULE_CONFLICT_MESSAGES: Record<ScheduleConflictCode, string> = {
   LEAGUE_TEAM_SAME_DAY_CONFLICT: LEAGUE_SAME_DAY_CONFLICT_MESSAGE,
@@ -120,16 +143,10 @@ function getSpecificScheduleConflictMessage(
     return null;
   }
 
-  switch (code) {
-    case "LEAGUE_TEAM_SAME_DAY_CONFLICT":
-      return `${conflictingTeamsLabel} already ${isPluralLabel(conflictingTeamsLabel) ? "have" : "has"} a confirmed match on this day. League teams are limited to one match per day.`;
-    case "TEAM_DAILY_LIMIT_EXCEEDED":
-      return `${conflictingTeamsLabel} already ${isPluralLabel(conflictingTeamsLabel) ? "have" : "has"} 3 confirmed matches on this day.`;
-    case "TEAM_TIME_SLOT_CONFLICT":
-      return `${conflictingTeamsLabel} already ${isPluralLabel(conflictingTeamsLabel) ? "have" : "has"} a confirmed match that overlaps this time or falls within the required 60-minute buffer.`;
-    default:
-      return null;
-  }
+  return SCHEDULE_CONFLICT_MESSAGE_BUILDERS[code](
+    conflictingTeamsLabel,
+    isPluralLabel(conflictingTeamsLabel),
+  );
 }
 
 function isPluralLabel(conflictingTeamsLabel: string) {
