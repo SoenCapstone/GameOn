@@ -29,8 +29,11 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
+import java.time.LocalDate;
 import java.time.OffsetDateTime;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.UUID;
 
 @Slf4j
@@ -68,6 +71,7 @@ public class LeagueMatchService {
         return validateScheduleAvailability(
                 request.homeTeamId(),
                 request.awayTeamId(),
+                request.scheduledDate(),
                 request.startTime(),
                 request.endTime()
         );
@@ -94,11 +98,16 @@ public class LeagueMatchService {
         var validation = validateScheduleAvailability(
                 request.homeTeamId(),
                 request.awayTeamId(),
+                request.scheduledDate(),
                 request.startTime(),
                 request.endTime()
         );
         if (!validation.allowed()) {
-            throw new ConflictException(validation.code(), validation.message());
+            throw new ConflictException(
+                    validation.code(),
+                    validation.message(),
+                    validation.conflictingTeamIds()
+            );
         }
 
         var homeTeam = teamClient.getTeam(request.homeTeamId());
@@ -115,6 +124,7 @@ public class LeagueMatchService {
                 .sport(matchSport)
                 .startTime(request.startTime())
                 .endTime(request.endTime())
+                .scheduledDate(request.scheduledDate())
                 .matchLocation(venue.getName())
                 .venueId(venue.getId())
                 .requiresReferee(true)
@@ -276,46 +286,77 @@ public class LeagueMatchService {
     private LeagueMatchScheduleValidationResponse validateScheduleAvailability(
             UUID homeTeam,
             UUID awayTeam,
+            LocalDate scheduledDate,
             OffsetDateTime startTime,
             OffsetDateTime endTime
     ) {
+        var homeConflict = findScheduleConflict(homeTeam, scheduledDate);
+        var awayConflict = findScheduleConflict(awayTeam, scheduledDate);
 
-        var allLeagueMatches = leagueMatchRepository.findByHomeTeamIdOrAwayTeamId(homeTeam, homeTeam);
-        allLeagueMatches.addAll(leagueMatchRepository.findByHomeTeamIdOrAwayTeamId(awayTeam, awayTeam));
-
-        for(var match : allLeagueMatches) {
-            boolean isSameDay = (match.getStartTime().getYear() == startTime.getYear()
-                    && match.getStartTime().getDayOfYear() == startTime.getDayOfYear());
-            
-            boolean isConfirmed = match.getStatus() == LeagueMatchStatus.CONFIRMED;
-
-            if(isSameDay && isConfirmed) {
-                return LeagueMatchScheduleValidationResponse.blockedResult(
-                        LEAGUE_TEAM_SAME_DAY_CONFLICT_CODE,
-                        LEAGUE_TEAM_SAME_DAY_CONFLICT_MESSAGE
-                );
+        if (homeConflict != null && awayConflict != null
+                && Objects.equals(homeConflict.code(), awayConflict.code())) {
+            var conflictingTeamIds = new ArrayList<UUID>();
+            if (homeConflict.conflictingTeamIds() != null) {
+                conflictingTeamIds.addAll(homeConflict.conflictingTeamIds());
             }
+            if (awayConflict.conflictingTeamIds() != null) {
+                conflictingTeamIds.addAll(awayConflict.conflictingTeamIds());
+            }
+            return LeagueMatchScheduleValidationResponse.blockedResult(
+                    homeConflict.code(),
+                    homeConflict.message(),
+                    conflictingTeamIds
+            );
         }
-
-
-        var allTeamMatches = teamClient.getAllTeamMatch(homeTeam);
-        allTeamMatches.addAll(teamClient.getAllTeamMatch(awayTeam));
-
-        for(var match : allTeamMatches) {
-            boolean isSameDay = (match.startTime().getYear() == startTime.getYear()
-                    && match.startTime().getDayOfYear() == startTime.getDayOfYear());
-
-            boolean isConfirmed = match.status().equalsIgnoreCase("confirmed");
-
-            if(isSameDay && isConfirmed) {
-                return LeagueMatchScheduleValidationResponse.blockedResult(
-                        LEAGUE_TEAM_SAME_DAY_CONFLICT_CODE,
-                        LEAGUE_TEAM_SAME_DAY_CONFLICT_MESSAGE
-                );
-            }
+        if (homeConflict != null) {
+            return homeConflict;
+        }
+        if (awayConflict != null) {
+            return awayConflict;
         }
 
         return LeagueMatchScheduleValidationResponse.allowedResult();
+    }
+
+    private LeagueMatchScheduleValidationResponse findScheduleConflict(
+            UUID teamId,
+            LocalDate scheduledDate
+    ) {
+        var leagueMatches = leagueMatchRepository.findByHomeTeamIdOrAwayTeamId(teamId, teamId);
+
+        for (var match : leagueMatches) {
+            boolean isSameDay = isSameScheduledDate(match.getScheduledDate(), scheduledDate);
+            boolean isConfirmed = match.getStatus() == LeagueMatchStatus.CONFIRMED;
+
+            if (isSameDay && isConfirmed) {
+                return LeagueMatchScheduleValidationResponse.blockedResult(
+                        LEAGUE_TEAM_SAME_DAY_CONFLICT_CODE,
+                        LEAGUE_TEAM_SAME_DAY_CONFLICT_MESSAGE,
+                        List.of(teamId)
+                );
+            }
+        }
+
+        var teamMatches = teamClient.getAllTeamMatch(teamId);
+
+        for (var match : teamMatches) {
+            boolean isSameDay = isSameScheduledDate(match.scheduledDate(), scheduledDate);
+            boolean isConfirmed = match.status().equalsIgnoreCase("confirmed");
+
+            if (isSameDay && isConfirmed) {
+                return LeagueMatchScheduleValidationResponse.blockedResult(
+                        LEAGUE_TEAM_SAME_DAY_CONFLICT_CODE,
+                        LEAGUE_TEAM_SAME_DAY_CONFLICT_MESSAGE,
+                        List.of(teamId)
+                );
+            }
+        }
+
+        return null;
+    }
+
+    private boolean isSameScheduledDate(LocalDate matchScheduledDate, LocalDate requestedScheduledDate) {
+        return matchScheduledDate != null && matchScheduledDate.equals(requestedScheduledDate);
     }
 
     private String resolveMatchSport(String homeSport, String awaySport) {
@@ -340,6 +381,7 @@ public class LeagueMatchService {
                 match.getSport(),
                 match.getStartTime(),
                 match.getEndTime(),
+                match.getScheduledDate(),
                 match.getMatchLocation(),
                 match.getVenueId(),
                 match.isRequiresReferee(),
