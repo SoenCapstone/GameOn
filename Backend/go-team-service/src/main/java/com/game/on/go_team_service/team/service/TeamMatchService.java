@@ -31,8 +31,11 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
 import java.time.Duration;
+import java.time.LocalDate;
 import java.time.OffsetDateTime;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.UUID;
 
 @Slf4j
@@ -77,7 +80,13 @@ public class TeamMatchService {
         }
 
         validateTimes(request.startTime(), request.endTime());
-        return validateScheduleAvailability(homeTeam.getId(), awayTeam.getId(), request.startTime(), request.endTime());
+        return validateScheduleAvailability(
+                homeTeam.getId(),
+                awayTeam.getId(),
+                request.scheduledDate(),
+                request.startTime(),
+                request.endTime()
+        );
     }
 
     @Transactional
@@ -113,11 +122,16 @@ public class TeamMatchService {
         var validation = validateScheduleAvailability(
                 homeTeam.getId(),
                 awayTeam.getId(),
+                request.scheduledDate(),
                 request.startTime(),
                 request.endTime()
         );
         if (!validation.allowed()) {
-            throw new ConflictException(validation.code(), validation.message());
+            throw new ConflictException(
+                    validation.code(),
+                    validation.message(),
+                    validation.conflictingTeamIds()
+            );
         }
 
         TeamMatch match = TeamMatch.builder()
@@ -127,6 +141,7 @@ public class TeamMatchService {
                 .sport(matchSport)
                 .startTime(request.startTime())
                 .endTime(request.endTime())
+                .scheduledDate(request.scheduledDate())
                 .matchLocation(venue != null ? venue.getName() : matchRegion)
                 .venueId(venue == null ? null : venue.getId())
                 .requiresReferee(Boolean.TRUE.equals(request.requiresReferee()))
@@ -183,6 +198,7 @@ public class TeamMatchService {
         var validation = validateScheduleAvailability(
                 match.getHomeTeamId(),
                 match.getAwayTeamId(),
+                match.getScheduledDate(),
                 match.getStartTime(),
                 match.getEndTime()
         );
@@ -193,7 +209,11 @@ public class TeamMatchService {
 
             match.setStatus(TeamMatchStatus.CANCELLED);
             teamMatchRepository.save(match);
-            throw new ConflictException(validation.code(), validation.message());
+            throw new ConflictException(
+                    validation.code(),
+                    validation.message(),
+                    validation.conflictingTeamIds()
+            );
         }
 
         invite.setStatus(TeamMatchInviteStatus.ACCEPTED);
@@ -343,15 +363,32 @@ public class TeamMatchService {
     private TeamMatchScheduleValidationResponse validateScheduleAvailability(
             UUID homeTeamId,
             UUID awayTeamId,
+            LocalDate scheduledDate,
             OffsetDateTime startTime,
             OffsetDateTime endTime
     ) {
-        var homeConflict = findSchedulingConflict(homeTeamId, startTime, endTime);
+        var homeConflict = findSchedulingConflict(homeTeamId, scheduledDate, startTime, endTime);
+        var awayConflict = findSchedulingConflict(awayTeamId, scheduledDate, startTime, endTime);
+
+        if (homeConflict != null && awayConflict != null
+                && Objects.equals(homeConflict.code(), awayConflict.code())) {
+            var conflictingTeamIds = new ArrayList<UUID>();
+            if (homeConflict.conflictingTeamIds() != null) {
+                conflictingTeamIds.addAll(homeConflict.conflictingTeamIds());
+            }
+            if (awayConflict.conflictingTeamIds() != null) {
+                conflictingTeamIds.addAll(awayConflict.conflictingTeamIds());
+            }
+            return TeamMatchScheduleValidationResponse.blockedResult(
+                    homeConflict.code(),
+                    homeConflict.message(),
+                    conflictingTeamIds
+            );
+        }
+
         if (homeConflict != null) {
             return homeConflict;
         }
-
-        var awayConflict = findSchedulingConflict(awayTeamId, startTime, endTime);
         if (awayConflict != null) {
             return awayConflict;
         }
@@ -361,6 +398,7 @@ public class TeamMatchService {
 
     private TeamMatchScheduleValidationResponse findSchedulingConflict(
             UUID team,
+            LocalDate scheduledDate,
             OffsetDateTime startTime,
             OffsetDateTime endTime
     ) {
@@ -369,8 +407,7 @@ public class TeamMatchService {
         int curMatchCount = 0;
 
         for(var match : allTeamMatches) {
-            boolean isSameDay = (match.getStartTime().getYear() == startTime.getYear()
-                    && match.getStartTime().getDayOfYear() == startTime.getDayOfYear());
+            boolean isSameDay = isSameScheduledDate(match.getScheduledDate(), scheduledDate);
             boolean isConfirmed = match.getStatus() == TeamMatchStatus.CONFIRMED;
 
             if(isSameDay && isConfirmed) {
@@ -380,7 +417,8 @@ public class TeamMatchService {
             if(curMatchCount >= MAX_MATCHES_PER_DAY){
                 return TeamMatchScheduleValidationResponse.blockedResult(
                         TEAM_DAILY_LIMIT_EXCEEDED_CODE,
-                        TEAM_DAILY_LIMIT_EXCEEDED_MESSAGE
+                        TEAM_DAILY_LIMIT_EXCEEDED_MESSAGE,
+                        List.of(team)
                 );
             }
 
@@ -396,7 +434,8 @@ public class TeamMatchService {
             if((isBetweenStartAndEndTime || isOverlapped) && isConfirmed) {
                 return TeamMatchScheduleValidationResponse.blockedResult(
                         TEAM_TIME_SLOT_CONFLICT_CODE,
-                        TEAM_TIME_SLOT_CONFLICT_MESSAGE
+                        TEAM_TIME_SLOT_CONFLICT_MESSAGE,
+                        List.of(team)
                 );
             }
         }
@@ -404,8 +443,7 @@ public class TeamMatchService {
         var allLeagueMatches = leagueClient.getLeagueMatchesForTeam(team);
 
         for(var match : allLeagueMatches) {
-            boolean isSameDay = (match.startTime().getYear() == startTime.getYear()
-                    && match.startTime().getDayOfYear() == startTime.getDayOfYear());
+            boolean isSameDay = isSameScheduledDate(match.scheduledDate(), scheduledDate);
             boolean isConfirmed = match.status().equalsIgnoreCase("confirmed");
 
             if(isSameDay && isConfirmed) {
@@ -415,7 +453,8 @@ public class TeamMatchService {
             if(curMatchCount >= MAX_MATCHES_PER_DAY){
                 return TeamMatchScheduleValidationResponse.blockedResult(
                         TEAM_DAILY_LIMIT_EXCEEDED_CODE,
-                        TEAM_DAILY_LIMIT_EXCEEDED_MESSAGE
+                        TEAM_DAILY_LIMIT_EXCEEDED_MESSAGE,
+                        List.of(team)
                 );
             }
 
@@ -431,12 +470,17 @@ public class TeamMatchService {
             if((isBetweenStartAndEndTime || isOverlapped) && isConfirmed) {
                 return TeamMatchScheduleValidationResponse.blockedResult(
                         TEAM_TIME_SLOT_CONFLICT_CODE,
-                        TEAM_TIME_SLOT_CONFLICT_MESSAGE
+                        TEAM_TIME_SLOT_CONFLICT_MESSAGE,
+                        List.of(team)
                 );
             }
         }
 
         return null;
+    }
+
+    private boolean isSameScheduledDate(LocalDate matchScheduledDate, LocalDate requestedScheduledDate) {
+        return matchScheduledDate != null && matchScheduledDate.equals(requestedScheduledDate);
     }
 
     private String resolveMatchSport(String requestedSport, Team homeTeam, Team awayTeam) {
@@ -491,6 +535,7 @@ public class TeamMatchService {
                 match.getSport(),
                 match.getStartTime(),
                 match.getEndTime(),
+                match.getScheduledDate(),
                 match.getMatchLocation(),
                 match.getVenueId(),
                 match.isRequiresReferee(),
