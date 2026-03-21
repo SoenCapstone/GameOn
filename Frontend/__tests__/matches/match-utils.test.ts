@@ -7,6 +7,7 @@ import {
   mapTeamsById,
   filterPendingTeamInvitesForOwner,
   buildMatchCards,
+  buildStartEndIso,
   splitMatchSections,
 } from "@/features/matches/utils";
 import type {
@@ -90,6 +91,21 @@ describe("formatMatchDateTime", () => {
   it("formats date string", () => {
     const date = "2023-01-01T12:34:00Z";
     expect(typeof formatMatchDateTime(date)).toBe("string");
+  });
+});
+
+describe("buildStartEndIso", () => {
+  it("preserves the local timezone offset instead of forcing UTC", () => {
+    const date = new Date("2026-03-19T00:00:00");
+    const startTime = new Date("2026-03-19T22:32:00");
+    const endTime = new Date("2026-03-19T23:32:00");
+
+    const result = buildStartEndIso(date, startTime, endTime);
+
+    expect(result.startTime).toMatch(
+      /^2026-03-19T22:32:00[+-]\d{2}:\d{2}$/,
+    );
+    expect(result.endTime).toMatch(/^2026-03-19T23:32:00[+-]\d{2}:\d{2}$/);
   });
 });
 

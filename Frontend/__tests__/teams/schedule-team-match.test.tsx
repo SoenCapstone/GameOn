@@ -2,8 +2,6 @@ import React from "react";
 import { render, fireEvent, waitFor, act } from "@testing-library/react-native";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import ScheduleTeamMatchScreen from "@/app/(contexts)/teams/[id]/matches/schedule";
-import { TEAM_TIME_CONFLICT_MESSAGE } from "@/features/matches/schedule-shared";
-
 const mockSetOptions = jest.fn();
 const mockReplace = jest.fn();
 const mockDismissTo = jest.fn();
@@ -362,6 +360,7 @@ describe("ScheduleTeamMatchScreen", () => {
     mockValidateTeamMatchSchedule.mockResolvedValue({
       allowed: false,
       code: "TEAM_TIME_SLOT_CONFLICT",
+      conflictingTeamIds: ["team-2"],
     });
 
     const { getByTestId } = render(
@@ -381,7 +380,7 @@ describe("ScheduleTeamMatchScreen", () => {
     expect(mockCreateTeamMatch).not.toHaveBeenCalled();
     expect(mockAlert).toHaveBeenCalledWith(
       "Match schedule failed",
-      TEAM_TIME_CONFLICT_MESSAGE,
+      "Rivals already has a confirmed match that overlaps this time or falls within the required 60-minute buffer.",
     );
   });
 });
