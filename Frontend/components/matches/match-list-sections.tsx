@@ -21,6 +21,8 @@ type MatchItem = {
   onConfirmCancel?: () => Promise<void>;
   canSubmitScore?: boolean;
   onSubmitScore?: () => void;
+  canOptOut?: boolean;
+  onOptOut?: () => void;
 };
 
 interface MatchListSectionsProps {
@@ -72,6 +74,8 @@ function ListSection({
               onConfirmCancel={match.onConfirmCancel}
               canSubmitScore={Boolean(match.canSubmitScore)}
               onSubmitScore={match.onSubmitScore}
+              canOptOut={Boolean(match.canOptOut)}
+              onOptOut={match.onOptOut}
               onPress={() => onMatchPress(match)}
             />
           ))

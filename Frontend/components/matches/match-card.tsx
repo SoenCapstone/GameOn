@@ -35,6 +35,8 @@ interface MatchCardProps {
   readonly onConfirmCancel?: () => Promise<void>;
   readonly canSubmitScore?: boolean;
   readonly onSubmitScore?: () => void;
+  readonly canOptOut?: boolean;
+  readonly onOptOut?: () => void;
 }
 
 export function MatchCard({
@@ -53,6 +55,8 @@ export function MatchCard({
   onConfirmCancel,
   canSubmitScore = false,
   onSubmitScore,
+  canOptOut = false,
+  onOptOut,
 }: Readonly<MatchCardProps>) {
   const { showActionSheetWithOptions } = useActionSheet();
   const anchorRef = useRef<View>(null);
@@ -142,49 +146,57 @@ export function MatchCard({
   };
 
   const cardContent = (
-    <Pressable
-      ref={anchorRef}
-      onPress={onPress}
-      onLongPress={isRunningInExpoGo && hasMenuActions ? openMenu : undefined}
-    >
-      <Card isInteractive={!(hasMenuActions && !isRunningInExpoGo)}>
-        <View style={styles.content}>
-          <View style={styles.top}>
-            <Image
-              source={homeLogoUrl ? { uri: homeLogoUrl } : getSportLogo(sport)}
-              style={styles.logo}
-              contentFit="contain"
-            />
+    <View>
+      <Pressable
+        ref={anchorRef}
+        onPress={onPress}
+        onLongPress={isRunningInExpoGo && hasMenuActions ? openMenu : undefined}
+      >
+        <Card isInteractive={!(hasMenuActions && !isRunningInExpoGo)}>
+          <View style={styles.content}>
+            <View style={styles.top}>
+              <Image
+                source={homeLogoUrl ? { uri: homeLogoUrl } : getSportLogo(sport)}
+                style={styles.logo}
+                contentFit="contain"
+              />
 
-            <View style={styles.middle}>
-              <Text style={styles.league} numberOfLines={1}>
-                {contextLabel}
-              </Text>
-              {renderCenterValue()}
+              <View style={styles.middle}>
+                <Text style={styles.league} numberOfLines={1}>
+                  {contextLabel}
+                </Text>
+                {renderCenterValue()}
+              </View>
+
+              <Image
+                source={awayLogoUrl ? { uri: awayLogoUrl } : getSportLogo(sport)}
+                style={styles.logo}
+                contentFit="contain"
+              />
             </View>
 
-            <Image
-              source={awayLogoUrl ? { uri: awayLogoUrl } : getSportLogo(sport)}
-              style={styles.logo}
-              contentFit="contain"
-            />
+            <View style={styles.names}>
+              <View style={styles.home}>
+                <Text style={styles.name} numberOfLines={1}>
+                  {homeName}
+                </Text>
+              </View>
+              <View style={styles.away}>
+                <Text style={styles.name} numberOfLines={1}>
+                  {awayName}
+                </Text>
+              </View>
+            </View>
           </View>
+        </Card>
+      </Pressable>
 
-          <View style={styles.names}>
-            <View style={styles.home}>
-              <Text style={styles.name} numberOfLines={1}>
-                {homeName}
-              </Text>
-            </View>
-            <View style={styles.away}>
-              <Text style={styles.name} numberOfLines={1}>
-                {awayName}
-              </Text>
-            </View>
-          </View>
-        </View>
-      </Card>
-    </Pressable>
+      {canOptOut && onOptOut ? (
+        <Pressable onPress={onOptOut} style={styles.optOutButton}>
+          <Text style={styles.optOutText}>Not attending</Text>
+        </Pressable>
+      ) : null}
+    </View>
   );
 
   if (!hasMenuActions) {
@@ -314,6 +326,19 @@ const styles = StyleSheet.create({
   away: {
     minWidth: 76,
     alignItems: "center",
+  },
+  optOutButton: {
+    alignSelf: "flex-end",
+    marginTop: 6,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 999,
+    backgroundColor: "rgba(255,255,255,0.1)",
+  },
+  optOutText: {
+    color: "rgba(235,235,245,0.6)",
+    fontSize: 12,
+    fontWeight: "500",
   },
   skeleton: {
     backgroundColor: "rgba(255,255,255,0.16)",
