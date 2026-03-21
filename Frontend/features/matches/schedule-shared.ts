@@ -51,21 +51,87 @@ export function resolveSelectedVenueLabel(
 export function getScheduleConflictMessage(
   code?: ScheduleConflictCode | null,
   fallbackMessage?: string | null,
+  conflictingTeamIds?: string[] | null,
+  teamNamesById?: Record<string, string>,
 ) {
+  const conflictingTeamsLabel = formatConflictingTeamsLabel(
+    conflictingTeamIds,
+    teamNamesById,
+  );
+
   if (code) {
-    return SCHEDULE_CONFLICT_MESSAGES[code] ?? fallbackMessage ?? null;
+    return (
+      getSpecificScheduleConflictMessage(code, conflictingTeamsLabel) ??
+      SCHEDULE_CONFLICT_MESSAGES[code] ??
+      fallbackMessage ??
+      null
+    );
   }
   return fallbackMessage ?? null;
 }
 
 export function getBlockedScheduleValidationMessage(
   result: MatchScheduleValidationResult,
+  teamNamesById?: Record<string, string>,
 ) {
   if (result.allowed) {
     return null;
   }
   return (
-    getScheduleConflictMessage(result.code ?? undefined, result.message) ??
+    getScheduleConflictMessage(
+      result.code ?? undefined,
+      result.message,
+      result.conflictingTeamIds,
+      teamNamesById,
+    ) ??
     "Could not schedule the match."
   );
+}
+
+function formatConflictingTeamsLabel(
+  conflictingTeamIds?: string[] | null,
+  teamNamesById?: Record<string, string>,
+) {
+  if (!conflictingTeamIds?.length || !teamNamesById) {
+    return null;
+  }
+
+  const teamNames = conflictingTeamIds
+    .map((teamId) => teamNamesById[teamId] ?? teamId)
+    .filter(Boolean);
+
+  if (teamNames.length === 0) {
+    return null;
+  }
+  if (teamNames.length === 1) {
+    return teamNames[0];
+  }
+  if (teamNames.length === 2) {
+    return `${teamNames[0]} and ${teamNames[1]}`;
+  }
+  return `${teamNames.slice(0, -1).join(", ")}, and ${teamNames.at(-1)}`;
+}
+
+function getSpecificScheduleConflictMessage(
+  code: ScheduleConflictCode,
+  conflictingTeamsLabel: string | null,
+) {
+  if (!conflictingTeamsLabel) {
+    return null;
+  }
+
+  switch (code) {
+    case "LEAGUE_TEAM_SAME_DAY_CONFLICT":
+      return `${conflictingTeamsLabel} already ${isPluralLabel(conflictingTeamsLabel) ? "have" : "has"} a confirmed match on this day. League teams are limited to one match per day.`;
+    case "TEAM_DAILY_LIMIT_EXCEEDED":
+      return `${conflictingTeamsLabel} already ${isPluralLabel(conflictingTeamsLabel) ? "have" : "has"} 3 confirmed matches on this day.`;
+    case "TEAM_TIME_SLOT_CONFLICT":
+      return `${conflictingTeamsLabel} already ${isPluralLabel(conflictingTeamsLabel) ? "have" : "has"} a confirmed match that overlaps this time or falls within the required 60-minute buffer.`;
+    default:
+      return null;
+  }
+}
+
+function isPluralLabel(conflictingTeamsLabel: string) {
+  return conflictingTeamsLabel.includes(" and ");
 }

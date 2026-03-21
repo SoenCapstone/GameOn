@@ -25,7 +25,11 @@ import {
   useValidateLeagueMatchSchedule,
 } from "@/hooks/use-matches";
 import { useLeagueDetail } from "@/hooks/use-league-detail";
-import { buildStartEndIso, isValidTimeRange } from "@/features/matches/utils";
+import {
+  buildStartEndIso,
+  formatLocalDateString,
+  isValidTimeRange,
+} from "@/features/matches/utils";
 import { toast } from "@/components/sign-up/utils";
 import { parseDraftDate } from "@/utils/date";
 import { createScopedLog } from "@/utils/logger";
@@ -162,6 +166,23 @@ export default function ScheduleLeagueMatchScreen() {
   }, [awayTeamId, homeTeamId, teamOptions, teams]);
   const { refereeOptions, refereeLabelToId, refereeIdToLabel } =
     useRefereeOptions(refereesQuery.data);
+  const scheduleTeamNamesById = useMemo(
+    () => ({
+      ...(homeTeamId
+        ? {
+            [homeTeamId]:
+              teams.find((team) => team.id === homeTeamId)?.name ?? "Home team",
+          }
+        : {}),
+      ...(awayTeamId
+        ? {
+            [awayTeamId]:
+              teams.find((team) => team.id === awayTeamId)?.name ?? "Away team",
+          }
+        : {}),
+    }),
+    [awayTeamId, homeTeamId, teams],
+  );
 
   useEffect(() => {
     if (teamsQuery.error) {
@@ -232,18 +253,23 @@ export default function ScheduleLeagueMatchScreen() {
       startTimeValue,
       endTimeValue,
     );
+    const scheduledDate = formatLocalDateString(date);
 
     try {
       const validation = await validateMutation.mutateAsync({
         homeTeamId,
         awayTeamId,
+        scheduledDate,
         startTime,
         endTime,
         venueId,
         refereeUserId,
       });
 
-      const validationMessage = getBlockedScheduleValidationMessage(validation);
+      const validationMessage = getBlockedScheduleValidationMessage(
+        validation,
+        scheduleTeamNamesById,
+      );
       if (validationMessage) {
         Alert.alert("Match schedule failed", validationMessage);
         return;
@@ -252,6 +278,7 @@ export default function ScheduleLeagueMatchScreen() {
       await createMutation.mutateAsync({
         homeTeamId,
         awayTeamId,
+        scheduledDate,
         startTime,
         endTime,
         venueId,
@@ -267,7 +294,12 @@ export default function ScheduleLeagueMatchScreen() {
         params: { tab: "matches" },
       });
     } catch (err) {
-      showScheduleSubmitError(err, "You must be league admin", handleSubmit);
+      showScheduleSubmitError(
+        err,
+        "You must be league admin",
+        handleSubmit,
+        scheduleTeamNamesById,
+      );
     }
   }, [
     awayTeamId,
@@ -279,6 +311,7 @@ export default function ScheduleLeagueMatchScreen() {
     queryClient,
     refereeUserId,
     router,
+    scheduleTeamNamesById,
     startTimeValue,
     endTimeValue,
     venueId,

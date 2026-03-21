@@ -21,7 +21,11 @@ import {
   useValidateTeamMatchSchedule,
   useTeamVenues,
 } from "@/hooks/use-matches";
-import { buildStartEndIso, isValidTimeRange } from "@/features/matches/utils";
+import {
+  buildStartEndIso,
+  formatLocalDateString,
+  isValidTimeRange,
+} from "@/features/matches/utils";
 import {
   buildVenueOptionMaps,
   buildVenueOptions,
@@ -170,6 +174,19 @@ export default function ScheduleTeamMatchScreen() {
   const awayTeamOptions = awayTeams.map((candidate) => candidate.name);
   const { refereeOptions, refereeLabelToId, refereeIdToLabel } =
     useRefereeOptions(refereesQuery.data);
+  const scheduleTeamNamesById = useMemo(
+    () => ({
+      ...(teamId ? { [teamId]: team?.name ?? "Home team" } : {}),
+      ...(awayTeamId
+        ? {
+            [awayTeamId]:
+              awayTeams.find((candidate) => candidate.id === awayTeamId)?.name ??
+              "Away team",
+          }
+        : {}),
+    }),
+    [awayTeamId, awayTeams, team?.name, teamId],
+  );
 
   useEffect(() => {
     if (teamSearch.error) {
@@ -227,19 +244,24 @@ export default function ScheduleTeamMatchScreen() {
       startTimeValue,
       endTimeValue,
     );
+    const scheduledDate = formatLocalDateString(date);
 
     try {
       const validation = await validateMutation.mutateAsync({
         homeTeamId: teamId,
         awayTeamId,
         sport: team?.sport ?? undefined,
+        scheduledDate,
         startTime,
         endTime,
         venueId,
         requiresReferee,
       });
 
-      const validationMessage = getBlockedScheduleValidationMessage(validation);
+      const validationMessage = getBlockedScheduleValidationMessage(
+        validation,
+        scheduleTeamNamesById,
+      );
       if (validationMessage) {
         Alert.alert("Match schedule failed", validationMessage);
         return;
@@ -249,6 +271,7 @@ export default function ScheduleTeamMatchScreen() {
         homeTeamId: teamId,
         awayTeamId,
         sport: team?.sport ?? undefined,
+        scheduledDate,
         startTime,
         endTime,
         venueId,
@@ -274,6 +297,7 @@ export default function ScheduleTeamMatchScreen() {
         err,
         "Only team owner can schedule matches",
         handleSubmit,
+        scheduleTeamNamesById,
       );
     }
   }, [
@@ -288,6 +312,7 @@ export default function ScheduleTeamMatchScreen() {
     validateMutation,
     teamId,
     team?.sport,
+    scheduleTeamNamesById,
     queryClient,
     router,
   ]);

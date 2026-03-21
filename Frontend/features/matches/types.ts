@@ -96,6 +96,7 @@ export type MatchScheduleValidationResult = {
   allowed: boolean;
   code?: ScheduleConflictCode | null;
   message?: string | null;
+  conflictingTeamIds?: string[] | null;
 };
 
 export type MatchStatusBadge =

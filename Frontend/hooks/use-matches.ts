@@ -242,6 +242,7 @@ export function useValidateLeagueMatchSchedule(leagueId: string) {
     mutationFn: async (payload: {
       homeTeamId: string;
       awayTeamId: string;
+      scheduledDate: string;
       startTime: string;
       endTime: string;
       venueId: string;
@@ -253,6 +254,7 @@ export function useValidateLeagueMatchSchedule(leagueId: string) {
         {
           homeTeamId: payload.homeTeamId,
           awayTeamId: payload.awayTeamId,
+          scheduledDate: payload.scheduledDate,
           startTime: payload.startTime,
           endTime: payload.endTime,
           venueId: payload.venueId,
@@ -274,6 +276,7 @@ export function useCreateLeagueMatch(leagueId: string) {
     mutationFn: async (payload: {
       homeTeamId: string;
       awayTeamId: string;
+      scheduledDate: string;
       startTime: string;
       endTime: string;
       venueId: string;
@@ -285,6 +288,7 @@ export function useCreateLeagueMatch(leagueId: string) {
         {
           homeTeamId: payload.homeTeamId,
           awayTeamId: payload.awayTeamId,
+          scheduledDate: payload.scheduledDate,
           startTime: payload.startTime,
           endTime: payload.endTime,
           venueId: payload.venueId,
@@ -307,6 +311,7 @@ export function useValidateTeamMatchSchedule(teamId: string) {
       homeTeamId: string;
       awayTeamId: string;
       sport?: string;
+      scheduledDate: string;
       startTime: string;
       endTime: string;
       venueId?: string;
@@ -320,6 +325,7 @@ export function useValidateTeamMatchSchedule(teamId: string) {
           homeTeamId: payload.homeTeamId,
           awayTeamId: payload.awayTeamId,
           sport: payload.sport,
+          scheduledDate: payload.scheduledDate,
           startTime: payload.startTime,
           endTime: payload.endTime,
           venueId: payload.venueId,
@@ -342,6 +348,7 @@ export function useCreateTeamMatch(teamId: string) {
       homeTeamId: string;
       awayTeamId: string;
       sport?: string;
+      scheduledDate: string;
       startTime: string;
       endTime: string;
       venueId?: string;
@@ -356,6 +363,7 @@ export function useCreateTeamMatch(teamId: string) {
           homeTeamId: payload.homeTeamId,
           awayTeamId: payload.awayTeamId,
           sport: payload.sport,
+          scheduledDate: payload.scheduledDate,
           startTime: payload.startTime,
           endTime: payload.endTime,
           venueId: payload.venueId,
