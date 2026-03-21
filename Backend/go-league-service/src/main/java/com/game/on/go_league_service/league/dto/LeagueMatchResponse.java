@@ -2,6 +2,7 @@ package com.game.on.go_league_service.league.dto;
 
 import com.game.on.go_league_service.league.model.LeagueMatchStatus;
 
+import java.time.LocalDate;
 import java.time.OffsetDateTime;
 import java.util.UUID;
 
@@ -14,6 +15,7 @@ public record LeagueMatchResponse(
         String sport,
         OffsetDateTime startTime,
         OffsetDateTime endTime,
+        LocalDate scheduledDate,
         String matchLocation,
         UUID venueId,
         boolean requiresReferee,

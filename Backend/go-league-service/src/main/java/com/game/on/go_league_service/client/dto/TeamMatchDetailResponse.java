@@ -2,6 +2,7 @@ package com.game.on.go_league_service.client.dto;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
+import java.time.LocalDate;
 import java.time.OffsetDateTime;
 import java.util.UUID;
 
@@ -15,6 +16,7 @@ public record TeamMatchDetailResponse(
         String sport,
         OffsetDateTime startTime,
         OffsetDateTime endTime,
+        LocalDate scheduledDate,
         String matchLocation,
         UUID venueId,
         Boolean requiresReferee,
