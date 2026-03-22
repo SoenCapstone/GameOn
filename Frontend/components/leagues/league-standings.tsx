@@ -1,7 +1,21 @@
-import { View, Text, FlatList, StyleSheet, ActivityIndicator } from "react-native";
+import { View, Text, StyleSheet, ActivityIndicator } from "react-native";
+
+type Standing = {
+  teamId: string;
+  played?: number;
+  gamesPlayed?: number;
+  wins?: number;
+  draws?: number;
+  losses?: number;
+  points?: number;
+  teamName?: string;
+  team?: {
+    name?: string;
+  };
+};
 
 type Props = {
-  standings: any[];
+  standings: Standing[];
   isLoading?: boolean;
   error?: string | null;
   onRetry?: () => void;
@@ -11,7 +25,6 @@ export function LeagueStandings({
   standings,
   isLoading,
   error,
-  onRetry,
 }: Props) {
   if (isLoading) {
     return <ActivityIndicator size="small" color="#fff" />;
@@ -19,8 +32,17 @@ export function LeagueStandings({
 
   if (error) {
     return (
-      <View>
-        <Text style={{ color: "white" }}>{error}</Text>
+      <View style={styles.center}>
+        <Text style={styles.errorText}>{error}</Text>
+      </View>
+    );
+  }
+
+  // ✅ Empty state (important for PR quality)
+  if (!standings.length) {
+    return (
+      <View style={styles.center}>
+        <Text style={styles.errorText}>No standings yet.</Text>
       </View>
     );
   }
@@ -38,25 +60,39 @@ export function LeagueStandings({
         <Text style={styles.cell}>PTS</Text>
       </View>
 
-      <FlatList
-        data={standings}
-        keyExtractor={(item) => item.teamId}
-        renderItem={({ item, index }) => (
-          <View style={styles.row}>
+      {/* ROWS */}
+      {standings.map((item, index) => {
+        const played = item.played ?? item.gamesPlayed ?? 0;
+        const wins = item.wins ?? 0;
+        const draws = item.draws ?? 0;
+        const losses = item.losses ?? 0;
+        const points = item.points ?? 0;
+
+        return (
+          <View
+            key={item.teamId ?? index}
+            style={[
+              styles.row,
+              { backgroundColor: index % 2 === 0 ? "#111" : "transparent" }, // 🔥 zebra rows
+            ]}
+          >
             <Text style={styles.cell}>{index + 1}</Text>
 
-            {/* TEMP NAME (we fix later) */}
-            <Text style={styles.team}>Team {index + 1}</Text>
+            <Text style={styles.team}>
+              {item.teamName ??
+                item.team?.name ??
+                item.teamId?.slice(0, 6) ??
+                "Team"}
+            </Text>
 
-            <Text style={styles.cell}>{item.played}</Text>
-            <Text style={styles.cell}>{item.wins}</Text>
-            <Text style={styles.cell}>{item.draws}</Text>
-            <Text style={styles.cell}>{item.losses}</Text>
-
-            <Text style={styles.cell}>{item.points}</Text>
+            <Text style={styles.cell}>{played}</Text>
+            <Text style={styles.cell}>{wins}</Text>
+            <Text style={styles.cell}>{draws}</Text>
+            <Text style={styles.cell}>{losses}</Text>
+            <Text style={styles.cellBold}>{points}</Text>
           </View>
-        )}
-      />
+        );
+      })}
     </View>
   );
 }
@@ -79,8 +115,22 @@ const styles = StyleSheet.create({
     textAlign: "center",
     color: "white",
   },
+  cellBold: {
+    width: 30,
+    textAlign: "center",
+    color: "white",
+    fontWeight: "bold",
+  },
   team: {
     flex: 1,
+    color: "white",
+    paddingLeft: 8,
+  },
+  center: {
+    alignItems: "center",
+    paddingVertical: 20,
+  },
+  errorText: {
     color: "white",
   },
 });
