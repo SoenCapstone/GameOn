@@ -360,4 +360,61 @@ class TeamMatchServiceTest {
         verify(teamRepository, atLeast(2)).save(any(Team.class));
         verify(teamMatchRepository, times(1)).save(match);
     }
+
+    @Test
+    void getMatch_whenScoreExists_includesScoresInResponse() {
+        TeamMatch match = new TeamMatch();
+        match.setId(UUID.randomUUID());
+        match.setMatchType(TeamMatchType.TEAM_MATCH);
+        match.setStatus(TeamMatchStatus.COMPLETED);
+        match.setHomeTeamId(homeTeamId);
+        match.setAwayTeamId(awayTeamId);
+        match.setSport("soccer");
+        match.setStartTime(OffsetDateTime.now().minusHours(2));
+        match.setEndTime(OffsetDateTime.now().minusHours(1));
+        match.setRequiresReferee(false);
+
+        TeamMatchScore score = new TeamMatchScore();
+        score.setMatch(match);
+        score.setHomeScore(4);
+        score.setAwayScore(2);
+
+        when(teamMatchRepository.findById(match.getId())).thenReturn(Optional.of(match));
+        when(teamMatchScoreRepository.findByMatch_Id(match.getId())).thenReturn(Optional.of(score));
+
+        var response = teamMatchService.getMatch(match.getId());
+
+        assertEquals(4, response.homeScore());
+        assertEquals(2, response.awayScore());
+    }
+
+    @Test
+    void listTeamMatches_whenScoresExist_includesScoresInResponse() {
+        TeamMatch match = new TeamMatch();
+        match.setId(UUID.randomUUID());
+        match.setMatchType(TeamMatchType.TEAM_MATCH);
+        match.setStatus(TeamMatchStatus.COMPLETED);
+        match.setHomeTeamId(homeTeamId);
+        match.setAwayTeamId(awayTeamId);
+        match.setSport("soccer");
+        match.setStartTime(OffsetDateTime.now().minusHours(3));
+        match.setEndTime(OffsetDateTime.now().minusHours(2));
+        match.setRequiresReferee(false);
+
+        TeamMatchScore score = new TeamMatchScore();
+        score.setMatch(match);
+        score.setHomeScore(1);
+        score.setAwayScore(1);
+
+        when(teamMatchRepository.findByHomeTeamIdOrAwayTeamIdOrderByStartTimeDesc(homeTeamId, homeTeamId))
+                .thenReturn(List.of(match));
+        when(teamMatchScoreRepository.findByMatch_IdIn(List.of(match.getId())))
+                .thenReturn(List.of(score));
+
+        var responses = teamMatchService.listTeamMatches(homeTeamId);
+
+        assertEquals(1, responses.size());
+        assertEquals(1, responses.get(0).homeScore());
+        assertEquals(1, responses.get(0).awayScore());
+    }
 }

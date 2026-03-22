@@ -34,13 +34,31 @@ public class UserService {
         return users.stream().map(userMapper::toUserResponse).toList();
     }
 
+    /**
+     * Fetches a user by their Clerk ID.
+     * If the user does not exist in the DB (e.g. sign-up sync failed),
+     * a stub record is auto-created so downstream callers never break.
+     * The stub will be filled in when the user next updates their profile.
+     */
+    @Transactional
     public UserResponse fetchUserById(String userId) {
-       var user = userRepository.findById(userId)
-               .orElseThrow(() -> new UserNotFoundException(
-                       String.format("User with id %s does not exist", userId)));
+        var existing = userRepository.findById(userId);
+        if (existing.isPresent()) {
+            return userMapper.toUserResponse(existing.get());
+        }
 
-       return userMapper.toUserResponse(user);
-   }
+        log.warn("User with id {} not found in DB — auto-creating stub record", userId);
+        User stub = User.builder()
+                .id(userId)
+                .firstname(null)
+                .lastname(null)
+                .email(null)
+                .imageUrl(null)
+                .build();
+        userRepository.save(stub);
+
+        return new UserResponse(userId, null, null, null, null);
+    }
 
     public UserResponse fetchUserByEmail(String userEmail) {
         log.info("Fetching user by email {}", userEmail);
@@ -49,14 +67,43 @@ public class UserService {
         return userMapper.toUserResponse(user);
     }
 
+    /**
+     * Creates a new user. If a user with the same ID already exists,
+     * returns the existing user instead of throwing — making this idempotent.
+     */
     @Transactional
     public UserResponse createUser(UserRequestCreate userRequestCreate) {
         log.info("Persisting user with email {} and ID {}", userRequestCreate.email(), userRequestCreate.id());
 
         var existingUser = userRepository.findById(userRequestCreate.id());
         if (existingUser.isPresent()) {
-            throw new UserAlreadyExistsException(
-                    format("User with ID %s already exists", userRequestCreate.id()));
+            log.info("User with ID {} already exists — returning existing record", userRequestCreate.id());
+            User existing = existingUser.get();
+
+            // If the existing record is a stub (null fields), fill it in
+            boolean updated = false;
+            if (existing.getFirstname() == null && userRequestCreate.firstname() != null) {
+                existing.setFirstname(userRequestCreate.firstname());
+                updated = true;
+            }
+            if (existing.getLastname() == null && userRequestCreate.lastname() != null) {
+                existing.setLastname(userRequestCreate.lastname());
+                updated = true;
+            }
+            if (existing.getEmail() == null && userRequestCreate.email() != null) {
+                existing.setEmail(userRequestCreate.email());
+                updated = true;
+            }
+            if (existing.getImageUrl() == null && userRequestCreate.imageUrl() != null) {
+                existing.setImageUrl(userRequestCreate.imageUrl());
+                updated = true;
+            }
+            if (updated) {
+                userRepository.save(existing);
+                log.info("Backfilled stub user record for ID {}", userRequestCreate.id());
+            }
+
+            return userMapper.toUserResponse(existing);
         }
 
         userRepository.save(userMapper.toUser(userRequestCreate));

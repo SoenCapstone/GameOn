@@ -56,7 +56,7 @@ export function MatchDetailsSection(props: {
       />
 
       <Form.DateTime
-        label="End Time"
+        label="End Time (estimate)"
         value={endTimeValue}
         mode="time"
         display="default"

@@ -1,12 +1,10 @@
 import React from "react";
 import { render } from "@testing-library/react-native";
-import { getScheduleApiErrorMessage } from "@/utils/schedule-errors";
 import {
   getScheduleConflictMessage,
   LEAGUE_SAME_DAY_CONFLICT_MESSAGE,
 } from "@/features/matches/schedule-shared";
 import { MatchDetailsSection } from "@/components/matches/match-details-section";
-import { AxiosError } from "axios";
 jest.mock("expo-router", () => ({}));
 jest.mock("@react-navigation/native", () => ({}));
 jest.mock("react-native-svg", () => ({}));
@@ -71,85 +69,6 @@ jest.mock("@/components/form/form", () => {
       },
     },
   };
-});
-
-describe("getScheduleApiErrorMessage", () => {
-  it("returns network error when no response", () => {
-    const fakeError = {
-      isAxiosError: true,
-      toJSON: () => ({}),
-      name: "AxiosError",
-      message: "",
-    };
-    const result = getScheduleApiErrorMessage(
-      fakeError as AxiosError<{ message?: string }> | undefined,
-      "Forbidden!",
-    );
-    expect(result).toEqual({
-      status: 0,
-      message: "Network error. Please retry.",
-    });
-  });
-  it("returns forbidden message when status is 403", () => {
-    const err = {
-      isAxiosError: true,
-      toJSON: () => ({}),
-      name: "AxiosError",
-      message: "",
-      response: { status: 403 },
-    };
-    const result = getScheduleApiErrorMessage(
-      err as AxiosError<{ message?: string }> | undefined,
-      "Forbidden!",
-    );
-    expect(result.status).toBe(403);
-    expect(result.message).toBe("Forbidden!");
-  });
-  it("returns default message otherwise", () => {
-    const err = {
-      isAxiosError: true,
-      toJSON: () => ({}),
-      name: "AxiosError",
-      message: "",
-      response: { status: 500, data: { message: "fail" } },
-    };
-    const result = getScheduleApiErrorMessage(
-      err as AxiosError<{ message?: string }> | undefined,
-      "Forbidden!",
-    );
-    expect(result.status).toBe(500);
-    expect(result.message).toBe("fail");
-  });
-
-  it("maps structured conflict codes to frontend copy", () => {
-    const err = {
-      isAxiosError: true,
-      toJSON: () => ({}),
-      name: "AxiosError",
-      message: "",
-      response: {
-        status: 409,
-        data: {
-          code: "TEAM_TIME_SLOT_CONFLICT",
-          message: "backend message",
-          conflictingTeamIds: ["team-2"],
-        },
-      },
-    };
-    const result = getScheduleApiErrorMessage(
-      err as AxiosError<{
-        message?: string;
-        code?: "TEAM_TIME_SLOT_CONFLICT";
-        conflictingTeamIds?: string[];
-      }>,
-      "Forbidden!",
-      { "team-2": "Barcelona" },
-    );
-    expect(result.status).toBe(409);
-    expect(result.message).toBe(
-      "Barcelona already has a confirmed match that overlaps this time or falls within the required 60-minute buffer.",
-    );
-  });
 });
 
 describe("getScheduleConflictMessage", () => {

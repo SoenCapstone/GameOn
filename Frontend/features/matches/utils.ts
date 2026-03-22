@@ -30,6 +30,10 @@ export function getMatchSection(
   const now = new Date();
   const start = new Date(startTime);
 
+  if (status === "COMPLETED") {
+    return "past";
+  }
+
   if (isCancelledMatchStatus(status)) {
     return "past";
   }
@@ -56,53 +60,6 @@ export function toBadgeStatus(status: string): MatchStatusBadge {
 
 export function isCancelledMatchStatus(status: string) {
   return status === "DECLINED" || status === "CANCELLED";
-}
-
-export function buildStartEndIso(date: Date, startTime: Date, endTime: Date) {
-  const start = new Date(date);
-  start.setHours(startTime.getHours(), startTime.getMinutes(), 0, 0);
-  const end = new Date(date);
-  end.setHours(endTime.getHours(), endTime.getMinutes(), 0, 0);
-
-  return {
-    startTime: toOffsetIsoString(start),
-    endTime: toOffsetIsoString(end),
-  };
-}
-
-export function formatLocalDateString(value: Date) {
-  const year = value.getFullYear();
-  const month = String(value.getMonth() + 1).padStart(2, "0");
-  const day = String(value.getDate()).padStart(2, "0");
-  return `${year}-${month}-${day}`;
-}
-
-function toOffsetIsoString(value: Date) {
-  const year = value.getFullYear();
-  const month = String(value.getMonth() + 1).padStart(2, "0");
-  const day = String(value.getDate()).padStart(2, "0");
-  const hours = String(value.getHours()).padStart(2, "0");
-  const minutes = String(value.getMinutes()).padStart(2, "0");
-  const seconds = String(value.getSeconds()).padStart(2, "0");
-  const timezoneOffsetMinutes = -value.getTimezoneOffset();
-  const sign = timezoneOffsetMinutes >= 0 ? "+" : "-";
-  const absoluteOffsetMinutes = Math.abs(timezoneOffsetMinutes);
-  const offsetHours = String(Math.floor(absoluteOffsetMinutes / 60)).padStart(
-    2,
-    "0",
-  );
-  const offsetMinutes = String(absoluteOffsetMinutes % 60).padStart(2, "0");
-
-  return `${year}-${month}-${day}T${hours}:${minutes}:${seconds}${sign}${offsetHours}:${offsetMinutes}`;
-}
-
-export function isValidTimeRange(date: Date, startTime: Date, endTime: Date) {
-  const { startTime: startIso, endTime: endIso } = buildStartEndIso(
-    date,
-    startTime,
-    endTime,
-  );
-  return new Date(endIso).getTime() > new Date(startIso).getTime();
 }
 
 export function sortUpcomingFirst<T extends { startTime: string }>(items: T[]) {
@@ -151,6 +108,10 @@ export type MatchCardItem = {
   id: string;
   homeTeamId: string;
   awayTeamId: string;
+  requiresReferee: boolean;
+  refereeUserId?: string | null;
+  homeScore?: number | null;
+  awayScore?: number | null;
   homeName: string;
   awayName: string;
   homeLogoUrl?: string | null;
@@ -172,20 +133,26 @@ export function buildMatchCards(
   return matches.map((match) => {
     const home = teamMap?.[match.homeTeamId];
     const away = teamMap?.[match.awayTeamId];
-    const section = getMatchSection(match.startTime, match.status);
+    const hasScore = match.homeScore != null && match.awayScore != null;
+    const resolvedStatus = hasScore ? "COMPLETED" : match.status;
+    const section = getMatchSection(match.startTime, resolvedStatus);
     const resolvedContextLabel =
       typeof contextLabel === "function" ? contextLabel(match) : contextLabel;
     return {
       id: match.id,
       homeTeamId: match.homeTeamId,
       awayTeamId: match.awayTeamId,
+      requiresReferee: match.requiresReferee,
+      refereeUserId: match.refereeUserId,
+      homeScore: match.homeScore,
+      awayScore: match.awayScore,
       homeName: home?.name ?? "Home Team",
       awayName: away?.name ?? "Away Team",
       homeLogoUrl: home?.logoUrl,
       awayLogoUrl: away?.logoUrl,
       sport: match.sport,
       contextLabel: resolvedContextLabel,
-      status: match.status,
+      status: resolvedStatus,
       startTime: match.startTime,
       section,
       isPast: section === "past",

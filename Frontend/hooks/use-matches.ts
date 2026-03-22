@@ -116,6 +116,7 @@ export function useTeamMatches(teamId: string) {
       for (const match of mergedMatches) {
         dedupedById.set(match.id, match);
       }
+
       return Array.from(dedupedById.values());
     },
     enabled: Boolean(teamId),
@@ -459,7 +460,9 @@ export function useLeagueVenue(venueId: string, enabled = true) {
   return useQuery<Venue>({
     queryKey: ["league-venue", venueId],
     queryFn: async () => {
-      const resp = await api.get<Venue>(GO_LEAGUE_SERVICE_ROUTES.VENUE(venueId));
+      const resp = await api.get<Venue>(
+        GO_LEAGUE_SERVICE_ROUTES.VENUE(venueId),
+      );
       return resp.data;
     },
     enabled: enabled && Boolean(venueId),
@@ -483,7 +486,10 @@ export function useCreateTeamVenue() {
       homeTeamId?: string;
       awayTeamId?: string;
     }) => {
-      const resp = await api.post<Venue>(GO_TEAM_SERVICE_ROUTES.VENUES, payload);
+      const resp = await api.post<Venue>(
+        GO_TEAM_SERVICE_ROUTES.VENUES,
+        payload,
+      );
       return resp.data;
     },
   });
@@ -562,14 +568,17 @@ export function useSubmitLeagueScore(leagueId: string) {
       matchId,
       homeScore,
       awayScore,
+      endTime,
     }: {
       matchId: string;
       homeScore: number;
       awayScore: number;
+      endTime?: string;
     }) => {
       await api.post(GO_LEAGUE_SERVICE_ROUTES.SCORE_MATCH(leagueId, matchId), {
         homeScore,
         awayScore,
+        endTime,
       });
     },
   });
@@ -583,14 +592,17 @@ export function useSubmitTeamScore() {
       matchId,
       homeScore,
       awayScore,
+      endTime,
     }: {
       matchId: string;
       homeScore: number;
       awayScore: number;
+      endTime: string;
     }) => {
       await api.post(GO_MATCH_ROUTES.SCORE(matchId), {
         homeScore,
         awayScore,
+        endTime,
       });
     },
   });

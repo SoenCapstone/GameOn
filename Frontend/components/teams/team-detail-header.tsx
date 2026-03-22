@@ -8,6 +8,7 @@ interface TeamDetailHeaderProps {
   readonly title: string;
   readonly id: string;
   readonly isMember: boolean;
+  readonly role?: string | null;
   readonly onFollow: () => void;
 }
 
@@ -15,8 +16,11 @@ export function TeamDetailHeader({
   title,
   id,
   isMember,
+  role,
   onFollow,
 }: TeamDetailHeaderProps) {
+  const canManageSettings = role === "OWNER" || role === "MANAGER";
+
   const renderRightButton = () => {
     if (isMember) {
       return (
@@ -28,9 +32,11 @@ export function TeamDetailHeader({
               icon="person.2.fill"
             />
           </View>
-          <View style={styles.ownerActionButton}>
-            <Button type="custom" route={`/teams/${id}/settings`} icon="gear" />
-          </View>
+          {canManageSettings && (
+            <View style={styles.ownerActionButton}>
+              <Button type="custom" route={`/teams/${id}/settings`} icon="gear" />
+            </View>
+          )}
         </View>
       );
     }
