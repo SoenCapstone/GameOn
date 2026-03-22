@@ -22,8 +22,6 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.game.on.go_team_service.client.UserClient;
-
 
 import java.util.Set;
 import java.util.UUID;
@@ -153,4 +151,16 @@ public class TeamPostService {
         return postRepository.findByIdAndTeamId(postId, teamId)
                 .orElseThrow(() -> new NotFoundException("Post not found"));
     }
+
+    public void createSystemPost(UUID teamId, TeamPostCreateRequest request) {
+
+        String userId = "SYSTEM";
+        String authorRole = "SYSTEM";
+
+        TeamPost post = teamPostMapper.toTeamPost(teamId, request, userId, authorRole);
+
+        TeamPost saved = postRepository.save(post);
+        teamPostMapper.toResponse(saved);
+    }
+
 }

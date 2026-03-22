@@ -9,6 +9,9 @@ import com.game.on.go_team_service.exception.NotFoundException;
 import com.game.on.go_team_service.team.dto.*;
 import com.game.on.go_team_service.team.model.*;
 import com.game.on.go_team_service.team.repository.*;
+import com.game.on.go_team_service.team_post.dto.TeamPostCreateRequest;
+import com.game.on.go_team_service.team_post.model.TeamPostScope;
+import com.game.on.go_team_service.team_post.service.TeamPostService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -17,6 +20,7 @@ import org.springframework.util.StringUtils;
 
 import java.time.Duration;
 import java.time.OffsetDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -39,6 +43,7 @@ public class TeamMatchService {
     private final VenueService venueService;
     private final CurrentUserProvider userProvider;
     private final LeagueClient leagueClient;
+    private final TeamPostService teamPostService;
 
     @Transactional
     public TeamMatchResponse createMatchInvite(UUID teamId, TeamMatchCreateRequest request) {
@@ -153,6 +158,10 @@ public class TeamMatchService {
         invite.setRespondedAt(OffsetDateTime.now());
         teamMatchInviteRepository.save(invite);
 
+        List<TeamMatchMember> awayMembers = teamMatchMemberRepository.findByMatch_IdAndTeamId(match.getId(), awayTeam.getId());
+        awayMembers.forEach(member -> member.setAttending(AttendanceStatus.CONFIRMED));
+        teamMatchMemberRepository.saveAll(awayMembers);
+
         match.setStatus(TeamMatchStatus.CONFIRMED);
         var saved = teamMatchRepository.save(match);
 
@@ -175,6 +184,10 @@ public class TeamMatchService {
         invite.setStatus(TeamMatchInviteStatus.DECLINED);
         invite.setRespondedAt(OffsetDateTime.now());
         teamMatchInviteRepository.save(invite);
+
+        List<TeamMatchMember> allMembers = teamMatchMemberRepository.findByMatch_Id(match.getId());
+        teamMatchMemberRepository.deleteAll(allMembers);
+
 
         match.setStatus(TeamMatchStatus.DECLINED);
         var saved = teamMatchRepository.save(match);
@@ -558,6 +571,42 @@ public class TeamMatchService {
         TeamMatchMember member = teamMatchMemberRepository
                 .findByMatch_IdAndTeamMember_UserId(matchId, userId)
                 .orElseThrow(() -> new NotFoundException("Player not found in match"));
+
+        if (request.attending() == AttendanceStatus.DECLINED) {
+            List<TeamMember> replacements = teamMemberRepository
+                    .findByTeamIdAndRole(member.getTeamId(), TeamRole.REPLACEMENT);
+
+            List<TeamMatchMember> replacementMatchMembers = replacements.stream()
+                    .map(r -> TeamMatchMember.builder()
+                            .match(member.getMatch())
+                            .teamMember(r)
+                            .teamId(member.getTeamId())
+                            .role(r.getRole())
+                            .attending(AttendanceStatus.PENDING)
+                            .joinedAt(OffsetDateTime.now())
+                            .build())
+                    .toList();
+
+
+            TeamMatch match = teamMatchRepository.findById(matchId)
+                    .orElseThrow(() -> new NotFoundException("Match not found"));
+
+            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
+            String matchDateStr = match.getStartTime().format(formatter);
+
+            teamMatchMemberRepository.saveAll(replacementMatchMembers);
+            TeamPostCreateRequest postRequest = new TeamPostCreateRequest(
+                    "Replacement Needed",
+                    member.getTeamId(),
+                    "A player is unavailable for the upcoming match on " + matchDateStr,
+                    TeamPostScope.MEMBERS
+            );
+
+            teamPostService.createSystemPost(
+                    member.getTeamId(),
+                    postRequest
+            );
+        }
 
         if (member.getAttending() == request.attending()) {
             return;
