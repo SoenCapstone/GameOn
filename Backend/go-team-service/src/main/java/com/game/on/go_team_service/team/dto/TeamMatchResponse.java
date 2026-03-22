@@ -12,6 +12,8 @@ public record TeamMatchResponse(
         TeamMatchStatus status,
         UUID homeTeamId,
         UUID awayTeamId,
+        Integer homeScore,
+        Integer awayScore,
         String sport,
         OffsetDateTime startTime,
         OffsetDateTime endTime,
