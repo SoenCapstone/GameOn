@@ -2,8 +2,18 @@ import { useQuery } from "@tanstack/react-query";
 
 const API_BASE_URL = process.env.EXPO_PUBLIC_API_BASE_URL;
 
+export type Standing = {
+  teamId: string;
+  played?: number;
+  gamesPlayed?: number;
+  wins?: number;
+  draws?: number;
+  losses?: number;
+  points?: number;
+};
+
 export const useLeagueStandings = (leagueId: string) => {
-  return useQuery({
+  return useQuery<Standing[], Error>({
     queryKey: ["league-standings", leagueId],
     queryFn: async () => {
       const res = await fetch(
@@ -14,9 +24,10 @@ export const useLeagueStandings = (leagueId: string) => {
         throw new Error("Failed to fetch standings");
       }
 
-      const data = await res.json();
+      const data: Standing[] = await res.json();
 
-      return data.sort((a: any, b: any) => b.points - a.points);
+      // sort by points descending
+      return data.sort((a, b) => (b.points ?? 0) - (a.points ?? 0));
     },
     enabled: !!leagueId,
   });
