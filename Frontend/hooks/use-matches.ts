@@ -1,5 +1,5 @@
 import { useMemo } from "react";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import { AxiosInstance } from "axios";
 import {
   GO_LEAGUE_SERVICE_ROUTES,
@@ -55,7 +55,6 @@ export function useLeagueMatches(leagueId: string) {
 
 export function useTeamMatches(teamId: string) {
   const api = useAxiosWithClerk();
-  const queryClient = useQueryClient();
   return useQuery<(TeamMatch | LeagueMatch)[]>({
     queryKey: ["team-matches", teamId],
     queryFn: async () => {
@@ -117,41 +116,7 @@ export function useTeamMatches(teamId: string) {
         dedupedById.set(match.id, match);
       }
 
-      const previousMatches =
-        queryClient.getQueryData<(TeamMatch | LeagueMatch)[]>([
-          "team-matches",
-          teamId,
-        ]) ?? [];
-      const previousById = new Map(
-        previousMatches.map((match) => [match.id, match]),
-      );
-
-      return Array.from(dedupedById.values()).map((match) => {
-        const previousMatch = previousById.get(match.id);
-        const fetchedHasScore =
-          match.homeScore != null && match.awayScore != null;
-        const previousHasScore =
-          previousMatch?.homeScore != null && previousMatch?.awayScore != null;
-
-        if (fetchedHasScore || !previousHasScore) {
-          return match;
-        }
-
-        if ("matchType" in match) {
-          return {
-            ...match,
-            status: "COMPLETED",
-            homeScore: previousMatch.homeScore,
-            awayScore: previousMatch.awayScore,
-          };
-        }
-
-        return {
-          ...match,
-          homeScore: previousMatch.homeScore,
-          awayScore: previousMatch.awayScore,
-        };
-      });
+      return Array.from(dedupedById.values());
     },
     enabled: Boolean(teamId),
     retry: false,
