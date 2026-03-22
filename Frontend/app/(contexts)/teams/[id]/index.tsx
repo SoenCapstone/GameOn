@@ -138,6 +138,7 @@ function TeamContent() {
       const isLeagueMatch = "leagueId" in match && Boolean(match.leagueId);
       const homeOwnerId = teamsQuery.data?.[match.homeTeamId]?.ownerUserId;
       const awayOwnerId = teamsQuery.data?.[match.awayTeamId]?.ownerUserId;
+      const isConfirmed = match.status === "CONFIRMED";
       const canCancel = Boolean(
         !isLeagueMatch &&
           userId &&
@@ -146,10 +147,21 @@ function TeamContent() {
           ((homeOwnerId && homeOwnerId === userId) ||
             (awayOwnerId && awayOwnerId === userId)),
       );
+      const isOwner = Boolean(
+        (homeOwnerId && homeOwnerId === userId) ||
+          (awayOwnerId && awayOwnerId === userId),
+      );
+      const canSubmitScore = Boolean(
+        !isLeagueMatch &&
+          userId &&
+          isConfirmed &&
+          (match.requiresReferee ? match.refereeUserId === userId : isOwner),
+      );
 
       return {
         ...match,
         canCancel,
+        canSubmitScore,
         onConfirmCancel: canCancel
           ? async () => {
               try {
@@ -167,6 +179,18 @@ function TeamContent() {
               }
             }
           : undefined,
+        onSubmitScore: canSubmitScore
+          ? () => {
+              router.push({
+                pathname: `/match/${match.id}/score` as RelativePathString,
+                params: {
+                  contextId: id,
+                  homeName: match.homeName,
+                  awayName: match.awayName,
+                },
+              });
+            }
+          : undefined,
       };
     });
   }, [
@@ -177,6 +201,7 @@ function TeamContent() {
     cancelTeamMutation,
     queryClient,
     id,
+    router,
   ]);
 
   const {
@@ -185,7 +210,7 @@ function TeamContent() {
     past: pastMatches,
   } = useMemo(() => splitMatchSections(matchItems), [matchItems]);
 
-  useTeamHeader({ title, id, isMember, onFollow: handleFollow });
+  useTeamHeader({ title, id, isMember, role, onFollow: handleFollow });
 
   const handleMatchesRefresh = useMemo(
     () => async () => {

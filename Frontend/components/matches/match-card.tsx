@@ -33,6 +33,8 @@ interface MatchCardProps {
   readonly onPress?: () => void;
   readonly canCancel?: boolean;
   readonly onConfirmCancel?: () => Promise<void>;
+  readonly canSubmitScore?: boolean;
+  readonly onSubmitScore?: () => void;
 }
 
 export function MatchCard({
@@ -49,9 +51,14 @@ export function MatchCard({
   onPress,
   canCancel = false,
   onConfirmCancel,
+  canSubmitScore = false,
+  onSubmitScore,
 }: Readonly<MatchCardProps>) {
   const { showActionSheetWithOptions } = useActionSheet();
   const anchorRef = useRef<View>(null);
+  const hasMenuActions =
+    (canCancel && Boolean(onConfirmCancel)) ||
+    (canSubmitScore && Boolean(onSubmitScore));
 
   const renderCenterValue = () => {
     if (isCancelledMatchStatus(status)) {
@@ -88,19 +95,44 @@ export function MatchCard({
   };
 
   const openMenu = () => {
-    if (!canCancel || !onConfirmCancel) return;
+    if (!hasMenuActions) return;
+
+    const options = ["Cancel"];
+    const cancelOptionIndex = 0;
+    const actionByIndex = new Map<number, "cancel-match" | "match-score">();
+
+    if (canSubmitScore && onSubmitScore) {
+      options.push("Match Score");
+      actionByIndex.set(options.length - 1, "match-score");
+    }
+
+    if (canCancel && onConfirmCancel) {
+      options.push("Cancel Match");
+      actionByIndex.set(options.length - 1, "cancel-match");
+    }
+
+    const cancelMatchIndex = options.indexOf("Cancel Match");
 
     if (isRunningInExpoGo) {
       showActionSheetWithOptions(
         {
-          options: ["Cancel", "Cancel Match"],
-          destructiveButtonIndex: 1,
-          cancelButtonIndex: 0,
+          options,
+          destructiveButtonIndex:
+            cancelMatchIndex >= 0 ? cancelMatchIndex : undefined,
+          cancelButtonIndex: cancelOptionIndex,
           anchor: findNodeHandle(anchorRef.current) ?? undefined,
         },
         (buttonIndex) => {
-          if (buttonIndex === 1) {
+          const selectedAction =
+            typeof buttonIndex === "number"
+              ? actionByIndex.get(buttonIndex)
+              : undefined;
+          if (selectedAction === "cancel-match") {
             showCancelConfirm();
+            return;
+          }
+          if (selectedAction === "match-score" && onSubmitScore) {
+            onSubmitScore();
           }
         },
       );
@@ -113,9 +145,9 @@ export function MatchCard({
     <Pressable
       ref={anchorRef}
       onPress={onPress}
-      onLongPress={isRunningInExpoGo && canCancel ? openMenu : undefined}
+      onLongPress={isRunningInExpoGo && hasMenuActions ? openMenu : undefined}
     >
-      <Card isInteractive={!(canCancel && !isRunningInExpoGo)}>
+      <Card isInteractive={!(hasMenuActions && !isRunningInExpoGo)}>
         <View style={styles.content}>
           <View style={styles.top}>
             <Image
@@ -155,7 +187,7 @@ export function MatchCard({
     </Pressable>
   );
 
-  if (!canCancel || !onConfirmCancel) {
+  if (!hasMenuActions) {
     return cardContent;
   }
 
@@ -163,16 +195,30 @@ export function MatchCard({
     return cardContent;
   }
 
-  return (
-    <ContextMenu
-      actions={[
-        {
+  const actions = [
+    canSubmitScore && onSubmitScore
+      ? {
+          title: "Match Score",
+          systemIcon: "rosette",
+        }
+      : null,
+    canCancel && onConfirmCancel
+      ? {
           title: "Cancel Match",
           systemIcon: "xmark",
           destructive: true,
-        },
-      ]}
+        }
+      : null,
+  ].filter((action) => action !== null);
+
+  return (
+    <ContextMenu
+      actions={actions}
       onPress={(e) => {
+        if (e.nativeEvent.name === "Match Score" && onSubmitScore) {
+          onSubmitScore();
+          return;
+        }
         if (e.nativeEvent.name === "Cancel Match") {
           openMenu();
         }

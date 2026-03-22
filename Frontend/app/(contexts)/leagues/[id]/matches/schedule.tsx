@@ -25,13 +25,13 @@ import {
   useValidateLeagueMatchSchedule,
 } from "@/hooks/use-matches";
 import { useLeagueDetail } from "@/hooks/use-league-detail";
+import { toast } from "@/components/sign-up/utils";
 import {
   buildStartEndIso,
-  formatLocalDateString,
   isValidTimeRange,
-} from "@/features/matches/utils";
-import { toast } from "@/components/sign-up/utils";
-import { parseDraftDate } from "@/utils/date";
+  formatLocalDateString,
+  parseDraftDate,
+} from "@/utils/date";
 import { createScopedLog } from "@/utils/logger";
 import { showScheduleSubmitError } from "@/utils/schedule-errors";
 import { useRefereeOptions } from "@/hooks/use-referee-options";

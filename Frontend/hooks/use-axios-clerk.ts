@@ -97,6 +97,9 @@ export const GO_TEAM_SERVICE_ROUTES = {
 
   CREATE_PLAY: (teamId: string) =>
     buildRoute(VERSIONING.v1, SERVICE.TEAMS, `${teamId}/play-maker`),
+
+  UPDATE_MEMBER_ROLE: (teamId: string, userId: string) =>
+    buildRoute(VERSIONING.v1, SERVICE.TEAMS, `${teamId}/members/${userId}/role`),
 };
 
 export const GO_LEAGUE_SERVICE_ROUTES = {

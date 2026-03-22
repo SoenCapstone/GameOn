@@ -5,4 +5,5 @@ export type TeamMember = {
   lastname: string;
   role?: "OWNER" | "MANAGER" | "PLAYER" | "COACH";
   userId?: string;
+  imageUrl?: string | null;
 };
