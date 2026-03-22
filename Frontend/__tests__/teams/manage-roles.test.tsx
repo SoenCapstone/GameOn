@@ -12,7 +12,7 @@ type MockTeamMember = TeamMember & {
 };
 
 type MutationConfig = {
-  mutationFn: (...args: readonly unknown[]) => Promise<unknown> | unknown;
+  mutationFn: (...args: readonly unknown[]) => Promise<unknown>;
   onSuccess?: () => void | Promise<void>;
   onError?: (error: unknown) => void;
 };
