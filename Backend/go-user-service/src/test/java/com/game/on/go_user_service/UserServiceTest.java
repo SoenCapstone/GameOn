@@ -56,9 +56,7 @@ public class UserServiceTest {
     private static UserResponse response(String id, String firstname, String lastname, String email, String imageUrl){
         return new UserResponse(id, email, firstname, lastname, imageUrl);
     }
-
-    // ── getAllUsers ────────────────────────────────────────────────────────
-
+    
     @Test
     void getAllUsersTest(){
         var user1 = user("1234", "Person","One","test1@email.com", "https://example.com/1.png");
@@ -78,8 +76,6 @@ public class UserServiceTest {
         verify(userMapper).toUserResponse(user1);
         verify(userMapper).toUserResponse(user2);
     }
-
-    // ── fetchUserByEmail ──────────────────────────────────────────────────
 
     @Test
     void fetchUserByEmailTest(){
@@ -107,8 +103,6 @@ public class UserServiceTest {
         verify(userRepository).findByEmail("userNotFound@email.com");
         verifyNoInteractions(userMapper);
     }
-
-    // ── fetchUserById ─────────────────────────────────────────────────────
 
     @Test
     void fetchUserById_existingUser_returnsResponse() {
@@ -146,8 +140,6 @@ public class UserServiceTest {
         verify(userRepository).save(any(User.class));
         verifyNoInteractions(userMapper);
     }
-
-    // ── createUser ────────────────────────────────────────────────────────
 
     @Test
     public void createUserTest(){
@@ -215,8 +207,6 @@ public class UserServiceTest {
         verify(userMapper).toUserResponse(stub);
     }
 
-    // ── updateUser ────────────────────────────────────────────────────────
-
     @Test
     void updateUserSomeFieldsTest() {
         var existing = user("1234", "oldFirstname", "oldLastname","test1@email.com", "https://example.com/old.png");
@@ -272,8 +262,6 @@ public class UserServiceTest {
         verify(userRepository, never()).save(any());
         verifyNoInteractions(userMapper);
     }
-
-    // ── deleteUser ────────────────────────────────────────────────────────
 
     @Test
     void deleteUserTest() {
