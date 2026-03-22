@@ -20,14 +20,17 @@ import {
   useReferees,
   useTeamVenues,
 } from "@/hooks/use-matches";
-import { buildStartEndIso, isValidTimeRange } from "@/features/matches/utils";
 import {
   buildVenueOptionMaps,
   buildVenueOptions,
   resolveSelectedVenueLabel,
 } from "@/features/matches/schedule-shared";
 import { toast } from "@/components/sign-up/utils";
-import { parseDraftDate } from "@/utils/date";
+import {
+  buildStartEndIso,
+  isValidTimeRange,
+  parseDraftDate,
+} from "@/utils/date";
 import { createScopedLog } from "@/utils/logger";
 import { showScheduleSubmitError } from "@/utils/schedule-errors";
 import { useRefereeOptions } from "@/hooks/use-referee-options";

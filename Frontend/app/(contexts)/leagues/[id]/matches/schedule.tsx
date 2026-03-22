@@ -23,9 +23,12 @@ import {
   useTeamsByIds,
 } from "@/hooks/use-matches";
 import { useLeagueDetail } from "@/hooks/use-league-detail";
-import { buildStartEndIso, isValidTimeRange } from "@/features/matches/utils";
 import { toast } from "@/components/sign-up/utils";
-import { parseDraftDate } from "@/utils/date";
+import {
+  buildStartEndIso,
+  isValidTimeRange,
+  parseDraftDate,
+} from "@/utils/date";
 import { createScopedLog } from "@/utils/logger";
 import { showScheduleSubmitError } from "@/utils/schedule-errors";
 import { useRefereeOptions } from "@/hooks/use-referee-options";

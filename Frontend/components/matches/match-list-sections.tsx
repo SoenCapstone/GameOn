@@ -19,6 +19,8 @@ type MatchItem = {
   awayScore?: number | null;
   canCancel?: boolean;
   onConfirmCancel?: () => Promise<void>;
+  canSubmitScore?: boolean;
+  onSubmitScore?: () => void;
 };
 
 interface MatchListSectionsProps {
@@ -68,6 +70,8 @@ function ListSection({
               awayScore={match.awayScore}
               canCancel={Boolean(match.canCancel)}
               onConfirmCancel={match.onConfirmCancel}
+              canSubmitScore={Boolean(match.canSubmitScore)}
+              onSubmitScore={match.onSubmitScore}
               onPress={() => onMatchPress(match)}
             />
           ))

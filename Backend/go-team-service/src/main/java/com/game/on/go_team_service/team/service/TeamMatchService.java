@@ -31,8 +31,11 @@ import org.springframework.util.StringUtils;
 
 import java.time.Duration;
 import java.time.OffsetDateTime;
+import java.util.Map;
 import java.util.List;
 import java.util.UUID;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -120,17 +123,30 @@ public class TeamMatchService {
     @Transactional(readOnly = true)
     public List<TeamMatchResponse> listTeamMatches(UUID teamId) {
         requireActiveTeam(teamId);
-        return teamMatchRepository.findByHomeTeamIdOrAwayTeamIdOrderByStartTimeDesc(teamId, teamId)
-                .stream()
-                .map(this::toResponse)
-                .toList();
+        var matches = teamMatchRepository.findByHomeTeamIdOrAwayTeamIdOrderByStartTimeDesc(teamId, teamId);
+        if (matches.isEmpty()) {
+            return List.of();
+        }
+
+        var matchIds = matches.stream()
+            .map(TeamMatch::getId)
+            .toList();
+
+        Map<UUID, TeamMatchScore> scoresByMatchId = teamMatchScoreRepository.findByMatch_IdIn(matchIds)
+            .stream()
+            .collect(Collectors.toMap(score -> score.getMatch().getId(), Function.identity()));
+
+        return matches.stream()
+            .map(match -> toResponse(match, scoresByMatchId.get(match.getId())))
+            .toList();
     }
 
     @Transactional(readOnly = true)
     public TeamMatchResponse getMatch(UUID matchId) {
         var match = teamMatchRepository.findById(matchId)
                 .orElseThrow(() -> new NotFoundException("Match not found"));
-        return toResponse(match);
+        var score = teamMatchScoreRepository.findByMatch_Id(matchId).orElse(null);
+        return toResponse(match, score);
     }
 
     @Transactional
@@ -408,12 +424,18 @@ public class TeamMatchService {
     }
 
     private TeamMatchResponse toResponse(TeamMatch match) {
+        return toResponse(match, null);
+    }
+
+    private TeamMatchResponse toResponse(TeamMatch match, TeamMatchScore score) {
         return new TeamMatchResponse(
                 match.getId(),
                 match.getMatchType(),
                 match.getStatus(),
                 match.getHomeTeamId(),
                 match.getAwayTeamId(),
+                score == null ? null : score.getHomeScore(),
+                score == null ? null : score.getAwayScore(),
                 match.getSport(),
                 match.getStartTime(),
                 match.getEndTime(),
