@@ -23,6 +23,10 @@ export async function fetchUserNameMap(
   const entries = await Promise.all(
     userIds.map(async (userId) => {
       try {
+        if (userId.trim().toUpperCase() === "SYSTEM") {
+          return [userId, "SYSTEM"] as const;
+        }
+
         const resp = await api.get(GO_USER_SERVICE_ROUTES.BY_ID(userId));
         const first = resp.data?.firstname ?? "";
         const last = resp.data?.lastname ?? "";
