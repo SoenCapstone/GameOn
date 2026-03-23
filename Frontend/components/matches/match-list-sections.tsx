@@ -23,6 +23,7 @@ type MatchItem = {
   onSubmitScore?: () => void;
   canOptOut?: boolean;
   onOptOut?: () => void;
+  isReplacement?: boolean;
 };
 
 interface MatchListSectionsProps {
@@ -76,6 +77,7 @@ function ListSection({
               onSubmitScore={match.onSubmitScore}
               canOptOut={Boolean(match.canOptOut)}
               onOptOut={match.onOptOut}
+              isReplacement={Boolean(match.isReplacement)}
               onPress={() => onMatchPress(match)}
             />
           ))

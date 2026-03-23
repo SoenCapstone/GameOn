@@ -33,6 +33,7 @@ import {
   useLeaguesByIds,
   useTeamMatches,
   useTeamsByIds,
+  useUpdateMatchAttendance,
 } from "@/hooks/use-matches";
 import { buildMatchCards, splitMatchSections } from "@/features/matches/utils";
 import { TeamOverviewTab } from "@/components/teams/team-overview-tab";
@@ -106,6 +107,8 @@ function TeamContent() {
     refetch: refetchMatches,
   } = useTeamMatches(id);
   const cancelTeamMutation = useCancelTeamMatch();
+  const attendanceMutation = useUpdateMatchAttendance();
+  const [respondedMatchIds, setRespondedMatchIds] = useState<Set<string>>(new Set());
 
   const teamIds = useMemo(
     () =>
@@ -158,6 +161,21 @@ function TeamContent() {
           (match.requiresReferee ? match.refereeUserId === userId : isOwner),
       );
 
+      const canOptOut = Boolean(
+        isActiveMember &&
+          !match.isPast &&
+          match.status !== "CANCELLED" &&
+          !respondedMatchIds.has(match.id),
+      );
+
+      const isReplacement = role === "REPLACEMENT";
+      const attending = isReplacement ? "CONFIRMED" : "DECLINED";
+      const alertTitle = isReplacement ? "Confirm attendance" : "Opt out";
+      const alertMessage = isReplacement
+        ? "Are you sure you will be attending this match?"
+        : "Are you sure you won't be attending this match?";
+      const alertButtonText = isReplacement ? "Attending" : "Not attending";
+
       return {
         ...match,
         canCancel,
@@ -191,6 +209,32 @@ function TeamContent() {
               });
             }
           : undefined,
+        canOptOut,
+        isReplacement,
+        onOptOut: canOptOut
+          ? () => {
+              Alert.alert(alertTitle, alertMessage, [
+                { text: "Cancel", style: "cancel" },
+                {
+                  text: alertButtonText,
+                  style: isReplacement ? "default" : "destructive",
+                  onPress: () => {
+                    attendanceMutation.mutate(
+                      { matchId: match.id, attending },
+                      {
+                        onSuccess: () => {
+                          setRespondedMatchIds((prev) => new Set(prev).add(match.id));
+                        },
+                        onError: (err) => {
+                          Alert.alert("Error", errorToString(err));
+                        },
+                      },
+                    );
+                  },
+                },
+              ]);
+            }
+          : undefined,
       };
     });
   }, [
@@ -199,9 +243,13 @@ function TeamContent() {
     leaguesQuery.data,
     userId,
     cancelTeamMutation,
+    attendanceMutation,
     queryClient,
     id,
     router,
+    isActiveMember,
+    role,
+    respondedMatchIds,
   ]);
 
   const {
