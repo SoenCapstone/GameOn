@@ -14,7 +14,7 @@ export type Standing = {
 
 export const useLeagueStandings = (leagueId: string) => {
   return useQuery<Standing[], Error>({
-    queryKey: ["league-standings", leagueId],
+    queryKey: ["league-standings", { leagueId }],
     queryFn: async () => {
       const res = await fetch(
         `${API_BASE_URL}/api/v1/leagues/${leagueId}/standings`
