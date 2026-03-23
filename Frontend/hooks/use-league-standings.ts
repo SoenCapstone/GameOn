@@ -14,7 +14,8 @@ export type Standing = {
 
 export const useLeagueStandings = (leagueId: string) => {
   return useQuery<Standing[], Error>({
-    queryKey: ["league-standings", { leagueId }],
+    queryKey: ["league-standings", leagueId],
+
     queryFn: async () => {
       const res = await fetch(
         `${API_BASE_URL}/api/v1/leagues/${leagueId}/standings`
@@ -29,6 +30,7 @@ export const useLeagueStandings = (leagueId: string) => {
       // sort by points descending
       return data.sort((a, b) => (b.points ?? 0) - (a.points ?? 0));
     },
-    enabled: !!leagueId,
+
+    enabled: !!leagueId, // only run if leagueId exists
   });
 };
