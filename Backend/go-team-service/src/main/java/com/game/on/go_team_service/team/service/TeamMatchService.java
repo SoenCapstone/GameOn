@@ -6,11 +6,7 @@ import com.game.on.go_team_service.exception.BadRequestException;
 import com.game.on.go_team_service.exception.ConflictException;
 import com.game.on.go_team_service.exception.ForbiddenException;
 import com.game.on.go_team_service.exception.NotFoundException;
-import com.game.on.go_team_service.team.dto.TeamMatchCancelRequest;
-import com.game.on.go_team_service.team.dto.TeamMatchCreateRequest;
-import com.game.on.go_team_service.team.dto.TeamMatchResponse;
-import com.game.on.go_team_service.team.dto.TeamMatchScoreRequest;
-import com.game.on.go_team_service.team.dto.UpdateMatchAttendanceRequest;
+import com.game.on.go_team_service.team.dto.*;
 import com.game.on.go_team_service.team.model.Team;
 import com.game.on.go_team_service.team.model.TeamMatch;
 import com.game.on.go_team_service.team.model.TeamMatchInvite;
@@ -637,12 +633,34 @@ public class TeamMatchService {
         teamMatchMemberRepository.save(member);
     }
 
-    public Map<UUID, List<TeamMatchMember>> getMatchMembers(UUID matchId) {
+    @Transactional(readOnly = true)
+    public Map<UUID, List<TeamMatchMemberResponse>> getMatchMembers(UUID matchId) {
         List<TeamMatchMember> allMembers = teamMatchMemberRepository.findByMatch_Id(matchId);
-        return allMembers.stream()
-                .collect(Collectors.groupingBy(TeamMatchMember::getTeamId));
+        List<TeamMatchMemberResponse> dtoList = allMembers.stream()
+                .map(m -> new TeamMatchMemberResponse(
+                        m.getId(),
+                        m.getTeamId(),
+                        m.getTeamMember().getUserId(),
+                        m.getRole(),
+                        m.getAttending()
+                ))
+                .toList();
+
+        return dtoList.stream()
+                .collect(Collectors.groupingBy(TeamMatchMemberResponse::teamId));
     }
-    public List<TeamMatchMember> getMatchMembersByTeam(UUID matchId, UUID teamId) {
-        return teamMatchMemberRepository.findByMatch_IdAndTeamId(matchId, teamId);
+    @Transactional(readOnly = true)
+    public List<TeamMatchMemberResponse> getMatchMembersByTeam(UUID matchId, UUID teamId) {
+
+        return teamMatchMemberRepository.findByMatch_IdAndTeamId(matchId, teamId)
+                .stream()
+                .map(member -> new TeamMatchMemberResponse(
+                        member.getId(),
+                        member.getTeamId(),
+                        member.getTeamMember().getUserId(),
+                        member.getRole(),
+                        member.getAttending()
+                ))
+                .toList();
     }
 }
