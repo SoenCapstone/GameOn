@@ -176,6 +176,31 @@ function TeamContent() {
         : "Are you sure you won't be attending this match?";
       const alertButtonText = isReplacement ? "Attending" : "Not attending";
 
+      const handleAttendanceConfirmed = () => {
+        attendanceMutation.mutate(
+          { matchId: match.id, attending },
+          {
+            onSuccess: () => {
+              setRespondedMatchIds((prev) => new Set(prev).add(match.id));
+            },
+            onError: (err) => {
+              Alert.alert("Error", errorToString(err));
+            },
+          },
+        );
+      };
+
+      const handleOptOut = () => {
+        Alert.alert(alertTitle, alertMessage, [
+          { text: "Cancel", style: "cancel" },
+          {
+            text: alertButtonText,
+            style: isReplacement ? "default" : "destructive",
+            onPress: handleAttendanceConfirmed,
+          },
+        ]);
+      };
+
       return {
         ...match,
         canCancel,
@@ -211,30 +236,7 @@ function TeamContent() {
           : undefined,
         canOptOut,
         isReplacement,
-        onOptOut: canOptOut
-          ? () => {
-              Alert.alert(alertTitle, alertMessage, [
-                { text: "Cancel", style: "cancel" },
-                {
-                  text: alertButtonText,
-                  style: isReplacement ? "default" : "destructive",
-                  onPress: () => {
-                    attendanceMutation.mutate(
-                      { matchId: match.id, attending },
-                      {
-                        onSuccess: () => {
-                          setRespondedMatchIds((prev) => new Set(prev).add(match.id));
-                        },
-                        onError: (err) => {
-                          Alert.alert("Error", errorToString(err));
-                        },
-                      },
-                    );
-                  },
-                },
-              ]);
-            }
-          : undefined,
+        onOptOut: canOptOut ? handleOptOut : undefined,
       };
     });
   }, [
