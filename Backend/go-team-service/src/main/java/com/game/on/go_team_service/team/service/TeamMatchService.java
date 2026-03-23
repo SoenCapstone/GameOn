@@ -32,6 +32,8 @@ import com.game.on.go_team_service.team.repository.TeamMatchMemberRepository;
 import com.game.on.go_team_service.team_post.dto.TeamPostCreateRequest;
 import com.game.on.go_team_service.team_post.model.TeamPostScope;
 import com.game.on.go_team_service.team_post.service.TeamPostService;
+import com.game.on.go_team_service.team.dto.UpdateMatchAttendanceRequest;
+import com.game.on.go_team_service.team.dto.TeamMatchMemberResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
