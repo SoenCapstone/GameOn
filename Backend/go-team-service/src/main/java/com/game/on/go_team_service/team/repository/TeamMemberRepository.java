@@ -24,4 +24,6 @@ public interface TeamMemberRepository extends JpaRepository<TeamMember, UUID> {
 
     @Query("select tm from TeamMember tm where tm.userId = :userId and tm.team.deletedAt is null")
     List<TeamMember> findActiveMemberships(String userId);
+
+    List<TeamMember> findByTeamIdAndRole(UUID teamId, TeamRole teamRole);
 }
