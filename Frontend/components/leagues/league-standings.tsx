@@ -14,12 +14,11 @@ type Standing = {
   };
 };
 
-type Props = {
+type Props = Readonly<{
   standings: Standing[];
   isLoading?: boolean;
   error?: string | null;
-  onRetry?: () => void;
-};
+}>;
 
 export function LeagueStandings({
   standings,
