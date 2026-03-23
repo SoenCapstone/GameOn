@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import {
   View,
   ActivityIndicator,
@@ -40,6 +40,7 @@ import { TeamOverviewTab } from "@/components/teams/team-overview-tab";
 import { errorToString } from "@/utils/error";
 
 type TeamTab = "board" | "matches" | "overview";
+type AttendanceStatus = "CONFIRMED" | "DECLINED";
 
 const TeamTabs: readonly TeamTab[] = ["board", "matches", "overview"] as const;
 
@@ -48,6 +49,18 @@ const TeamTabLabels: Record<TeamTab, string> = {
   matches: "Matches",
   overview: "Overview",
 };
+
+function getAttendanceDialogContent(isReplacement: boolean) {
+  return {
+    attending: isReplacement ? "CONFIRMED" : "DECLINED",
+    title: isReplacement ? "Confirm attendance" : "Opt out",
+    message: isReplacement
+      ? "Are you sure you will be attending this match?"
+      : "Are you sure you won't be attending this match?",
+    buttonText: isReplacement ? "Attending" : "Not attending",
+    buttonStyle: isReplacement ? "default" : "destructive",
+  } as const;
+}
 
 export default function Team() {
   const params = useLocalSearchParams<{ id?: string | string[] }>();
@@ -108,7 +121,44 @@ function TeamContent() {
   } = useTeamMatches(id);
   const cancelTeamMutation = useCancelTeamMatch();
   const attendanceMutation = useUpdateMatchAttendance();
-  const [respondedMatchIds, setRespondedMatchIds] = useState<Set<string>>(new Set());
+  const [respondedMatchIds, setRespondedMatchIds] = useState<Set<string>>(
+    new Set(),
+  );
+
+  const markMatchAsResponded = useCallback((matchId: string) => {
+    setRespondedMatchIds((prev) => new Set(prev).add(matchId));
+  }, []);
+
+  const submitAttendanceResponse = useCallback(
+    async (matchId: string, attending: AttendanceStatus) => {
+      try {
+        await attendanceMutation.mutateAsync({ matchId, attending });
+        markMatchAsResponded(matchId);
+      } catch (err) {
+        Alert.alert("Error", errorToString(err));
+      }
+    },
+    [attendanceMutation, markMatchAsResponded],
+  );
+
+  const openAttendanceDialog = useCallback(
+    (matchId: string, isReplacement: boolean) => {
+      const { attending, title, message, buttonText, buttonStyle } =
+        getAttendanceDialogContent(isReplacement);
+
+      Alert.alert(title, message, [
+        { text: "Cancel", style: "cancel" },
+        {
+          text: buttonText,
+          style: buttonStyle,
+          onPress: () => {
+            void submitAttendanceResponse(matchId, attending);
+          },
+        },
+      ]);
+    },
+    [submitAttendanceResponse],
+  );
 
   const teamIds = useMemo(
     () =>
@@ -170,25 +220,6 @@ function TeamContent() {
 
       const isReplacement = role === "REPLACEMENT";
 
-      const handleOptOut = () => {
-        const attending = isReplacement ? "CONFIRMED" : "DECLINED";
-        const title = isReplacement ? "Confirm attendance" : "Opt out";
-        const message = isReplacement
-          ? "Are you sure you will be attending this match?"
-          : "Are you sure you won't be attending this match?";
-        const buttonText = isReplacement ? "Attending" : "Not attending";
-        const buttonStyle = isReplacement ? "default" : "destructive";
-
-        const onSuccess = () => setRespondedMatchIds((prev) => new Set(prev).add(match.id));
-        const onError = (err: Error) => Alert.alert("Error", errorToString(err));
-        const onConfirm = () => attendanceMutation.mutate({ matchId: match.id, attending }, { onSuccess, onError });
-
-        Alert.alert(title, message, [
-          { text: "Cancel", style: "cancel" },
-          { text: buttonText, style: buttonStyle, onPress: onConfirm },
-        ]);
-      };
-
       return {
         ...match,
         canCancel,
@@ -224,7 +255,9 @@ function TeamContent() {
           : undefined,
         canOptOut,
         isReplacement,
-        onOptOut: canOptOut ? handleOptOut : undefined,
+        onOptOut: canOptOut
+          ? () => openAttendanceDialog(match.id, isReplacement)
+          : undefined,
       };
     });
   }, [
@@ -233,13 +266,13 @@ function TeamContent() {
     leaguesQuery.data,
     userId,
     cancelTeamMutation,
-    attendanceMutation,
     queryClient,
     id,
     router,
     isActiveMember,
     role,
     respondedMatchIds,
+    openAttendanceDialog,
   ]);
 
   const {
