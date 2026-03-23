@@ -19,11 +19,21 @@ import com.game.on.go_team_service.team.model.TeamMatchScore;
 import com.game.on.go_team_service.team.model.TeamMatchStatus;
 import com.game.on.go_team_service.team.model.TeamMatchType;
 import com.game.on.go_team_service.team.model.Venue;
+import com.game.on.go_team_service.team.model.TeamMatchMember;
+import com.game.on.go_team_service.team.model.AttendanceStatus;
+import com.game.on.go_team_service.team.model.TeamMember;
+import com.game.on.go_team_service.team.model.TeamRole;
 import com.game.on.go_team_service.team.repository.TeamMatchInviteRepository;
 import com.game.on.go_team_service.team.repository.TeamMatchRepository;
 import com.game.on.go_team_service.team.repository.TeamMatchScoreRepository;
 import com.game.on.go_team_service.team.repository.TeamMemberRepository;
 import com.game.on.go_team_service.team.repository.TeamRepository;
+import com.game.on.go_team_service.team.repository.TeamMatchMemberRepository;
+import com.game.on.go_team_service.team_post.dto.TeamPostCreateRequest;
+import com.game.on.go_team_service.team_post.model.TeamPostScope;
+import com.game.on.go_team_service.team_post.service.TeamPostService;
+import com.game.on.go_team_service.team.dto.UpdateMatchAttendanceRequest;
+import com.game.on.go_team_service.team.dto.TeamMatchMemberResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -33,9 +43,10 @@ import org.springframework.util.StringUtils;
 import java.time.Duration;
 import java.time.LocalDate;
 import java.time.OffsetDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
-import java.util.Map;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.UUID;
 import java.util.function.Function;
@@ -60,9 +71,11 @@ public class TeamMatchService {
     private final TeamMatchRepository teamMatchRepository;
     private final TeamMatchInviteRepository teamMatchInviteRepository;
     private final TeamMatchScoreRepository teamMatchScoreRepository;
+    private final TeamMatchMemberRepository teamMatchMemberRepository;
     private final VenueService venueService;
     private final CurrentUserProvider userProvider;
     private final LeagueClient leagueClient;
+    private final TeamPostService teamPostService;
 
     @Transactional(readOnly = true)
     public TeamMatchScheduleValidationResponse validateMatchInvite(UUID teamId, TeamMatchCreateRequest request) {
@@ -155,6 +168,9 @@ public class TeamMatchService {
 
         var savedMatch = teamMatchRepository.save(match);
 
+        addTeamMembersToMatch(savedMatch, homeTeam.getId(), true);
+        addTeamMembersToMatch(savedMatch, awayTeam.getId(), false);
+
         TeamMatchInvite invite = TeamMatchInvite.builder()
                 .match(savedMatch)
                 .invitedTeamId(awayTeam.getId())
@@ -236,6 +252,10 @@ public class TeamMatchService {
         invite.setRespondedAt(OffsetDateTime.now());
         teamMatchInviteRepository.save(invite);
 
+        List<TeamMatchMember> awayMembers = teamMatchMemberRepository.findByMatch_IdAndTeamId(match.getId(), awayTeam.getId());
+        awayMembers.forEach(member -> member.setAttending(AttendanceStatus.CONFIRMED));
+        teamMatchMemberRepository.saveAll(awayMembers);
+
         match.setStatus(TeamMatchStatus.CONFIRMED);
         var saved = teamMatchRepository.save(match);
 
@@ -258,6 +278,10 @@ public class TeamMatchService {
         invite.setStatus(TeamMatchInviteStatus.DECLINED);
         invite.setRespondedAt(OffsetDateTime.now());
         teamMatchInviteRepository.save(invite);
+
+        List<TeamMatchMember> allMembers = teamMatchMemberRepository.findByMatch_Id(match.getId());
+        teamMatchMemberRepository.deleteAll(allMembers);
+
 
         match.setStatus(TeamMatchStatus.DECLINED);
         var saved = teamMatchRepository.save(match);
@@ -666,7 +690,121 @@ public class TeamMatchService {
         team.setMinutesPlayed(safeInt(team.getMinutesPlayed()) + playedMinutes);
     }
 
+    private void addTeamMembersToMatch(TeamMatch match, UUID teamId, Boolean isHomeTeam) {
+        List<TeamMember> players = teamMemberRepository
+                .findByTeamIdAndRole(teamId, TeamRole.PLAYER);
+
+        AttendanceStatus status = isHomeTeam
+                ? AttendanceStatus.CONFIRMED
+                : AttendanceStatus.PENDING;
+
+        List<TeamMatchMember> matchMembers = players.stream()
+                .map(member -> TeamMatchMember.builder()
+                        .match(match)
+                        .teamMember(member)
+                        .teamId(teamId)
+                        .role(member.getRole())
+                        .attending(status)
+                        .joinedAt(OffsetDateTime.now())
+                        .build()
+                )
+                .toList();
+
+        teamMatchMemberRepository.saveAll(matchMembers);
+    }
+
     private int safeInt(Integer value) {
         return value == null ? 0 : value;
+    }
+
+    public void updateAttendance(UUID matchId, UpdateMatchAttendanceRequest request) {
+        String userId = userProvider.clerkUserId();
+
+        if (request.attending() == null) {
+            throw new BadRequestException("Attendance status must be provided");
+        }
+
+        if (request.attending() == AttendanceStatus.PENDING) {
+            throw new BadRequestException("Cannot set status to PENDING");
+        }
+
+        TeamMatchMember member = teamMatchMemberRepository
+                .findByMatch_IdAndTeamMember_UserId(matchId, userId)
+                .orElseThrow(() -> new NotFoundException("Player not found in match"));
+
+        if (request.attending() == AttendanceStatus.DECLINED) {
+            List<TeamMember> replacements = teamMemberRepository
+                    .findByTeamIdAndRole(member.getTeamId(), TeamRole.REPLACEMENT);
+
+            List<TeamMatchMember> replacementMatchMembers = replacements.stream()
+                    .map(r -> TeamMatchMember.builder()
+                            .match(member.getMatch())
+                            .teamMember(r)
+                            .teamId(member.getTeamId())
+                            .role(r.getRole())
+                            .attending(AttendanceStatus.PENDING)
+                            .joinedAt(OffsetDateTime.now())
+                            .build())
+                    .toList();
+
+
+            TeamMatch match = teamMatchRepository.findById(matchId)
+                    .orElseThrow(() -> new NotFoundException("Match not found"));
+
+            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
+            String matchDateStr = match.getStartTime().format(formatter);
+
+            teamMatchMemberRepository.saveAll(replacementMatchMembers);
+            TeamPostCreateRequest postRequest = new TeamPostCreateRequest(
+                    "Replacement Needed",
+                    member.getTeamId(),
+                    "A player is unavailable for the upcoming match on " + matchDateStr,
+                    TeamPostScope.MEMBERS
+            );
+
+            teamPostService.createSystemPost(
+                    member.getTeamId(),
+                    postRequest
+            );
+        }
+
+        if (member.getAttending() == request.attending()) {
+            return;
+        }
+
+        member.setAttending(request.attending());
+
+        teamMatchMemberRepository.save(member);
+    }
+
+    @Transactional(readOnly = true)
+    public Map<UUID, List<TeamMatchMemberResponse>> getMatchMembers(UUID matchId) {
+        List<TeamMatchMember> allMembers = teamMatchMemberRepository.findByMatch_Id(matchId);
+        List<TeamMatchMemberResponse> dtoList = allMembers.stream()
+                .map(m -> new TeamMatchMemberResponse(
+                        m.getId(),
+                        m.getTeamId(),
+                        m.getTeamMember().getUserId(),
+                        m.getRole(),
+                        m.getAttending()
+                ))
+                .toList();
+
+        return dtoList.stream()
+                .collect(Collectors.groupingBy(TeamMatchMemberResponse::teamId));
+    }
+    @Transactional(readOnly = true)
+    public List<TeamMatchMemberResponse> getMatchMembersByTeam(UUID matchId, UUID teamId) {
+
+        return teamMatchMemberRepository.findByMatch_IdAndTeamId(matchId, teamId)
+                .stream()
+                .map(member -> new TeamMatchMemberResponse(
+                        member.getId(),
+                        member.getTeamId(),
+                        member.getTeamMember().getUserId(),
+                        member.getRole(),
+                        member.getAttending()
+                ))
+                .toList();
     }
 }
