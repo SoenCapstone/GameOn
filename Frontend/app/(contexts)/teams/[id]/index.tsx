@@ -169,35 +169,28 @@ function TeamContent() {
       );
 
       const isReplacement = role === "REPLACEMENT";
-      const attending = isReplacement ? "CONFIRMED" : "DECLINED";
-      const alertTitle = isReplacement ? "Confirm attendance" : "Opt out";
-      const alertMessage = isReplacement
-        ? "Are you sure you will be attending this match?"
-        : "Are you sure you won't be attending this match?";
-      const alertButtonText = isReplacement ? "Attending" : "Not attending";
-
-      const handleAttendanceConfirmed = () => {
-        attendanceMutation.mutate(
-          { matchId: match.id, attending },
-          {
-            onSuccess: () => {
-              setRespondedMatchIds((prev) => new Set(prev).add(match.id));
-            },
-            onError: (err) => {
-              Alert.alert("Error", errorToString(err));
-            },
-          },
-        );
-      };
 
       const handleOptOut = () => {
-        Alert.alert(alertTitle, alertMessage, [
+        const attending = isReplacement ? "CONFIRMED" : "DECLINED";
+        const title = isReplacement ? "Confirm attendance" : "Opt out";
+        const message = isReplacement
+          ? "Are you sure you will be attending this match?"
+          : "Are you sure you won't be attending this match?";
+        const buttonText = isReplacement ? "Attending" : "Not attending";
+        const buttonStyle = isReplacement ? "default" : "destructive";
+
+        const onConfirm = () =>
+          attendanceMutation.mutate(
+            { matchId: match.id, attending },
+            {
+              onSuccess: () => setRespondedMatchIds((prev) => new Set(prev).add(match.id)),
+              onError: (err) => Alert.alert("Error", errorToString(err)),
+            },
+          );
+
+        Alert.alert(title, message, [
           { text: "Cancel", style: "cancel" },
-          {
-            text: alertButtonText,
-            style: isReplacement ? "default" : "destructive",
-            onPress: handleAttendanceConfirmed,
-          },
+          { text: buttonText, style: buttonStyle, onPress: onConfirm },
         ]);
       };
 
