@@ -192,14 +192,7 @@ export function MatchCard({
           </View>
         </Card>
       </Pressable>
-
-      {canOptOut && onOptOut ? (
-        <Pressable onPress={onOptOut} style={styles.optOutButton}>
-          <Text style={styles.optOutText}>
-            {isReplacement ? "Attending" : "Not attending"}
-          </Text>
-        </Pressable>
-      ) : null}
+      <OptOutButton canOptOut={canOptOut} onOptOut={onOptOut} isReplacement={isReplacement} />
     </View>
   );
 
@@ -243,6 +236,24 @@ export function MatchCard({
     >
       {cardContent}
     </ContextMenu>
+  );
+}
+
+export function OptOutButton({
+  canOptOut,
+  onOptOut,
+  isReplacement,
+}: {
+  readonly canOptOut: boolean;
+  readonly onOptOut?: () => void;
+  readonly isReplacement: boolean;
+}) {
+  if (!canOptOut || !onOptOut) return null;
+  const label = isReplacement ? "Attending" : "Not attending";
+  return (
+    <Pressable onPress={onOptOut} style={styles.optOutButton}>
+      <Text style={styles.optOutText}>{label}</Text>
+    </Pressable>
   );
 }
 

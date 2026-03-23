@@ -179,14 +179,9 @@ function TeamContent() {
         const buttonText = isReplacement ? "Attending" : "Not attending";
         const buttonStyle = isReplacement ? "default" : "destructive";
 
-        const onConfirm = () =>
-          attendanceMutation.mutate(
-            { matchId: match.id, attending },
-            {
-              onSuccess: () => setRespondedMatchIds((prev) => new Set(prev).add(match.id)),
-              onError: (err) => Alert.alert("Error", errorToString(err)),
-            },
-          );
+        const onSuccess = () => setRespondedMatchIds((prev) => new Set(prev).add(match.id));
+        const onError = (err: Error) => Alert.alert("Error", errorToString(err));
+        const onConfirm = () => attendanceMutation.mutate({ matchId: match.id, attending }, { onSuccess, onError });
 
         Alert.alert(title, message, [
           { text: "Cancel", style: "cancel" },
