@@ -2,9 +2,12 @@ package com.game.on.go_team_service.team;
 
 import com.game.on.go_team_service.config.CurrentUserProvider;
 import com.game.on.go_team_service.exception.BadRequestException;
+import com.game.on.go_team_service.exception.ConflictException;
 import com.game.on.go_team_service.exception.ForbiddenException;
+import com.game.on.go_team_service.team.dto.TeamMatchScheduleValidationResponse;
 import com.game.on.go_team_service.team.dto.TeamMatchCreateRequest;
 import com.game.on.go_team_service.team.dto.TeamMatchScoreRequest;
+import com.game.on.go_team_service.client.LeagueClient;
 import com.game.on.go_team_service.team.model.Team;
 import com.game.on.go_team_service.team.model.TeamMatch;
 import com.game.on.go_team_service.team.model.TeamMatchScore;
@@ -24,6 +27,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.time.LocalDate;
 import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.Optional;
@@ -43,8 +47,9 @@ class TeamMatchServiceTest {
     @Mock TeamMatchRepository teamMatchRepository;
     @Mock TeamMatchInviteRepository teamMatchInviteRepository;
     @Mock TeamMatchScoreRepository teamMatchScoreRepository;
+    @Mock VenueService venueService;
+    @Mock LeagueClient leagueClient;
     @Mock CurrentUserProvider userProvider;
-    @Mock VenueService venueService; // ADDED FOR STORY #352 / #359
 
     @InjectMocks
     TeamMatchService teamMatchService;
@@ -98,6 +103,7 @@ class TeamMatchServiceTest {
                 "soccer",
                 OffsetDateTime.now().plusDays(1),
                 OffsetDateTime.now().plusDays(1).plusHours(1),
+                LocalDate.now().plusDays(1),
                 null,
                 "Montreal",
                 true,
@@ -118,6 +124,7 @@ class TeamMatchServiceTest {
                 "soccer",
                 OffsetDateTime.now().plusDays(1),
                 OffsetDateTime.now().plusDays(1).plusHours(1),
+                LocalDate.now().plusDays(1),
                 null,
                 "Montreal",
                 true,
@@ -129,14 +136,146 @@ class TeamMatchServiceTest {
     }
 
     @Test
-    void submitScore_whenNoReferee_onlyTeamOwnersAllowed() {
-        when(userProvider.clerkUserId()).thenReturn("random_user");
+    void validateMatchInvite_whenTimeConflict_returnsConflictCode() {
+        when(userProvider.clerkUserId()).thenReturn(ownerUserId);
+
+        TeamMatch existingMatch = new TeamMatch();
+        existingMatch.setId(UUID.randomUUID());
+        existingMatch.setStatus(TeamMatchStatus.CONFIRMED);
+        existingMatch.setStartTime(OffsetDateTime.parse("2026-03-20T14:30:00Z"));
+        existingMatch.setEndTime(OffsetDateTime.parse("2026-03-20T15:30:00Z"));
+        existingMatch.setScheduledDate(LocalDate.parse("2026-03-20"));
+
+        when(teamMatchRepository.findByHomeTeamIdOrAwayTeamIdOrderByStartTimeDesc(homeTeamId, homeTeamId))
+                .thenReturn(List.of(existingMatch));
+
+        TeamMatchCreateRequest request = new TeamMatchCreateRequest(
+                homeTeamId,
+                awayTeamId,
+                "soccer",
+                OffsetDateTime.parse("2026-03-20T16:00:00Z"),
+                OffsetDateTime.parse("2026-03-20T17:00:00Z"),
+                LocalDate.parse("2026-03-20"),
+                null,
+                "Montreal",
+                false,
+                null
+        );
+
+        TeamMatchScheduleValidationResponse response =
+                teamMatchService.validateMatchInvite(homeTeamId, request);
+
+        assertEquals(false, response.allowed());
+        assertEquals("TEAM_TIME_SLOT_CONFLICT", response.code());
+    }
+
+    @Test
+    void createMatchInvite_whenDailyLimitConflict_throwsConflictWithCode() {
+        when(userProvider.clerkUserId()).thenReturn(ownerUserId);
+
+        TeamMatch first = new TeamMatch();
+        first.setId(UUID.randomUUID());
+        first.setStatus(TeamMatchStatus.CONFIRMED);
+        first.setStartTime(OffsetDateTime.parse("2026-03-20T08:00:00Z"));
+        first.setEndTime(OffsetDateTime.parse("2026-03-20T09:00:00Z"));
+        first.setScheduledDate(LocalDate.parse("2026-03-20"));
+
+        TeamMatch second = new TeamMatch();
+        second.setId(UUID.randomUUID());
+        second.setStatus(TeamMatchStatus.CONFIRMED);
+        second.setStartTime(OffsetDateTime.parse("2026-03-20T10:00:00Z"));
+        second.setEndTime(OffsetDateTime.parse("2026-03-20T11:00:00Z"));
+        second.setScheduledDate(LocalDate.parse("2026-03-20"));
+
+        TeamMatch third = new TeamMatch();
+        third.setId(UUID.randomUUID());
+        third.setStatus(TeamMatchStatus.CONFIRMED);
+        third.setStartTime(OffsetDateTime.parse("2026-03-20T12:00:00Z"));
+        third.setEndTime(OffsetDateTime.parse("2026-03-20T13:00:00Z"));
+        third.setScheduledDate(LocalDate.parse("2026-03-20"));
+
+        when(teamMatchRepository.findByHomeTeamIdOrAwayTeamIdOrderByStartTimeDesc(homeTeamId, homeTeamId))
+                .thenReturn(List.of(first, second, third));
+
+        TeamMatchCreateRequest request = new TeamMatchCreateRequest(
+                homeTeamId,
+                awayTeamId,
+                "soccer",
+                OffsetDateTime.parse("2026-03-20T16:00:00Z"),
+                OffsetDateTime.parse("2026-03-20T17:00:00Z"),
+                LocalDate.parse("2026-03-20"),
+                null,
+                "Montreal",
+                false,
+                null
+        );
+
+        ConflictException ex = assertThrows(
+                ConflictException.class,
+                () -> teamMatchService.createMatchInvite(homeTeamId, request)
+        );
+
+        assertEquals("TEAM_DAILY_LIMIT_EXCEEDED", ex.getCode());
+    }
+
+    @Test
+    void validateMatchInvite_whenRequestedLateEveningMatchesStoredUtcDay_returnsDailyLimitConflict() {
+        when(userProvider.clerkUserId()).thenReturn(ownerUserId);
+
+        TeamMatch first = new TeamMatch();
+        first.setId(UUID.randomUUID());
+        first.setStatus(TeamMatchStatus.CONFIRMED);
+        first.setStartTime(OffsetDateTime.parse("2026-03-19T17:00:00Z"));
+        first.setEndTime(OffsetDateTime.parse("2026-03-19T18:30:00Z"));
+        first.setScheduledDate(LocalDate.parse("2026-03-19"));
+
+        TeamMatch second = new TeamMatch();
+        second.setId(UUID.randomUUID());
+        second.setStatus(TeamMatchStatus.CONFIRMED);
+        second.setStartTime(OffsetDateTime.parse("2026-03-19T19:00:00Z"));
+        second.setEndTime(OffsetDateTime.parse("2026-03-19T19:30:00Z"));
+        second.setScheduledDate(LocalDate.parse("2026-03-19"));
+
+        TeamMatch third = new TeamMatch();
+        third.setId(UUID.randomUUID());
+        third.setStatus(TeamMatchStatus.CONFIRMED);
+        third.setStartTime(OffsetDateTime.parse("2026-03-19T21:00:00Z"));
+        third.setEndTime(OffsetDateTime.parse("2026-03-19T21:30:00Z"));
+        third.setScheduledDate(LocalDate.parse("2026-03-19"));
+
+        when(teamMatchRepository.findByHomeTeamIdOrAwayTeamIdOrderByStartTimeDesc(homeTeamId, homeTeamId))
+                .thenReturn(List.of(first, second, third));
+
+        TeamMatchCreateRequest request = new TeamMatchCreateRequest(
+                homeTeamId,
+                awayTeamId,
+                "soccer",
+                OffsetDateTime.parse("2026-03-19T21:00:00-04:00"),
+                OffsetDateTime.parse("2026-03-19T23:00:00-04:00"),
+                LocalDate.parse("2026-03-19"),
+                null,
+                "Montreal",
+                false,
+                null
+        );
+
+        TeamMatchScheduleValidationResponse response =
+                teamMatchService.validateMatchInvite(homeTeamId, request);
+
+        assertEquals(false, response.allowed());
+        assertEquals("TEAM_DAILY_LIMIT_EXCEEDED", response.code());
+    }
+
+    @Test
+    void submitScore_whenNoReferee_onlyCreatorAllowed() {
+        String creator = "creator_1";
+        when(userProvider.clerkUserId()).thenReturn("other_user");
 
         TeamMatch match = new TeamMatch();
         match.setId(UUID.randomUUID());
         match.setMatchType(TeamMatchType.TEAM_MATCH);
         match.setStatus(TeamMatchStatus.CONFIRMED);
-        match.setCreatedByUserId("creator_1");
+        match.setCreatedByUserId(creator);
         match.setRequiresReferee(false);
         match.setHomeTeamId(homeTeamId);
         match.setAwayTeamId(awayTeamId);

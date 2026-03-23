@@ -22,6 +22,7 @@ import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
+import java.time.LocalDate;
 import java.time.OffsetDateTime;
 import java.util.UUID;
 
@@ -59,6 +60,9 @@ public class LeagueMatch {
 
     @Column(name = "end_time", nullable = false)
     private OffsetDateTime endTime;
+
+    @Column(name = "scheduled_date", nullable = false)
+    private LocalDate scheduledDate;
 
     @Column(name = "match_location", length = 255)
     private String matchLocation;

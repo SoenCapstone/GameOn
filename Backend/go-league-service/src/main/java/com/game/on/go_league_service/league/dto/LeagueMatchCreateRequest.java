@@ -4,6 +4,7 @@ import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 
+import java.time.LocalDate;
 import java.time.OffsetDateTime;
 import java.util.UUID;
 
@@ -12,6 +13,8 @@ public record LeagueMatchCreateRequest(
         UUID homeTeamId,
         @NotNull(message = "awayTeamId is required")
         UUID awayTeamId,
+        @NotNull(message = "scheduledDate is required")
+        LocalDate scheduledDate,
         @NotNull(message = "startTime is required")
         OffsetDateTime startTime,
         @NotNull(message = "endTime is required")
