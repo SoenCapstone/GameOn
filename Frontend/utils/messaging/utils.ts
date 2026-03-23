@@ -1,25 +1,26 @@
-import type { InfiniteData } from "@tanstack/react-query";
-import {
+import type {
+  ChatListRow,
   ConversationResponse,
   MessageHistoryResponse,
   MessageResponse,
-} from "@/features/messaging/types";
+} from "@/constants/messaging";
+import type { InfiniteData } from "@tanstack/react-query";
 
 type MessageValidation =
   | { valid: true; value: string }
   | { valid: false; reason: string };
 
-export const MAX_MESSAGE_LENGTH = 2000;
+export const maxMessageLength = 2000;
 
 export function validateMessageContent(content: string): MessageValidation {
   const trimmed = content.trim();
   if (!trimmed) {
     return { valid: false, reason: "Message cannot be empty" };
   }
-  if (trimmed.length > MAX_MESSAGE_LENGTH) {
+  if (trimmed.length > maxMessageLength) {
     return {
       valid: false,
-      reason: `Message exceeds ${MAX_MESSAGE_LENGTH} characters`,
+      reason: `Message exceeds ${maxMessageLength} characters`,
     };
   }
   return { valid: true, value: trimmed } as const;
@@ -56,7 +57,7 @@ export function appendMessageToPages(
 ): InfiniteData<MessageHistoryResponse> | undefined {
   if (!data) return data;
   const pages = data.pages.map((page, index) => {
-    if (index !== data.pages.length - 1) {
+    if (index !== 0) {
       return page;
     }
     return {
@@ -89,7 +90,7 @@ export function buildMessagesFromPages(
   data: InfiniteData<MessageHistoryResponse> | undefined,
 ): MessageResponse[] {
   if (!data) return [];
-  return data.pages.flatMap((page) => page.messages ?? []);
+  return [...data.pages].reverse().flatMap((page) => page.messages ?? []);
 }
 
 export function formatMessageTimestamp(timestamp?: string | null) {
@@ -119,12 +120,57 @@ export function formatDateSeparator(timestamp: string | Date): string {
 
   if (diffDays === 0) return "Today";
   if (diffDays === 1) return "Yesterday";
-  if (diffDays >= 2 && diffDays <= 6) {
-    return Intl.DateTimeFormat(undefined, { weekday: "long" }).format(date);
+  if (date.getFullYear() === now.getFullYear()) {
+    return Intl.DateTimeFormat(undefined, {
+      weekday: "short",
+      month: "short",
+      day: "numeric",
+    }).format(date);
   }
   return Intl.DateTimeFormat(undefined, {
-    weekday: "short",
     month: "short",
     day: "numeric",
+    year: "numeric",
   }).format(date);
+}
+
+export function lastMessageId(rows: readonly ChatListRow[]): string | null {
+  for (let i = rows.length - 1; i >= 0; i--) {
+    const row = rows[i];
+    if (row.type === "message") return row.message.id;
+  }
+  return null;
+}
+
+export function buildChatListRows(
+  messages: readonly MessageResponse[],
+  userId: string | null | undefined,
+  resolveSenderName: (senderId: string) => string,
+): ChatListRow[] {
+  const out: ChatListRow[] = [];
+  let lastDayKey: string | null = null;
+  for (const msg of messages) {
+    const d = new Date(msg.createdAt);
+    const dayKey = `${d.getFullYear()}-${d.getMonth()}-${d.getDate()}`;
+    if (dayKey !== lastDayKey) {
+      lastDayKey = dayKey;
+      out.push({
+        type: "date",
+        id: `date-${dayKey}`,
+        label: formatDateSeparator(msg.createdAt),
+      });
+    }
+    out.push({
+      type: "message",
+      message: {
+        id: msg.id,
+        text: msg.content,
+        fromMe: msg.senderId === userId,
+        senderLabel:
+          msg.senderId === userId ? undefined : resolveSenderName(msg.senderId),
+        createdAt: msg.createdAt,
+      },
+    });
+  }
+  return out;
 }

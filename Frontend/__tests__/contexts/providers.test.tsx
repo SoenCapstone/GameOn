@@ -135,7 +135,7 @@ jest.mock("@/contexts/referee-context", () => {
   };
 });
 
-jest.mock("@/features/messaging/provider", () => {
+jest.mock("@/contexts/messaging", () => {
   const ReactModule =
     jest.requireActual<typeof import("react")>("react");
 
