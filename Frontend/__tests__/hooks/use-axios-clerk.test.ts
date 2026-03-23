@@ -273,6 +273,11 @@ describe("GO_TEAM_SERVICE_ROUTES", () => {
   it("MATCHES returns route", () => {
     expect(typeof GO_TEAM_SERVICE_ROUTES.MATCHES("team1")).toBe("string");
   });
+  it("VALIDATE_MATCH_INVITE returns route", () => {
+    expect(typeof GO_TEAM_SERVICE_ROUTES.VALIDATE_MATCH_INVITE("team1")).toBe(
+      "string",
+    );
+  });
   it("CREATE_MATCH_INVITE returns route", () => {
     expect(typeof GO_TEAM_SERVICE_ROUTES.CREATE_MATCH_INVITE("team1")).toBe(
       "string",
@@ -311,6 +316,11 @@ describe("GO_LEAGUE_SERVICE_ROUTES", () => {
   });
   it("MATCHES returns route", () => {
     expect(typeof GO_LEAGUE_SERVICE_ROUTES.MATCHES("league1")).toBe("string");
+  });
+  it("VALIDATE_MATCH returns route", () => {
+    expect(typeof GO_LEAGUE_SERVICE_ROUTES.VALIDATE_MATCH("league1")).toBe(
+      "string",
+    );
   });
   it("CREATE_MATCH returns route", () => {
     expect(typeof GO_LEAGUE_SERVICE_ROUTES.CREATE_MATCH("league1")).toBe(

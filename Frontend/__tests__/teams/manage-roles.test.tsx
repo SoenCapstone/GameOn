@@ -2,8 +2,49 @@ import React from "react";
 import { render, fireEvent } from "@testing-library/react-native";
 import { Alert } from "react-native";
 import ManageRolesScreen from "@/app/(contexts)/teams/[id]/manage-roles";
+import type { TeamMember } from "@/hooks/use-get-team-members/model";
 
 // ── Mocks ─────────────────────────────────────────────────────────────
+
+type MockTeamMember = TeamMember & {
+  userId: string;
+  role: NonNullable<TeamMember["role"]>;
+};
+
+type MutationConfig = {
+  mutationFn: (...args: readonly unknown[]) => Promise<unknown>;
+  onSuccess?: () => void | Promise<void>;
+  onError?: (error: unknown) => void;
+};
+
+type ContentAreaMockProps = {
+  children?: React.ReactNode;
+};
+
+type PageTitleMockProps = {
+  title: string;
+};
+
+type ButtonMockProps = {
+  type: "back" | "custom";
+  onPress?: () => void;
+  label?: string;
+  icon?: string;
+};
+
+type CardMockProps = {
+  children?: React.ReactNode;
+};
+
+type MemberRowMockProps = {
+  name: string;
+  email?: string | null;
+  right?: React.ReactNode;
+};
+
+type IoniconsMockProps = {
+  name: string;
+};
 
 const mockPush = jest.fn();
 const mockBack = jest.fn();
@@ -21,7 +62,7 @@ jest.mock("@clerk/clerk-expo", () => ({
   useAuth: () => ({ getToken: jest.fn().mockResolvedValue("mock-token"), userId: "user-1" }),
 }));
 
-const mockMembers = [
+const mockMembers: MockTeamMember[] = [
   { id: "user-1", userId: "user-1", firstname: "Alice", lastname: "Smith", email: "alice@game.com", role: "OWNER" },
   { id: "user-2", userId: "user-2", firstname: "Bob", lastname: "Jones", email: "bob@game.com", role: "PLAYER" },
   { id: "user-3", userId: "user-3", firstname: "Carol", lastname: "Lee", email: "carol@game.com", role: "COACH" },
@@ -72,13 +113,13 @@ jest.mock("@tanstack/react-query", () => {
   return {
     ...actual,
     useQueryClient: () => ({ invalidateQueries: jest.fn() }),
-    useMutation: ({ mutationFn, onSuccess, onError }: any) => ({
-      mutate: async (...args: any[]) => {
+    useMutation: ({ mutationFn, onSuccess, onError }: MutationConfig) => ({
+      mutate: async (...args: readonly unknown[]) => {
         try {
           await mutationFn(...args);
           if (onSuccess) onSuccess();
-        } catch (e) {
-          if (onError) onError(e);
+        } catch (error) {
+          if (onError) onError(error);
         }
       },
       isPending: false,
@@ -88,26 +129,26 @@ jest.mock("@tanstack/react-query", () => {
 
 // Mock UI components that depend on native modules
 jest.mock("@/components/ui/content-area", () => {
-  const { View } = require("react-native");
+  const { View } = jest.requireActual("react-native");
   return {
-    ContentArea: ({ children }: any) => <View testID="content-area">{children}</View>,
+    ContentArea: ({ children }: ContentAreaMockProps) => <View testID="content-area">{children}</View>,
   };
 });
 
 jest.mock("@/components/header/header", () => {
-  const { View } = require("react-native");
-  return { Header: (props: any) => <View testID="header" /> };
+  const { View } = jest.requireActual("react-native");
+  return { Header: () => <View testID="header" /> };
 });
 
 jest.mock("@/components/header/page-title", () => {
-  const { Text } = require("react-native");
-  return { PageTitle: ({ title }: any) => <Text>{title}</Text> };
+  const { Text } = jest.requireActual("react-native");
+  return { PageTitle: ({ title }: PageTitleMockProps) => <Text>{title}</Text> };
 });
 
 jest.mock("@/components/ui/button", () => {
-  const { Pressable, Text } = require("react-native");
+  const { Pressable, Text } = jest.requireActual("react-native");
   return {
-    Button: (props: any) => (
+    Button: (props: ButtonMockProps) => (
       <Pressable testID={`button-${props.type}`} onPress={props.onPress}>
         <Text>{props.label || props.icon || "back"}</Text>
       </Pressable>
@@ -116,14 +157,14 @@ jest.mock("@/components/ui/button", () => {
 });
 
 jest.mock("@/components/ui/card", () => {
-  const { View } = require("react-native");
-  return { Card: ({ children }: any) => <View testID="card">{children}</View> };
+  const { View } = jest.requireActual("react-native");
+  return { Card: ({ children }: CardMockProps) => <View testID="card">{children}</View> };
 });
 
 jest.mock("@/components/teams/member-row", () => {
-  const { View, Text } = require("react-native");
+  const { View, Text } = jest.requireActual("react-native");
   return {
-    MemberRow: ({ name, email, right }: any) => (
+    MemberRow: ({ name, email, right }: MemberRowMockProps) => (
       <View testID={`member-row-${name}`}>
         <Text testID="member-name">{name}</Text>
         <Text testID="member-email">{email}</Text>
@@ -134,15 +175,11 @@ jest.mock("@/components/teams/member-row", () => {
 });
 
 jest.mock("@expo/vector-icons", () => {
-  const { Text } = require("react-native");
+  const { Text } = jest.requireActual("react-native");
   return {
-    Ionicons: ({ name }: any) => <Text testID={`icon-${name}`}>{name}</Text>,
+    Ionicons: ({ name }: IoniconsMockProps) => <Text testID={`icon-${name}`}>{name}</Text>,
   };
 });
-
-jest.mock("@/utils/error", () => ({
-  errorToString: (e: any) => e?.message || "Unknown error",
-}));
 
 // ── Tests ─────────────────────────────────────────────────────────────
 
@@ -258,7 +295,7 @@ describe("ManageRolesScreen", () => {
     expect(alertSpy).toHaveBeenCalledWith(
       "Remove from Team",
       expect.stringContaining("Remove"),
-      expect.any(Array),
+      expect.arrayContaining([]),
     );
   });
 
@@ -274,7 +311,7 @@ describe("ManageRolesScreen", () => {
     expect(alertSpy).toHaveBeenCalledWith(
       "Change Role",
       expect.stringContaining("Current role: Player"),
-      expect.any(Array),
+      expect.arrayContaining([]),
     );
   });
 });

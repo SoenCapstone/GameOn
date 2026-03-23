@@ -2,13 +2,13 @@ import React from "react";
 import { render, fireEvent, waitFor, act } from "@testing-library/react-native";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import ScheduleLeagueMatchScreen from "@/app/(contexts)/leagues/[id]/matches/schedule";
-
 const mockSetOptions = jest.fn();
 const mockReplace = jest.fn();
 const mockDismissTo = jest.fn();
 const mockPush = jest.fn();
 const mockBack = jest.fn();
 const mockCreateLeagueMatch = jest.fn();
+const mockValidateLeagueMatchSchedule = jest.fn();
 const mockApiGet = jest.fn();
 const mockToast = jest.fn();
 const mockAlert = jest.fn();
@@ -144,6 +144,10 @@ jest.mock("@/hooks/use-matches", () => ({
     mutateAsync: mockCreateLeagueMatch,
     isPending: false,
   }),
+  useValidateLeagueMatchSchedule: () => ({
+    mutateAsync: mockValidateLeagueMatchSchedule,
+    isPending: false,
+  }),
   useLeagueTeams: () => ({
     data: [{ teamId: "team-1" }, { teamId: "team-2" }],
   }),
@@ -242,6 +246,7 @@ describe("ScheduleLeagueMatchScreen", () => {
     jest.spyOn(Alert, "alert").mockImplementation(mockAlert);
 
     mockCreateLeagueMatch.mockResolvedValue({ id: "m1" });
+    mockValidateLeagueMatchSchedule.mockResolvedValue({ allowed: true });
     mockApiGet.mockImplementation((url: string) => {
       if (url === "/users/ref-1") {
         return Promise.resolve({
@@ -288,6 +293,7 @@ describe("ScheduleLeagueMatchScreen", () => {
     await submitSchedule();
 
     await waitFor(() => expect(mockCreateLeagueMatch).toHaveBeenCalledTimes(1));
+    expect(mockValidateLeagueMatchSchedule).toHaveBeenCalledTimes(1);
     expect(mockCreateLeagueMatch).toHaveBeenCalledWith(
       expect.objectContaining({
         homeTeamId: "team-1",
@@ -301,5 +307,38 @@ describe("ScheduleLeagueMatchScreen", () => {
       pathname: "/leagues/league-1",
       params: { tab: "matches" },
     });
+  });
+
+  it("blocks submission when backend validation reports a same-day conflict", async () => {
+    mockValidateLeagueMatchSchedule.mockResolvedValue({
+      allowed: false,
+      code: "LEAGUE_TEAM_SAME_DAY_CONFLICT",
+      conflictingTeamIds: ["team-2"],
+    });
+
+    const { getByTestId } = render(
+      <QueryClientProvider client={queryClient}>
+        <ScheduleLeagueMatchScreen />
+      </QueryClientProvider>,
+    );
+
+    await waitFor(() =>
+      expect(getByTestId("menu-home-team-alpha-fc")).toBeTruthy(),
+    );
+    fireEvent.press(getByTestId("menu-home-team-alpha-fc"));
+    fireEvent.press(getByTestId("menu-away-team-beta-fc"));
+    fireEvent.press(getByTestId("menu-venue-stadium"));
+    await waitFor(() =>
+      expect(getByTestId("menu-choose-referee-jane-ref")).toBeTruthy(),
+    );
+    fireEvent.press(getByTestId("menu-choose-referee-jane-ref"));
+    await submitSchedule();
+
+    expect(mockValidateLeagueMatchSchedule).toHaveBeenCalledTimes(1);
+    expect(mockCreateLeagueMatch).not.toHaveBeenCalled();
+    expect(mockAlert).toHaveBeenCalledWith(
+      "Match schedule failed",
+      "Beta FC already has a confirmed match on this day. League teams are limited to one match per day.",
+    );
   });
 });

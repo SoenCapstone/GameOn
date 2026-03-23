@@ -11,6 +11,7 @@ import {
 import {
   LeagueMatch,
   LeagueTeamMembership,
+  MatchScheduleValidationResult,
   RefereeMatchInviteCard,
   RefereeProfile,
   RefInviteResponse,
@@ -235,6 +236,40 @@ export function useReferees(params?: {
   });
 }
 
+export function useValidateLeagueMatchSchedule(leagueId: string) {
+  const api = useAxiosWithClerk();
+
+  return useMutation({
+    mutationFn: async (payload: {
+      homeTeamId: string;
+      awayTeamId: string;
+      scheduledDate: string;
+      startTime: string;
+      endTime: string;
+      venueId: string;
+      matchLocation?: string;
+      refereeUserId: string;
+    }) => {
+      const resp = await api.post<MatchScheduleValidationResult>(
+        GO_LEAGUE_SERVICE_ROUTES.VALIDATE_MATCH(leagueId),
+        {
+          homeTeamId: payload.homeTeamId,
+          awayTeamId: payload.awayTeamId,
+          scheduledDate: payload.scheduledDate,
+          startTime: payload.startTime,
+          endTime: payload.endTime,
+          venueId: payload.venueId,
+          matchLocation: payload.matchLocation,
+          requiresReferee: true,
+          refereeUserId: payload.refereeUserId,
+        },
+      );
+
+      return resp.data;
+    },
+  });
+}
+
 export function useCreateLeagueMatch(leagueId: string) {
   const api = useAxiosWithClerk();
 
@@ -242,6 +277,7 @@ export function useCreateLeagueMatch(leagueId: string) {
     mutationFn: async (payload: {
       homeTeamId: string;
       awayTeamId: string;
+      scheduledDate: string;
       startTime: string;
       endTime: string;
       venueId: string;
@@ -253,6 +289,7 @@ export function useCreateLeagueMatch(leagueId: string) {
         {
           homeTeamId: payload.homeTeamId,
           awayTeamId: payload.awayTeamId,
+          scheduledDate: payload.scheduledDate,
           startTime: payload.startTime,
           endTime: payload.endTime,
           venueId: payload.venueId,
@@ -267,6 +304,43 @@ export function useCreateLeagueMatch(leagueId: string) {
   });
 }
 
+export function useValidateTeamMatchSchedule(teamId: string) {
+  const api = useAxiosWithClerk();
+
+  return useMutation({
+    mutationFn: async (payload: {
+      homeTeamId: string;
+      awayTeamId: string;
+      sport?: string;
+      scheduledDate: string;
+      startTime: string;
+      endTime: string;
+      venueId?: string;
+      matchRegion?: string;
+      requiresReferee: boolean;
+      notes?: string;
+    }) => {
+      const resp = await api.post<MatchScheduleValidationResult>(
+        GO_TEAM_SERVICE_ROUTES.VALIDATE_MATCH_INVITE(teamId),
+        {
+          homeTeamId: payload.homeTeamId,
+          awayTeamId: payload.awayTeamId,
+          sport: payload.sport,
+          scheduledDate: payload.scheduledDate,
+          startTime: payload.startTime,
+          endTime: payload.endTime,
+          venueId: payload.venueId,
+          matchRegion: payload.matchRegion,
+          requiresReferee: payload.requiresReferee,
+          notes: payload.notes,
+        },
+      );
+
+      return resp.data;
+    },
+  });
+}
+
 export function useCreateTeamMatch(teamId: string) {
   const api = useAxiosWithClerk();
 
@@ -275,6 +349,7 @@ export function useCreateTeamMatch(teamId: string) {
       homeTeamId: string;
       awayTeamId: string;
       sport?: string;
+      scheduledDate: string;
       startTime: string;
       endTime: string;
       venueId?: string;
@@ -289,6 +364,7 @@ export function useCreateTeamMatch(teamId: string) {
           homeTeamId: payload.homeTeamId,
           awayTeamId: payload.awayTeamId,
           sport: payload.sport,
+          scheduledDate: payload.scheduledDate,
           startTime: payload.startTime,
           endTime: payload.endTime,
           venueId: payload.venueId,
