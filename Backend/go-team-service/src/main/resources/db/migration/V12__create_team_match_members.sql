@@ -1,4 +1,4 @@
-CREATE TABLE team_match_members (
+CREATE TABLE IF NOT EXISTS team_match_members (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     match_id UUID NOT NULL,
     team_member_id UUID NOT NULL,
