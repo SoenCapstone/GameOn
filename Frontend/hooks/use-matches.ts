@@ -560,6 +560,22 @@ export function useCancelTeamMatch() {
   });
 }
 
+export function useUpdateMatchAttendance() {
+  const api = useAxiosWithClerk();
+
+  return useMutation({
+    mutationFn: async ({
+      matchId,
+      attending,
+    }: {
+      matchId: string;
+      attending: "CONFIRMED" | "DECLINED";
+    }) => {
+      await api.post(GO_MATCH_ROUTES.ATTENDANCE(matchId), { attending });
+    },
+  });
+}
+
 export function useSubmitLeagueScore(leagueId: string) {
   const api = useAxiosWithClerk();
 

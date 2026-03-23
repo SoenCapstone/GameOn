@@ -37,6 +37,7 @@ interface MatchCardProps {
   readonly onSubmitScore?: () => void;
   readonly canOptOut?: boolean;
   readonly onOptOut?: () => void;
+  readonly isReplacement?: boolean;
 }
 
 export function MatchCard({
@@ -57,6 +58,7 @@ export function MatchCard({
   onSubmitScore,
   canOptOut = false,
   onOptOut,
+  isReplacement = false,
 }: Readonly<MatchCardProps>) {
   const { showActionSheetWithOptions } = useActionSheet();
   const anchorRef = useRef<View>(null);
@@ -193,7 +195,9 @@ export function MatchCard({
 
       {canOptOut && onOptOut ? (
         <Pressable onPress={onOptOut} style={styles.optOutButton}>
-          <Text style={styles.optOutText}>Not attending</Text>
+          <Text style={styles.optOutText}>
+            {isReplacement ? "Attending" : "Not attending"}
+          </Text>
         </Pressable>
       ) : null}
     </View>
