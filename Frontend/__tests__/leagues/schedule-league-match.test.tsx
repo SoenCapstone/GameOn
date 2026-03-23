@@ -195,8 +195,8 @@ jest.mock("@/utils/logger", () => ({
   }),
 }));
 
-jest.mock("@/features/matches/utils", () => {
-  const actual = jest.requireActual("@/features/matches/utils");
+jest.mock("@/utils/date", () => {
+  const actual = jest.requireActual("@/utils/date");
   return {
     ...actual,
     isValidTimeRange: () => true,
@@ -204,7 +204,11 @@ jest.mock("@/features/matches/utils", () => {
 });
 
 jest.mock("@/hooks/use-schedule-header", () => ({
-  useScheduleHeader: ({ onSubmit }: { onSubmit: () => void | Promise<void> }) => {
+  useScheduleHeader: ({
+    onSubmit,
+  }: {
+    onSubmit: () => void | Promise<void>;
+  }) => {
     capturedSubmit = onSubmit;
     scheduleHeaderRenderCount += 1;
   },
@@ -233,10 +237,10 @@ describe("ScheduleLeagueMatchScreen", () => {
     jest.clearAllMocks();
     capturedSubmit = undefined;
     scheduleHeaderRenderCount = 0;
-    
+
     const { Alert } = jest.requireActual("react-native");
     jest.spyOn(Alert, "alert").mockImplementation(mockAlert);
-    
+
     mockCreateLeagueMatch.mockResolvedValue({ id: "m1" });
     mockApiGet.mockImplementation((url: string) => {
       if (url === "/users/ref-1") {

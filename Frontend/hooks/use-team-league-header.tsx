@@ -8,6 +8,7 @@ interface UseTeamLeagueHeaderProps {
   id: string;
   isMember: boolean;
   isOwner?: boolean;
+  role?: string | null;
   onFollow: () => void;
 }
 
@@ -15,6 +16,7 @@ export function useTeamHeader({
   title,
   id,
   isMember,
+  role,
   onFollow,
 }: UseTeamLeagueHeaderProps) {
   const navigation = useNavigation();
@@ -26,13 +28,14 @@ export function useTeamHeader({
           title={title}
           id={id}
           isMember={isMember}
+          role={role}
           onFollow={onFollow}
         />
       );
     }
 
     navigation.setOptions({ headerTitle: renderTeamHeader });
-  }, [navigation, title, id, isMember, onFollow]);
+  }, [navigation, title, id, isMember, role, onFollow]);
 }
 
 export function useLeagueHeader({
