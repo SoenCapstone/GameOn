@@ -17,7 +17,7 @@ import {
 } from "@/components/invite/invite-section";
 import { useTeamDetail } from "@/hooks/use-team-detail";
 import { useGetTeamMembers } from "@/hooks/use-get-team-members/use-get-team-members";
-import { fetchUserDirectory } from "@/features/messaging/api";
+import { fetchUserDirectory } from "@/hooks/messages/api";
 import {
   GO_TEAM_SERVICE_ROUTES,
   useAxiosWithClerk,

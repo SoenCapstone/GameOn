@@ -4,9 +4,11 @@ export default function AppLayout() {
   return (
     <Stack
       screenOptions={{
-        headerShown: false,
+        headerTransparent: true,
+        headerBackButtonDisplayMode: "minimal",
       }}
     >
+      <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
       <Stack.Screen
         name="match/[id]/index"
         options={{

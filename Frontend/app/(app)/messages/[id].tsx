@@ -1,138 +1,135 @@
 import {
-  useLayoutEffect,
+  chatListKeyExtractor,
+  renderLegendChatItem,
+} from "@/components/messages/chat-list-rows";
+import { Background } from "@/components/ui/background";
+import type { ChatListRow } from "@/constants/messaging";
+import { useMessagingContext } from "@/contexts/messaging";
+import { useConversationsQuery } from "@/hooks/messages/use-conversations-query";
+import { useMessagesQuery } from "@/hooks/messages/use-messages-query";
+import { useMyTeams } from "@/hooks/messages/use-my-teams";
+import { useUserDirectory } from "@/hooks/messages/use-user-directory";
+import { useHeaderHeight } from "@/hooks/use-header-height";
+import { errorToString } from "@/utils/error";
+import {
+  buildChatListRows,
+  buildMessagesFromPages,
+  lastMessageId,
+} from "@/utils/messaging/utils";
+import { useAuth } from "@clerk/clerk-expo";
+import { KeyboardAvoidingLegendList } from "@legendapp/list/keyboard";
+import {
+  Stack,
+  useFocusEffect,
+  useLocalSearchParams,
+  useRouter,
+} from "expo-router";
+import {
+  useCallback,
+  useEffect,
   useMemo,
   useRef,
   useState,
-  useEffect,
-  RefObject,
+  type ComponentRef,
 } from "react";
-import { ContentArea } from "@/components/ui/content-area";
 import {
   ActivityIndicator,
   Alert,
   Pressable,
-  ScrollView,
   StyleSheet,
   Text,
   TextInput,
   View,
-  type TextStyle,
-  type ViewStyle,
 } from "react-native";
-import {
-  KeyboardAwareScrollViewRef,
-  KeyboardStickyView,
-} from "react-native-keyboard-controller";
-import { LegendList } from "@legendapp/list";
-import { useLocalSearchParams, useRouter } from "expo-router";
-import { useNavigation } from "@react-navigation/native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { useAuth } from "@clerk/clerk-expo";
-import {
-  useConversationsQuery,
-  useMessagesQuery,
-  useMyTeams,
-  useUserDirectory,
-} from "@/features/messaging/hooks";
-import { useMessagingContext } from "@/features/messaging/provider";
-import {
-  buildMessagesFromPages,
-  formatDateSeparator,
-  formatMessageTimestamp,
-} from "@/features/messaging/utils";
-import { errorToString } from "@/utils/error";
-import { Header } from "@/components/header/header";
-import { PageTitle } from "@/components/header/page-title";
-import { Button } from "@/components/ui/button";
-import { IconSymbol } from "@/components/ui/icon-symbol";
-import { GlassView } from "expo-glass-effect";
+import { Image } from "expo-image";
 
-type DisplayMessage = {
-  id: string;
-  text: string;
-  fromMe: boolean;
-  senderLabel?: string;
-  timestamp: string;
-  createdAt: string;
-};
-
-type DateSeparatorItem = { type: "date"; id: string; label: string };
-type MessageListItem = { type: "message"; message: DisplayMessage };
-type ListItem = DateSeparatorItem | MessageListItem;
-
-function LoadPreviousHeader({
-  hasNextPage,
-  onLoadPress,
-  isLoading,
-  style,
-  textStyle,
-}: Readonly<{
-  hasNextPage: boolean;
-  onLoadPress: () => void;
-  isLoading: boolean;
-  style: ViewStyle;
-  textStyle: TextStyle;
-}>) {
-  if (!hasNextPage) return null;
-  return (
-    <Pressable style={style} onPress={onLoadPress}>
-      {isLoading ? (
-        <ActivityIndicator color="white" />
-      ) : (
-        <Text style={textStyle}>Load previous</Text>
-      )}
-    </Pressable>
-  );
-}
-
-function ChatScreenHeader({
+export function ChatToolbar({
   title,
-  subtitle,
   isGroup,
   imageUrl,
   teamId,
+  text,
+  setText,
+  onSend,
+  sending,
 }: Readonly<{
   title: string;
-  subtitle: string;
   isGroup: boolean;
   imageUrl?: string | null;
-  teamId?: string | null;
+  teamId?: string;
+  text: string;
+  setText: (value: string) => void;
+  onSend: () => void;
+  sending: boolean;
 }>) {
   const router = useRouter();
-  const hasTeamImage = Boolean(teamId && imageUrl);
-  const imageSource = teamId && imageUrl ? { uri: imageUrl } : undefined;
-  const fallbackIcon = isGroup ? "shield.fill" : "person.fill";
-  const iconName = hasTeamImage ? undefined : fallbackIcon;
-
-  const right = (
-    <Button
-      type="custom"
-      image={imageSource}
-      icon={iconName}
-      iconSize={isGroup ? 24 : 20}
-      onPress={teamId ? () => router.push(`/teams/${teamId}`) : undefined}
-      isInteractive={!!teamId}
-    />
-  );
+  const icon = isGroup ? "shield.fill" : "person.fill";
+  const handleTeamPress = () => teamId && router.push(`/teams/${teamId}`);
+  const canSend = Boolean(text.trim()) && !sending;
 
   return (
-    <Header
-      left={<Button type="back" />}
-      center={<PageTitle title={title} subtitle={subtitle} />}
-      right={right}
-    />
+    <>
+      <Stack.Screen.BackButton displayMode="minimal">
+        Messages
+      </Stack.Screen.BackButton>
+      <Stack.Screen.Title>{title}</Stack.Screen.Title>
+      <Stack.Toolbar placement="right">
+        {imageUrl ? (
+          <Stack.Toolbar.View>
+            {isGroup && teamId ? (
+              <Pressable onPress={handleTeamPress}>
+                <Image
+                  source={{ uri: imageUrl }}
+                  style={[styles.avatar, styles.square]}
+                  contentFit="cover"
+                />
+              </Pressable>
+            ) : (
+              <Image
+                source={{ uri: imageUrl }}
+                style={styles.avatar}
+                contentFit="cover"
+              />
+            )}
+          </Stack.Toolbar.View>
+        ) : (
+          <Stack.Toolbar.Button icon={icon} onPress={handleTeamPress} />
+        )}
+      </Stack.Toolbar>
+      <Stack.Toolbar placement="bottom">
+        <Stack.Toolbar.View>
+          <View style={styles.composer}>
+            <TextInput
+              value={text}
+              onChangeText={setText}
+              placeholder="Message"
+              placeholderTextColor="rgba(235,235,245,0.6)"
+              style={styles.input}
+              selectionColor="white"
+              maxLength={2000}
+            />
+          </View>
+        </Stack.Toolbar.View>
+        <Stack.Toolbar.Spacer />
+        <Stack.Toolbar.Button
+          icon="arrow.up"
+          disabled={!canSend}
+          onPress={onSend}
+        />
+      </Stack.Toolbar>
+    </>
   );
 }
 
 export default function ChatScreen() {
-  const contentRef = useRef<ScrollView | null>(null);
-  const hasInitialScroll = useRef(false);
-  const insets = useSafeAreaInsets();
-  const composerBottomInset = Math.max(insets.bottom, 8);
   const { id } = useLocalSearchParams<{ id: string }>();
+  const listRef = useRef<ComponentRef<typeof KeyboardAvoidingLegendList>>(null);
+  const insets = useSafeAreaInsets();
+  const headerHeight = useHeaderHeight();
+  const bottomInset = insets.bottom + 44;
   const { userId } = useAuth();
   const { data: conversations } = useConversationsQuery();
-  const conversation = conversations?.find((c) => c.id === id);
   const { data: directory } = useUserDirectory();
   const { data: myTeams } = useMyTeams();
   const { sendMessage, ensureTopicSubscription } = useMessagingContext();
@@ -141,12 +138,15 @@ export default function ChatScreen() {
     fetchNextPage,
     hasNextPage,
     isFetchingNextPage,
-    status,
+    isPending,
+    isError,
     error,
-  } = useMessagesQuery(id ?? "");
+  } = useMessagesQuery(id);
 
   const [text, setText] = useState("");
   const [sending, setSending] = useState(false);
+
+  const conversation = conversations?.find((c) => c.id === id);
 
   const userMap = useMemo(() => {
     const map = new Map<string, string>();
@@ -168,51 +168,63 @@ export default function ChatScreen() {
     [messagePages],
   );
 
-  const displayMessages = useMemo<DisplayMessage[]>(() => {
-    return messages.map((msg) => ({
-      id: msg.id,
-      text: msg.content,
-      fromMe: msg.senderId === userId,
-      senderLabel:
-        msg.senderId === userId
-          ? "You"
-          : (userMap.get(msg.senderId) ?? msg.senderId),
-      timestamp: formatMessageTimestamp(msg.createdAt),
-      createdAt: msg.createdAt,
-    }));
-  }, [messages, userId, userMap]);
+  const getName = useCallback(
+    (senderId: string) => userMap.get(senderId) ?? senderId,
+    [userMap],
+  );
 
-  const listItems = useMemo<ListItem[]>(() => {
-    const items: ListItem[] = [];
-    let lastDayKey: string | null = null;
-    for (const msg of displayMessages) {
-      const date = new Date(msg.createdAt);
-      const dayKey = `${date.getFullYear()}-${date.getMonth()}-${date.getDate()}`;
-      if (dayKey !== lastDayKey) {
-        lastDayKey = dayKey;
-        items.push({
-          type: "date",
-          id: `date-${dayKey}`,
-          label: formatDateSeparator(msg.createdAt),
-        });
-      }
-      items.push({ type: "message", message: msg });
-    }
-    return items;
-  }, [displayMessages]);
+  const rows = useMemo(
+    () => buildChatListRows(messages, userId, getName),
+    [messages, userId, getName],
+  );
+
+  const otherParticipant = conversation?.participants?.find(
+    (p) => p.userId !== userId,
+  );
+  const directDisplayName = otherParticipant?.userId
+    ? getName(otherParticipant.userId)
+    : undefined;
+
+  const headerTitle =
+    conversation?.type === "GROUP"
+      ? conversation?.name || "Team chat"
+      : directDisplayName ||
+        conversation?.name ||
+        otherParticipant?.userId ||
+        "Chat";
+
+  const isGroup = conversation?.type === "GROUP";
+
+  const imageUrl =
+    isGroup && conversation?.teamId
+      ? (myTeams?.find((t) => t.id === conversation.teamId)?.logoUrl ?? null)
+      : (directory?.find((u) => u.id === otherParticipant?.userId)?.imageUrl ??
+        null);
+
+  const loading = !id || (isPending && messages.length === 0);
+
+  const snap = useRef(false);
+  const tail = useRef<string | null | undefined>(undefined);
 
   useEffect(() => {
-    if (hasInitialScroll.current) return;
-    if (status !== "success" || displayMessages.length === 0) return;
-    requestAnimationFrame(() => {
-      contentRef.current?.scrollToEnd?.({ animated: false });
-    });
-    hasInitialScroll.current = true;
-  }, [status, displayMessages.length]);
+    const id = lastMessageId(rows);
 
-  const handleSend = async () => {
-    if (!id) return;
-    if (!text.trim()) return;
+    if (id && tail.current !== id) {
+      snap.current = true;
+    }
+    tail.current = id;
+  }, [rows]);
+
+  useFocusEffect(
+    useCallback(() => {
+      setTimeout(() => {
+        listRef.current?.scrollToEnd({ animated: false });
+      }, 50);
+    }, []),
+  );
+
+  const onSend = useCallback(async () => {
+    if (!id || !text.trim()) return;
     try {
       setSending(true);
       await sendMessage(id, text);
@@ -222,289 +234,114 @@ export default function ChatScreen() {
     } finally {
       setSending(false);
     }
-  };
-
-  const resolveParticipantName = (participantId?: string | null) => {
-    if (!participantId) return undefined;
-    return userMap.get(participantId) || participantId;
-  };
-
-  const otherParticipant = conversation?.participants?.find(
-    (p) => p.userId !== userId,
-  );
-  const directDisplayName = resolveParticipantName(otherParticipant?.userId);
-
-  const headerTitle =
-    conversation?.type === "GROUP"
-      ? conversation?.name || "Team chat"
-      : directDisplayName ||
-        conversation?.name ||
-        otherParticipant?.userId ||
-        "Chat";
-  const headerSubtitle =
-    conversation?.type === "GROUP"
-      ? conversation.isEvent
-        ? "Event chat"
-        : "Team chat"
-      : "Direct message";
-
-  const showError = status === "error";
-
-  const isGroup = conversation?.type === "GROUP";
-  const navigation = useNavigation();
-
-  const headerLogoUrl =
-    isGroup && conversation?.teamId
-      ? (myTeams?.find((t) => t.id === conversation.teamId)?.logoUrl ?? null)
-      : null;
-
-  useLayoutEffect(() => {
-    navigation.setOptions({
-      headerTitle: () => (
-        <ChatScreenHeader
-          title={headerTitle}
-          subtitle={headerSubtitle}
-          isGroup={isGroup}
-          imageUrl={headerLogoUrl}
-          teamId={conversation?.teamId ?? null}
-        />
-      ),
-    });
-  }, [
-    navigation,
-    headerTitle,
-    headerSubtitle,
-    isGroup,
-    headerLogoUrl,
-    conversation?.teamId,
-  ]);
+  }, [id, text, sendMessage]);
 
   return (
-    <View style={styles.screen}>
-      <ContentArea
-        scrollRef={contentRef as RefObject<KeyboardAwareScrollViewRef>}
-        onContentSizeChange={() => {
-          if (status !== "success") return;
-          requestAnimationFrame(() => {
-            contentRef.current?.scrollToEnd?.({ animated: true });
-          });
-        }}
-        style={{ paddingBottom: composerBottomInset }}
-        background={{ preset: "green", mode: "form" }}
-      >
-        {conversation?.isEvent && (
-          <Text style={styles.infoText}>
-            Event chats are locked; only original members can participate.
-          </Text>
-        )}
-
-        {showError ? (
-          <View style={styles.emptyState}>
-            <Text style={styles.emptyTitle}>Unable to load messages</Text>
-            <Text style={styles.emptySubtitle}>{errorToString(error)}</Text>
-          </View>
-        ) : status === "pending" ? (
-          <ActivityIndicator color="white" style={{ marginTop: 40 }} />
-        ) : (
-          <LegendList
-            data={listItems}
-            keyExtractor={(item) =>
-              item.type === "date" ? item.id : item.message.id
-            }
-            style={styles.list}
-            scrollEnabled={false}
-            ListHeaderComponent={
-              <LoadPreviousHeader
-                hasNextPage={hasNextPage}
-                onLoadPress={() => fetchNextPage()}
-                isLoading={isFetchingNextPage}
-                style={styles.loadMore}
-                textStyle={styles.loadMoreText}
-              />
-            }
-            renderItem={({ item }) =>
-              item.type === "date" ? (
-                <View style={styles.dateSeparator}>
-                  <GlassView style={styles.dateBadge}>
-                    <Text style={styles.dateBadgeText}>{item.label}</Text>
-                  </GlassView>
-                </View>
-              ) : (
-                <View
-                  style={[
-                    styles.bubbleRow,
-                    item.message.fromMe ? styles.right : styles.left,
-                  ]}
-                >
-                  <GlassView
-                    style={styles.bubble}
-                    tintColor={item.message.fromMe ? "#1B5E2B" : "#2C2C2E"}
-                  >
-                    {!item.message.fromMe && (
-                      <Text style={styles.senderLabel}>
-                        {item.message.senderLabel}
-                      </Text>
-                    )}
-                    <Text style={styles.bubbleText}>{item.message.text}</Text>
-                    <Text style={styles.timestamp}>
-                      {item.message.timestamp}
-                    </Text>
-                  </GlassView>
-                </View>
-              )
-            }
-          />
-        )}
-      </ContentArea>
-
-      <KeyboardStickyView
-        offset={{ closed: -composerBottomInset, opened: -15 }}
-      >
-        <View style={styles.composerContainer}>
-          <View style={styles.composer}>
-            <GlassView isInteractive={true} style={styles.inputWrap}>
-              <TextInput
-                value={text}
-                onChangeText={setText}
-                placeholder="Message"
-                placeholderTextColor="rgba(255,255,255,0.4)"
-                style={styles.input}
-                editable={!sending}
-                selectionColor="white"
-              />
-            </GlassView>
-
-            <Pressable
-              onPress={handleSend}
-              disabled={sending}
-              accessibilityLabel="Send message"
-            >
-              <GlassView
-                glassEffectStyle="regular"
-                isInteractive={true}
-                style={styles.sendBtn}
-              >
-                <IconSymbol
-                  name="arrow.up"
-                  size={22}
-                  color="white"
-                  style={styles.sendIcon}
-                />
-              </GlassView>
-            </Pressable>
-          </View>
+    <>
+      <ChatToolbar
+        title={headerTitle}
+        isGroup={isGroup}
+        imageUrl={imageUrl}
+        teamId={conversation?.teamId ?? undefined}
+        text={text}
+        setText={setText}
+        onSend={onSend}
+        sending={sending}
+      />
+      <Background preset="green" mode="form" />
+      {loading ? (
+        <View style={styles.center}>
+          <ActivityIndicator color="rgba(255,255,255,0.9)" />
         </View>
-      </KeyboardStickyView>
-    </View>
+      ) : isError ? (
+        <View style={styles.center}>
+          <Text style={styles.lead}>Unable to load messages</Text>
+          <Text style={styles.error}>{errorToString(error)}</Text>
+        </View>
+      ) : (
+        <KeyboardAvoidingLegendList
+          ref={listRef}
+          key={id}
+          data={rows}
+          keyExtractor={chatListKeyExtractor}
+          renderItem={renderLegendChatItem}
+          onContentSizeChange={() => {
+            if (snap.current) {
+              listRef.current?.scrollToEnd({ animated: true });
+              snap.current = false;
+            }
+          }}
+          onStartReached={() => {
+            if (!hasNextPage || isFetchingNextPage) return;
+            void fetchNextPage();
+          }}
+          onStartReachedThreshold={1}
+          maintainVisibleContentPosition
+          getItemType={(item: ChatListRow) => item.type}
+          getEstimatedItemSize={(_item, _index, type) =>
+            type === "date" ? 40 : 56
+          }
+          estimatedItemSize={48}
+          initialContainerPoolRatio={3}
+          recycleItems
+          contentContainerStyle={[
+            styles.content,
+            { paddingTop: headerHeight, paddingBottom: bottomInset },
+          ]}
+          safeAreaInsetBottom={16}
+          keyboardDismissMode="interactive"
+          alignItemsAtEnd
+          initialScrollAtEnd
+          style={styles.list}
+        />
+      )}
+    </>
   );
 }
 
 const styles = StyleSheet.create({
-  screen: { flex: 1 },
-  infoText: {
-    textAlign: "center",
-    color: "rgba(255,255,255,0.55)",
-    marginTop: 6,
-    marginBottom: 10,
-    fontWeight: "600",
-  },
-  list: { flex: 1, overflow: "visible" },
-  dateSeparator: {
-    alignItems: "center",
-    marginVertical: 12,
-  },
-  dateBadge: {
-    paddingVertical: 6,
-    paddingHorizontal: 12,
-    borderRadius: 14,
-  },
-  dateBadgeText: {
-    color: "rgba(255,255,255,0.9)",
-    fontSize: 13,
-  },
-  bubbleRow: {
-    maxWidth: "80%",
-    marginBottom: 10,
-  },
-  bubble: {
-    paddingVertical: 10,
-    paddingHorizontal: 14,
-    borderRadius: 18,
-  },
-  right: { alignSelf: "flex-end" },
-  left: { alignSelf: "flex-start" },
-  senderLabel: {
-    color: "rgba(255,255,255,0.7)",
-    fontSize: 11,
-    marginBottom: 2,
-    fontWeight: "500",
-  },
-  bubbleText: { color: "white", fontSize: 16 },
-  timestamp: {
-    color: "rgba(255,255,255,0.45)",
-    fontSize: 11,
-    marginTop: 4,
-    textAlign: "right",
-  },
-  composerContainer: {
-    position: "absolute",
-    bottom: 0,
-    left: 0,
-    right: 0,
-    paddingHorizontal: 16,
-    paddingTop: 8,
-  },
   composer: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 10,
-  },
-  inputWrap: {
-    flex: 1,
-    height: 48,
-    borderRadius: 100,
-    backgroundColor: "transparent",
-    paddingHorizontal: 20,
-    flexDirection: "row",
-    alignItems: "center",
+    width: 310,
+    minHeight: 36,
+    justifyContent: "center",
   },
   input: {
-    flex: 1,
-    fontSize: 17,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
     color: "white",
+    fontSize: 16,
+    maxHeight: 44,
   },
-  sendBtn: {
-    width: 44,
-    height: 44,
+  avatar: {
+    width: 36,
+    height: 36,
     borderRadius: 100,
-    backgroundColor: "transparent",
+  },
+  square: {
+    borderRadius: 0,
+  },
+  list: {
+    flex: 1,
+  },
+  content: {
+    paddingHorizontal: 16,
+  },
+  center: {
+    flex: 1,
     justifyContent: "center",
-    alignItems: "center",
-  },
-  sendIcon: {
-    alignSelf: "center",
-  },
-  loadMore: {
-    paddingVertical: 12,
-    alignItems: "center",
-  },
-  loadMoreText: {
-    color: "rgba(255,255,255,0.8)",
-    fontWeight: "600",
-  },
-  emptyState: {
-    marginTop: 40,
     alignItems: "center",
     paddingHorizontal: 24,
   },
-  emptyTitle: {
+  lead: {
     color: "white",
-    fontSize: 18,
+    fontSize: 17,
     fontWeight: "700",
-    marginBottom: 6,
+    marginBottom: 8,
+    textAlign: "center",
   },
-  emptySubtitle: {
-    color: "rgba(255,255,255,0.7)",
+  error: {
+    color: "rgba(255,255,255,0.72)",
+    fontSize: 14,
     textAlign: "center",
   },
 });
