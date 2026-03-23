@@ -1,31 +1,40 @@
-import { useState, useLayoutEffect, useCallback } from "react";
-import { useRouter, useNavigation } from "expo-router";
+import { useState, useCallback } from "react";
+import { useRouter, Stack } from "expo-router";
+import { useMutation } from "@tanstack/react-query";
+import { ActivityIndicator } from "react-native";
 import { images } from "@/constants/images";
 import { AccentColors } from "@/constants/colors";
 import { ContentArea } from "@/components/ui/content-area";
 import { useUser } from "@clerk/clerk-expo";
 import { Form } from "@/components/form/form";
-import { Header } from "@/components/header/header";
 import { Button } from "@/components/ui/button";
-import { PageTitle } from "@/components/header/page-title";
 import { handleSaveProfile } from "@/components/user-profile/profile-utils";
-import { useAxiosWithClerk } from "@/hooks/use-axios-clerk";
 import { pickImage } from "@/utils/pick-image";
+import { useAxiosWithClerk } from "@/hooks/use-axios-clerk";
 
-function EditProfileHeader({ onSave }: Readonly<{ onSave: () => void }>) {
+function EditProfileToolbar({
+  onSave,
+  isSaving,
+}: Readonly<{ onSave: () => void; isSaving: boolean }>) {
   return (
-    <Header
-      left={<Button type="back" />}
-      center={<PageTitle title="Edit Profile" />}
-      right={<Button type="custom" label="Save" onPress={onSave} />}
-    />
+    <>
+      <Stack.Screen.Title>Edit Profile</Stack.Screen.Title>
+      <Stack.Toolbar placement="right">
+        {isSaving ? (
+          <Stack.Toolbar.View>
+            <ActivityIndicator color="white" size="small" />
+          </Stack.Toolbar.View>
+        ) : (
+          <Stack.Toolbar.Button onPress={onSave}>Save</Stack.Toolbar.Button>
+        )}
+      </Stack.Toolbar>
+    </>
   );
 }
 
 export default function Edit() {
   const { isLoaded, isSignedIn, user } = useUser();
   const router = useRouter();
-  const navigation = useNavigation();
   const api = useAxiosWithClerk();
 
   const [firstName, setFirstName] = useState(user?.firstName ?? "");
@@ -37,33 +46,36 @@ export default function Edit() {
     { uri: string; mimeType?: string } | number | null
   >(user?.hasImage ? { uri: user.imageUrl } : null);
 
-  const handleSave = useCallback(async () => {
-    await handleSaveProfile({
-      api,
-      user: user ?? null,
-      firstName,
-      lastName,
-      email,
-      image,
-      router,
-    });
-  }, [api, user, firstName, lastName, email, image, router]);
+  const saveProfileMutation = useMutation({
+    mutationFn: async () => {
+      await handleSaveProfile({
+        api,
+        user: user ?? null,
+        firstName,
+        lastName,
+        email,
+        image,
+        router,
+      });
+    },
+  });
 
-  const headerTitle = useCallback(
-    () => <EditProfileHeader onSave={handleSave} />,
-    [handleSave],
-  );
-
-  useLayoutEffect(() => {
-    navigation.setOptions({
-      headerTitle,
-    });
-  }, [navigation, headerTitle]);
+  const handleSave = useCallback(() => {
+    saveProfileMutation.mutate();
+  }, [saveProfileMutation]);
 
   if (!isLoaded || !isSignedIn) return null;
 
   return (
-    <ContentArea background={{ preset: "blue", mode: "form" }}>
+    <ContentArea
+      background={{ preset: "blue", mode: "form" }}
+      toolbar={
+        <EditProfileToolbar
+          isSaving={saveProfileMutation.isPending}
+          onSave={handleSave}
+        />
+      }
+    >
       <Form accentColor={AccentColors.blue}>
         <Form.Section>
           <Form.Image

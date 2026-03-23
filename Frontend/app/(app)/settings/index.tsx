@@ -3,7 +3,7 @@ import { ContentArea } from "@/components/ui/content-area";
 import { AccentColors } from "@/constants/colors";
 import { Form } from "@/components/form/form";
 import { useAuth, useUser } from "@clerk/clerk-expo";
-import { router } from "expo-router";
+import { router, Stack } from "expo-router";
 import { useFeatureFlags } from "@/components/feature-flags/feature-flags-context";
 import { confirmLogout } from "@/components/user-profile/profile-utils";
 import { log } from "@/utils/logger";
@@ -11,6 +11,17 @@ import { openPolicy } from "@/components/privacy-disclaimer/utils";
 import { images } from "@/constants/images";
 import { Alert } from "react-native";
 import { useReferee } from "@/contexts/referee-context";
+
+function SettingToolbar() {
+  return (
+    <>
+      <Stack.Screen.Title>Settings</Stack.Screen.Title>
+      <Stack.Screen.BackButton displayMode="minimal">
+        Home
+      </Stack.Screen.BackButton>
+    </>
+  );
+}
 
 export default function Settings() {
   const { signOut } = useAuth();
@@ -87,7 +98,10 @@ export default function Settings() {
   };
 
   return (
-    <ContentArea background={{ preset: "blue", mode: "form" }}>
+    <ContentArea
+      background={{ preset: "blue", mode: "form" }}
+      toolbar={<SettingToolbar />}
+    >
       <Form accentColor={AccentColors.blue}>
         <Form.Section>
           <Form.Profile
