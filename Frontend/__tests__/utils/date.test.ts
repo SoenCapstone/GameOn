@@ -1,4 +1,11 @@
-import { buildStartEndIso, isToday, isValidTimeRange } from "@/utils/date";
+import {
+  buildStartEndIso,
+  formatLocalDateString,
+  isToday,
+  isValidTimeRange,
+  parseDraftDate,
+  toOffsetIsoString,
+} from "@/utils/date";
 
 describe("date utilities", () => {
   describe("isToday", () => {
@@ -18,6 +25,39 @@ describe("date utilities", () => {
       const tomorrow = new Date();
       tomorrow.setDate(tomorrow.getDate() + 1);
       expect(isToday(tomorrow)).toBe(false);
+    });
+  });
+
+  describe("parseDraftDate", () => {
+    it("returns undefined when value is missing or invalid", () => {
+      expect(parseDraftDate()).toBeUndefined();
+      expect(parseDraftDate("not-a-date")).toBeUndefined();
+    });
+
+    it("returns a Date when the value is valid", () => {
+      const parsed = parseDraftDate("2026-03-18T10:20:30.000Z");
+
+      expect(parsed).toBeInstanceOf(Date);
+      expect(parsed?.toISOString()).toBe("2026-03-18T10:20:30.000Z");
+    });
+  });
+
+  describe("formatLocalDateString", () => {
+    it("formats local date parts with zero-padding", () => {
+      const value = new Date(2026, 2, 5, 13, 45, 12);
+
+      expect(formatLocalDateString(value)).toBe("2026-03-05");
+    });
+  });
+
+  describe("toOffsetIsoString", () => {
+    it("returns an ISO-like datetime with timezone offset and no milliseconds", () => {
+      const value = new Date(2026, 2, 18, 9, 7, 5);
+      const isoWithOffset = toOffsetIsoString(value);
+
+      expect(isoWithOffset).toMatch(
+        /^2026-03-18T09:07:05[+-]\d{2}:\d{2}$/,
+      );
     });
   });
 

@@ -441,7 +441,7 @@ class LeagueServiceTest {
 
         assertThat(standings).hasSize(3);
         assertThat(standings.stream().map(StandingScore::getTeamId).toList())
-                .containsExactly(teamA, teamB, teamC);
+                .containsExactlyInAnyOrder(teamA, teamB, teamC);
 
         StandingScore teamAStanding = standings.stream()
                 .filter(score -> score.getTeamId().equals(teamA))

@@ -4,6 +4,7 @@ import com.game.on.go_league_service.league.dto.AssignRefereeRequest;
 import com.game.on.go_league_service.league.dto.LeagueMatchCancelRequest;
 import com.game.on.go_league_service.league.dto.LeagueMatchCreateRequest;
 import com.game.on.go_league_service.league.dto.LeagueMatchResponse;
+import com.game.on.go_league_service.league.dto.LeagueMatchScheduleValidationResponse;
 import com.game.on.go_league_service.league.dto.LeagueMatchScoreRequest;
 import com.game.on.go_league_service.league.service.LeagueMatchService;
 import jakarta.validation.Valid;
@@ -32,6 +33,14 @@ public class LeagueMatchController {
                                                            @Valid @RequestBody LeagueMatchCreateRequest request) {
         var response = leagueMatchService.createMatch(leagueId, request);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
+    }
+
+    @PostMapping("/{leagueId}/matches/validate")
+    public ResponseEntity<LeagueMatchScheduleValidationResponse> validateMatch(
+            @PathVariable UUID leagueId,
+            @Valid @RequestBody LeagueMatchCreateRequest request
+    ) {
+        return ResponseEntity.ok(leagueMatchService.validateMatch(leagueId, request));
     }
 
     @GetMapping("/{leagueId}/matches")

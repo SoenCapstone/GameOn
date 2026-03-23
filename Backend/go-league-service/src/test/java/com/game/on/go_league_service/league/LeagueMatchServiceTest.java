@@ -1,12 +1,15 @@
 package com.game.on.go_league_service.league;
 
 import com.game.on.go_league_service.client.TeamClient;
+import com.game.on.go_league_service.client.dto.TeamMatchDetailResponse;
 import com.game.on.go_league_service.client.dto.TeamSummaryResponse;
 import com.game.on.go_league_service.config.CurrentUserProvider;
 import com.game.on.go_league_service.exception.BadRequestException;
+import com.game.on.go_league_service.exception.ConflictException;
 import com.game.on.go_league_service.exception.ForbiddenException;
 import com.game.on.go_league_service.league.dto.AssignRefereeRequest;
 import com.game.on.go_league_service.league.dto.LeagueMatchCreateRequest;
+import com.game.on.go_league_service.league.dto.LeagueMatchScheduleValidationResponse;
 import com.game.on.go_league_service.league.dto.LeagueMatchScoreRequest;
 import com.game.on.go_league_service.league.model.League;
 import com.game.on.go_league_service.league.model.LeagueMatch;
@@ -28,11 +31,14 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.time.LocalDate;
 import java.time.OffsetDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
@@ -72,6 +78,7 @@ class LeagueMatchServiceTest {
         LeagueMatchCreateRequest request = new LeagueMatchCreateRequest(
                 homeTeamId,
                 awayTeamId,
+                LocalDate.now().plusDays(1),
                 OffsetDateTime.now().plusDays(1),
                 OffsetDateTime.now().plusDays(1).plusHours(1),
                 null,
@@ -113,6 +120,7 @@ class LeagueMatchServiceTest {
         LeagueMatchCreateRequest request = new LeagueMatchCreateRequest(
                 homeTeamId,
                 awayTeamId,
+                LocalDate.now().plusDays(1),
                 OffsetDateTime.now().plusDays(1),
                 OffsetDateTime.now().plusDays(1).plusHours(1),
                 venueId,
@@ -123,6 +131,140 @@ class LeagueMatchServiceTest {
 
         assertThrows(BadRequestException.class, () -> leagueMatchService.createMatch(leagueId, request));
         verify(leagueMatchRepository, never()).save(any());
+    }
+
+    @Test
+    void validateMatch_whenSameDayConflict_returnsConflictCode() {
+        when(userProvider.clerkUserId()).thenReturn("owner_1");
+        when(leagueTeamRepository.existsByLeague_IdAndTeamId(leagueId, homeTeamId)).thenReturn(true);
+        when(leagueTeamRepository.existsByLeague_IdAndTeamId(leagueId, awayTeamId)).thenReturn(true);
+
+        LeagueMatch existingMatch = new LeagueMatch();
+        existingMatch.setId(UUID.randomUUID());
+        existingMatch.setStatus(LeagueMatchStatus.CONFIRMED);
+        existingMatch.setStartTime(OffsetDateTime.parse("2026-03-20T09:00:00Z"));
+        existingMatch.setEndTime(OffsetDateTime.parse("2026-03-20T10:00:00Z"));
+        existingMatch.setScheduledDate(LocalDate.parse("2026-03-20"));
+
+        when(leagueMatchRepository.findByHomeTeamIdOrAwayTeamId(homeTeamId, homeTeamId))
+                .thenReturn(new ArrayList<>(List.of(existingMatch)));
+        when(leagueMatchRepository.findByHomeTeamIdOrAwayTeamId(awayTeamId, awayTeamId))
+                .thenReturn(new ArrayList<>());
+
+        LeagueMatchCreateRequest request = new LeagueMatchCreateRequest(
+                homeTeamId,
+                awayTeamId,
+                LocalDate.parse("2026-03-20"),
+                OffsetDateTime.parse("2026-03-20T16:00:00Z"),
+                OffsetDateTime.parse("2026-03-20T17:00:00Z"),
+                UUID.randomUUID(),
+                null,
+                true,
+                "ref_1"
+        );
+
+        LeagueMatchScheduleValidationResponse response =
+                leagueMatchService.validateMatch(leagueId, request);
+
+        assertEquals(false, response.allowed());
+        assertEquals("LEAGUE_TEAM_SAME_DAY_CONFLICT", response.code());
+    }
+
+    @Test
+    void createMatch_whenTeamMatchSameDayConflict_throwsConflictWithCode() {
+        when(userProvider.clerkUserId()).thenReturn("owner_1");
+        when(leagueTeamRepository.existsByLeague_IdAndTeamId(leagueId, homeTeamId)).thenReturn(true);
+        when(leagueTeamRepository.existsByLeague_IdAndTeamId(leagueId, awayTeamId)).thenReturn(true);
+        when(leagueMatchRepository.findByHomeTeamIdOrAwayTeamId(homeTeamId, homeTeamId))
+                .thenReturn(new ArrayList<>());
+        when(leagueMatchRepository.findByHomeTeamIdOrAwayTeamId(awayTeamId, awayTeamId))
+                .thenReturn(new ArrayList<>());
+        when(teamClient.getAllTeamMatch(homeTeamId)).thenReturn(new ArrayList<>(List.of(
+                new TeamMatchDetailResponse(
+                        UUID.randomUUID(),
+                        "TEAM_MATCH",
+                        "CONFIRMED",
+                        homeTeamId,
+                        UUID.randomUUID(),
+                        "soccer",
+                        OffsetDateTime.parse("2026-03-20T09:00:00Z"),
+                        OffsetDateTime.parse("2026-03-20T10:00:00Z"),
+                        LocalDate.parse("2026-03-20"),
+                        "Montreal",
+                        null,
+                        false,
+                        null,
+                        "owner_1"
+                )
+        )));
+        when(teamClient.getAllTeamMatch(awayTeamId)).thenReturn(new ArrayList<>());
+
+        LeagueMatchCreateRequest request = new LeagueMatchCreateRequest(
+                homeTeamId,
+                awayTeamId,
+                LocalDate.parse("2026-03-20"),
+                OffsetDateTime.parse("2026-03-20T16:00:00Z"),
+                OffsetDateTime.parse("2026-03-20T17:00:00Z"),
+                UUID.randomUUID(),
+                null,
+                true,
+                "ref_1"
+        );
+
+        ConflictException ex = assertThrows(
+                ConflictException.class,
+                () -> leagueMatchService.createMatch(leagueId, request)
+        );
+
+        assertEquals("LEAGUE_TEAM_SAME_DAY_CONFLICT", ex.getCode());
+    }
+
+    @Test
+    void validateMatch_whenRequestedLateEveningMatchesStoredUtcDay_returnsConflictCode() {
+        when(userProvider.clerkUserId()).thenReturn("owner_1");
+        when(leagueTeamRepository.existsByLeague_IdAndTeamId(leagueId, homeTeamId)).thenReturn(true);
+        when(leagueTeamRepository.existsByLeague_IdAndTeamId(leagueId, awayTeamId)).thenReturn(true);
+        when(leagueMatchRepository.findByHomeTeamIdOrAwayTeamId(homeTeamId, homeTeamId))
+                .thenReturn(new ArrayList<>());
+        when(leagueMatchRepository.findByHomeTeamIdOrAwayTeamId(awayTeamId, awayTeamId))
+                .thenReturn(new ArrayList<>());
+        when(teamClient.getAllTeamMatch(homeTeamId)).thenReturn(new ArrayList<>(List.of(
+                new TeamMatchDetailResponse(
+                        UUID.randomUUID(),
+                        "TEAM_MATCH",
+                        "CONFIRMED",
+                        homeTeamId,
+                        UUID.randomUUID(),
+                        "soccer",
+                        OffsetDateTime.parse("2026-03-20T01:00:00Z"),
+                        OffsetDateTime.parse("2026-03-20T03:00:00Z"),
+                        LocalDate.parse("2026-03-19"),
+                        "Montreal",
+                        null,
+                        false,
+                        null,
+                        "owner_1"
+                )
+        )));
+        when(teamClient.getAllTeamMatch(awayTeamId)).thenReturn(new ArrayList<>());
+
+        LeagueMatchCreateRequest request = new LeagueMatchCreateRequest(
+                homeTeamId,
+                awayTeamId,
+                LocalDate.parse("2026-03-19"),
+                OffsetDateTime.parse("2026-03-19T21:00:00-04:00"),
+                OffsetDateTime.parse("2026-03-19T23:00:00-04:00"),
+                UUID.randomUUID(),
+                null,
+                true,
+                "ref_1"
+        );
+
+        LeagueMatchScheduleValidationResponse response =
+                leagueMatchService.validateMatch(leagueId, request);
+
+        assertEquals(false, response.allowed());
+        assertEquals("LEAGUE_TEAM_SAME_DAY_CONFLICT", response.code());
     }
 
     @Test
