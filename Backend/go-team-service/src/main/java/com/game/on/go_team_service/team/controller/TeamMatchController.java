@@ -1,7 +1,11 @@
 package com.game.on.go_team_service.team.controller;
 
-import com.game.on.go_team_service.team.dto.*;
-import com.game.on.go_team_service.team.model.TeamMatchMember;
+import com.game.on.go_team_service.team.dto.TeamMatchCancelRequest;
+import com.game.on.go_team_service.team.dto.TeamMatchCreateRequest;
+import com.game.on.go_team_service.team.dto.TeamMatchResponse;
+import com.game.on.go_team_service.team.dto.TeamMatchMemberResponse;
+import com.game.on.go_team_service.team.dto.UpdateMatchAttendanceRequest;
+import com.game.on.go_team_service.team.dto.TeamMatchScoreRequest;
 import com.game.on.go_team_service.team.service.TeamMatchService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
