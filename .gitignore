@@ -149,5 +149,6 @@ vite.config.ts.timestamp-*
 # agents
 .agent/
 .agents/
-/.claude/
-/skills-lock.json
+.claude/
+skills-lock.json
+Dashboard/.moderation/

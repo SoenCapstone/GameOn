@@ -3,7 +3,6 @@ package com.game.on.go_user_service;
 import com.game.on.go_user_service.dto.UserRequestCreate;
 import com.game.on.go_user_service.dto.UserRequestUpdate;
 import com.game.on.common.dto.UserResponse;
-import com.game.on.go_user_service.exception.UserAlreadyExistsException;
 import com.game.on.go_user_service.exception.UserNotFoundException;
 import com.game.on.go_user_service.mapper.UserMapper;
 import com.game.on.go_user_service.model.User;
@@ -57,7 +56,7 @@ public class UserServiceTest {
     private static UserResponse response(String id, String firstname, String lastname, String email, String imageUrl){
         return new UserResponse(id, email, firstname, lastname, imageUrl);
     }
-
+    
     @Test
     void getAllUsersTest(){
         var user1 = user("1234", "Person","One","test1@email.com", "https://example.com/1.png");
@@ -106,6 +105,43 @@ public class UserServiceTest {
     }
 
     @Test
+    void fetchUserById_existingUser_returnsResponse() {
+        var u = user("clerk_abc", "Jane", "Doe", "jane@test.com", "https://example.com/jane.png");
+
+        when(userRepository.findById("clerk_abc")).thenReturn(Optional.of(u));
+        when(userMapper.toUserResponse(u)).thenReturn(response("clerk_abc", "Jane", "Doe", "jane@test.com", "https://example.com/jane.png"));
+
+        var res = userService.fetchUserById("clerk_abc");
+
+        assertThat(res.id()).isEqualTo("clerk_abc");
+        assertThat(res.firstname()).isEqualTo("Jane");
+        assertThat(res.lastname()).isEqualTo("Doe");
+        assertThat(res.email()).isEqualTo("jane@test.com");
+
+        verify(userRepository).findById("clerk_abc");
+        verify(userMapper).toUserResponse(u);
+        verify(userRepository, never()).save(any());
+    }
+
+    @Test
+    void fetchUserById_missingUser_autoCreatesStub() {
+        when(userRepository.findById("clerk_missing")).thenReturn(Optional.empty());
+        when(userRepository.save(any(User.class))).thenAnswer(inv -> inv.getArgument(0));
+
+        var res = userService.fetchUserById("clerk_missing");
+
+        assertThat(res.id()).isEqualTo("clerk_missing");
+        // Stub has null fields because no JWT context in unit test
+        assertThat(res.firstname()).isNull();
+        assertThat(res.lastname()).isNull();
+        assertThat(res.email()).isNull();
+
+        verify(userRepository).findById("clerk_missing");
+        verify(userRepository).save(any(User.class));
+        verifyNoInteractions(userMapper);
+    }
+
+    @Test
     public void createUserTest(){
         var req = requestCreate("1234","Person","One","test1@email.com", "https://example.com/1.png");
         var u = user("1234","Person","One","test1@email.com", "https://example.com/1.png");
@@ -126,18 +162,49 @@ public class UserServiceTest {
     }
 
     @Test
-    void createUserUserAlreadyExistsExceptionTest() {
-        var req = requestCreate("1234","Person", "One", "test1@email.com", null);
-        when(userRepository.findById("1234")).thenReturn(Optional.of(
-                user("1234","Person", "One", "test1@email.com", null)));
+    void createUser_existingUser_returnsExisting() {
+        var req = requestCreate("1234", "Person", "One", "test1@email.com", null);
+        var existing = user("1234", "Person", "One", "test1@email.com", null);
 
-        assertThatThrownBy(() -> userService.createUser(req))
-                .isInstanceOf(UserAlreadyExistsException.class)
-                .hasMessageContaining("User with ID 1234 already exists");
+        when(userRepository.findById("1234")).thenReturn(Optional.of(existing));
+        when(userMapper.toUserResponse(existing)).thenReturn(
+                response("1234", "Person", "One", "test1@email.com", null));
+
+        var res = userService.createUser(req);
+
+        assertThat(res.id()).isEqualTo("1234");
+        assertThat(res.email()).isEqualTo("test1@email.com");
 
         verify(userRepository).findById("1234");
+        verify(userMapper).toUserResponse(existing);
+        // Should NOT save since no fields need backfilling
         verify(userRepository, never()).save(any());
-        verifyNoInteractions(userMapper);
+    }
+
+    @Test
+    void createUser_existingStub_backfillsNullFields() {
+        var req = requestCreate("1234", "Person", "One", "test1@email.com", "https://example.com/1.png");
+        // Stub has null fields from auto-creation
+        var stub = user("1234", null, null, null, null);
+
+        when(userRepository.findById("1234")).thenReturn(Optional.of(stub));
+        when(userRepository.save(stub)).thenReturn(stub);
+        when(userMapper.toUserResponse(stub)).thenReturn(
+                response("1234", "Person", "One", "test1@email.com", "https://example.com/1.png"));
+
+        var res = userService.createUser(req);
+
+        assertThat(res.id()).isEqualTo("1234");
+
+        // Verify the stub was backfilled
+        assertThat(stub.getFirstname()).isEqualTo("Person");
+        assertThat(stub.getLastname()).isEqualTo("One");
+        assertThat(stub.getEmail()).isEqualTo("test1@email.com");
+        assertThat(stub.getImageUrl()).isEqualTo("https://example.com/1.png");
+
+        verify(userRepository).findById("1234");
+        verify(userRepository).save(stub);
+        verify(userMapper).toUserResponse(stub);
     }
 
     @Test

@@ -57,6 +57,8 @@ export type LeagueMatch = {
   cancelledByUserId?: string | null;
   cancelReason?: string | null;
   cancelledAt?: string | null;
+  homeScore?: number | null;
+  awayScore?: number | null;
   createdAt: string;
   updatedAt: string;
 };
@@ -67,6 +69,7 @@ export type TeamMatch = {
   status:
     | "PENDING_TEAM_ACCEPTANCE"
     | "CONFIRMED"
+    | "COMPLETED"
     | "DECLINED"
     | "CANCELLED";
   homeTeamId: string;
@@ -83,6 +86,8 @@ export type TeamMatch = {
   cancelledByUserId?: string | null;
   cancelReason?: string | null;
   cancelledAt?: string | null;
+  homeScore?: number | null;
+  awayScore?: number | null;
   createdAt: string;
   updatedAt: string;
 };
