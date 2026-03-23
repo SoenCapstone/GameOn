@@ -1,3 +1,28 @@
+import {
+  createDirectConversation,
+  createTeamConversation,
+  sendMessageFallback,
+} from "@/hooks/messages/api";
+import {
+  messagingKeys,
+  type ConversationResponse,
+  type DirectConversationPayload,
+  type MessageHistoryResponse,
+  type MessageResponse,
+  type TeamConversationPayload,
+} from "@/constants/messaging";
+import { useConversationsQuery } from "@/hooks/messages/use-conversations-query";
+import { useAxiosWithClerk } from "@/hooks/use-axios-clerk";
+import { MessagingSocket, type SocketState } from "@/utils/messaging/socket";
+import {
+  appendMessageToPages,
+  sortConversations,
+  updateConversationsWithMessage,
+  validateMessageContent,
+} from "@/utils/messaging/utils";
+import { createScopedLog } from "@/utils/logger";
+import { useAuth } from "@clerk/clerk-expo";
+import { InfiniteData, useQueryClient } from "@tanstack/react-query";
 import React, {
   PropsWithChildren,
   createContext,
@@ -8,31 +33,6 @@ import React, {
   useRef,
   useState,
 } from "react";
-import { useAuth } from "@clerk/clerk-expo";
-import { useAxiosWithClerk } from "@/hooks/use-axios-clerk";
-import { useQueryClient, InfiniteData } from "@tanstack/react-query";
-import { MessagingSocket, SocketState } from "@/features/messaging/socket";
-import {
-  createDirectConversation,
-  createTeamConversation,
-  sendMessageFallback,
-} from "@/features/messaging/api";
-import { messagingKeys } from "@/features/messaging/query-keys";
-import {
-  ConversationResponse,
-  DirectConversationPayload,
-  MessageResponse,
-  TeamConversationPayload,
-  MessageHistoryResponse,
-} from "@/features/messaging/types";
-import {
-  appendMessageToPages,
-  sortConversations,
-  updateConversationsWithMessage,
-  validateMessageContent,
-} from "@/features/messaging/utils";
-import { createScopedLog } from "@/utils/logger";
-import { useConversationsQuery } from "@/features/messaging/hooks";
 
 const log = createScopedLog("MessagingProvider");
 
@@ -89,7 +89,8 @@ export const MessagingProvider = ({ children }: PropsWithChildren) => {
     (message: MessageResponse) => {
       queryClient.setQueryData(
         messagingKeys.messages(message.conversationId),
-        (existing: InfiniteData<MessageHistoryResponse> | undefined) => appendMessageToPages(existing, message),
+        (existing: InfiniteData<MessageHistoryResponse> | undefined) =>
+          appendMessageToPages(existing, message),
       );
       queryClient.setQueryData(
         messagingKeys.conversations(userId),
@@ -209,7 +210,14 @@ export const MessagingProvider = ({ children }: PropsWithChildren) => {
       ensureTopicSubscription,
       reconnect,
     }),
-    [ensureTopicSubscription, reconnect, sendMessage, socketState, startDirectConversation, startTeamConversation],
+    [
+      ensureTopicSubscription,
+      reconnect,
+      sendMessage,
+      socketState,
+      startDirectConversation,
+      startTeamConversation,
+    ],
   );
 
   return (

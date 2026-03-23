@@ -1,7 +1,10 @@
 import { Client, IMessage, StompSubscription } from "@stomp/stompjs";
 import { createScopedLog } from "@/utils/logger";
 import { isDevelopment } from "@/utils/runtime";
-import { MessageResponse, SendMessagePayload } from "@/features/messaging/types";
+import type {
+  MessageResponse,
+  SendMessagePayload,
+} from "@/constants/messaging";
 
 export type SocketState = "idle" | "connecting" | "connected" | "error";
 
@@ -86,7 +89,7 @@ export class MessagingSocket {
         log.info("Opening WebSocket", {
           url: this.redactUrl(this.currentWsUrl),
         });
-        if (this.client){
+        if (this.client) {
           this.client.forceBinaryWSFrames = true;
         }
 
@@ -99,10 +102,9 @@ export class MessagingSocket {
           });
         };
         socket.onerror = (event) => {
-          log.warn(
-            "WebSocket error",
-            typeof event === "string" ? event : JSON.stringify(event),
-          );
+          const detail =
+            event instanceof ErrorEvent ? event.message : event.type;
+          log.warn("WebSocket error", detail);
         };
 
         return socket as unknown as WebSocket;
@@ -164,8 +166,6 @@ export class MessagingSocket {
     }
     return `${wsBase}/api/v1/messaging/ws?token=${encodeURIComponent(token)}`;
   }
-
-
 
   disconnect() {
     if (this.client) {
@@ -230,7 +230,9 @@ export class MessagingSocket {
       if (isDevelopment) {
         log.debug(`Message received for ${payload.conversationId}`);
       } else {
-        log.debug("Message received", { conversationId: payload.conversationId });
+        log.debug("Message received", {
+          conversationId: payload.conversationId,
+        });
       }
       this.onMessage(payload);
     } catch (err) {
@@ -244,7 +246,7 @@ export class MessagingSocket {
     }
     this.client.publish({
       destination: "/app/messages/send",
-      body: JSON.stringify(payload), 
+      body: JSON.stringify(payload),
     });
   }
 }

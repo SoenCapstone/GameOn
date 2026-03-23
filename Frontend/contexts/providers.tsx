@@ -9,7 +9,7 @@ import { ActionSheetProvider } from "@expo/react-native-action-sheet";
 import { SearchProvider } from "@/contexts/search-context";
 import { RefereeProvider } from "@/contexts/referee-context";
 import { DarkTheme, ThemeProvider } from "@react-navigation/native";
-import { MessagingProvider } from "@/features/messaging/provider";
+import { MessagingProvider } from "@/contexts/messaging";
 
 interface ProvidersProps {
   readonly children: ReactNode;

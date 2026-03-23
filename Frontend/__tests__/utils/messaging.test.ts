@@ -7,14 +7,14 @@ import {
   buildMessagesFromPages,
   formatMessageTimestamp,
   formatDateSeparator,
-  MAX_MESSAGE_LENGTH,
-} from "@/features/messaging/utils";
+  maxMessageLength,
+} from "@/utils/messaging/utils";
 import type { InfiniteData } from "@tanstack/react-query";
-import {
+import type {
   ConversationResponse,
   MessageHistoryResponse,
   MessageResponse,
-} from "@/features/messaging/types";
+} from "@/constants/messaging";
 
 describe("validateMessageContent", () => {
   it("rejects empty and whitespace-only input with correct reason", () => {
@@ -36,7 +36,7 @@ describe("validateMessageContent", () => {
     const result1 = validateMessageContent(large);
     expect(result1.valid).toBe(false);
 
-    const tooLong = "a".repeat(MAX_MESSAGE_LENGTH + 1);
+    const tooLong = "a".repeat(maxMessageLength + 1);
     const result2 = validateMessageContent(tooLong);
     expect(result2.valid).toBe(false);
     if (!result2.valid) {
@@ -59,7 +59,7 @@ describe("validateMessageContent", () => {
   });
 
   it("respects length boundaries (max and single character)", () => {
-    const maxMessage = "a".repeat(MAX_MESSAGE_LENGTH);
+    const maxMessage = "a".repeat(maxMessageLength);
     const result1 = validateMessageContent(maxMessage);
     expect(result1.valid).toBe(true);
     if (result1.valid) {
@@ -212,7 +212,7 @@ describe("appendMessageToPages", () => {
     expect(result).toBeUndefined();
   });
 
-  it("appends to last page and does not modify non-last pages", () => {
+  it("appends to newest page and does not modify older pages", () => {
     const msg1 = createMessage("msg-1");
     const data: InfiniteData<MessageHistoryResponse> = {
       pages: [createPage([msg1]), createPage([createMessage("msg-2")])],
@@ -221,9 +221,11 @@ describe("appendMessageToPages", () => {
     const incoming = createMessage("msg-3");
     const result = appendMessageToPages(data, incoming);
 
+    expect(result?.pages[0].messages).toHaveLength(2);
     expect(result?.pages[0].messages?.[0].id).toBe("msg-1");
-    expect(result?.pages[1].messages).toHaveLength(2);
-    expect(result?.pages[1].messages?.[1].id).toBe("msg-3");
+    expect(result?.pages[0].messages?.[1].id).toBe("msg-3");
+    expect(result?.pages[1].messages).toHaveLength(1);
+    expect(result?.pages[1].messages?.[0].id).toBe("msg-2");
   });
 
   it("handles empty and undefined messages arrays in pages", () => {
@@ -233,7 +235,7 @@ describe("appendMessageToPages", () => {
     };
     const incoming = createMessage("msg-1");
     const result1 = appendMessageToPages(data1, incoming);
-    expect(result1?.pages[1].messages).toHaveLength(1);
+    expect(result1?.pages[0].messages).toHaveLength(1);
 
     const data2: InfiniteData<MessageHistoryResponse> = {
       pages: [
@@ -243,7 +245,8 @@ describe("appendMessageToPages", () => {
       pageParams: [undefined, null],
     };
     const result2 = appendMessageToPages(data2, incoming);
-    expect(result2?.pages[1].messages).toHaveLength(1);
+    expect(result2?.pages[0].messages).toHaveLength(1);
+    expect(result2?.pages[1].messages).toHaveLength(0);
   });
 });
 
@@ -313,7 +316,7 @@ describe("buildMessagesFromPages", () => {
     senderId: "user-1",
   });
 
-  it("returns empty array if data is undefined and flattens messages from all pages", () => {
+  it("returns empty array if data is undefined and flattens pages oldest to newest", () => {
     const result1 = buildMessagesFromPages(undefined);
     expect(result1).toEqual([]);
 
@@ -332,8 +335,10 @@ describe("buildMessagesFromPages", () => {
     };
     const result2 = buildMessagesFromPages(data);
     expect(result2).toHaveLength(4);
-    expect(result2[0].id).toBe("msg-1");
-    expect(result2[3].id).toBe("msg-4");
+    expect(result2[0].id).toBe("msg-3");
+    expect(result2[1].id).toBe("msg-4");
+    expect(result2[2].id).toBe("msg-1");
+    expect(result2[3].id).toBe("msg-2");
   });
 
   it("handles undefined and empty messages arrays in pages", () => {
@@ -422,22 +427,33 @@ describe("formatDateSeparator", () => {
     expect(result).toBe("Yesterday");
   });
 
-  it("returns full weekday name for 2-6 days ago", () => {
+  it("returns short weekday and date without year for same-year dates after yesterday (e.g. Wed, Feb 18)", () => {
     const target = new Date(2026, 1, 18, 9, 0, 0);
-    const expected = Intl.DateTimeFormat(undefined, { weekday: "long" }).format(
-      target,
-    );
+    const expected = Intl.DateTimeFormat(undefined, {
+      weekday: "short",
+      month: "short",
+      day: "numeric",
+    }).format(target);
     expect(formatDateSeparator(target)).toBe(expected);
   });
 
-  it("returns short date format for older dates", () => {
+  it("returns short weekday and date without year for same-year older dates (e.g. Wed, Mar 4)", () => {
     const target = new Date(2026, 0, 10, 9, 0, 0);
     const expected = Intl.DateTimeFormat(undefined, {
       weekday: "short",
       month: "short",
       day: "numeric",
     }).format(target);
+    expect(formatDateSeparator(target)).toBe(expected);
+  });
 
+  it("returns short date with year for dates in a different year (e.g. Aug 21, 2025)", () => {
+    const target = new Date(2025, 7, 21, 9, 0, 0);
+    const expected = Intl.DateTimeFormat(undefined, {
+      month: "short",
+      day: "numeric",
+      year: "numeric",
+    }).format(target);
     expect(formatDateSeparator(target)).toBe(expected);
   });
 });

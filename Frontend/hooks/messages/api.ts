@@ -5,15 +5,19 @@ import {
   GO_USER_SERVICE_ROUTES,
 } from "@/hooks/use-axios-clerk";
 import { createScopedLog } from "@/utils/logger";
-import {
+import type {
   ConversationListResponse,
   ConversationResponse,
   DirectConversationPayload,
+  FetchMessagesParams,
   MessageHistoryResponse,
   MessageResponse,
   SendMessagePayload,
   TeamConversationPayload,
-} from "@/features/messaging/types";
+  TeamListResponse,
+  TeamSummaryResponse,
+  UserDirectoryEntry,
+} from "@/constants/messaging";
 
 const log = createScopedLog("MessagingAPI");
 
@@ -52,12 +56,6 @@ export async function createTeamConversation(
   return resp.data;
 }
 
-export interface FetchMessagesParams {
-  conversationId: string;
-  limit?: number;
-  before?: string | null;
-}
-
 export async function fetchMessages(
   api: AxiosInstance,
   params: FetchMessagesParams,
@@ -65,7 +63,7 @@ export async function fetchMessages(
   const { conversationId, limit, before } = params;
   const query: Record<string, string> = {};
   if (limit) query.limit = String(limit);
-  if (before) query.before = before;
+  if (before) query.before = String(before);
 
   const resp = await api.get<MessageHistoryResponse>(
     GO_MESSAGING_ROUTES.MESSAGES(conversationId),
@@ -86,13 +84,6 @@ export async function sendMessageFallback(
   return resp.data;
 }
 
-export interface UserDirectoryEntry {
-  id: string;
-  email: string;
-  firstname?: string | null;
-  lastname?: string | null;
-}
-
 export async function fetchUserDirectory(
   api: AxiosInstance,
 ): Promise<UserDirectoryEntry[]> {
@@ -108,27 +99,9 @@ export async function fetchUserDirectory(
   }
 }
 
-export interface TeamSummaryResponse {
-  id: string;
-  name: string;
-  sport?: string | null;
-  slug?: string | null;
-  logoUrl?: string | null;
-  privacy?: string | null;
-  archived: boolean;
-  createdAt: string;
-  updatedAt: string;
-}
-
-export interface TeamListResponse {
-  items: TeamSummaryResponse[];
-  totalElements: number;
-  page: number;
-  size: number;
-  hasNext: boolean;
-}
-
-export async function fetchMyTeams(api: AxiosInstance): Promise<TeamSummaryResponse[]> {
+export async function fetchMyTeams(
+  api: AxiosInstance,
+): Promise<TeamSummaryResponse[]> {
   const resp = await api.get<TeamListResponse>(GO_TEAM_SERVICE_ROUTES.ALL, {
     params: { my: true, size: 50 },
     timeout: 7000,
