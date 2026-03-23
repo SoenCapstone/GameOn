@@ -1,0 +1,7 @@
+ALTER TABLE team_matches
+    ALTER COLUMN start_time TYPE TIMESTAMP WITH TIME ZONE
+    USING start_time AT TIME ZONE 'UTC';
+
+ALTER TABLE team_matches
+    ALTER COLUMN end_time TYPE TIMESTAMP WITH TIME ZONE
+    USING end_time AT TIME ZONE 'UTC';

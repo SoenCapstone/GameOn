@@ -1,8 +1,10 @@
 import React from "react";
 import { render } from "@testing-library/react-native";
-import { getScheduleApiErrorMessage } from "@/utils/schedule-errors";
+import {
+  getScheduleConflictMessage,
+  LEAGUE_SAME_DAY_CONFLICT_MESSAGE,
+} from "@/features/matches/schedule-shared";
 import { MatchDetailsSection } from "@/components/matches/match-details-section";
-import { AxiosError } from "axios";
 jest.mock("expo-router", () => ({}));
 jest.mock("@react-navigation/native", () => ({}));
 jest.mock("react-native-svg", () => ({}));
@@ -69,52 +71,26 @@ jest.mock("@/components/form/form", () => {
   };
 });
 
-describe("getScheduleApiErrorMessage", () => {
-  it("returns network error when no response", () => {
-    const fakeError = {
-      isAxiosError: true,
-      toJSON: () => ({}),
-      name: "AxiosError",
-      message: "",
-    };
-    const result = getScheduleApiErrorMessage(
-      fakeError as AxiosError<{ message?: string }> | undefined,
-      "Forbidden!",
-    );
-    expect(result).toEqual({
-      status: 0,
-      message: "Network error. Please retry.",
-    });
+describe("getScheduleConflictMessage", () => {
+  it("returns the mapped copy for a known conflict code", () => {
+    expect(
+      getScheduleConflictMessage("LEAGUE_TEAM_SAME_DAY_CONFLICT", "fallback"),
+    ).toBe(LEAGUE_SAME_DAY_CONFLICT_MESSAGE);
   });
-  it("returns forbidden message when status is 403", () => {
-    const err = {
-      isAxiosError: true,
-      toJSON: () => ({}),
-      name: "AxiosError",
-      message: "",
-      response: { status: 403 },
-    };
-    const result = getScheduleApiErrorMessage(
-      err as AxiosError<{ message?: string }> | undefined,
-      "Forbidden!",
-    );
-    expect(result.status).toBe(403);
-    expect(result.message).toBe("Forbidden!");
+
+  it("uses team names when conflicting ids are provided", () => {
+    expect(
+      getScheduleConflictMessage(
+        "TEAM_DAILY_LIMIT_EXCEEDED",
+        "fallback",
+        ["home-id", "away-id"],
+        { "home-id": "Real Madrid", "away-id": "Barcelona" },
+      ),
+    ).toBe("Real Madrid and Barcelona already have 3 confirmed matches on this day.");
   });
-  it("returns default message otherwise", () => {
-    const err = {
-      isAxiosError: true,
-      toJSON: () => ({}),
-      name: "AxiosError",
-      message: "",
-      response: { status: 500, data: { message: "fail" } },
-    };
-    const result = getScheduleApiErrorMessage(
-      err as AxiosError<{ message?: string }> | undefined,
-      "Forbidden!",
-    );
-    expect(result.status).toBe(500);
-    expect(result.message).toBe("fail");
+
+  it("falls back to the provided backend message when code is missing", () => {
+    expect(getScheduleConflictMessage(undefined, "fallback")).toBe("fallback");
   });
 });
 
