@@ -15,19 +15,17 @@ import {
   Text,
   View,
 } from "react-native";
-import { LegendList } from "@legendapp/list";
+import { LegendList } from "@legendapp/list/react-native";
 import { useNavigation, useRouter } from "expo-router";
 import { Header } from "@/components/header/header";
 import { Logo } from "@/components/header/logo";
 import { PageTitle } from "@/components/header/page-title";
 import { Button } from "@/components/ui/button";
-import { useMessagingContext } from "@/features/messaging/provider";
+import { useMessagingContext } from "@/contexts/messaging";
+import { useConversationsQuery } from "@/hooks/messages/use-conversations-query";
+import { useMyTeams } from "@/hooks/messages/use-my-teams";
+import { useUserDirectory } from "@/hooks/messages/use-user-directory";
 import { useAuth } from "@clerk/clerk-expo";
-import {
-  useConversationsQuery,
-  useMyTeams,
-  useUserDirectory,
-} from "@/features/messaging/hooks";
 import { Chat, type ChatItem } from "@/components/messages/chat";
 import * as Haptics from "expo-haptics";
 
@@ -167,11 +165,7 @@ export default function Messages() {
       }}
       background={{ preset: "green" }}
       refreshControl={
-        <RefreshControl
-          refreshing={isRefetching}
-          onRefresh={handleRefresh}
-          tintColor="white"
-        />
+        <RefreshControl refreshing={isRefetching} onRefresh={handleRefresh} />
       }
     >
       {isLoading ? (

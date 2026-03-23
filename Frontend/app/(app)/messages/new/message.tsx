@@ -1,48 +1,41 @@
-import { useLayoutEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { ContentArea } from "@/components/ui/content-area";
 import { ActivityIndicator, Alert, StyleSheet } from "react-native";
-import { LegendList } from "@legendapp/list";
-import { Header } from "@/components/header/header";
-import { PageTitle } from "@/components/header/page-title";
-import { Button } from "@/components/ui/button";
-import { useNavigation, useRouter } from "expo-router";
+import { LegendList } from "@legendapp/list/react-native";
+import { Stack, useRouter } from "expo-router";
 import { useAuth } from "@clerk/clerk-expo";
-import { useMessagingContext } from "@/features/messaging/provider";
-import { useUserDirectory } from "@/features/messaging/hooks";
+import { useMessagingContext } from "@/contexts/messaging";
+import { useUserDirectory } from "@/hooks/messages/use-user-directory";
 import { errorToString } from "@/utils/error";
 import { Form } from "@/components/form/form";
 
-function NewMessageHeader() {
+function NewMessageToolbar({
+  onSearchChange,
+}: Readonly<{ onSearchChange: (text: string) => void }>) {
   return (
-    <Header
-      left={<Button type="back" />}
-      center={<PageTitle title="New Message" />}
-    />
+    <>
+      <Stack.Screen.Title>New Message</Stack.Screen.Title>
+      <Stack.Screen.BackButton displayMode="minimal">
+        Messages
+      </Stack.Screen.BackButton>
+      <Stack.SearchBar
+        hideNavigationBar={false}
+        onChangeText={(event) => {
+          onSearchChange(event.nativeEvent.text || "");
+        }}
+        placement="automatic"
+      />
+    </>
   );
 }
 
 export default function NewMessage() {
   const router = useRouter();
-  const navigation = useNavigation();
   const [query, setQuery] = useState("");
   const [creating, setCreating] = useState(false);
   const { userId } = useAuth();
   const { startDirectConversation } = useMessagingContext();
   const { data: users, isLoading: loadingUsers } = useUserDirectory();
-
-  useLayoutEffect(() => {
-    navigation.setOptions({
-      headerTitle: () => <NewMessageHeader />,
-      headerSearchBarOptions: {
-        hideNavigationBar: false,
-        placement: "automatic",
-        onChangeText: (event: { nativeEvent: { text: string } }) => {
-          const text = event.nativeEvent.text || "";
-          setQuery(text);
-        },
-      },
-    });
-  }, [navigation]);
 
   const filteredUsers = useMemo(() => {
     const q = query.trim().toLowerCase();
@@ -74,7 +67,10 @@ export default function NewMessage() {
   };
 
   return (
-    <ContentArea background={{ preset: "green", mode: "form" }}>
+    <ContentArea
+      background={{ preset: "green", mode: "form" }}
+      toolbar={<NewMessageToolbar onSearchChange={setQuery} />}
+    >
       {loadingUsers ? (
         <ActivityIndicator color="white" style={{ marginTop: 40 }} />
       ) : (

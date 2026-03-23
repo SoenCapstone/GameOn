@@ -1,17 +1,14 @@
-import { useCallback, useLayoutEffect, useState } from "react";
+import { useCallback, useState } from "react";
 import { ContentArea } from "@/components/ui/content-area";
-import { ActivityIndicator, Alert, View } from "react-native";
+import { ActivityIndicator, Alert } from "react-native";
 import { Form } from "@/components/form/form";
 import { AccentColors } from "@/constants/colors";
-import { Header } from "@/components/header/header";
-import { PageTitle } from "@/components/header/page-title";
-import { Button } from "@/components/ui/button";
-import { useNavigation, useRouter } from "expo-router";
-import { useMessagingContext } from "@/features/messaging/provider";
-import { useMyTeams } from "@/features/messaging/hooks";
+import { Stack, useRouter } from "expo-router";
+import { useMessagingContext } from "@/contexts/messaging";
+import { useMyTeams } from "@/hooks/messages/use-my-teams";
 import { errorToString } from "@/utils/error";
 
-function NewGroupHeader({
+function NewGroupToolbar({
   creating,
   hasTeams,
   onPress,
@@ -21,26 +18,28 @@ function NewGroupHeader({
   onPress: () => void;
 }>) {
   return (
-    <Header
-      left={<Button type="back" />}
-      center={<PageTitle title="New Group" />}
-      right={
-        <View pointerEvents={creating || !hasTeams ? "none" : "auto"}>
-          <Button
-            type="custom"
-            label="Create"
-            loading={creating}
-            onPress={onPress}
-          />
-        </View>
-      }
-    />
+    <>
+      <Stack.Screen.Title>New Group</Stack.Screen.Title>
+      <Stack.Screen.BackButton displayMode="minimal">
+        Messages
+      </Stack.Screen.BackButton>
+      <Stack.Toolbar placement="right">
+        {creating ? (
+          <Stack.Toolbar.View>
+            <ActivityIndicator color="white" size="small" />
+          </Stack.Toolbar.View>
+        ) : (
+          <Stack.Toolbar.Button disabled={!hasTeams} onPress={onPress}>
+            Create
+          </Stack.Toolbar.Button>
+        )}
+      </Stack.Toolbar>
+    </>
   );
 }
 
 export default function NewGroup() {
   const router = useRouter();
-  const navigation = useNavigation();
   const [selectedTeam, setSelectedTeam] = useState<string | null>(null);
   const [chatName, setChatName] = useState("");
   const [isEvent, setIsEvent] = useState(false);
@@ -74,20 +73,17 @@ export default function NewGroup() {
     }
   }, [selectedTeam, chatName, isEvent, startTeamConversation, router]);
 
-  useLayoutEffect(() => {
-    navigation.setOptions({
-      headerTitle: () => (
-        <NewGroupHeader
+  return (
+    <ContentArea
+      background={{ preset: "green", mode: "form" }}
+      toolbar={
+        <NewGroupToolbar
           creating={creating}
           hasTeams={(teams ?? []).length > 0}
           onPress={submitTeamChat}
         />
-      ),
-    });
-  }, [navigation, creating, teams, submitTeamChat]);
-
-  return (
-    <ContentArea background={{ preset: "green", mode: "form" }}>
+      }
+    >
       {loadingTeams ? (
         <ActivityIndicator color="white" style={{ marginTop: 40 }} />
       ) : (
@@ -119,7 +115,7 @@ Event chats lock membership once created. Only the creator can add members.`}
               }}
             />
             <Form.Switch
-              label="Event chat (locked)"
+              label="Event Chat"
               value={isEvent}
               onValueChange={setIsEvent}
             />
