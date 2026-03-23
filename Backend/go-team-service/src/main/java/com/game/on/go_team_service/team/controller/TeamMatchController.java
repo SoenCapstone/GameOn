@@ -1,10 +1,6 @@
 package com.game.on.go_team_service.team.controller;
 
-import com.game.on.go_team_service.team.dto.TeamMatchCancelRequest;
-import com.game.on.go_team_service.team.dto.TeamMatchCreateRequest;
-import com.game.on.go_team_service.team.dto.TeamMatchResponse;
-import com.game.on.go_team_service.team.dto.TeamMatchScoreRequest;
-import com.game.on.go_team_service.team.dto.UpdateMatchAttendanceRequest;
+import com.game.on.go_team_service.team.dto.*;
 import com.game.on.go_team_service.team.model.TeamMatchMember;
 import com.game.on.go_team_service.team.service.TeamMatchService;
 import jakarta.validation.Valid;
@@ -85,19 +81,17 @@ public class TeamMatchController {
     }
 
     @GetMapping("/matches/{matchId}/members")
-    public ResponseEntity<Map<UUID, List<TeamMatchMember>>> getMatchMembers(@PathVariable UUID matchId) {
+    public ResponseEntity<Map<UUID, List<TeamMatchMemberResponse>>> getMatchMembers(@PathVariable UUID matchId) {
         return ResponseEntity.ok(teamMatchService.getMatchMembers(matchId));
 
     }
 
     @GetMapping("/matches/{matchId}/teams/{teamId}/members")
-    public ResponseEntity<List<TeamMatchMember>> getTeamMembers(
+    public ResponseEntity<List<TeamMatchMemberResponse>> getTeamMembers(
             @PathVariable UUID matchId,
             @PathVariable UUID teamId
     ) {
-        List<TeamMatchMember> members = teamMatchService.getMatchMembersByTeam(matchId, teamId);
+        List<TeamMatchMemberResponse> members = teamMatchService.getMatchMembersByTeam(matchId, teamId);
         return ResponseEntity.ok(members);
     }
-
-
 }
