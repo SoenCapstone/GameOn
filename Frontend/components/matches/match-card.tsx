@@ -17,6 +17,7 @@ import { Card } from "@/components/ui/card";
 import { useActionSheet } from "@expo/react-native-action-sheet";
 import ContextMenu from "react-native-context-menu-view";
 import { isRunningInExpoGo } from "@/utils/runtime";
+import { Button } from "@/components/ui/button";
 
 interface MatchCardProps {
   readonly homeName: string;
@@ -251,9 +252,9 @@ export function OptOutButton({
   if (!canOptOut || !onOptOut) return null;
   const label = isReplacement ? "Attending" : "Not attending";
   return (
-    <Pressable onPress={onOptOut} style={styles.optOutButton}>
-      <Text style={styles.optOutText}>{label}</Text>
-    </Pressable>
+    <View style={styles.optOutButton}>
+      <Button type="custom" label={label} onPress={onOptOut} />
+    </View>
   );
 }
 
@@ -345,16 +346,9 @@ const styles = StyleSheet.create({
   optOutButton: {
     alignSelf: "flex-end",
     marginTop: 6,
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 999,
-    backgroundColor: "rgba(255,255,255,0.1)",
+    width: 160,
   },
-  optOutText: {
-    color: "rgba(235,235,245,0.6)",
-    fontSize: 12,
-    fontWeight: "500",
-  },
+
   skeleton: {
     backgroundColor: "rgba(255,255,255,0.16)",
     borderRadius: 8,
