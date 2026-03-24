@@ -14,7 +14,7 @@ import { settingsStyles } from "@/constants/settings-styles";
 import { usePayment, type PaymentEntityType } from "@/hooks/use-payment";
 import { useAxiosWithClerk } from "@/hooks/use-axios-clerk";
 import { formatAmount } from "@/utils/payment";
-import { getSportLogo } from "@/components/browse/utils";
+import { getSportLogo } from "@/utils/search";
 import {
   useUpdateLeague,
   useDeleteLeague,

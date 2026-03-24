@@ -1,35 +1,19 @@
-import React, { useRef } from "react";
-import {
-  View,
-  Text,
-  ActivityIndicator,
-  StyleSheet,
-  RefreshControl,
-} from "react-native";
-import { LegendList } from "@legendapp/list";
-import { ContentArea } from "@/components/ui/content-area";
+import { useCallback, useEffect, useMemo, useRef } from "react";
+import { View, Text, ActivityIndicator, StyleSheet } from "react-native";
+import { LegendList } from "@legendapp/list/react-native";
 import { InfoCard } from "@/components/info-card";
 import { createScopedLog } from "@/utils/logger";
-import { useSearch } from "@/contexts/search-context";
-import * as Haptics from "expo-haptics";
+import { onSearchResultPress } from "@/utils/search";
 import type {
+  SearchValue,
   SearchResult,
-  Modes,
   SearchModeConfig,
-} from "@/components/browse/constants";
+} from "@/constants/search";
 
 type Props = {
-  readonly logScope: string;
-  readonly backgroundPreset:
-    | "blue"
-    | "purple"
-    | "green"
-    | "orange"
-    | "red"
-    | "salmon"
-    | undefined;
-  readonly modes: SearchModeConfig[];
-  readonly onResultPress: (result: SearchResult) => void;
+  readonly scope: string;
+  readonly search: SearchValue;
+  readonly selectedMode: SearchModeConfig;
   readonly resultFilter?: (result: SearchResult) => boolean;
 };
 
@@ -38,13 +22,12 @@ function Separator() {
 }
 
 export function SearchResultsScreen({
-  logScope,
-  backgroundPreset,
-  modes,
-  onResultPress,
+  scope,
+  search,
+  selectedMode,
   resultFilter,
 }: Props) {
-  const log = createScopedLog(logScope);
+  const log = createScopedLog(scope);
   const {
     query,
     results,
@@ -55,35 +38,18 @@ export function SearchResultsScreen({
     isLoading,
     teamError,
     leagueError,
-    refetch,
-  } = useSearch();
+  } = search;
 
   const q = (query || "").toLowerCase().trim();
   const renderT0 = useRef<number | null>(null);
   const renderLogged = useRef(false);
-  const [mode, setMode] = React.useState<Modes>(modes[0]?.key ?? "teams");
-  const [refreshing, setRefreshing] = React.useState(false);
-
-  const selectedMode = modes.find((m) => m.key === mode) ?? modes[0];
 
   const now = () =>
     typeof performance !== "undefined" && performance.now
       ? performance.now()
       : Date.now();
 
-  const handleRefresh = React.useCallback(async () => {
-    void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-    try {
-      setRefreshing(true);
-      await refetch();
-    } finally {
-      setRefreshing(false);
-    }
-    log.info("Page updated");
-  }, [refetch, log]);
-
-  React.useEffect(() => {
-    if (!selectedMode) return;
+  useEffect(() => {
     const cnt = results.filter((r) => r.type === selectedMode.type).length;
     setActiveMode(selectedMode.key);
     try {
@@ -96,12 +62,12 @@ export function SearchResultsScreen({
     }
   }, [selectedMode, notifyModeChange, results, log, setActiveMode]);
 
-  React.useEffect(() => {
+  useEffect(() => {
     renderT0.current = now();
     renderLogged.current = false;
   }, [results]);
 
-  const handlePress = React.useCallback(
+  const handlePress = useCallback(
     (result: SearchResult) => {
       log.info("search result pressed", {
         resultId: result.id,
@@ -109,15 +75,15 @@ export function SearchResultsScreen({
         resultType: result.type,
       });
       try {
-        onResultPress(result);
+        onSearchResultPress(result);
       } catch (e) {
         log.error("failed to navigate to result", { err: e });
       }
     },
-    [log, onResultPress],
+    [log],
   );
 
-  const renderItem = React.useCallback(
+  const renderItem = useCallback(
     (props: { item: SearchResult }) => {
       const { item } = props;
       return (
@@ -132,10 +98,9 @@ export function SearchResultsScreen({
     [handlePress],
   );
 
-  const displayedResults = React.useMemo(() => {
-    if (!selectedMode) return [] as SearchResult[];
-
+  const displayedResults = useMemo(() => {
     if (!q && searchActive) return [];
+
     let base =
       searchActive && q
         ? results
@@ -148,33 +113,8 @@ export function SearchResultsScreen({
     return base.filter((r) => r.name.toLowerCase().includes(q));
   }, [results, selectedMode, q, searchActive, resultFilter]);
 
-  if (!selectedMode) return null;
-
-  const showTabs = !q && !searchActive;
-
   return (
-    <ContentArea
-      tabs={
-        showTabs
-          ? {
-              values: modes.map((m) => m.label),
-              selectedIndex: modes.findIndex((m) => m.key === selectedMode.key),
-              onValueChange: (value) => {
-                const next = modes.find((m) => m.label === value);
-                if (next) setMode(next.key);
-              },
-            }
-          : undefined
-      }
-      background={backgroundPreset ? { preset: backgroundPreset } : undefined}
-      refreshControl={
-        <RefreshControl
-          refreshing={refreshing}
-          onRefresh={handleRefresh}
-          tintColor="#fff"
-        />
-      }
-    >
+    <>
       {isLoading ? (
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="small" color="#FFFFFF" />
@@ -239,7 +179,7 @@ export function SearchResultsScreen({
         recycleItems={true}
         ItemSeparatorComponent={Separator}
       />
-    </ContentArea>
+    </>
   );
 }
 

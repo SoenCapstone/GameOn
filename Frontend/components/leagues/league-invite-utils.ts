@@ -1,5 +1,5 @@
 import { AxiosInstance } from "axios";
-import { fetchTeamResults } from "@/components/browse/utils";
+import { fetchTeamResults } from "@/utils/search";
 import {
   GO_LEAGUE_INVITE_ROUTES,
   GO_LEAGUE_SERVICE_ROUTES,

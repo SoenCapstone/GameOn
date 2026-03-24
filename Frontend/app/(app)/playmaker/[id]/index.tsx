@@ -147,11 +147,7 @@ function PlayMakerContent() {
       style={{ paddingBottom: 60 }}
       background={{ preset: "red" }}
       refreshControl={
-        <RefreshControl
-          refreshing={refreshing}
-          onRefresh={handleRefresh}
-          tintColor="#fff"
-        />
+        <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />
       }
     >
       <PlayMakerArea styles={styles} onShapesChange={handleShapesChange} />

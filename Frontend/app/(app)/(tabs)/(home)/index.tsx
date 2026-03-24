@@ -1,8 +1,15 @@
 import { useCallback, useState } from "react";
 import { ContentArea } from "@/components/ui/content-area";
-import { View, Text, RefreshControl, Alert, StyleSheet } from "react-native";
+import {
+  View,
+  Text,
+  RefreshControl,
+  Alert,
+  StyleSheet,
+  Pressable,
+} from "react-native";
 import { AxiosInstance } from "axios";
-import { useAuth } from "@clerk/clerk-expo";
+import { useAuth, useUser } from "@clerk/clerk-expo";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   GO_INVITE_ROUTES,
@@ -24,6 +31,9 @@ import {
   TeamInviteCard,
 } from "@/components/invite/card";
 import * as Haptics from "expo-haptics";
+import { router, Stack } from "expo-router";
+import { Image } from "expo-image";
+import { Logo } from "@/components/header/logo";
 
 type TeamInviteResponse = {
   id: string;
@@ -38,8 +48,40 @@ type TeamInviteMeta = {
   sport?: string | null;
 };
 
+function HomeToolbar() {
+  const { user } = useUser();
+  return (
+    <>
+      <Stack.Toolbar placement="left">
+        <Stack.Toolbar.View hidesSharedBackground>
+          <Logo />
+        </Stack.Toolbar.View>
+      </Stack.Toolbar>
+      <Stack.Screen.Title>Home</Stack.Screen.Title>
+      <Stack.Toolbar placement="right">
+        {user?.hasImage ? (
+          <Stack.Toolbar.View>
+            <Pressable onPress={() => router.push("/settings")}>
+              <Image
+                source={{ uri: user.imageUrl }}
+                style={styles.avatar}
+                contentFit="cover"
+              />
+            </Pressable>
+          </Stack.Toolbar.View>
+        ) : (
+          <Stack.Toolbar.Button
+            icon="gear"
+            onPress={() => router.push("/settings")}
+          />
+        )}
+      </Stack.Toolbar>
+    </>
+  );
+}
+
 export default function Home() {
-  const [tab, setTab] = useState<"updates" | "following">("updates");
+  const [tab, setTab] = useState<"feed" | "following">("feed");
   const api = useAxiosWithClerk();
   const queryClient = useQueryClient();
   const { userId } = useAuth();
@@ -251,23 +293,20 @@ export default function Home() {
   return (
     <ContentArea
       tabs={{
-        values: ["My Updates", "Following"],
-        selectedIndex: tab === "updates" ? 0 : 1,
+        values: ["Feed", "Following"],
+        selectedIndex: tab === "feed" ? 0 : 1,
         onValueChange: (value) => {
-          if (value === "My Updates") setTab("updates");
+          if (value === "Feed") setTab("feed");
           if (value === "Following") setTab("following");
         },
       }}
+      toolbar={<HomeToolbar />}
       background={{ preset: "blue" }}
       refreshControl={
-        <RefreshControl
-          refreshing={isFetching}
-          onRefresh={onRefresh}
-          tintColor="#fff"
-        />
+        <RefreshControl refreshing={isFetching} onRefresh={onRefresh} />
       }
     >
-      {tab === "updates" ? (
+      {tab === "feed" ? (
         <View style={styles.cardWrap}>
           {invites.length === 0 ? (
             <Text style={styles.inviteText}>No pending invitations.</Text>
@@ -394,6 +433,11 @@ async function fetchUserNameMap(api: AxiosInstance, userIds: string[]) {
 }
 
 const styles = StyleSheet.create({
+  avatar: {
+    width: 36,
+    height: 36,
+    borderRadius: 100,
+  },
   container: {
     alignItems: "center",
   },

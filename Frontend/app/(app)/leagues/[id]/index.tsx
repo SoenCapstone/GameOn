@@ -13,7 +13,7 @@ import {
 } from "expo-router";
 import { useQueryClient } from "@tanstack/react-query";
 import { ContentArea } from "@/components/ui/content-area";
-import { getSportLogo } from "@/components/browse/utils";
+import { getSportLogo } from "@/utils/search";
 import { Button } from "@/components/ui/button";
 import { LeagueBrowserTeams } from "@/components/leagues/league-browser-teams";
 import { useLeagueHeader } from "@/hooks/use-team-league-header";
@@ -195,11 +195,7 @@ function LeagueContent() {
         }}
         background={{ preset: "red" }}
         refreshControl={
-          <RefreshControl
-            refreshing={refreshing}
-            onRefresh={handleRefresh}
-            tintColor="#fff"
-          />
+          <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />
         }
       >
         {isLoading ? (
