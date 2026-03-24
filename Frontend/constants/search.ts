@@ -12,7 +12,7 @@ export interface SearchResult {
   privacy?: string;
 }
 
-export type SearchContextValue = {
+export type SearchValue = {
   query: string;
   setQuery: (q: string) => void;
   results: SearchResult[];

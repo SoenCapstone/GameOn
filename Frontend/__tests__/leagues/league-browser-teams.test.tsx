@@ -23,7 +23,7 @@ jest.mock("@/hooks/use-team-detail", () => ({
 }));
 
 const mockGetSportLogo = jest.fn((_sport?: string) => ({ uri: "sport-logo" }));
-jest.mock("@/components/browse/utils", () => ({
+jest.mock("@/utils/search", () => ({
   getSportLogo: (sport: string) => mockGetSportLogo(sport),
 }));
 

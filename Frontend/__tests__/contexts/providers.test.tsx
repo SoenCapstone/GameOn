@@ -109,19 +109,6 @@ jest.mock("@expo/react-native-action-sheet", () => {
   };
 });
 
-jest.mock("@/contexts/search-context", () => {
-  const ReactModule =
-    jest.requireActual<typeof import("react")>("react");
-
-  return {
-    SearchProvider: ({
-      children,
-    }: {
-      children: React.ReactNode;
-    }) => ReactModule.createElement(ReactModule.Fragment, null, children),
-  };
-});
-
 jest.mock("@/contexts/referee-context", () => {
   const ReactModule =
     jest.requireActual<typeof import("react")>("react");

@@ -2,12 +2,10 @@ import {
   ComponentRef,
   useCallback,
   useEffect,
-  useLayoutEffect,
   useMemo,
   useRef,
   useState,
 } from "react";
-import { ContentArea } from "@/components/ui/content-area";
 import {
   ActivityIndicator,
   RefreshControl,
@@ -15,13 +13,10 @@ import {
   Text,
   View,
 } from "react-native";
+import { ContentArea } from "@/components/ui/content-area";
 import { LegendList } from "@legendapp/list/react-native";
-import { useNavigation, useRouter } from "expo-router";
-import { Header } from "@/components/header/header";
+import { router, Stack, useRouter } from "expo-router";
 import { Logo } from "@/components/header/logo";
-import { PageTitle } from "@/components/header/page-title";
-import { Button } from "@/components/ui/button";
-import { useMessagingContext } from "@/contexts/messaging";
 import { useConversationsQuery } from "@/hooks/messages/use-conversations-query";
 import { useMyTeams } from "@/hooks/messages/use-my-teams";
 import { useUserDirectory } from "@/hooks/messages/use-user-directory";
@@ -29,51 +24,43 @@ import { useAuth } from "@clerk/clerk-expo";
 import { Chat, type ChatItem } from "@/components/messages/chat";
 import * as Haptics from "expo-haptics";
 
-function MessagesHeader({
-  socketState,
-  onPress,
-}: Readonly<{
-  socketState: string;
-  onPress: () => void;
-}>) {
+function MessagesToolbar() {
   return (
-    <Header
-      left={<Logo />}
-      center={
-        <PageTitle
-          title="Messages"
-          subtitle={socketState === "connected" ? undefined : socketState}
-        />
-      }
-      right={<Button type="custom" icon="plus" onPress={onPress} />}
-    />
+    <>
+      <Stack.Toolbar placement="left">
+        <Stack.Toolbar.View hidesSharedBackground>
+          <Logo />
+        </Stack.Toolbar.View>
+      </Stack.Toolbar>
+      <Stack.Screen.Title>Messages</Stack.Screen.Title>
+      <Stack.Toolbar placement="right">
+        <Stack.Toolbar.Menu icon="plus">
+          <Stack.Toolbar.MenuAction
+            icon="bubble.and.pencil"
+            onPress={() => router.push("/messages/new/message")}
+          >
+            New Message
+          </Stack.Toolbar.MenuAction>
+          <Stack.Toolbar.MenuAction
+            icon="person.2.badge.plus"
+            onPress={() => router.push("/messages/new/group")}
+          >
+            New Group
+          </Stack.Toolbar.MenuAction>
+        </Stack.Toolbar.Menu>
+      </Stack.Toolbar>
+    </>
   );
 }
 
 export default function Messages() {
   const router = useRouter();
-  const navigation = useNavigation();
-  const { socketState } = useMessagingContext();
   const { userId } = useAuth();
   const { data, isLoading, refetch, isRefetching } = useConversationsQuery();
   const { data: users } = useUserDirectory();
   const { data: myTeams } = useMyTeams();
   const [filter, setFilter] = useState<"all" | "direct" | "group">("all");
   const listRef = useRef<ComponentRef<typeof LegendList>>(null);
-
-  const plusRoute =
-    filter === "group" ? "/messages/new/group" : "/messages/new/message";
-
-  useLayoutEffect(() => {
-    navigation.setOptions({
-      headerTitle: () => (
-        <MessagesHeader
-          socketState={socketState}
-          onPress={() => router.push(plusRoute)}
-        />
-      ),
-    });
-  }, [navigation, router, filter, plusRoute, socketState]);
 
   const userMap = useMemo(() => {
     const map = new Map<string, string>();
@@ -163,6 +150,7 @@ export default function Messages() {
           else setFilter("group");
         },
       }}
+      toolbar={<MessagesToolbar />}
       background={{ preset: "green" }}
       refreshControl={
         <RefreshControl refreshing={isRefetching} onRefresh={handleRefresh} />

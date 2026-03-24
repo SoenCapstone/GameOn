@@ -1,40 +1,16 @@
 import React from "react";
 import { render, fireEvent } from "@testing-library/react-native";
 import { ActivityIndicator } from "react-native";
-import { SearchResultsScreen } from "@/components/browse/search-results-screen";
-import { useSearch } from "@/contexts/search-context";
+import { SearchResultsScreen } from "@/components/search/search-results-screen";
 import { createScopedLog } from "@/utils/logger";
-import type { SearchResult } from "@/components/browse/constants";
+import type { SearchResult, SearchValue } from "@/constants/search";
+import { router } from "expo-router";
 
-jest.mock("@/contexts/search-context", () => ({
-  useSearch: jest.fn(),
+jest.mock("expo-router", () => ({
+  router: {
+    push: jest.fn(),
+  },
 }));
-
-jest.mock("@react-navigation/elements", () => ({
-  useHeaderHeight: jest.fn(() => 60),
-}));
-
-jest.mock("@/components/ui/content-area", () => {
-  const mockReact = jest.requireActual("react");
-  const { View } = jest.requireActual("react-native");
-  const { Tabs } = jest.requireMock("@/components/ui/tabs");
-  return {
-    ContentArea: (props: {
-      children?: React.ReactNode;
-      tabs?: {
-        values: string[];
-        selectedIndex: number;
-        onValueChange?: (value: string) => void;
-      };
-    }) =>
-      mockReact.createElement(
-        View,
-        { testID: "content-area" },
-        props.children,
-        props.tabs ? mockReact.createElement(Tabs, props.tabs) : null,
-      ),
-  };
-});
 
 jest.mock("@/components/info-card", () => {
   const mockReact = jest.requireActual("react");
@@ -56,7 +32,7 @@ jest.mock("@/components/info-card", () => {
   };
 });
 
-jest.mock("@legendapp/list", () => {
+jest.mock("@legendapp/list/react-native", () => {
   const mockReact = jest.requireActual("react");
   const mockFlatList = jest.requireActual("react-native").FlatList;
   return {
@@ -68,37 +44,6 @@ jest.mock("@legendapp/list", () => {
   };
 });
 
-jest.mock("@/components/ui/tabs", () => {
-  const mockReact = jest.requireActual("react");
-  const mockView = jest.requireActual("react-native").View;
-  const mockTouchableOpacity =
-    jest.requireActual("react-native").TouchableOpacity;
-  const mockText = jest.requireActual("react-native").Text;
-  return {
-    Tabs: (props: {
-      values: string[];
-      onValueChange?: (value: string) => void;
-    }) => {
-      const { values, onValueChange } = props;
-      return mockReact.createElement(
-        mockView,
-        { testID: "tabs" },
-        values?.map((value: string) =>
-          mockReact.createElement(
-            mockTouchableOpacity,
-            {
-              key: value,
-              testID: `tab-${value}`,
-              onPress: () => onValueChange?.(value),
-            },
-            mockReact.createElement(mockText, null, value),
-          ),
-        ),
-      );
-    },
-  };
-});
-
 jest.mock("@/utils/logger", () => ({
   createScopedLog: jest.fn(() => ({
     info: jest.fn(),
@@ -106,7 +51,7 @@ jest.mock("@/utils/logger", () => ({
   })),
 }));
 
-const mockedUseSearch = useSearch as jest.MockedFunction<typeof useSearch>;
+const mockedRouterPush = jest.mocked(router.push);
 
 const mockResults: SearchResult[] = [
   {
@@ -161,82 +106,71 @@ const defaultModes = [
   },
 ];
 
-interface SearchContextMock {
-  query: string;
-  results: SearchResult[];
-  markRendered: jest.Mock;
-  notifyModeChange: jest.Mock;
-  activeMode: "teams" | "leagues" | "tournaments" | undefined;
-  setActiveMode: jest.Mock;
-  searchActive: boolean;
-  isLoading: boolean;
-  teamError: string | null;
-  leagueError: string | null;
-  refetch: jest.Mock;
-  setQuery: jest.Mock;
-  setSearchActive: jest.Mock;
+function buildSearch(
+  overrides: Partial<SearchValue> = {},
+): SearchValue {
+  return {
+    query: "",
+    results: mockResults,
+    markRendered: jest.fn(),
+    notifyModeChange: jest.fn(),
+    activeMode: "teams",
+    setActiveMode: jest.fn(),
+    searchActive: false,
+    setQuery: jest.fn(),
+    setSearchActive: jest.fn(),
+    isLoading: false,
+    teamError: null,
+    leagueError: null,
+    refetch: jest.fn().mockResolvedValue(undefined),
+    ...overrides,
+  };
 }
-
-const defaultSearchContext: SearchContextMock = {
-  query: "",
-  results: mockResults,
-  markRendered: jest.fn(),
-  notifyModeChange: jest.fn(),
-  activeMode: "teams",
-  setActiveMode: jest.fn(),
-  searchActive: false,
-  isLoading: false,
-  teamError: null,
-  leagueError: null,
-  refetch: jest.fn().mockResolvedValue(undefined),
-  setQuery: jest.fn(),
-  setSearchActive: jest.fn(),
-};
 
 describe("SearchResultsScreen", () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    mockedUseSearch.mockReturnValue({
-      ...defaultSearchContext,
-      activeMode: "teams",
-    });
+    mockedRouterPush.mockReset();
+    mockedRouterPush.mockImplementation(() => {});
   });
 
-  it("renders default teams mode and switches to leagues", () => {
-    const onResultPress = jest.fn();
-    const { getByTestId, getByText, queryByText } = render(
+  it("renders teams mode and updates when selectedMode changes to leagues", () => {
+    const search = buildSearch();
+    const { getByText, queryByText, rerender } = render(
       <SearchResultsScreen
-        logScope="Test"
-        backgroundPreset="blue"
-        modes={defaultModes}
-        onResultPress={onResultPress}
+        scope="Test"
+        search={search}
+        selectedMode={defaultModes[0]!}
       />,
     );
 
-    expect(getByTestId("tabs")).toBeTruthy();
     expect(getByText("Test Team 1")).toBeTruthy();
     expect(getByText("Test Team 2")).toBeTruthy();
     expect(queryByText("Test League")).toBeNull();
 
-    fireEvent.press(getByTestId("tab-Leagues"));
+    rerender(
+      <SearchResultsScreen
+        scope="Test"
+        search={search}
+        selectedMode={defaultModes[1]!}
+      />,
+    );
+
     expect(getByText("Test League")).toBeTruthy();
     expect(queryByText("Test Team 1")).toBeNull();
   });
 
   it("filters results by query and optional resultFilter", () => {
-    mockedUseSearch.mockReturnValue({
-      ...defaultSearchContext,
+    const search = buildSearch({
       query: "team 1",
       activeMode: "teams",
     });
 
-    const onResultPress = jest.fn();
     const { getByText, queryByText } = render(
       <SearchResultsScreen
-        logScope="Test"
-        backgroundPreset="blue"
-        modes={defaultModes}
-        onResultPress={onResultPress}
+        scope="Test"
+        search={search}
+        selectedMode={defaultModes[0]!}
         resultFilter={(result) => result.id !== "team2"}
       />,
     );
@@ -246,30 +180,21 @@ describe("SearchResultsScreen", () => {
   });
 
   it("handles result press success and failure logging", () => {
-    const onResultPress = jest.fn();
-    const { getByText, rerender } = render(
+    const search = buildSearch();
+    const { getByText } = render(
       <SearchResultsScreen
-        logScope="Test"
-        backgroundPreset="blue"
-        modes={defaultModes}
-        onResultPress={onResultPress}
+        scope="Test"
+        search={search}
+        selectedMode={defaultModes[0]!}
       />,
     );
 
     fireEvent.press(getByText("Test Team 1"));
-    expect(onResultPress).toHaveBeenCalledWith(mockResults[0]);
+    expect(mockedRouterPush).toHaveBeenLastCalledWith("/teams/team1");
 
-    const throwingPress = jest.fn(() => {
+    mockedRouterPush.mockImplementation(() => {
       throw new Error("fail");
     });
-    rerender(
-      <SearchResultsScreen
-        logScope="Test"
-        backgroundPreset="blue"
-        modes={defaultModes}
-        onResultPress={throwingPress}
-      />,
-    );
 
     fireEvent.press(getByText("Test Team 1"));
     const logMock = createScopedLog as jest.MockedFunction<
@@ -281,20 +206,17 @@ describe("SearchResultsScreen", () => {
     });
   });
 
-  it("shows loading indicator and refresh activity", () => {
-    mockedUseSearch.mockReturnValue({
-      ...defaultSearchContext,
+  it("shows loading indicator", () => {
+    const search = buildSearch({
       isLoading: true,
       activeMode: "teams",
     });
 
-    const onResultPress = jest.fn();
     const { UNSAFE_getByType } = render(
       <SearchResultsScreen
-        logScope="Test"
-        backgroundPreset="blue"
-        modes={defaultModes}
-        onResultPress={onResultPress}
+        scope="Test"
+        search={search}
+        selectedMode={defaultModes[0]!}
       />,
     );
 
@@ -302,32 +224,34 @@ describe("SearchResultsScreen", () => {
   });
 
   it("handles errors by mode and when search is active", () => {
-    mockedUseSearch.mockReturnValue({
-      ...defaultSearchContext,
+    const search = buildSearch({
       activeMode: "teams",
       teamError: "Failed to fetch teams",
       leagueError: "Failed to fetch leagues",
     });
 
-    const onResultPress = jest.fn();
-    const { getByText, queryByText, getByTestId, queryByTestId, rerender } =
-      render(
-        <SearchResultsScreen
-          logScope="Test"
-          backgroundPreset="blue"
-          modes={defaultModes}
-          onResultPress={onResultPress}
-        />,
-      );
+    const { getByText, queryByText, rerender } = render(
+      <SearchResultsScreen
+        scope="Test"
+        search={search}
+        selectedMode={defaultModes[0]!}
+      />,
+    );
 
     expect(getByText(/Failed to load teams/)).toBeTruthy();
     expect(queryByText(/Failed to load leagues/)).toBeNull();
 
-    fireEvent.press(getByTestId("tab-Leagues"));
+    rerender(
+      <SearchResultsScreen
+        scope="Test"
+        search={search}
+        selectedMode={defaultModes[1]!}
+      />,
+    );
+
     expect(getByText(/Failed to load leagues/)).toBeTruthy();
 
-    mockedUseSearch.mockReturnValue({
-      ...defaultSearchContext,
+    const searchActive = buildSearch({
       searchActive: true,
       query: "test",
       teamError: "Failed to fetch teams",
@@ -337,37 +261,31 @@ describe("SearchResultsScreen", () => {
 
     rerender(
       <SearchResultsScreen
-        logScope="Test"
-        backgroundPreset="blue"
-        modes={defaultModes}
-        onResultPress={onResultPress}
+        scope="Test"
+        search={searchActive}
+        selectedMode={defaultModes[0]!}
       />,
     );
 
     expect(getByText(/Failed to load teams/)).toBeTruthy();
     expect(getByText(/Failed to load leagues/)).toBeTruthy();
-    expect(queryByTestId("tabs")).toBeNull();
   });
 
-  it("hides tabs and clears results when searchActive is true with empty query", () => {
-    mockedUseSearch.mockReturnValue({
-      ...defaultSearchContext,
+  it("clears results when searchActive is true with empty query", () => {
+    const search = buildSearch({
       searchActive: true,
       query: "",
       activeMode: "teams",
     });
 
-    const onResultPress = jest.fn();
-    const { queryByTestId, queryByText } = render(
+    const { queryByText } = render(
       <SearchResultsScreen
-        logScope="Test"
-        backgroundPreset="blue"
-        modes={defaultModes}
-        onResultPress={onResultPress}
+        scope="Test"
+        search={search}
+        selectedMode={defaultModes[0]!}
       />,
     );
 
-    expect(queryByTestId("tabs")).toBeNull();
     expect(queryByText("Test Team 1")).toBeNull();
   });
 
@@ -376,20 +294,17 @@ describe("SearchResultsScreen", () => {
       throw new Error("boom");
     });
     const setActiveMode = jest.fn();
-    mockedUseSearch.mockReturnValue({
-      ...defaultSearchContext,
+    const search = buildSearch({
       notifyModeChange,
       setActiveMode,
       activeMode: "teams",
     });
 
-    const onResultPress = jest.fn();
     render(
       <SearchResultsScreen
-        logScope="Test"
-        backgroundPreset="blue"
-        modes={defaultModes}
-        onResultPress={onResultPress}
+        scope="Test"
+        search={search}
+        selectedMode={defaultModes[0]!}
       />,
     );
 
@@ -407,19 +322,16 @@ describe("SearchResultsScreen", () => {
 
   it("marks render completion only once on content size change", () => {
     const markRendered = jest.fn();
-    mockedUseSearch.mockReturnValue({
-      ...defaultSearchContext,
+    const search = buildSearch({
       markRendered,
       activeMode: "teams",
     });
 
-    const onResultPress = jest.fn();
     const { getByTestId } = render(
       <SearchResultsScreen
-        logScope="Test"
-        backgroundPreset="blue"
-        modes={defaultModes}
-        onResultPress={onResultPress}
+        scope="Test"
+        search={search}
+        selectedMode={defaultModes[0]!}
       />,
     );
 
@@ -438,28 +350,16 @@ describe("SearchResultsScreen", () => {
     );
   });
 
-  it("renders SVG league and returns null when no mode is selected", () => {
-    const onResultPress = jest.fn();
-    const { getByText, queryByTestId, rerender } = render(
+  it("renders SVG league row when selectedMode is leagues", () => {
+    const search = buildSearch();
+    const { getByText } = render(
       <SearchResultsScreen
-        logScope="Test"
-        backgroundPreset="blue"
-        modes={[{ key: "leagues", label: "Leagues", type: "league" }]}
-        onResultPress={onResultPress}
+        scope="Test"
+        search={search}
+        selectedMode={defaultModes[1]!}
       />,
     );
 
     expect(getByText("Test League")).toBeTruthy();
-
-    rerender(
-      <SearchResultsScreen
-        logScope="Test"
-        backgroundPreset="blue"
-        modes={[]}
-        onResultPress={onResultPress}
-      />,
-    );
-
-    expect(queryByTestId("content-area")).toBeNull();
   });
 });

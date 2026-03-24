@@ -15,7 +15,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "@clerk/clerk-expo";
 import { ContentArea } from "@/components/ui/content-area";
 import { Button } from "@/components/ui/button";
-import { getSportLogo } from "@/components/browse/utils";
+import { getSportLogo } from "@/utils/search";
 import { useTeamHeader } from "@/hooks/use-team-league-header";
 import {
   TeamDetailProvider,
@@ -240,11 +240,7 @@ function TeamContent() {
         }}
         background={{ preset: "red" }}
         refreshControl={
-          <RefreshControl
-            refreshing={refreshing}
-            onRefresh={handleRefresh}
-            tintColor="#fff"
-          />
+          <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />
         }
       >
         {isLoading ? (

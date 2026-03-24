@@ -3,12 +3,10 @@ import { ActivityIndicator, View, Text, StyleSheet } from "react-native";
 import { useRouter } from "expo-router";
 import { useQueries } from "@tanstack/react-query";
 import { useAxiosWithClerk } from "@/hooks/use-axios-clerk";
-import {
-  teamDetailQueryOptions,
-} from "@/hooks/use-team-detail";
+import { teamDetailQueryOptions } from "@/hooks/use-team-detail";
 import { InfoCard } from "@/components/info-card";
 import type { ImageSource } from "expo-image";
-import { getSportLogo } from "@/components/browse/utils";
+import { getSportLogo } from "@/utils/search";
 
 export type LeagueTeamResponse = {
   id: string;
@@ -18,14 +16,12 @@ export type LeagueTeamResponse = {
 };
 
 type Props = Readonly<{
-  leagueId: string;
   leagueTeams: LeagueTeamResponse[];
   teamsFetching: boolean;
   leagueTeamsError: unknown;
 }>;
 
 export function LeagueBrowserTeams({
-  leagueId,
   leagueTeams,
   teamsFetching,
   leagueTeamsError,
@@ -46,38 +42,36 @@ export function LeagueBrowserTeams({
   const detailsError = teamQueries.find((q) => q.error)?.error;
 
   const teamDetailsMap = useMemo(() => {
-    const entries = teamQueries.map(
-      (q, idx) => {
-        const teamId = teamIds[idx] ?? "";
-        const data = q.data ?? null;
+    const entries = teamQueries.map((q, idx) => {
+      const teamId = teamIds[idx] ?? "";
+      const data = q.data ?? null;
 
-        if (!teamId) {
-          return [
-            "",
-            {
-              id: "",
-              name: "Team",
-              sport: null,
-              location: null,
-              logoUrl: null,
-            } as const,
-          ] as const;
-        }
-
-        if (data) return [teamId, data] as const;
-
+      if (!teamId) {
         return [
-          teamId,
+          "",
           {
-            id: teamId,
+            id: "",
             name: "Team",
             sport: null,
             location: null,
             logoUrl: null,
           } as const,
         ] as const;
-      },
-    );
+      }
+
+      if (data) return [teamId, data] as const;
+
+      return [
+        teamId,
+        {
+          id: teamId,
+          name: "Team",
+          sport: null,
+          location: null,
+          logoUrl: null,
+        } as const,
+      ] as const;
+    });
 
     return Object.fromEntries(entries.filter(([k]) => Boolean(k)));
   }, [teamQueries, teamIds]);

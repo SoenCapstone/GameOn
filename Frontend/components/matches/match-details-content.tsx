@@ -1,6 +1,6 @@
 import { Alert, Linking, StyleSheet, Text, View } from "react-native";
 import { Image } from "expo-image";
-import { getSportLogo } from "@/components/browse/utils";
+import { getSportLogo } from "@/utils/search";
 import {
   formatMatchDateTime,
   isCancelledMatchStatus,

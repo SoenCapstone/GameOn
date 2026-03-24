@@ -6,7 +6,6 @@ import { tokenCache } from "@clerk/clerk-expo/token-cache";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { FeatureFlagsProvider } from "@/components/feature-flags/feature-flags-context";
 import { ActionSheetProvider } from "@expo/react-native-action-sheet";
-import { SearchProvider } from "@/contexts/search-context";
 import { RefereeProvider } from "@/contexts/referee-context";
 import { DarkTheme, ThemeProvider } from "@react-navigation/native";
 import { MessagingProvider } from "@/contexts/messaging";
@@ -41,11 +40,9 @@ export function Providers({ children }: Readonly<ProvidersProps>) {
             <QueryClientProvider client={queryClient}>
               <FeatureFlagsProvider>
                 <ActionSheetProvider>
-                  <SearchProvider>
-                    <RefereeProvider>
-                      <MessagingProvider>{children}</MessagingProvider>
-                    </RefereeProvider>
-                  </SearchProvider>
+                  <RefereeProvider>
+                    <MessagingProvider>{children}</MessagingProvider>
+                  </RefereeProvider>
                 </ActionSheetProvider>
               </FeatureFlagsProvider>
             </QueryClientProvider>

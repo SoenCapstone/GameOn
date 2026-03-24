@@ -1,16 +1,13 @@
 import React from "react";
 import { Stack } from "expo-router";
-import type { NativeStackNavigationOptions } from "@react-navigation/native-stack";
 import { Header } from "@/components/header/header";
 import { PageTitle } from "@/components/header/page-title";
 import { Button } from "@/components/ui/button";
-import { useSearch } from "@/contexts/search-context";
 
 interface ContextStackConfig {
   readonly create?: { name: string; title: string };
   readonly indexName: string;
   readonly extraScreens?: string[];
-  readonly enableSearchBar?: boolean;
 }
 
 const transparentOptions = {
@@ -36,23 +33,8 @@ export function useContextStackScreens({
   create,
   indexName,
   extraScreens = [],
-  enableSearchBar = false,
 }: Readonly<ContextStackConfig>) {
-  const { setQuery, setSearchActive } = useSearch();
-
-  const searchBarOptions: NativeStackNavigationOptions["headerSearchBarOptions"] =
-    {
-      hideNavigationBar: false,
-      placement: "automatic",
-      onChangeText: (event: any) => {
-        const text = event?.nativeEvent?.text ?? "";
-        setQuery(text);
-      },
-      onFocus: () => setSearchActive(true),
-      onBlur: () => setSearchActive(false),
-    };
-
-  const screens = [
+  return [
     create && (
       <Stack.Screen
         key={create.name}
@@ -66,15 +48,10 @@ export function useContextStackScreens({
     <Stack.Screen
       key={indexName}
       name={indexName}
-      options={{
-        ...backlessOptions,
-        ...(enableSearchBar && { headerSearchBarOptions: searchBarOptions }),
-      }}
+      options={backlessOptions}
     />,
     ...extraScreens.map((name) => (
       <Stack.Screen key={name} name={name} options={backlessOptions} />
     )),
   ].filter(Boolean);
-
-  return screens;
 }

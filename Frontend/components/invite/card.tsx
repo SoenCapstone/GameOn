@@ -8,7 +8,7 @@ import {
   TeamMatchInviteCard,
 } from "@/features/matches/types";
 import { LeagueInviteCard } from "@/components/leagues/league-invite-utils";
-import { getSportLogo } from "@/components/browse/utils";
+import { getSportLogo } from "@/utils/search";
 
 const denyColor = "#ff5b55";
 
