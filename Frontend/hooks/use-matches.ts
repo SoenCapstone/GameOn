@@ -26,6 +26,14 @@ import {
 } from "@/features/matches/utils";
 import { createScopedLog } from "@/utils/logger";
 
+type TeamMatchMemberResponse = {
+  id: string;
+  teamId: string;
+  userId: string;
+  role: "OWNER" | "MANAGER" | "PLAYER" | "COACH" | "REPLACEMENT";
+  status: "CONFIRMED" | "DECLINED" | "PENDING";
+};
+
 const log = createScopedLog("Matches");
 
 export function useLeagueTeams(leagueId: string) {
@@ -575,6 +583,26 @@ export function useUpdateMatchAttendance() {
     },
   });
 }
+
+
+export function useMatchMembersByTeam(matchId: string, teamId: string) {
+  const api = useAxiosWithClerk();
+
+  return useQuery<TeamMatchMemberResponse[]>({
+    queryKey: ["match-members-by-team", matchId, teamId],
+    queryFn: async () => {
+      const resp = await api.get<TeamMatchMemberResponse[]>(
+        GO_MATCH_ROUTES.MATCH_MEMBERS_BY_TEAM(matchId, teamId),
+      );
+      return resp.data ?? [];
+    },
+    enabled: Boolean(matchId && teamId),
+    retry: false,
+  });
+}
+
+
+
 
 export function useSubmitLeagueScore(leagueId: string) {
   const api = useAxiosWithClerk();
