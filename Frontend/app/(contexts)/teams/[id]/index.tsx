@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import {
   View,
   ActivityIndicator,
@@ -11,7 +11,7 @@ import {
   useLocalSearchParams,
   useRouter,
 } from "expo-router";
-import { useQueryClient } from "@tanstack/react-query";
+import { useQueries, useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "@clerk/clerk-expo";
 import { ContentArea } from "@/components/ui/content-area";
 import { Button } from "@/components/ui/button";
@@ -33,12 +33,23 @@ import {
   useLeaguesByIds,
   useTeamMatches,
   useTeamsByIds,
+  useUpdateMatchAttendance,
 } from "@/hooks/use-matches";
+import { GO_MATCH_ROUTES, useAxiosWithClerk } from "@/hooks/use-axios-clerk";
 import { buildMatchCards, splitMatchSections } from "@/features/matches/utils";
 import { TeamOverviewTab } from "@/components/teams/team-overview-tab";
 import { errorToString } from "@/utils/error";
 
 type TeamTab = "board" | "matches" | "overview";
+type AttendanceStatus = "CONFIRMED" | "DECLINED";
+
+type TeamMatchMemberResponse = {
+  id: string;
+  teamId: string;
+  userId: string;
+  role: "OWNER" | "MANAGER" | "PLAYER" | "COACH" | "REPLACEMENT";
+  status: "CONFIRMED" | "DECLINED" | "PENDING";
+};
 
 const TeamTabs: readonly TeamTab[] = ["board", "matches", "overview"] as const;
 
@@ -47,6 +58,18 @@ const TeamTabLabels: Record<TeamTab, string> = {
   matches: "Matches",
   overview: "Overview",
 };
+
+function getAttendanceDialogContent(isReplacement: boolean) {
+  return {
+    attending: isReplacement ? "CONFIRMED" : "DECLINED",
+    title: isReplacement ? "Confirm attendance" : "Opt out",
+    message: isReplacement
+      ? "Are you sure you will be attending this match?"
+      : "Are you sure you won't be attending this match?",
+    buttonText: isReplacement ? "Attending" : "Not attending",
+    buttonStyle: isReplacement ? "default" : "destructive",
+  } as const;
+}
 
 export default function Team() {
   const params = useLocalSearchParams<{ id?: string | string[] }>();
@@ -68,6 +91,7 @@ function TeamContent() {
   const log = createScopedLog("Team Page");
   const queryClient = useQueryClient();
   const { userId } = useAuth();
+  const api = useAxiosWithClerk();
 
   const {
     id,
@@ -106,6 +130,73 @@ function TeamContent() {
     refetch: refetchMatches,
   } = useTeamMatches(id);
   const cancelTeamMutation = useCancelTeamMatch();
+  const attendanceMutation = useUpdateMatchAttendance();
+  const [respondedMatchIds, setRespondedMatchIds] = useState<Set<string>>(
+    new Set(),
+  );
+
+  const markMatchAsResponded = useCallback((matchId: string) => {
+    setRespondedMatchIds((prev) => new Set(prev).add(matchId));
+  }, []);
+
+  const matchMembersQueries = useQueries({
+    queries: matches.map((match) => ({
+      queryKey: ["match-members-by-team", match.id, id],
+      queryFn: async () => {
+        const resp = await api.get<TeamMatchMemberResponse[]>(
+          GO_MATCH_ROUTES.MATCH_MEMBERS_BY_TEAM(match.id, id),
+        );
+        return resp.data ?? [];
+      },
+      enabled: Boolean(id && match.id && isActiveMember && userId),
+      retry: false,
+    })),
+  });
+
+  const matchMembersByMatchId = useMemo(
+    () =>
+      Object.fromEntries(
+        matches.map((match, index) => [
+          match.id,
+          (matchMembersQueries[index]?.data ?? []) as TeamMatchMemberResponse[],
+        ]),
+      ) as Record<string, TeamMatchMemberResponse[]>,
+    [matches, matchMembersQueries],
+  );
+
+  const submitAttendanceResponse = useCallback(
+    async (matchId: string, attending: AttendanceStatus) => {
+      try {
+        await attendanceMutation.mutateAsync({ matchId, attending });
+        markMatchAsResponded(matchId);
+        await queryClient.invalidateQueries({
+          queryKey: ["match-members-by-team", matchId, id],
+        });
+      } catch (err) {
+        Alert.alert("Error", errorToString(err));
+      }
+    },
+    [attendanceMutation, markMatchAsResponded, queryClient, id],
+  );
+
+  const openAttendanceDialog = useCallback(
+    (matchId: string, isReplacement: boolean) => {
+      const { attending, title, message, buttonText, buttonStyle } =
+        getAttendanceDialogContent(isReplacement);
+
+      Alert.alert(title, message, [
+        { text: "Cancel", style: "cancel" },
+        {
+          text: buttonText,
+          style: buttonStyle,
+          onPress: async () => {
+            await submitAttendanceResponse(matchId, attending);
+          },
+        },
+      ]);
+    },
+    [submitAttendanceResponse],
+  );
 
   const teamIds = useMemo(
     () =>
@@ -158,6 +249,27 @@ function TeamContent() {
           (match.requiresReferee ? match.refereeUserId === userId : isOwner),
       );
 
+      const persistedStatus = matchMembersByMatchId[match.id]
+        ?.find((member) => member.userId === String(userId))
+        ?.status;
+
+    const isReplacement = role === "REPLACEMENT";
+
+    const alreadyRespondedPersisted = isReplacement
+      ? persistedStatus === "CONFIRMED"
+      : persistedStatus === "DECLINED";
+
+   const isEligibleRole = role === "PLAYER" || role === "REPLACEMENT";
+
+   const canOptOut = Boolean(
+     isEligibleRole &&
+       isActiveMember &&
+       !match.isPast &&
+       match.status !== "CANCELLED" &&
+       !respondedMatchIds.has(match.id) &&
+       !alreadyRespondedPersisted,
+   );
+
       return {
         ...match,
         canCancel,
@@ -191,6 +303,11 @@ function TeamContent() {
               });
             }
           : undefined,
+        canOptOut,
+        isReplacement,
+        onOptOut: canOptOut
+          ? () => openAttendanceDialog(match.id, isReplacement)
+          : undefined,
       };
     });
   }, [
@@ -202,6 +319,11 @@ function TeamContent() {
     queryClient,
     id,
     router,
+    isActiveMember,
+    role,
+    respondedMatchIds,
+    openAttendanceDialog,
+    matchMembersByMatchId,
   ]);
 
   const {
@@ -218,9 +340,14 @@ function TeamContent() {
         refetchMatches(),
         teamsQuery.refetch(),
         leaguesQuery.refetch(),
+        ...matches.map((match) =>
+          queryClient.invalidateQueries({
+            queryKey: ["match-members-by-team", match.id, id],
+          }),
+        ),
       ]);
     },
-    [refetchMatches, teamsQuery, leaguesQuery],
+    [refetchMatches, teamsQuery, leaguesQuery, matches, queryClient, id],
   );
 
   const { refreshing, handleDeletePost, handleRefresh } = useDetailPageHandlers(

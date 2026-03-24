@@ -182,6 +182,10 @@ export const GO_MATCH_ROUTES = {
     `${matchesBase}/${matchId}/ref-invite/accept`,
   DECLINE_REF_INVITE: (matchId: string) =>
     `${matchesBase}/${matchId}/ref-invite/decline`,
+  ATTENDANCE: (matchId: string) =>
+    `${matchesBase}/${matchId}/members/attendance`,
+    MATCH_MEMBERS_BY_TEAM: (matchId: string, teamId: string) =>
+      `${matchesBase}/${matchId}/teams/${teamId}/members`,
 };
 
 export const GO_REFEREE_ROUTES = {

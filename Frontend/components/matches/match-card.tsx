@@ -17,6 +17,7 @@ import { Card } from "@/components/ui/card";
 import { useActionSheet } from "@expo/react-native-action-sheet";
 import ContextMenu from "react-native-context-menu-view";
 import { isRunningInExpoGo } from "@/utils/runtime";
+import { Button } from "@/components/ui/button";
 
 interface MatchCardProps {
   readonly homeName: string;
@@ -35,6 +36,9 @@ interface MatchCardProps {
   readonly onConfirmCancel?: () => Promise<void>;
   readonly canSubmitScore?: boolean;
   readonly onSubmitScore?: () => void;
+  readonly canOptOut?: boolean;
+  readonly onOptOut?: () => void;
+  readonly isReplacement?: boolean;
 }
 
 export function MatchCard({
@@ -53,6 +57,9 @@ export function MatchCard({
   onConfirmCancel,
   canSubmitScore = false,
   onSubmitScore,
+  canOptOut = false,
+  onOptOut,
+  isReplacement = false,
 }: Readonly<MatchCardProps>) {
   const { showActionSheetWithOptions } = useActionSheet();
   const anchorRef = useRef<View>(null);
@@ -142,49 +149,52 @@ export function MatchCard({
   };
 
   const cardContent = (
-    <Pressable
-      ref={anchorRef}
-      onPress={onPress}
-      onLongPress={isRunningInExpoGo && hasMenuActions ? openMenu : undefined}
-    >
-      <Card isInteractive={!(hasMenuActions && !isRunningInExpoGo)}>
-        <View style={styles.content}>
-          <View style={styles.top}>
-            <Image
-              source={homeLogoUrl ? { uri: homeLogoUrl } : getSportLogo(sport)}
-              style={styles.logo}
-              contentFit="contain"
-            />
+    <View>
+      <Pressable
+        ref={anchorRef}
+        onPress={onPress}
+        onLongPress={isRunningInExpoGo && hasMenuActions ? openMenu : undefined}
+      >
+        <Card isInteractive={!(hasMenuActions && !isRunningInExpoGo)}>
+          <View style={styles.content}>
+            <View style={styles.top}>
+              <Image
+                source={homeLogoUrl ? { uri: homeLogoUrl } : getSportLogo(sport)}
+                style={styles.logo}
+                contentFit="contain"
+              />
 
-            <View style={styles.middle}>
-              <Text style={styles.league} numberOfLines={1}>
-                {contextLabel}
-              </Text>
-              {renderCenterValue()}
+              <View style={styles.middle}>
+                <Text style={styles.league} numberOfLines={1}>
+                  {contextLabel}
+                </Text>
+                {renderCenterValue()}
+              </View>
+
+              <Image
+                source={awayLogoUrl ? { uri: awayLogoUrl } : getSportLogo(sport)}
+                style={styles.logo}
+                contentFit="contain"
+              />
             </View>
 
-            <Image
-              source={awayLogoUrl ? { uri: awayLogoUrl } : getSportLogo(sport)}
-              style={styles.logo}
-              contentFit="contain"
-            />
+            <View style={styles.names}>
+              <View style={styles.home}>
+                <Text style={styles.name} numberOfLines={1}>
+                  {homeName}
+                </Text>
+              </View>
+              <View style={styles.away}>
+                <Text style={styles.name} numberOfLines={1}>
+                  {awayName}
+                </Text>
+              </View>
+            </View>
           </View>
-
-          <View style={styles.names}>
-            <View style={styles.home}>
-              <Text style={styles.name} numberOfLines={1}>
-                {homeName}
-              </Text>
-            </View>
-            <View style={styles.away}>
-              <Text style={styles.name} numberOfLines={1}>
-                {awayName}
-              </Text>
-            </View>
-          </View>
-        </View>
-      </Card>
-    </Pressable>
+        </Card>
+      </Pressable>
+      <OptOutButton canOptOut={canOptOut} onOptOut={onOptOut} isReplacement={isReplacement} />
+    </View>
   );
 
   if (!hasMenuActions) {
@@ -227,6 +237,24 @@ export function MatchCard({
     >
       {cardContent}
     </ContextMenu>
+  );
+}
+
+export function OptOutButton({
+  canOptOut,
+  onOptOut,
+  isReplacement,
+}: {
+  readonly canOptOut: boolean;
+  readonly onOptOut?: () => void;
+  readonly isReplacement: boolean;
+}) {
+  if (!canOptOut || !onOptOut) return null;
+  const label = isReplacement ? "Attending" : "Not attending";
+  return (
+    <View style={styles.optOutButton}>
+      <Button type="custom" label={label} onPress={onOptOut} />
+    </View>
   );
 }
 
@@ -315,6 +343,12 @@ const styles = StyleSheet.create({
     minWidth: 76,
     alignItems: "center",
   },
+  optOutButton: {
+    alignSelf: "flex-end",
+    marginTop: 6,
+    width: 160,
+  },
+
   skeleton: {
     backgroundColor: "rgba(255,255,255,0.16)",
     borderRadius: 8,
