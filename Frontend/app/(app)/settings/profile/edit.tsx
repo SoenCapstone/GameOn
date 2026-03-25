@@ -1,7 +1,6 @@
 import { useState, useCallback } from "react";
-import { useRouter, Stack } from "expo-router";
+import { useRouter } from "expo-router";
 import { useMutation } from "@tanstack/react-query";
-import { ActivityIndicator } from "react-native";
 import { images } from "@/constants/images";
 import { AccentColors } from "@/constants/colors";
 import { ContentArea } from "@/components/ui/content-area";
@@ -11,26 +10,7 @@ import { Button } from "@/components/ui/button";
 import { handleSaveProfile } from "@/components/user-profile/profile-utils";
 import { pickImage } from "@/utils/pick-image";
 import { useAxiosWithClerk } from "@/hooks/use-axios-clerk";
-
-function EditProfileToolbar({
-  onSave,
-  isSaving,
-}: Readonly<{ onSave: () => void; isSaving: boolean }>) {
-  return (
-    <>
-      <Stack.Screen.Title>Edit Profile</Stack.Screen.Title>
-      <Stack.Toolbar placement="right">
-        {isSaving ? (
-          <Stack.Toolbar.View>
-            <ActivityIndicator color="white" size="small" />
-          </Stack.Toolbar.View>
-        ) : (
-          <Stack.Toolbar.Button onPress={onSave}>Save</Stack.Toolbar.Button>
-        )}
-      </Stack.Toolbar>
-    </>
-  );
-}
+import { FormToolbar } from "@/components/form/form-toolbar";
 
 export default function Edit() {
   const { isLoaded, isSignedIn, user } = useUser();
@@ -70,9 +50,10 @@ export default function Edit() {
     <ContentArea
       background={{ preset: "blue", mode: "form" }}
       toolbar={
-        <EditProfileToolbar
-          isSaving={saveProfileMutation.isPending}
-          onSave={handleSave}
+        <FormToolbar
+          title="Edit Profile"
+          loading={saveProfileMutation.isPending}
+          onSubmit={handleSave}
         />
       }
     >
