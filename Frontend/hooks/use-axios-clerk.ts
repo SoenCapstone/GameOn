@@ -44,7 +44,7 @@ enum SERVICE {
   TEAMS = "teams",
   LEAGUES = "leagues",
   MESSAGING = "messaging",
-  REFEREES = "referees"
+  REFEREES = "referees",
 }
 
 const buildRoute = (version: string, service: string, path?: string) => {
@@ -92,7 +92,6 @@ export const GO_TEAM_SERVICE_ROUTES = {
   VENUE: (venueId: string) =>
     buildRoute(VERSIONING.v1, SERVICE.TEAMS, `venues/${venueId}`),
 
-
   CREATE_PLAY: (teamId: string) =>
     buildRoute(VERSIONING.v1, SERVICE.TEAMS, `${teamId}/play-maker`),
 };
@@ -113,14 +112,26 @@ export const GO_LEAGUE_SERVICE_ROUTES = {
   MATCHES: (leagueId: string) =>
     buildRoute(VERSIONING.v1, SERVICE.LEAGUES, `${leagueId}/matches`),
   CREATE_MATCH: (leagueId: string) =>
-    buildRoute(VERSIONING.v1, SERVICE.LEAGUES, `${leagueId}/matches/create-match`),
+    buildRoute(
+      VERSIONING.v1,
+      SERVICE.LEAGUES,
+      `${leagueId}/matches/create-match`,
+    ),
   VENUES: buildRoute(VERSIONING.v1, SERVICE.LEAGUES, "venues"),
   VENUE: (venueId: string) =>
     buildRoute(VERSIONING.v1, SERVICE.LEAGUES, `venues/${venueId}`),
   CANCEL_MATCH: (leagueId: string, matchId: string) =>
-    buildRoute(VERSIONING.v1, SERVICE.LEAGUES, `${leagueId}/matches/${matchId}/cancel`),
+    buildRoute(
+      VERSIONING.v1,
+      SERVICE.LEAGUES,
+      `${leagueId}/matches/${matchId}/cancel`,
+    ),
   SCORE_MATCH: (leagueId: string, matchId: string) =>
-    buildRoute(VERSIONING.v1, SERVICE.LEAGUES, `${leagueId}/matches/${matchId}/score`),
+    buildRoute(
+      VERSIONING.v1,
+      SERVICE.LEAGUES,
+      `${leagueId}/matches/${matchId}/score`,
+    ),
   ASSIGN_REFEREE: (leagueId: string, matchId: string) =>
     buildRoute(
       VERSIONING.v1,
@@ -169,7 +180,8 @@ export const GO_MATCH_ROUTES = {
     `${matchesBase}/${matchId}/team-invite/decline`,
   CANCEL: (matchId: string) => `${matchesBase}/${matchId}/cancel`,
   SCORE: (matchId: string) => `${matchesBase}/${matchId}/score`,
-  ASSIGN_REFEREE: (matchId: string) => `${matchesBase}/${matchId}/assign-referee`,
+  ASSIGN_REFEREE: (matchId: string) =>
+    `${matchesBase}/${matchId}/assign-referee`,
   REF_INVITE: (matchId: string) => `${matchesBase}/${matchId}/ref-invite`,
   ACCEPT_REF_INVITE: (matchId: string) =>
     `${matchesBase}/${matchId}/ref-invite/accept`,

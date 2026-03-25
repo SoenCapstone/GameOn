@@ -28,5 +28,5 @@ export function resolveSelectedVenueLabel(
   venueIdToLabel: Record<string, string>,
   newVenueName?: string,
 ) {
-  return (venueId ? venueIdToLabel[venueId] : undefined) ?? (newVenueName ?? "");
+  return (venueId ? venueIdToLabel[venueId] : undefined) ?? newVenueName ?? "";
 }

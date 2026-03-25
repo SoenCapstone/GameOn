@@ -1,1 +1,1 @@
-export const AXIOS_BEARER = 'Bearer';
+export const AXIOS_BEARER = "Bearer";

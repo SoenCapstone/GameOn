@@ -64,11 +64,7 @@ export type LeagueMatch = {
 export type TeamMatch = {
   id: string;
   matchType: "TEAM_MATCH" | "LEAGUE_MATCH";
-  status:
-    | "PENDING_TEAM_ACCEPTANCE"
-    | "CONFIRMED"
-    | "DECLINED"
-    | "CANCELLED";
+  status: "PENDING_TEAM_ACCEPTANCE" | "CONFIRMED" | "DECLINED" | "CANCELLED";
   homeTeamId: string;
   awayTeamId: string;
   sport: string;

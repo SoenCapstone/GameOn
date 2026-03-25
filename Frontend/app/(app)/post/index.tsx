@@ -1,38 +1,16 @@
-import { useState, useCallback, useLayoutEffect } from "react";
+import { useState, useCallback } from "react";
 import { Alert } from "react-native";
-import { useLocalSearchParams, useRouter, useNavigation } from "expo-router";
+import { useLocalSearchParams, useRouter } from "expo-router";
 import { ContentArea } from "@/components/ui/content-area";
 import { Form } from "@/components/form/form";
-import { Header } from "@/components/header/header";
-import { Button } from "@/components/ui/button";
-import { PageTitle } from "@/components/header/page-title";
 import { BoardPostScope } from "@/components/board/board-types";
 import { AccentColors } from "@/constants/colors";
 import { useCreateBoardPost } from "@/hooks/use-team-board";
 import { useCreateLeagueBoardPost } from "@/hooks/use-league-board";
 import { errorToString } from "@/utils/error";
+import { FormToolbar } from "@/components/form/form-toolbar";
 
 const PostScope: BoardPostScope[] = ["Members", "Everyone"];
-
-function PostHeader({
-  onPost,
-  isPosting,
-}: Readonly<{ onPost: () => void; isPosting: boolean }>) {
-  return (
-    <Header
-      left={<Button type="back" />}
-      center={<PageTitle title="New Post" />}
-      right={
-        <Button
-          type="custom"
-          label="Post"
-          loading={isPosting}
-          onPress={onPost}
-        />
-      }
-    />
-  );
-}
 
 export default function Post() {
   const params = useLocalSearchParams<{
@@ -44,7 +22,6 @@ export default function Post() {
   const id = Array.isArray(rawId) ? rawId[0] : (rawId ?? "");
   const isPrivate = params.privacy === "PRIVATE";
   const router = useRouter();
-  const navigation = useNavigation();
 
   const [title, setTitle] = useState("");
   const [scope, setScope] = useState<BoardPostScope | undefined>(undefined);
@@ -87,24 +64,18 @@ export default function Post() {
     }
   }, [body, createPostMutation, id, router, scope, title]);
 
-  const headerTitle = useCallback(
-    () => (
-      <PostHeader
-        onPost={handleSubmit}
-        isPosting={createPostMutation.isPending}
-      />
-    ),
-    [handleSubmit, createPostMutation.isPending],
-  );
-
-  useLayoutEffect(() => {
-    navigation.setOptions({
-      headerTitle,
-    });
-  }, [navigation, headerTitle]);
-
   return (
-    <ContentArea background={{ preset: "red", mode: "form" }}>
+    <ContentArea
+      background={{ preset: "red", mode: "form" }}
+      toolbar={
+        <FormToolbar
+          title="New Post"
+          label="Post"
+          onSubmit={handleSubmit}
+          loading={createPostMutation.isPending}
+        />
+      }
+    >
       <Form accentColor={AccentColors.blue}>
         <Form.Section
           footer={

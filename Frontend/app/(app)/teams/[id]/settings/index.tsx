@@ -1,11 +1,8 @@
-import { useLayoutEffect, useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { View, Text, ActivityIndicator, Alert } from "react-native";
-import { useLocalSearchParams, useRouter } from "expo-router";
+import { Stack, useLocalSearchParams, useRouter } from "expo-router";
 import { useNavigation, StackActions } from "@react-navigation/native";
 import { ContentArea } from "@/components/ui/content-area";
-import { Header } from "@/components/header/header";
-import { Button } from "@/components/ui/button";
-import { PageTitle } from "@/components/header/page-title";
 import { Form } from "@/components/form/form";
 import { AccentColors } from "@/constants/colors";
 import { images } from "@/constants/images";
@@ -23,13 +20,8 @@ import { formatAmount } from "@/utils/payment";
 
 const PUBLICATION_FEE_CENTS = 1500;
 
-function TeamSettingsHeader() {
-  return (
-    <Header
-      left={<Button type="back" />}
-      center={<PageTitle title="Team Settings" />}
-    />
-  );
+function TeamSettingsToolbar() {
+  return <Stack.Screen.Title>Team Settings</Stack.Screen.Title>;
 }
 
 export default function TeamSettingsScreen() {
@@ -144,12 +136,6 @@ function TeamSettingsContent() {
     setIsPublic(false);
   };
 
-  useLayoutEffect(() => {
-    navigation.setOptions({
-      headerTitle: TeamSettingsHeader,
-    });
-  }, [navigation]);
-
   if (!team && !isLoading) {
     return (
       <ContentArea background={{ preset: "red" }}>
@@ -173,7 +159,10 @@ function TeamSettingsContent() {
   }
 
   return (
-    <ContentArea background={{ preset: "red", mode: "form" }}>
+    <ContentArea
+      background={{ preset: "red", mode: "form" }}
+      toolbar={<TeamSettingsToolbar />}
+    >
       {isLoading && (
         <View style={settingsStyles.loadingOverlay}>
           <ActivityIndicator size="large" color="#fff" />

@@ -2,7 +2,7 @@ import React, { ComponentRef } from "react";
 import { View, Text, ActivityIndicator, StyleSheet } from "react-native";
 import { BoardPost } from "@/components/board/board-types";
 import { Post } from "@/components/board/post";
-import { LegendList } from "@legendapp/list";
+import { LegendList } from "@legendapp/list/react-native";
 import { createScopedLog } from "@/utils/logger";
 import { ImageSource } from "expo-image";
 

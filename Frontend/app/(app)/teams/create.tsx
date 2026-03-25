@@ -1,11 +1,7 @@
-import { useCallback, useLayoutEffect, useState } from "react";
+import { useCallback, useState } from "react";
 import { Alert } from "react-native";
 import { useRouter } from "expo-router";
-import { useNavigation } from "@react-navigation/native";
 import { ContentArea } from "@/components/ui/content-area";
-import { Header } from "@/components/header/header";
-import { PageTitle } from "@/components/header/page-title";
-import { Button } from "@/components/ui/button";
 import { Form } from "@/components/form/form";
 import { TeamForm } from "@/components/teams/team-form";
 import { AccentColors } from "@/constants/colors";
@@ -18,29 +14,9 @@ import {
   useAxiosWithClerk,
   GO_TEAM_SERVICE_ROUTES,
 } from "@/hooks/use-axios-clerk";
+import { FormToolbar } from "@/components/form/form-toolbar";
 
 const log = createScopedLog("Create Team Page");
-
-const CreateTeamHeader = ({
-  onCreate,
-  isCreating,
-}: {
-  onCreate: () => void;
-  isCreating: boolean;
-}) => (
-  <Header
-    left={<Button type="back" />}
-    center={<PageTitle title="Create a Team" />}
-    right={
-      <Button
-        type="custom"
-        label={isCreating ? "Creating..." : "Create"}
-        onPress={onCreate}
-        loading={isCreating}
-      />
-    }
-  />
-);
 
 export default function CreateTeamScreen() {
   const router = useRouter();
@@ -130,20 +106,18 @@ export default function CreateTeamScreen() {
     teamName,
   ]);
 
-  const navigation = useNavigation();
-  useLayoutEffect(() => {
-    navigation.setOptions({
-      headerTitle: () => (
-        <CreateTeamHeader
-          onCreate={handleCreateTeam}
-          isCreating={createTeamMutation.isPending}
-        />
-      ),
-    });
-  }, [navigation, createTeamMutation.isPending, handleCreateTeam]);
-
   return (
-    <ContentArea background={{ preset: "purple", mode: "form" }}>
+    <ContentArea
+      background={{ preset: "purple", mode: "form" }}
+      toolbar={
+        <FormToolbar
+          title="Create a Team"
+          label="Create"
+          onSubmit={handleCreateTeam}
+          loading={createTeamMutation.isPending}
+        />
+      }
+    >
       <Form accentColor={AccentColors.purple}>
         <TeamForm
           values={{

@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import {
   View,
   ActivityIndicator,
@@ -8,15 +8,15 @@ import {
 } from "react-native";
 import {
   RelativePathString,
+  router,
+  Stack,
   useLocalSearchParams,
   useRouter,
 } from "expo-router";
 import { useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "@clerk/clerk-expo";
 import { ContentArea } from "@/components/ui/content-area";
-import { Button } from "@/components/ui/button";
 import { getSportLogo } from "@/utils/search";
-import { useTeamHeader } from "@/hooks/use-team-league-header";
 import {
   TeamDetailProvider,
   useTeamDetailContext,
@@ -46,6 +46,74 @@ const TeamTabLabels: Record<TeamTab, string> = {
   matches: "Matches",
   overview: "Overview",
 };
+
+function TeamToolbar({
+  title,
+  id,
+  isMember,
+  onFollow,
+  openPost,
+  openSchedule,
+  openPlaymaker,
+}: Readonly<{
+  title: string;
+  id: string;
+  isMember: boolean;
+  onFollow: () => void;
+  openPost?: () => void;
+  openSchedule?: () => void;
+  openPlaymaker?: () => void;
+}>) {
+  const showBottomToolbar = Boolean(openPost || openSchedule || openPlaymaker);
+
+  return (
+    <>
+      <Stack.Screen.Title>{title}</Stack.Screen.Title>
+      {isMember ? (
+        <Stack.Toolbar placement="right">
+          <Stack.Toolbar.Button
+            icon="person.2.fill"
+            onPress={() => router.push(`/teams/${id}/manage-roles`)}
+          />
+          <Stack.Toolbar.Button
+            icon="gear"
+            onPress={() => router.push(`/teams/${id}/settings`)}
+          />
+        </Stack.Toolbar>
+      ) : (
+        <Stack.Toolbar placement="right">
+          <Stack.Toolbar.Button onPress={onFollow}>Follow</Stack.Toolbar.Button>
+        </Stack.Toolbar>
+      )}
+      {showBottomToolbar ? (
+        <Stack.Toolbar placement="bottom">
+          {openPlaymaker ? (
+            <Stack.Toolbar.Button icon="sportscourt" onPress={openPlaymaker} />
+          ) : null}
+          <Stack.Toolbar.Spacer />
+          <Stack.Toolbar.Menu icon="plus">
+            {openPost ? (
+              <Stack.Toolbar.MenuAction
+                icon="square.and.pencil"
+                onPress={openPost}
+              >
+                Create a Post
+              </Stack.Toolbar.MenuAction>
+            ) : null}
+            {openSchedule ? (
+              <Stack.Toolbar.MenuAction
+                icon="calendar.badge.plus"
+                onPress={openSchedule}
+              >
+                Schedule a Match
+              </Stack.Toolbar.MenuAction>
+            ) : null}
+          </Stack.Toolbar.Menu>
+        </Stack.Toolbar>
+      ) : null}
+    </>
+  );
+}
 
 export default function Team() {
   const params = useLocalSearchParams<{ id?: string | string[] }>();
@@ -83,6 +151,25 @@ function TeamContent() {
   const canManage =
     isActiveMember &&
     (role === "OWNER" || role === "COACH" || role === "MANAGER");
+
+  const openPost = useCallback(() => {
+    router.push({
+      pathname: "/post",
+      params: {
+        id,
+        spaceType: "team",
+        privacy: team?.privacy,
+      },
+    });
+  }, [router, id, team?.privacy]);
+
+  const openSchedule = useCallback(() => {
+    router.push(`/teams/${id}/matches/schedule`);
+  }, [router, id]);
+
+  const openPlaymaker = useCallback(() => {
+    router.push(`/teams/${id}/playmaker`);
+  }, [router, id]);
 
   const {
     data: boardPosts = [],
@@ -139,11 +226,11 @@ function TeamContent() {
       const awayOwnerId = teamsQuery.data?.[match.awayTeamId]?.ownerUserId;
       const canCancel = Boolean(
         !isLeagueMatch &&
-        userId &&
-        !match.isPast &&
-        match.status !== "CANCELLED" &&
-        ((homeOwnerId && homeOwnerId === userId) ||
-          (awayOwnerId && awayOwnerId === userId)),
+          userId &&
+          !match.isPast &&
+          match.status !== "CANCELLED" &&
+          ((homeOwnerId && homeOwnerId === userId) ||
+            (awayOwnerId && awayOwnerId === userId)),
       );
 
       return {
@@ -184,8 +271,6 @@ function TeamContent() {
     past: pastMatches,
   } = useMemo(() => splitMatchSections(matchItems), [matchItems]);
 
-  useTeamHeader({ title, id, isMember, onFollow: handleFollow });
-
   const handleMatchesRefresh = useMemo(
     () => async () => {
       await Promise.all([
@@ -225,7 +310,6 @@ function TeamContent() {
   return (
     <View style={{ flex: 1 }}>
       <ContentArea
-        style={{ paddingBottom: 20 }}
         tabs={{
           values: TeamTabs.map((teamTab) => TeamTabLabels[teamTab]),
           selectedIndex,
@@ -238,6 +322,17 @@ function TeamContent() {
             log.info("Tab changed", { tab: newTab });
           },
         }}
+        toolbar={
+          <TeamToolbar
+            title={title}
+            id={id}
+            isMember={isMember}
+            onFollow={handleFollow}
+            openPost={canManage ? openPost : undefined}
+            openSchedule={isOwner ? openSchedule : undefined}
+            openPlaymaker={canManage ? openPlaymaker : undefined}
+          />
+        }
         background={{ preset: "red" }}
         refreshControl={
           <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />
@@ -298,48 +393,11 @@ function TeamContent() {
                   overview={overview}
                   tiles={tiles}
                 />
-
-                {canManage && (
-                  <Button
-                    type="custom"
-                    label="Open Playmaker"
-                    onPress={() => router.push(`/playmaker/${id}`)}
-                  />
-                )}
               </View>
             )}
           </>
         )}
       </ContentArea>
-
-      {canManage && tab === "board" ? (
-        <View style={styles.fab}>
-          <Button
-            type="custom"
-            icon="plus"
-            onPress={() =>
-              router.push({
-                pathname: "/post",
-                params: {
-                  id,
-                  spaceType: "team",
-                  privacy: team?.privacy,
-                },
-              })
-            }
-          />
-        </View>
-      ) : null}
-
-      {isOwner && tab === "matches" ? (
-        <View style={styles.fab}>
-          <Button
-            type="custom"
-            icon="plus"
-            onPress={() => router.push(`/teams/${id}/matches/schedule`)}
-          />
-        </View>
-      ) : null}
     </View>
   );
 }
@@ -364,11 +422,5 @@ const styles = StyleSheet.create({
   overviewSection: {
     marginTop: 12,
     gap: 12,
-  },
-
-  fab: {
-    position: "absolute",
-    bottom: 20,
-    right: 20,
   },
 });

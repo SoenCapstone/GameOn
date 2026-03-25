@@ -3,7 +3,6 @@ import { Alert } from "react-native";
 import {
   RelativePathString,
   useLocalSearchParams,
-  useNavigation,
   useRouter,
 } from "expo-router";
 import { useQueryClient } from "@tanstack/react-query";
@@ -30,7 +29,7 @@ import { createScopedLog } from "@/utils/logger";
 import { showScheduleSubmitError } from "@/utils/schedule-errors";
 import { useRefereeOptions } from "@/hooks/use-referee-options";
 import { MatchDetailsSection } from "@/components/matches/match-details-section";
-import { useScheduleHeader } from "@/hooks/use-schedule-header";
+import { FormToolbar } from "@/components/form/form-toolbar";
 
 const log = createScopedLog("Schedule League Match");
 
@@ -48,7 +47,6 @@ export default function ScheduleLeagueMatchScreen() {
     draftRefereeUserId?: string;
   }>();
   const leagueId = params.id ?? "";
-  const navigation = useNavigation();
   const router = useRouter();
   const queryClient = useQueryClient();
 
@@ -264,14 +262,18 @@ export default function ScheduleLeagueMatchScreen() {
     venueId,
   ]);
 
-  useScheduleHeader({
-    navigation,
-    onSubmit: handleSubmit,
-    isPending: createMutation.isPending,
-  });
-
   return (
-    <ContentArea background={{ preset: "red", mode: "form" }}>
+    <ContentArea
+      background={{ preset: "red", mode: "form" }}
+      toolbar={
+        <FormToolbar
+          title="Schedule a Match"
+          icon="calendar.badge.plus"
+          onSubmit={handleSubmit}
+          loading={createMutation.isPending}
+        />
+      }
+    >
       <Form accentColor={AccentColors.red}>
         <Form.Section header="Teams">
           <Form.Menu
@@ -324,7 +326,6 @@ export default function ScheduleLeagueMatchScreen() {
               pathname:
                 `/leagues/${leagueId}/matches/add-venue` as RelativePathString,
               params: {
-                id: leagueId,
                 homeTeamId,
                 awayTeamId,
                 draftHomeTeamId: homeTeamId,

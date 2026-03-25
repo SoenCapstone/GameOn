@@ -1,4 +1,3 @@
-import React, { useLayoutEffect } from "react";
 import {
   ActivityIndicator,
   Alert,
@@ -7,13 +6,9 @@ import {
   Text,
   View,
 } from "react-native";
-import { useLocalSearchParams, useRouter } from "expo-router";
-import { useNavigation } from "@react-navigation/native";
+import { Stack, useLocalSearchParams, useRouter } from "expo-router";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { ContentArea } from "@/components/ui/content-area";
-import { Header } from "@/components/header/header";
-import { Button } from "@/components/ui/button";
-import { PageTitle } from "@/components/header/page-title";
 import { Card } from "@/components/ui/card";
 import { MemberRow } from "@/components/teams/member-row";
 import { formatFullName } from "@/components/teams/member-row-utils";
@@ -25,12 +20,22 @@ import {
 } from "@/hooks/use-axios-clerk";
 import { errorToString } from "@/utils/error";
 
+function ManageRolesToolbar({ onPress }: Readonly<{ onPress: () => void }>) {
+  return (
+    <>
+      <Stack.Screen.Title>Manage Roles</Stack.Screen.Title>
+      <Stack.Toolbar placement="right">
+        <Stack.Toolbar.Button icon="plus" onPress={onPress} />
+      </Stack.Toolbar>
+    </>
+  );
+}
+
 export default function ManageRolesScreen() {
   const params = useLocalSearchParams<{ id?: string }>();
   const rawId = params.id;
   const teamId = Array.isArray(rawId) ? rawId[0] : (rawId ?? "");
   const api = useAxiosWithClerk();
-  const navigation = useNavigation();
   const router = useRouter();
   const queryClient = useQueryClient();
 
@@ -59,28 +64,6 @@ export default function ManageRolesScreen() {
     },
   });
 
-  useLayoutEffect(() => {
-    const renderHeader = () => (
-      <Header
-        left={<Button type="back" />}
-        center={<PageTitle title="Manage Roles" />}
-        right={
-          isOwner && teamId ? (
-            <Button
-              type="custom"
-              icon="plus"
-              onPress={() => router.push(`/teams/${teamId}/invite`)}
-            />
-          ) : undefined
-        }
-      />
-    );
-
-    navigation.setOptions({
-      headerTitle: renderHeader,
-    });
-  }, [navigation, isOwner, router, teamId]);
-
   const handleRemoveMember = (memberId: string, name: string) => {
     Alert.alert("Remove from Team", `Remove ${name} from this team?`, [
       { text: "Cancel", style: "cancel" },
@@ -93,7 +76,14 @@ export default function ManageRolesScreen() {
   };
 
   return (
-    <ContentArea background={{ preset: "red" }}>
+    <ContentArea
+      background={{ preset: "red" }}
+      toolbar={
+        <ManageRolesToolbar
+          onPress={() => router.push(`/teams/${teamId}/invite`)}
+        />
+      }
+    >
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>Team Members</Text>
 

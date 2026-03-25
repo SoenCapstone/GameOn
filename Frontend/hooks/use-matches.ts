@@ -383,7 +383,9 @@ export function useLeagueVenue(venueId: string, enabled = true) {
   return useQuery<Venue>({
     queryKey: ["league-venue", venueId],
     queryFn: async () => {
-      const resp = await api.get<Venue>(GO_LEAGUE_SERVICE_ROUTES.VENUE(venueId));
+      const resp = await api.get<Venue>(
+        GO_LEAGUE_SERVICE_ROUTES.VENUE(venueId),
+      );
       return resp.data;
     },
     enabled: enabled && Boolean(venueId),
@@ -407,7 +409,10 @@ export function useCreateTeamVenue() {
       homeTeamId?: string;
       awayTeamId?: string;
     }) => {
-      const resp = await api.post<Venue>(GO_TEAM_SERVICE_ROUTES.VENUES, payload);
+      const resp = await api.post<Venue>(
+        GO_TEAM_SERVICE_ROUTES.VENUES,
+        payload,
+      );
       return resp.data;
     },
   });

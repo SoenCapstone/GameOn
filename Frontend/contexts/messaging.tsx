@@ -196,9 +196,9 @@ export const MessagingProvider = ({ children }: PropsWithChildren) => {
       return;
     }
     socketRef.current?.disconnect();
-    socketRef.current?.connect().catch((err) =>
-      log.error("Reconnection failed", err),
-    );
+    socketRef.current
+      ?.connect()
+      .catch((err) => log.error("Reconnection failed", err));
   }, [userId]);
 
   const value = useMemo<MessagingContextValue>(
@@ -230,7 +230,9 @@ export const MessagingProvider = ({ children }: PropsWithChildren) => {
 export const useMessagingContext = () => {
   const ctx = useContext(MessagingContext);
   if (!ctx) {
-    throw new Error("useMessagingContext must be used within MessagingProvider");
+    throw new Error(
+      "useMessagingContext must be used within MessagingProvider",
+    );
   }
   return ctx;
 };

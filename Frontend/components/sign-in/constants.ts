@@ -17,7 +17,9 @@ export const initialSignInValue = {
 export const FORGOT_PASSWORD_TEXT = "Forgot Password?";
 export const SIGN_UP_TEXT = "Don't have an account?";
 
-export const signInInputLabels = (showPassword: boolean): SignUpInputLabel[] => [
+export const signInInputLabels = (
+  showPassword: boolean,
+): SignUpInputLabel[] => [
   {
     label: EMAIL_LABEL,
     placeholder: EMAIL_PLACEHOLDER,

@@ -4,11 +4,7 @@ import { useTeamResults } from "@/hooks/search/use-team-results";
 import { useLeagueResults } from "@/hooks/search/use-league-results";
 import { createScopedLog } from "@/utils/logger";
 import { errorToString } from "@/utils/error";
-import type {
-  Modes,
-  SearchValue,
-  SearchResult,
-} from "@/constants/search";
+import type { Modes, SearchValue, SearchResult } from "@/constants/search";
 
 export type UseSearchOptions = {
   readonly member?: boolean;

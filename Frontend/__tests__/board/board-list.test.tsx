@@ -35,7 +35,7 @@ jest.mock("@/components/board/post", () => ({
   Post: (props: { post: BoardPost; [key: string]: unknown }) => mockPost(props),
 }));
 
-jest.mock("@legendapp/list", () => {
+jest.mock("@legendapp/list/react-native", () => {
   const mockReact = jest.requireActual("react");
   return {
     LegendList: ({

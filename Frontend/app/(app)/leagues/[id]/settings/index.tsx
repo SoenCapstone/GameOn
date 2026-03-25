@@ -1,11 +1,8 @@
-import React, { useLayoutEffect, useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { View, Text, ActivityIndicator, Alert } from "react-native";
-import { useLocalSearchParams, useRouter } from "expo-router";
+import { Stack, useLocalSearchParams, useRouter } from "expo-router";
 import { useNavigation, StackActions } from "@react-navigation/native";
 import { ContentArea } from "@/components/ui/content-area";
-import { Header } from "@/components/header/header";
-import { Button } from "@/components/ui/button";
-import { PageTitle } from "@/components/header/page-title";
 import { Form } from "@/components/form/form";
 import { AccentColors } from "@/constants/colors";
 import { createScopedLog } from "@/utils/logger";
@@ -27,13 +24,8 @@ import {
 const log = createScopedLog("League Settings");
 const PUBLICATION_FEE_CENTS = 1500;
 
-function LeagueSettingsHeader() {
-  return (
-    <Header
-      left={<Button type="back" />}
-      center={<PageTitle title="League Settings" />}
-    />
-  );
+function LeagueSettingsToolbar() {
+  return <Stack.Screen.Title>League Settings</Stack.Screen.Title>;
 }
 
 export default function LeagueSettingsScreen() {
@@ -151,12 +143,6 @@ function LeagueSettingsContent() {
     );
   };
 
-  useLayoutEffect(() => {
-    navigation.setOptions({
-      headerTitle: LeagueSettingsHeader,
-    });
-  }, [navigation]);
-
   if (!isOwner) {
     return (
       <ContentArea background={{ preset: "red" }}>
@@ -180,7 +166,10 @@ function LeagueSettingsContent() {
   }
 
   return (
-    <ContentArea background={{ preset: "red", mode: "form" }}>
+    <ContentArea
+      background={{ preset: "red", mode: "form" }}
+      toolbar={<LeagueSettingsToolbar />}
+    >
       {leagueLoading && (
         <View style={settingsStyles.loadingOverlay}>
           <ActivityIndicator size="large" color="#fff" />

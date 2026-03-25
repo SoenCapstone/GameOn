@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import {
   View,
   ActivityIndicator,
@@ -8,15 +8,15 @@ import {
 } from "react-native";
 import {
   RelativePathString,
+  router,
+  Stack,
   useLocalSearchParams,
   useRouter,
 } from "expo-router";
 import { useQueryClient } from "@tanstack/react-query";
 import { ContentArea } from "@/components/ui/content-area";
 import { getSportLogo } from "@/utils/search";
-import { Button } from "@/components/ui/button";
 import { LeagueBrowserTeams } from "@/components/leagues/league-browser-teams";
-import { useLeagueHeader } from "@/hooks/use-team-league-header";
 import {
   LeagueDetailProvider,
   useLeagueDetailContext,
@@ -35,7 +35,6 @@ import {
   useTeamsByIds,
 } from "@/hooks/use-matches";
 import { buildMatchCards, splitMatchSections } from "@/features/matches/utils";
-import { Card } from "@/components/ui/card";
 import { errorToString } from "@/utils/error";
 
 type LeagueTab = "board" | "matches" | "standings" | "teams";
@@ -54,6 +53,71 @@ const TabLabels: Record<LeagueTab, string> = {
   teams: "Teams",
 };
 
+function LeagueToolbar({
+  title,
+  id,
+  isMember,
+  isOwner,
+  onFollow,
+  openPost,
+  openSchedule,
+}: Readonly<{
+  title: string;
+  id: string;
+  isMember: boolean;
+  isOwner: boolean;
+  onFollow: () => void;
+  openPost?: () => void;
+  openSchedule?: () => void;
+}>) {
+  const showBottomToolbar = Boolean(openPost || openSchedule);
+
+  return (
+    <>
+      <Stack.Screen.Title>{title}</Stack.Screen.Title>
+      {isMember || isOwner ? (
+        <Stack.Toolbar placement="right">
+          <Stack.Toolbar.Button
+            icon="person.2.fill"
+            onPress={() => router.push(`/leagues/${id}/manage`)}
+          />
+          <Stack.Toolbar.Button
+            icon="gear"
+            onPress={() => router.push(`/leagues/${id}/settings`)}
+          />
+        </Stack.Toolbar>
+      ) : (
+        <Stack.Toolbar placement="right">
+          <Stack.Toolbar.Button onPress={onFollow}>Follow</Stack.Toolbar.Button>
+        </Stack.Toolbar>
+      )}
+      {showBottomToolbar ? (
+        <Stack.Toolbar placement="bottom">
+          <Stack.Toolbar.Spacer />
+          <Stack.Toolbar.Menu icon="plus">
+            {openPost ? (
+              <Stack.Toolbar.MenuAction
+                icon="square.and.pencil"
+                onPress={openPost}
+              >
+                Create a Post
+              </Stack.Toolbar.MenuAction>
+            ) : null}
+            {openSchedule ? (
+              <Stack.Toolbar.MenuAction
+                icon="calendar.badge.plus"
+                onPress={openSchedule}
+              >
+                Schedule a Match
+              </Stack.Toolbar.MenuAction>
+            ) : null}
+          </Stack.Toolbar.Menu>
+        </Stack.Toolbar>
+      ) : null}
+    </>
+  );
+}
+
 export default function LeagueScreen() {
   const params = useLocalSearchParams<{ id?: string | string[] }>();
   const rawId = params.id;
@@ -70,7 +134,6 @@ function LeagueContent() {
   const params = useLocalSearchParams<{ tab?: string }>();
   const initialTab: LeagueTab = resolveLeagueTab(params.tab);
   const [tab, setTab] = useState<LeagueTab>(initialTab);
-  const [fabOpen, setFabOpen] = useState(false);
   const router = useRouter();
   const log = createScopedLog("League Page");
   const queryClient = useQueryClient();
@@ -88,6 +151,21 @@ function LeagueContent() {
     isLeagueTeamsLoading,
     leagueTeamsError,
   } = useLeagueDetailContext();
+
+  const openPost = useCallback(() => {
+    router.push({
+      pathname: "/post",
+      params: {
+        id,
+        spaceType: "league",
+        privacy: league?.privacy,
+      },
+    });
+  }, [router, id, league?.privacy]);
+
+  const openSchedule = useCallback(() => {
+    router.push(`/leagues/${id}/matches/schedule`);
+  }, [router, id]);
 
   const {
     data: boardPosts = [],
@@ -163,8 +241,6 @@ function LeagueContent() {
     [refetchMatches, teamsQuery],
   );
 
-  useLeagueHeader({ title, id, isMember, isOwner, onFollow: handleFollow });
-
   const { refreshing, handleDeletePost, handleRefresh } = useDetailPageHandlers(
     {
       id,
@@ -193,6 +269,17 @@ function LeagueContent() {
             log.info("Tab changed", { tab: nextTab });
           },
         }}
+        toolbar={
+          <LeagueToolbar
+            title={title}
+            id={id}
+            isMember={isMember}
+            isOwner={isOwner}
+            onFollow={handleFollow}
+            openPost={isOwner ? openPost : undefined}
+            openSchedule={isOwner ? openSchedule : undefined}
+          />
+        }
         background={{ preset: "red" }}
         refreshControl={
           <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />
@@ -245,7 +332,6 @@ function LeagueContent() {
 
             {tab === "teams" && (
               <LeagueBrowserTeams
-                leagueId={id}
                 leagueTeams={leagueTeams ?? []}
                 teamsFetching={Boolean(isLeagueTeamsLoading)}
                 leagueTeamsError={leagueTeamsError}
@@ -254,48 +340,6 @@ function LeagueContent() {
           </>
         )}
       </ContentArea>
-
-      {isOwner ? (
-        <View style={styles.fabWrap}>
-          {fabOpen ? (
-            <Card>
-              <View style={styles.fabMenu}>
-                <Button
-                  type="custom"
-                  label="Create a Post"
-                  onPress={() => {
-                    setFabOpen(false);
-                    router.push({
-                      pathname: "/post",
-                      params: {
-                        id,
-                        spaceType: "league",
-                        privacy: league?.privacy,
-                      },
-                    });
-                  }}
-                />
-                <Button
-                  type="custom"
-                  label="Schedule a Match"
-                  onPress={() => {
-                    setFabOpen(false);
-                    router.push(`/leagues/${id}/matches/schedule`);
-                  }}
-                />
-              </View>
-            </Card>
-          ) : null}
-
-          <View style={{ width: 56, height: 56 }}>
-            <Button
-              type="custom"
-              icon={fabOpen ? "xmark" : "plus"}
-              onPress={() => setFabOpen((v) => !v)}
-            />
-          </View>
-        </View>
-      ) : null}
     </View>
   );
 }
@@ -313,18 +357,5 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
     minHeight: 200,
-  },
-  fabWrap: {
-    position: "absolute",
-    right: 20,
-    bottom: 20,
-    alignItems: "flex-end",
-    gap: 10,
-  },
-  fabMenu: {
-    borderRadius: 20,
-    padding: 10,
-    minWidth: 170,
-    gap: 8,
   },
 });

@@ -45,11 +45,7 @@ export function useContextStackScreens({
         }}
       />
     ),
-    <Stack.Screen
-      key={indexName}
-      name={indexName}
-      options={backlessOptions}
-    />,
+    <Stack.Screen key={indexName} name={indexName} options={backlessOptions} />,
     ...extraScreens.map((name) => (
       <Stack.Screen key={name} name={name} options={backlessOptions} />
     )),

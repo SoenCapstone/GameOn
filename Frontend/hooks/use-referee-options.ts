@@ -1,6 +1,9 @@
 import { useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { GO_USER_SERVICE_ROUTES, useAxiosWithClerk } from "@/hooks/use-axios-clerk";
+import {
+  GO_USER_SERVICE_ROUTES,
+  useAxiosWithClerk,
+} from "@/hooks/use-axios-clerk";
 import { RefereeProfile } from "@/features/matches/types";
 
 export function useRefereeOptions(referees: RefereeProfile[] | undefined) {
@@ -51,8 +54,12 @@ export function useRefereeOptions(referees: RefereeProfile[] | undefined) {
   return useMemo(
     () => ({
       refereeOptions: labeledReferees.map((item) => item.label),
-      refereeLabelToId: Object.fromEntries(labeledReferees.map((item) => [item.label, item.id])),
-      refereeIdToLabel: Object.fromEntries(labeledReferees.map((item) => [item.id, item.label])),
+      refereeLabelToId: Object.fromEntries(
+        labeledReferees.map((item) => [item.label, item.id]),
+      ),
+      refereeIdToLabel: Object.fromEntries(
+        labeledReferees.map((item) => [item.id, item.label]),
+      ),
     }),
     [labeledReferees],
   );

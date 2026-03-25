@@ -1,11 +1,7 @@
 import { useCallback, useLayoutEffect, useState } from "react";
 import { View, Text, ActivityIndicator, Alert } from "react-native";
 import { useLocalSearchParams, useRouter } from "expo-router";
-import { useNavigation } from "@react-navigation/native";
 import { ContentArea } from "@/components/ui/content-area";
-import { Header } from "@/components/header/header";
-import { Button } from "@/components/ui/button";
-import { PageTitle } from "@/components/header/page-title";
 import { Form } from "@/components/form/form";
 import { LeagueForm } from "@/components/leagues/league-form";
 import { AccentColors } from "@/constants/colors";
@@ -28,24 +24,9 @@ import {
   PickedLogo,
   uploadLogo,
 } from "@/utils/team-league-form";
+import { FormToolbar } from "@/components/form/form-toolbar";
 
 const log = createScopedLog("Edit League");
-
-const EditLeagueHeader = ({
-  onSave,
-  isSaving,
-}: {
-  onSave: () => void;
-  isSaving: boolean;
-}) => (
-  <Header
-    left={<Button type="back" />}
-    center={<PageTitle title="Edit League" />}
-    right={
-      <Button type="custom" label="Save" onPress={onSave} loading={isSaving} />
-    }
-  />
-);
 
 export default function EditLeagueScreen() {
   const params = useLocalSearchParams<{ id?: string }>();
@@ -59,7 +40,6 @@ export default function EditLeagueScreen() {
 }
 
 function EditLeagueContent() {
-  const navigation = useNavigation();
   const router = useRouter();
   const api = useAxiosWithClerk();
   const {
@@ -98,16 +78,6 @@ function EditLeagueContent() {
       Alert.alert("Update failed", errorToString(err));
     },
   });
-
-  const hasChanges = league
-    ? leagueName !== (league.name ?? "") ||
-      selectedSport?.label?.toLowerCase() !== league.sport?.toLowerCase() ||
-      selectedLevel?.id?.toLowerCase() !== league.level?.toLowerCase() ||
-      region !== (league.region ?? "") ||
-      location !== (league.location ?? "") ||
-      logoUri !== (league.logoUrl ?? "") ||
-      pickedLogo !== null
-    : false;
 
   const handlePickLogo = useCallback(async () => {
     await pickLogo(setPickedLogo);
@@ -171,17 +141,6 @@ function EditLeagueContent() {
     updateLeagueMutation,
   ]);
 
-  useLayoutEffect(() => {
-    navigation.setOptions({
-      headerTitle: () => (
-        <EditLeagueHeader
-          onSave={handleSave}
-          isSaving={updateLeagueMutation.isPending}
-        />
-      ),
-    });
-  }, [navigation, hasChanges, updateLeagueMutation.isPending, handleSave]);
-
   if (!isOwner) {
     return (
       <ContentArea background={{ preset: "red" }}>
@@ -205,7 +164,16 @@ function EditLeagueContent() {
   }
 
   return (
-    <ContentArea background={{ preset: "red", mode: "form" }}>
+    <ContentArea
+      background={{ preset: "red", mode: "form" }}
+      toolbar={
+        <FormToolbar
+          title="Edit League"
+          onSubmit={handleSave}
+          loading={updateLeagueMutation.isPending}
+        />
+      }
+    >
       {leagueLoading && (
         <View style={settingsStyles.loadingOverlay}>
           <ActivityIndicator size="large" color="#fff" />

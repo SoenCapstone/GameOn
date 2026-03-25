@@ -27,7 +27,9 @@ const mockUseLeagueResults = useLeagueResults as jest.MockedFunction<
   typeof useLeagueResults
 >;
 
-function baseTeamResult(partial: Partial<SearchResult> & { name: string }): SearchResult {
+function baseTeamResult(
+  partial: Partial<SearchResult> & { name: string },
+): SearchResult {
   return {
     id: partial.id ?? "t1",
     type: "team",

@@ -1,12 +1,8 @@
-import React, { useLayoutEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { Alert, Pressable, Text } from "react-native";
-import { useLocalSearchParams } from "expo-router";
-import { useNavigation } from "@react-navigation/native";
+import { Stack, useLocalSearchParams } from "expo-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { ContentArea } from "@/components/ui/content-area";
-import { Header } from "@/components/header/header";
-import { Button } from "@/components/ui/button";
-import { PageTitle } from "@/components/header/page-title";
 import { Card } from "@/components/ui/card";
 import { MemberRow } from "@/components/teams/member-row";
 import {
@@ -39,12 +35,15 @@ type TeamSummaryResponse = {
   location?: string | null;
 };
 
+function InviteTeamsToolbar() {
+  return <Stack.Screen.Title>Invite Teams</Stack.Screen.Title>;
+}
+
 export default function InviteTeamsScreen() {
   const params = useLocalSearchParams<{ id?: string }>();
   const rawId = params.id;
   const leagueId = Array.isArray(rawId) ? rawId[0] : (rawId ?? "");
   const api = useAxiosWithClerk();
-  const navigation = useNavigation();
   const queryClient = useQueryClient();
   const { isOwner, league } = useLeagueDetail(leagueId);
   const [invitedTeamIds, setInvitedTeamIds] = useState<Set<string>>(new Set());
@@ -91,19 +90,6 @@ export default function InviteTeamsScreen() {
     },
   });
 
-  useLayoutEffect(() => {
-    const renderHeader = () => (
-      <Header
-        left={<Button type="back" />}
-        center={<PageTitle title="Invite Teams" />}
-      />
-    );
-
-    navigation.setOptions({
-      headerTitle: renderHeader,
-    });
-  }, [navigation]);
-
   const teamIdSet = useMemo(
     () => new Set(leagueTeams.map((team) => team.teamId)),
     [leagueTeams],
@@ -147,7 +133,10 @@ export default function InviteTeamsScreen() {
     inviteTeamMutation.isPending;
 
   return (
-    <ContentArea background={{ preset: "purple" }}>
+    <ContentArea
+      background={{ preset: "purple" }}
+      toolbar={<InviteTeamsToolbar />}
+    >
       <InviteSection
         title="Available Teams"
         isBusy={isBusy}

@@ -90,8 +90,7 @@ export async function fetchLeagueInvitesWithDetails(
     leagueName: leagueMap[invite.leagueId]?.name ?? "League",
     teamId: invite.teamId,
     teamName: invite.teamName ?? "Team",
-    leaguePrivacy:
-      leagueMap[invite.leagueId]?.privacy ?? LeaguePrivacy.PRIVATE,
+    leaguePrivacy: leagueMap[invite.leagueId]?.privacy ?? LeaguePrivacy.PRIVATE,
     logoUrl: leagueMap[invite.leagueId]?.logoUrl,
     sport: leagueMap[invite.leagueId]?.sport,
   }));
@@ -119,7 +118,8 @@ async function fetchLeagueMetaMap(
           leagueId,
           {
             name: resp.data?.name ?? "League",
-            privacy: parseLeaguePrivacy(resp.data?.privacy) ?? LeaguePrivacy.PRIVATE,
+            privacy:
+              parseLeaguePrivacy(resp.data?.privacy) ?? LeaguePrivacy.PRIVATE,
             logoUrl: resp.data?.logoUrl ?? null,
             sport: resp.data?.sport ?? null,
           },

@@ -3,10 +3,7 @@ import { render } from "@testing-library/react-native";
 import { Text } from "react-native";
 import { Providers } from "@/contexts/providers";
 import { useColorScheme } from "@/hooks/use-color-scheme";
-import {
-  DarkTheme,
-  ThemeProvider,
-} from "@react-navigation/native";
+import { DarkTheme, ThemeProvider } from "@react-navigation/native";
 import { StripeProvider } from "@stripe/stripe-react-native";
 import { ClerkProvider } from "@clerk/clerk-expo";
 
@@ -15,62 +12,43 @@ jest.mock("@/hooks/use-color-scheme", () => ({
 }));
 
 jest.mock("@react-navigation/native", () => {
-  const ReactModule =
-    jest.requireActual<typeof import("react")>("react");
+  const ReactModule = jest.requireActual<typeof import("react")>("react");
 
   return {
     DarkTheme: { dark: true, colors: { background: "black" } },
     DefaultTheme: { dark: false, colors: { background: "white" } },
     ThemeProvider: jest.fn(
-      ({
-        children,
-      }: {
-        children: React.ReactNode;
-        value: unknown;
-      }) => ReactModule.createElement(ReactModule.Fragment, null, children),
+      ({ children }: { children: React.ReactNode; value: unknown }) =>
+        ReactModule.createElement(ReactModule.Fragment, null, children),
     ),
   };
 });
 
 jest.mock("@stripe/stripe-react-native", () => {
-  const ReactModule =
-    jest.requireActual<typeof import("react")>("react");
+  const ReactModule = jest.requireActual<typeof import("react")>("react");
 
   return {
-    StripeProvider: jest.fn(
-      ({
-        children,
-      }: {
-        children: React.ReactNode;
-      }) => ReactModule.createElement(ReactModule.Fragment, null, children),
+    StripeProvider: jest.fn(({ children }: { children: React.ReactNode }) =>
+      ReactModule.createElement(ReactModule.Fragment, null, children),
     ),
   };
 });
 
 jest.mock("react-native-keyboard-controller", () => {
-  const ReactModule =
-    jest.requireActual<typeof import("react")>("react");
+  const ReactModule = jest.requireActual<typeof import("react")>("react");
 
   return {
-    KeyboardProvider: ({
-      children,
-    }: {
-      children: React.ReactNode;
-    }) => ReactModule.createElement(ReactModule.Fragment, null, children),
+    KeyboardProvider: ({ children }: { children: React.ReactNode }) =>
+      ReactModule.createElement(ReactModule.Fragment, null, children),
   };
 });
 
 jest.mock("@clerk/clerk-expo", () => {
-  const ReactModule =
-    jest.requireActual<typeof import("react")>("react");
+  const ReactModule = jest.requireActual<typeof import("react")>("react");
 
   return {
-    ClerkProvider: jest.fn(
-      ({
-        children,
-      }: {
-        children: React.ReactNode;
-      }) => ReactModule.createElement(ReactModule.Fragment, null, children),
+    ClerkProvider: jest.fn(({ children }: { children: React.ReactNode }) =>
+      ReactModule.createElement(ReactModule.Fragment, null, children),
     ),
   };
 });
@@ -79,59 +57,39 @@ jest.mock("@clerk/clerk-expo/token-cache", () => ({
   tokenCache: { getToken: jest.fn() },
 }));
 
-jest.mock(
-  "@/components/feature-flags/feature-flags-context",
-  () => {
-    const ReactModule =
-      jest.requireActual<typeof import("react")>("react");
-
-    return {
-      FeatureFlagsProvider: ({
-        children,
-      }: {
-        children: React.ReactNode;
-      }) =>
-        ReactModule.createElement(ReactModule.Fragment, null, children),
-    };
-  },
-);
-
-jest.mock("@expo/react-native-action-sheet", () => {
-  const ReactModule =
-    jest.requireActual<typeof import("react")>("react");
+jest.mock("@/components/feature-flags/feature-flags-context", () => {
+  const ReactModule = jest.requireActual<typeof import("react")>("react");
 
   return {
-    ActionSheetProvider: ({
-      children,
-    }: {
-      children: React.ReactNode;
-    }) => ReactModule.createElement(ReactModule.Fragment, null, children),
+    FeatureFlagsProvider: ({ children }: { children: React.ReactNode }) =>
+      ReactModule.createElement(ReactModule.Fragment, null, children),
+  };
+});
+
+jest.mock("@expo/react-native-action-sheet", () => {
+  const ReactModule = jest.requireActual<typeof import("react")>("react");
+
+  return {
+    ActionSheetProvider: ({ children }: { children: React.ReactNode }) =>
+      ReactModule.createElement(ReactModule.Fragment, null, children),
   };
 });
 
 jest.mock("@/contexts/referee-context", () => {
-  const ReactModule =
-    jest.requireActual<typeof import("react")>("react");
+  const ReactModule = jest.requireActual<typeof import("react")>("react");
 
   return {
-    RefereeProvider: ({
-      children,
-    }: {
-      children: React.ReactNode;
-    }) => ReactModule.createElement(ReactModule.Fragment, null, children),
+    RefereeProvider: ({ children }: { children: React.ReactNode }) =>
+      ReactModule.createElement(ReactModule.Fragment, null, children),
   };
 });
 
 jest.mock("@/contexts/messaging", () => {
-  const ReactModule =
-    jest.requireActual<typeof import("react")>("react");
+  const ReactModule = jest.requireActual<typeof import("react")>("react");
 
   return {
-    MessagingProvider: ({
-      children,
-    }: {
-      children: React.ReactNode;
-    }) => ReactModule.createElement(ReactModule.Fragment, null, children),
+    MessagingProvider: ({ children }: { children: React.ReactNode }) =>
+      ReactModule.createElement(ReactModule.Fragment, null, children),
   };
 });
 

@@ -56,28 +56,29 @@ export const passwordInput = (showPassword: boolean): SignUpInputLabel => ({
   rightIcon: true,
 });
 
-export const signUpInputLabels = (showPassword: boolean): SignUpInputLabel[] => ([
-  {
-    label: FIRST_NAME_LABEL,
-    placeholder: FIRST_NAME_PLACEHOLDER,
-    field: FIRST_NAME_FIELD,
-    autoCapitalize: FIRST_NAME_AUTO_CAPITALIZE,
-  },
-  {
-    label: LAST_NAME_LABEL,
-    placeholder: LAST_NAME_PLACEHOLDER,
-    field: LAST_NAME_FIELD,
-    autoCapitalize: LAST_NAME_AUTO_CAPITALIZE,
-  },
-  {
-    label: EMAIL_LABEL,
-    placeholder: EMAIL_PLACEHOLDER,
-    field: EMAIL_FIELD,
-    autoCapitalize: EMAIL_AUTO_CAPITALIZE,
-    keyboardType: EMAIL_KEYBOARD_TYPE,
-  },
-  passwordInput(showPassword),
-] as SignUpInputLabel[]);
+export const signUpInputLabels = (showPassword: boolean): SignUpInputLabel[] =>
+  [
+    {
+      label: FIRST_NAME_LABEL,
+      placeholder: FIRST_NAME_PLACEHOLDER,
+      field: FIRST_NAME_FIELD,
+      autoCapitalize: FIRST_NAME_AUTO_CAPITALIZE,
+    },
+    {
+      label: LAST_NAME_LABEL,
+      placeholder: LAST_NAME_PLACEHOLDER,
+      field: LAST_NAME_FIELD,
+      autoCapitalize: LAST_NAME_AUTO_CAPITALIZE,
+    },
+    {
+      label: EMAIL_LABEL,
+      placeholder: EMAIL_PLACEHOLDER,
+      field: EMAIL_FIELD,
+      autoCapitalize: EMAIL_AUTO_CAPITALIZE,
+      keyboardType: EMAIL_KEYBOARD_TYPE,
+    },
+    passwordInput(showPassword),
+  ] as SignUpInputLabel[];
 
 export const EMAIL_VERIFICATION_STATUS = "complete";
 export const SIGN_UP_SUCCESS_MESSAGE = "Profile created successfully!";

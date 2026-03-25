@@ -39,7 +39,7 @@ export function useLeagueDetail(id: string) {
     queryFn: async () => {
       try {
         const resp = await api.get(
-          `${GO_LEAGUE_SERVICE_ROUTES.GET(id)}/memberships/me`
+          `${GO_LEAGUE_SERVICE_ROUTES.GET(id)}/memberships/me`,
         );
         return resp.data;
       } catch (err) {
