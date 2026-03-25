@@ -1,6 +1,9 @@
 import { Stack } from "expo-router";
+import { useTabsTitle } from "@/hooks/use-tabs-title";
 
 export default function AppLayout() {
+  const title = useTabsTitle();
+
   return (
     <Stack
       screenOptions={{
@@ -8,7 +11,7 @@ export default function AppLayout() {
         headerBackButtonDisplayMode: "minimal",
       }}
     >
-      <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+      <Stack.Screen name="(tabs)" options={{ headerShown: false, title }} />
       <Stack.Screen
         name="match/[id]/index"
         options={{

@@ -15,9 +15,6 @@ function NewMessageToolbar({
   return (
     <>
       <Stack.Screen.Title>New Message</Stack.Screen.Title>
-      <Stack.Screen.BackButton displayMode="minimal">
-        Messages
-      </Stack.Screen.BackButton>
       <Stack.SearchBar
         hideNavigationBar={false}
         onChangeText={(event) => {

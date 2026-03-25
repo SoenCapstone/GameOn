@@ -1,7 +1,12 @@
 import { NativeTabs } from "expo-router/unstable-native-tabs";
+import { useSegments } from "expo-router";
+import { updateTabsTitle } from "@/utils/tabs-title";
 import * as Haptics from "expo-haptics";
 
 export default function TabLayout() {
+  const segments = useSegments();
+  updateTabsTitle(segments);
+
   return (
     <NativeTabs
       screenListeners={{
