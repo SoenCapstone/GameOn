@@ -20,9 +20,6 @@ function NewGroupToolbar({
   return (
     <>
       <Stack.Screen.Title>New Group</Stack.Screen.Title>
-      <Stack.Screen.BackButton displayMode="minimal">
-        Messages
-      </Stack.Screen.BackButton>
       <Stack.Toolbar placement="right">
         {creating ? (
           <Stack.Toolbar.View>

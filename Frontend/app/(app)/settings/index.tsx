@@ -13,14 +13,7 @@ import { Alert } from "react-native";
 import { useReferee } from "@/contexts/referee-context";
 
 function SettingToolbar() {
-  return (
-    <>
-      <Stack.Screen.Title>Settings</Stack.Screen.Title>
-      <Stack.Screen.BackButton displayMode="minimal">
-        Home
-      </Stack.Screen.BackButton>
-    </>
-  );
+  return <Stack.Screen.Title>Settings</Stack.Screen.Title>;
 }
 
 export default function Settings() {

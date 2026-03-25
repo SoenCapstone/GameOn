@@ -70,9 +70,6 @@ export function ChatToolbar({
 
   return (
     <>
-      <Stack.Screen.BackButton displayMode="minimal">
-        Messages
-      </Stack.Screen.BackButton>
       <Stack.Screen.Title>{title}</Stack.Screen.Title>
       <Stack.Toolbar placement="right">
         {imageUrl ? (
