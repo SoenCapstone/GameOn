@@ -3,37 +3,11 @@ import { ContentArea } from "@/components/ui/content-area";
 import { ActivityIndicator, Alert } from "react-native";
 import { Form } from "@/components/form/form";
 import { AccentColors } from "@/constants/colors";
-import { Stack, useRouter } from "expo-router";
+import { useRouter } from "expo-router";
 import { useMessagingContext } from "@/contexts/messaging";
 import { useMyTeams } from "@/hooks/messages/use-my-teams";
 import { errorToString } from "@/utils/error";
-
-function NewGroupToolbar({
-  creating,
-  hasTeams,
-  onPress,
-}: Readonly<{
-  creating: boolean;
-  hasTeams: boolean;
-  onPress: () => void;
-}>) {
-  return (
-    <>
-      <Stack.Screen.Title>New Group</Stack.Screen.Title>
-      <Stack.Toolbar placement="right">
-        {creating ? (
-          <Stack.Toolbar.View>
-            <ActivityIndicator color="white" size="small" />
-          </Stack.Toolbar.View>
-        ) : (
-          <Stack.Toolbar.Button disabled={!hasTeams} onPress={onPress}>
-            Create
-          </Stack.Toolbar.Button>
-        )}
-      </Stack.Toolbar>
-    </>
-  );
-}
+import { FormToolbar } from "@/components/form/form-toolbar";
 
 export default function NewGroup() {
   const router = useRouter();
@@ -45,6 +19,7 @@ export default function NewGroup() {
   const { data: teams, isLoading: loadingTeams } = useMyTeams();
   const selectedTeamName =
     (teams ?? []).find((team) => team.id === selectedTeam)?.name ?? undefined;
+  const hasTeams = (teams ?? []).length > 0;
 
   const submitTeamChat = useCallback(async () => {
     if (!selectedTeam) {
@@ -74,10 +49,11 @@ export default function NewGroup() {
     <ContentArea
       background={{ preset: "green", mode: "form" }}
       toolbar={
-        <NewGroupToolbar
-          creating={creating}
-          hasTeams={(teams ?? []).length > 0}
-          onPress={submitTeamChat}
+        <FormToolbar
+          title="New Group"
+          disabled={!hasTeams}
+          loading={creating}
+          onSubmit={submitTeamChat}
         />
       }
     >
