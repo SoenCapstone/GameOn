@@ -17,7 +17,13 @@ export type LabeledInputProps = {
   value?: string;
   onChangeText: (t: string) => void;
   onBlur?: () => void;
-  keyboardType?: "default" | "email-address" | "numeric" | "phone-pad" | "number-pad" | "decimal-pad";
+  keyboardType?:
+    | "default"
+    | "email-address"
+    | "numeric"
+    | "phone-pad"
+    | "number-pad"
+    | "decimal-pad";
   autoCapitalize?: "none" | "sentences" | "words" | "characters";
   secureTextEntry?: boolean;
   rightIcon?: React.ReactNode;
@@ -30,7 +36,13 @@ export type SignUpInputLabel = {
   placeholder: string;
   field: string;
   autoCapitalize?: "none" | "sentences" | "words" | "characters";
-  keyboardType?: "default" | "email-address" | "numeric" | "phone-pad" | "number-pad" | "decimal-pad";
+  keyboardType?:
+    | "default"
+    | "email-address"
+    | "numeric"
+    | "phone-pad"
+    | "number-pad"
+    | "decimal-pad";
   secureTextEntry?: boolean;
   rightIcon?: boolean;
 };

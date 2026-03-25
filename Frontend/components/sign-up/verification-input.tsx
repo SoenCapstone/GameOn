@@ -10,9 +10,7 @@ import type { SignUpResource, SetActive } from "@clerk/types";
 import { styles } from "@/components/sign-up/styles";
 import { completeVerificationAndUpsert } from "@/components/sign-up/utils";
 import { useUpsertUser } from "@/components/sign-up/hooks/use-insert-clerk-to-be";
-import {
-  User,
-} from "@/components/sign-up/models";
+import { User } from "@/components/sign-up/models";
 import { LabeledInput } from "@/components/auth/labeled-input";
 import { WelcomeAuthButton } from "@/components/auth/welcome-auth-button";
 

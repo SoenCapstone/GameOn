@@ -106,9 +106,7 @@ const defaultModes = [
   },
 ];
 
-function buildSearch(
-  overrides: Partial<SearchValue> = {},
-): SearchValue {
+function buildSearch(overrides: Partial<SearchValue> = {}): SearchValue {
   return {
     query: "",
     results: mockResults,

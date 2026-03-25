@@ -42,15 +42,16 @@ You can start developing by editing the files inside the **app** directory. This
 3. Run the build
 
 - on ios
-   ```bash
-   npm run ios
-   ```
+
+  ```bash
+  npm run ios
+  ```
 
 - on android
-   ```bash
-   npm run android
-   ```
-   
+  ```bash
+  npm run android
+  ```
+
 ## Get a fresh project
 
 When you're ready, run:

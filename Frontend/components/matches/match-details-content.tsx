@@ -47,8 +47,9 @@ export function MatchDetailsContent({
 }: Readonly<MatchDetailsContentProps>) {
   const hasScore = homeScore != null && awayScore != null;
   const isCancelled = isCancelledMatchStatus(status);
-  const centerValue =
-    isCancelled ? "Cancelled" : formatMatchDateTime(startTime);
+  const centerValue = isCancelled
+    ? "Cancelled"
+    : formatMatchDateTime(startTime);
   const hasCoordinates =
     typeof venueLatitude === "number" && typeof venueLongitude === "number";
   const hasVenue = Boolean(venueName?.trim());
@@ -115,9 +116,7 @@ export function MatchDetailsContent({
               <Text style={styles.context} numberOfLines={1}>
                 {contextLabel}
               </Text>
-              {isCancelled && (
-                <Text style={styles.pending}>Cancelled</Text>
-              )}
+              {isCancelled && <Text style={styles.pending}>Cancelled</Text>}
               {!isCancelled && hasScore && (
                 <View style={styles.result}>
                   <Text style={styles.score}>{homeScore}</Text>

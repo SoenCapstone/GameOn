@@ -59,8 +59,10 @@ export const PlayMakerArea = ({
     AsyncStorage.setItem(storageKey, JSON.stringify(shapes)).catch(() => {});
   }, [shapes, storageKey]);
 
-  const renderedShapes = useRenderPlayMakerShapes(shapes, selectedShapeId, (id) =>
-    setSelectedShapeId(id)
+  const renderedShapes = useRenderPlayMakerShapes(
+    shapes,
+    selectedShapeId,
+    (id) => setSelectedShapeId(id),
   );
 
   return (
@@ -78,7 +80,7 @@ export const PlayMakerArea = ({
               selectedTool,
               setShapes,
               selectedShapeId,
-              setSelectedShapeId
+              setSelectedShapeId,
             )
           }
         >

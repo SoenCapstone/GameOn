@@ -26,9 +26,18 @@ jest.mock("expo-router", () => ({
   }),
 }));
 
-jest.mock("@/components/ui/content-area", () => ({
-  ContentArea: ({ children }: { children: React.ReactNode }) => children,
-}));
+jest.mock("@/components/ui/content-area", () => {
+  const ReactMock = jest.requireActual("react");
+  return {
+    ContentArea: ({
+      children,
+      toolbar,
+    }: {
+      children: React.ReactNode;
+      toolbar?: React.ReactNode;
+    }) => ReactMock.createElement(ReactMock.Fragment, null, toolbar, children),
+  };
+});
 
 jest.mock("@/components/header/header", () => ({
   Header: ({ right }: { right: React.ReactNode }) => {
@@ -203,14 +212,11 @@ jest.mock("@/features/matches/utils", () => {
   };
 });
 
-jest.mock("@/hooks/use-schedule-header", () => ({
-  useScheduleHeader: ({
-    onSubmit,
-  }: {
-    onSubmit: () => void | Promise<void>;
-  }) => {
+jest.mock("@/components/form/form-toolbar", () => ({
+  FormToolbar: ({ onSubmit }: { onSubmit: () => void | Promise<void> }) => {
     capturedSubmit = onSubmit;
     scheduleHeaderRenderCount += 1;
+    return null;
   },
 }));
 

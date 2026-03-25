@@ -3,11 +3,11 @@ import { Alert } from "react-native";
 import {
   RelativePathString,
   useLocalSearchParams,
-  useNavigation,
   useRouter,
 } from "expo-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { ContentArea } from "@/components/ui/content-area";
+import { FormToolbar } from "@/components/form/form-toolbar";
 import { Form } from "@/components/form/form";
 import { AccentColors } from "@/constants/colors";
 import { useTeamDetail } from "@/hooks/use-team-detail";
@@ -32,7 +32,6 @@ import { createScopedLog } from "@/utils/logger";
 import { showScheduleSubmitError } from "@/utils/schedule-errors";
 import { useRefereeOptions } from "@/hooks/use-referee-options";
 import { MatchDetailsSection } from "@/components/matches/match-details-section";
-import { useScheduleHeader } from "@/hooks/use-schedule-header";
 
 const log = createScopedLog("Schedule Team Match");
 
@@ -56,7 +55,6 @@ export default function ScheduleTeamMatchScreen() {
     draftRefereeUserId?: string;
   }>();
   const teamId = params.id ?? "";
-  const navigation = useNavigation();
   const router = useRouter();
   const queryClient = useQueryClient();
   const api = useAxiosWithClerk();
@@ -268,14 +266,18 @@ export default function ScheduleTeamMatchScreen() {
     router,
   ]);
 
-  useScheduleHeader({
-    navigation,
-    onSubmit: handleSubmit,
-    isPending: createMutation.isPending,
-  });
-
   return (
-    <ContentArea background={{ preset: "red", mode: "form" }}>
+    <ContentArea
+      background={{ preset: "red", mode: "form" }}
+      toolbar={
+        <FormToolbar
+          title="Schedule a Match"
+          icon="calendar.badge.plus"
+          onSubmit={handleSubmit}
+          loading={createMutation.isPending}
+        />
+      }
+    >
       <Form accentColor={AccentColors.red}>
         <Form.Section header="Teams">
           <Form.Menu
@@ -320,7 +322,6 @@ export default function ScheduleTeamMatchScreen() {
               pathname:
                 `/teams/${teamId}/matches/add-venue` as RelativePathString,
               params: {
-                id: teamId,
                 homeTeamId: teamId,
                 awayTeamId,
                 draftAwayTeamId: awayTeamId,

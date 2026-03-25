@@ -1,22 +1,19 @@
-import { useCallback, useLayoutEffect, useState } from "react";
+import { useCallback, useState } from "react";
 import * as Location from "expo-location";
-import {
-  RelativePathString,
-  useLocalSearchParams,
-  useNavigation,
-  useRouter,
-} from "expo-router";
 import { Alert } from "react-native";
 import { useQueryClient } from "@tanstack/react-query";
-import { Header } from "@/components/header/header";
-import { PageTitle } from "@/components/header/page-title";
-import { Button } from "@/components/ui/button";
 import { ContentArea } from "@/components/ui/content-area";
 import { Form } from "@/components/form/form";
 import { AccentColors } from "@/constants/colors";
 import { PROVINCE_OPTIONS } from "@/features/matches/utils";
 import { useCreateLeagueVenue, useCreateTeamVenue } from "@/hooks/use-matches";
 import { errorToString } from "@/utils/error";
+import { FormToolbar } from "@/components/form/form-toolbar";
+import {
+  RelativePathString,
+  useLocalSearchParams,
+  useRouter,
+} from "expo-router";
 
 interface AddVenueScreenProps {
   readonly entityId: string;
@@ -52,7 +49,6 @@ export function AddVenueScreen({
     draftRequiresReferee?: string;
     draftRefereeUserId?: string;
   }>();
-  const navigation = useNavigation();
   const router = useRouter();
   const queryClient = useQueryClient();
 
@@ -218,32 +214,17 @@ export function AddVenueScreen({
     street,
   ]);
 
-  const renderAddVenueHeader = useCallback(() => {
-    return (
-      <Header
-        left={<Button type="back" />}
-        center={<PageTitle title="Add a Venue" />}
-        right={
-          <Button
-            isInteractive
-            type="custom"
-            label="Add"
-            onPress={handleSave}
-            loading={isSaving}
-          />
-        }
-      />
-    );
-  }, [handleSave, isSaving]);
-
-  useLayoutEffect(() => {
-    navigation.setOptions({
-      headerTitle: renderAddVenueHeader,
-    });
-  }, [navigation, renderAddVenueHeader]);
-
   return (
-    <ContentArea background={{ preset: "red", mode: "form" }}>
+    <ContentArea
+      background={{ preset: "red", mode: "form" }}
+      toolbar={
+        <FormToolbar
+          title="Add a Venue"
+          onSubmit={handleSave}
+          loading={isSaving}
+        />
+      }
+    >
       <Form accentColor={AccentColors.red}>
         <Form.Section>
           <Form.Input

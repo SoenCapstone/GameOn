@@ -1,11 +1,7 @@
-import { useCallback, useLayoutEffect, useState } from "react";
+import { useCallback, useState } from "react";
 import { View, Text, ActivityIndicator, Alert } from "react-native";
 import { useLocalSearchParams, useRouter } from "expo-router";
-import { useNavigation } from "@react-navigation/native";
 import { ContentArea } from "@/components/ui/content-area";
-import { Header } from "@/components/header/header";
-import { Button } from "@/components/ui/button";
-import { PageTitle } from "@/components/header/page-title";
 import { Form } from "@/components/form/form";
 import { TeamForm } from "@/components/teams/team-form";
 import { AccentColors } from "@/constants/colors";
@@ -28,24 +24,9 @@ import {
   PickedLogo,
   uploadLogo,
 } from "@/utils/team-league-form";
+import { FormToolbar } from "@/components/form/form-toolbar";
 
 const log = createScopedLog("Edit Team");
-
-const EditTeamHeader = ({
-  onSave,
-  isSaving,
-}: {
-  onSave: () => void;
-  isSaving: boolean;
-}) => (
-  <Header
-    left={<Button type="back" />}
-    center={<PageTitle title="Edit Team" />}
-    right={
-      <Button type="custom" label="Save" onPress={onSave} loading={isSaving} />
-    }
-  />
-);
 
 export default function EditTeamScreen() {
   const params = useLocalSearchParams<{ id?: string }>();
@@ -59,7 +40,6 @@ export default function EditTeamScreen() {
 }
 
 function EditTeamContent() {
-  const navigation = useNavigation();
   const router = useRouter();
   const api = useAxiosWithClerk();
   const { id, team, isLoading: teamLoading, isOwner } = useTeamDetailContext();
@@ -94,17 +74,6 @@ function EditTeamContent() {
       Alert.alert("Update failed", errorToString(err));
     },
   });
-
-  const hasChanges = team
-    ? teamName !== (team.name ?? "") ||
-      selectedSport?.label?.toLowerCase() !== team.sport?.toLowerCase() ||
-      selectedScope?.id?.toLowerCase() !== team.scope?.toLowerCase() ||
-      selectedCity?.label?.toLowerCase() !== team.location?.toLowerCase() ||
-      JSON.stringify(selectedAllowedRegions) !==
-        JSON.stringify(team.allowedRegions ?? []) ||
-      logoUri !== (team.logoUrl ?? "") ||
-      pickedLogo !== null
-    : false;
 
   const handlePickLogo = useCallback(async () => {
     await pickLogo(setPickedLogo);
@@ -176,17 +145,6 @@ function EditTeamContent() {
     updateTeamMutation,
   ]);
 
-  useLayoutEffect(() => {
-    navigation.setOptions({
-      headerTitle: () => (
-        <EditTeamHeader
-          onSave={handleSave}
-          isSaving={updateTeamMutation.isPending}
-        />
-      ),
-    });
-  }, [navigation, hasChanges, updateTeamMutation.isPending, handleSave]);
-
   if (!isOwner) {
     return (
       <ContentArea background={{ preset: "red" }}>
@@ -210,7 +168,16 @@ function EditTeamContent() {
   }
 
   return (
-    <ContentArea background={{ preset: "red", mode: "form" }}>
+    <ContentArea
+      background={{ preset: "red", mode: "form" }}
+      toolbar={
+        <FormToolbar
+          title="Edit team"
+          onSubmit={handleSave}
+          loading={updateTeamMutation.isPending}
+        />
+      }
+    >
       {teamLoading && (
         <View style={settingsStyles.loadingOverlay}>
           <ActivityIndicator size="large" color="#fff" />

@@ -1,11 +1,7 @@
-import { useCallback, useLayoutEffect, useState } from "react";
+import { useCallback, useState } from "react";
 import { Alert } from "react-native";
 import { useRouter } from "expo-router";
-import { useNavigation } from "@react-navigation/native";
 import { ContentArea } from "@/components/ui/content-area";
-import { Header } from "@/components/header/header";
-import { PageTitle } from "@/components/header/page-title";
-import { Button } from "@/components/ui/button";
 import { Form } from "@/components/form/form";
 import { LeagueForm } from "@/components/leagues/league-form";
 import { AccentColors } from "@/constants/colors";
@@ -18,29 +14,9 @@ import {
   useAxiosWithClerk,
   GO_LEAGUE_SERVICE_ROUTES,
 } from "@/hooks/use-axios-clerk";
+import { FormToolbar } from "@/components/form/form-toolbar";
 
 const log = createScopedLog("Create League Page");
-
-const CreateLeagueHeader = ({
-  onCreate,
-  isCreating,
-}: {
-  onCreate: () => void;
-  isCreating: boolean;
-}) => (
-  <Header
-    left={<Button type="back" />}
-    center={<PageTitle title="Create a League" />}
-    right={
-      <Button
-        type="custom"
-        label={isCreating ? "Creating..." : "Create"}
-        onPress={onCreate}
-        loading={isCreating}
-      />
-    }
-  />
-);
 
 export default function CreateLeagueScreen() {
   const router = useRouter();
@@ -118,20 +94,18 @@ export default function CreateLeagueScreen() {
     createLeagueMutation.mutate();
   }, [leagueName, selectedSport, createLeagueMutation]);
 
-  const navigation = useNavigation();
-  useLayoutEffect(() => {
-    navigation.setOptions({
-      headerTitle: () => (
-        <CreateLeagueHeader
-          onCreate={handleCreateLeague}
-          isCreating={createLeagueMutation.isPending}
-        />
-      ),
-    });
-  }, [navigation, createLeagueMutation.isPending, handleCreateLeague]);
-
   return (
-    <ContentArea background={{ preset: "purple", mode: "form" }}>
+    <ContentArea
+      background={{ preset: "purple", mode: "form" }}
+      toolbar={
+        <FormToolbar
+          title="Create a League"
+          label="Create"
+          onSubmit={handleCreateLeague}
+          loading={createLeagueMutation.isPending}
+        />
+      }
+    >
       <Form accentColor={AccentColors.purple}>
         <LeagueForm
           values={{

@@ -1,4 +1,4 @@
-import React, { useLayoutEffect, useMemo } from "react";
+import { useMemo } from "react";
 import {
   ActivityIndicator,
   Alert,
@@ -7,13 +7,9 @@ import {
   Text,
   View,
 } from "react-native";
-import { useLocalSearchParams } from "expo-router";
-import { useNavigation } from "@react-navigation/native";
+import { router, Stack, useLocalSearchParams } from "expo-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { ContentArea } from "@/components/ui/content-area";
-import { Header } from "@/components/header/header";
-import { Button } from "@/components/ui/button";
-import { PageTitle } from "@/components/header/page-title";
 import { Card } from "@/components/ui/card";
 import { MemberRow } from "@/components/teams/member-row";
 import { useLeagueDetail } from "@/hooks/use-league-detail";
@@ -38,12 +34,22 @@ type TeamDetailResponse = {
   location?: string | null;
 };
 
+function ManageLeagueToolbar({ onPress }: Readonly<{ onPress: () => void }>) {
+  return (
+    <>
+      <Stack.Screen.Title>Manage League</Stack.Screen.Title>
+      <Stack.Toolbar placement="right">
+        <Stack.Toolbar.Button icon="plus" onPress={onPress} />
+      </Stack.Toolbar>
+    </>
+  );
+}
+
 export default function ManageLeagueScreen() {
   const params = useLocalSearchParams<{ id?: string }>();
   const rawId = params.id;
   const leagueId = Array.isArray(rawId) ? rawId[0] : (rawId ?? "");
   const api = useAxiosWithClerk();
-  const navigation = useNavigation();
   const queryClient = useQueryClient();
   const { isOwner } = useLeagueDetail(leagueId);
 
@@ -101,28 +107,6 @@ export default function ManageLeagueScreen() {
     },
   });
 
-  useLayoutEffect(() => {
-    const renderHeader = () => (
-      <Header
-        left={<Button type="back" />}
-        center={<PageTitle title="Manage League" />}
-        right={
-          isOwner ? (
-            <Button
-              type="custom"
-              icon="plus"
-              route={`/leagues/${leagueId}/invite`}
-            />
-          ) : undefined
-        }
-      />
-    );
-
-    navigation.setOptions({
-      headerTitle: renderHeader,
-    });
-  }, [leagueId, navigation, isOwner]);
-
   const handleRemoveTeam = (teamId: string, name: string) => {
     Alert.alert("Remove from League", `Remove ${name} from this league?`, [
       { text: "Cancel", style: "cancel" },
@@ -140,7 +124,14 @@ export default function ManageLeagueScreen() {
     removeTeamMutation.isPending;
 
   return (
-    <ContentArea background={{ preset: "purple" }}>
+    <ContentArea
+      background={{ preset: "purple" }}
+      toolbar={
+        <ManageLeagueToolbar
+          onPress={() => router.push(`/leagues/${leagueId}/invite`)}
+        />
+      }
+    >
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>League Teams</Text>
 

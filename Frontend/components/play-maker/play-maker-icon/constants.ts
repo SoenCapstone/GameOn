@@ -1,4 +1,4 @@
-export const COLOR_WHITE = 'white';
+export const COLOR_WHITE = "white";
 
 export const PERSON_SVG = `
 <svg
@@ -33,7 +33,6 @@ export const REMOVE_CURRENT = `
 </svg>
 `;
 
-
 export const UNDO_SVG = `
 <svg
   viewBox="0 0 24 24"
@@ -52,12 +51,8 @@ export const SELECT_SVG = `
 </svg>
 `;
 
-
 export const LINE_SVG = `
 <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="currentColor">
   <path d="M704-240 320-624v344h-80v-480h480v80H376l384 384-56 56Z"/>
 </svg>
 `;
-
-
-

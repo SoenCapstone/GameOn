@@ -1,6 +1,6 @@
 import { Alert, ToastAndroid, Platform } from "react-native";
 import type { FormikErrors, FormikTouched } from "formik";
-import type { ClerkAPIError , SignUpResource, SetActive } from "@clerk/types";
+import type { ClerkAPIError, SignUpResource, SetActive } from "@clerk/types";
 import * as Yup from "yup";
 import {
   VALIDATION_FIRST_NAME_MESSAGE_LENGTH,

@@ -1,20 +1,17 @@
-import { useCallback, useLayoutEffect, useRef, useState } from "react";
+import { useCallback, useRef, useState } from "react";
 import {
   ActivityIndicator,
   RefreshControl,
   StyleSheet,
   Alert,
 } from "react-native";
-import { useLocalSearchParams, useNavigation } from "expo-router";
+import { useLocalSearchParams } from "expo-router";
 import { ContentArea } from "@/components/ui/content-area";
 import {
   TeamDetailProvider,
   useTeamDetailContext,
 } from "@/contexts/team-detail-context";
 import { PlayMakerArea } from "@/components/play-maker/play-maker-area";
-import { Header } from "@/components/header/header";
-import { Button } from "@/components/ui/button";
-import { PageTitle } from "@/components/header/page-title";
 import type { Shape } from "@/components/play-maker/model";
 import {
   GO_TEAM_SERVICE_ROUTES,
@@ -22,6 +19,19 @@ import {
 } from "@/hooks/use-axios-clerk";
 import * as Haptics from "expo-haptics";
 import { errorToString } from "@/utils/error";
+import { FormToolbar } from "@/components/form/form-toolbar";
+
+function PlaymakerToolbar({
+  onSubmit,
+  loading,
+}: Readonly<{
+  onSubmit: () => void;
+  loading: boolean;
+}>) {
+  return (
+    <FormToolbar title="Playmaker" onSubmit={onSubmit} loading={loading} />
+  );
+}
 
 function toBackendPayload(shapes: Shape[]) {
   return shapes
@@ -49,37 +59,13 @@ function toBackendPayload(shapes: Shape[]) {
     });
 }
 
-type PlaymakerHeaderProps = Readonly<{
-  title: string;
-  saving: boolean;
-  onSave: () => void;
-}>;
-
-function PlaymakerHeader({ title, saving, onSave }: PlaymakerHeaderProps) {
-  return (
-    <Header
-      left={<Button type="back" />}
-      center={<PageTitle title={title} subtitle="Playmaker" />}
-      right={
-        <Button
-          isInteractive
-          type="custom"
-          label="Save"
-          onPress={onSave}
-          loading={saving}
-        />
-      }
-    />
-  );
-}
-
 export default function PlayMaker() {
   const params = useLocalSearchParams<{ id?: string | string[] }>();
   const rawId = params.id;
-  const id = Array.isArray(rawId) ? rawId[0] : (rawId ?? "");
+  const teamId = Array.isArray(rawId) ? rawId[0] : (rawId ?? "");
 
   return (
-    <TeamDetailProvider id={id}>
+    <TeamDetailProvider id={teamId}>
       <PlayMakerContent />
     </TeamDetailProvider>
   );
@@ -90,11 +76,9 @@ function PlayMakerContent() {
     isLoading,
     refreshing,
     onRefresh,
-    title,
     id: teamId,
   } = useTeamDetailContext();
 
-  const navigation = useNavigation();
   const api = useAxiosWithClerk();
 
   const latestShapesRef = useRef<Shape[]>([]);
@@ -133,19 +117,10 @@ function PlayMakerContent() {
     }
   }, [api, teamId]);
 
-  const headerTitle = useCallback(
-    () => <PlaymakerHeader title={title} saving={saving} onSave={onSave} />,
-    [title, saving, onSave],
-  );
-
-  useLayoutEffect(() => {
-    navigation.setOptions({ headerTitle });
-  }, [navigation, headerTitle]);
-
   return (
     <ContentArea
-      style={{ paddingBottom: 60 }}
       background={{ preset: "red" }}
+      toolbar={<PlaymakerToolbar onSubmit={onSave} loading={saving} />}
       refreshControl={
         <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />
       }

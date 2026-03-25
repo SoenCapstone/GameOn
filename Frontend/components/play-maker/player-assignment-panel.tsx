@@ -20,7 +20,7 @@ export const PlayerAssignmentPanel = ({
           const isMemberAssignedToShape = shapes?.filter(
             (shape) =>
               shape.associatedPlayerId === member.id &&
-              shape.id === selectedShapeId
+              shape.id === selectedShapeId,
           ).length;
           return (
             <View
@@ -39,7 +39,7 @@ export const PlayerAssignmentPanel = ({
                         member.id,
                         selectedShapeId,
                         shapes,
-                        setShapes
+                        setShapes,
                       );
                     }}
                     style={({ pressed }) => [

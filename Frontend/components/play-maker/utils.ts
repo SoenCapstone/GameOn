@@ -1,4 +1,9 @@
-import { Shape, ShapeTool, EndpointShape, SHAPE_CONFIG } from "@/components/play-maker/model";
+import {
+  Shape,
+  ShapeTool,
+  EndpointShape,
+  SHAPE_CONFIG,
+} from "@/components/play-maker/model";
 import * as Crypto from "expo-crypto";
 
 export const scanBoard = (
@@ -8,35 +13,47 @@ export const scanBoard = (
   selectedTool: ShapeTool,
   setShapes: React.Dispatch<React.SetStateAction<Shape[]>>,
   selectedShapeId: string | null,
-  setSelectedShapeId: React.Dispatch<React.SetStateAction<string | null>>
+  setSelectedShapeId: React.Dispatch<React.SetStateAction<string | null>>,
 ) => {
-  
   const hitId = hitTest(shapes, x, y);
   if (hitId) {
-    if(selectedTool === "arrow" && selectedShapeId &&  !isArrowSelectedOnBoard(shapes, selectedShapeId, hitId) && selectedShapeId !== hitId) {
-        addArrowBetweenShapes(selectedShapeId, hitId, shapes, setShapes);
-        setSelectedShapeId(hitId);
+    if (
+      selectedTool === "arrow" &&
+      selectedShapeId &&
+      !isArrowSelectedOnBoard(shapes, selectedShapeId, hitId) &&
+      selectedShapeId !== hitId
+    ) {
+      addArrowBetweenShapes(selectedShapeId, hitId, shapes, setShapes);
+      setSelectedShapeId(hitId);
     }
-    if(selectedTool === "select") {
-       setSelectedShapeId(hitId);
+    if (selectedTool === "select") {
+      setSelectedShapeId(hitId);
     }
     return;
   }
 
-  addShapeAt(
-    x,
-    y,
-    selectedTool,
-    setShapes,
-    setSelectedShapeId
+  addShapeAt(x, y, selectedTool, setShapes, setSelectedShapeId);
+};
+
+export const isArrowSelectedOnBoard = (
+  shapes: Shape[],
+  selectedShapeId: string | null,
+  hitId: string | null,
+): boolean => {
+  return !!(
+    shapes.filter(
+      (shape) => shape.type === "arrow" && selectedShapeId === shape.id,
+    ).length ||
+    shapes.filter((shape) => shape.type === "arrow" && hitId === shape.id)
+      .length
   );
 };
 
-export const isArrowSelectedOnBoard = (shapes: Shape[], selectedShapeId: string | null, hitId: string | null): boolean => {
-  return !!(shapes.filter(shape => shape.type === "arrow" && selectedShapeId === shape.id).length || shapes.filter(shape => shape.type === "arrow" && hitId === shape.id).length);
-};
-
-export const hitTest = (shapes: Shape[], x: number, y: number): string | null => {
+export const hitTest = (
+  shapes: Shape[],
+  x: number,
+  y: number,
+): string | null => {
   for (let i = shapes.length - 1; i >= 0; i--) {
     const s = shapes[i];
 
@@ -51,18 +68,17 @@ export const hitTest = (shapes: Shape[], x: number, y: number): string | null =>
       const inside = x >= left && x <= left + w && y >= top && y <= top + h;
       if (inside) return s.id;
     }
-
   }
 
   return null;
-}
+};
 
 export const addShapeAt = (
   x: number,
   y: number,
   selectedTool: ShapeTool,
   setShapes: React.Dispatch<React.SetStateAction<Shape[]>>,
-  setSelectedShapeId: React.Dispatch<React.SetStateAction<string | null>>
+  setSelectedShapeId: React.Dispatch<React.SetStateAction<string | null>>,
 ) => {
   const id = Crypto.randomUUID();
   const shape = SHAPE_CONFIG[selectedTool].create({ id, x, y });
@@ -109,16 +125,25 @@ export const addArrowBetweenShapes = (
   ]);
 };
 
-export const assignPlayerToShape = (playerId: string, selectedShapeId: string | null, shapes: Shape[], setShapes: React.Dispatch<React.SetStateAction<Shape[]>>) => {
+export const assignPlayerToShape = (
+  playerId: string,
+  selectedShapeId: string | null,
+  shapes: Shape[],
+  setShapes: React.Dispatch<React.SetStateAction<Shape[]>>,
+) => {
   if (!selectedShapeId || !shapes) return;
 
-  setShapes(prevShapes =>
-    prevShapes.map(shape =>
-      shape.id === selectedShapeId ? { ...shape, associatedPlayerId: playerId } : shape
-    )
+  setShapes((prevShapes) =>
+    prevShapes.map((shape) =>
+      shape.id === selectedShapeId
+        ? { ...shape, associatedPlayerId: playerId }
+        : shape,
+    ),
   );
-}
+};
 
-const isEndpointShape = (shape: Shape): shape is EndpointShape => shape.type !== "arrow";
+const isEndpointShape = (shape: Shape): shape is EndpointShape =>
+  shape.type !== "arrow";
 
-const getEndpointSize = (shape: EndpointShape): number | undefined => shape.type === "person" ? shape.size : undefined;
+const getEndpointSize = (shape: EndpointShape): number | undefined =>
+  shape.type === "person" ? shape.size : undefined;

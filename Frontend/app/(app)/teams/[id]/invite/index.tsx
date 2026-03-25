@@ -1,13 +1,9 @@
-import React, { useLayoutEffect, useMemo } from "react";
+import { useMemo } from "react";
 import { Alert, Pressable, Text } from "react-native";
-import { useLocalSearchParams } from "expo-router";
-import { useNavigation } from "@react-navigation/native";
+import { Stack, useLocalSearchParams } from "expo-router";
 import { useAuth } from "@clerk/clerk-expo";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { ContentArea } from "@/components/ui/content-area";
-import { Header } from "@/components/header/header";
-import { Button } from "@/components/ui/button";
-import { PageTitle } from "@/components/header/page-title";
 import { Card } from "@/components/ui/card";
 import { MemberRow } from "@/components/teams/member-row";
 import { formatFullName } from "@/components/teams/member-row-utils";
@@ -36,12 +32,15 @@ type InvitePayload = {
   role: "PLAYER";
 };
 
+function InviteMemberToolbar() {
+  return <Stack.Screen.Title>Invite Member</Stack.Screen.Title>;
+}
+
 export default function InvitePlayersScreen() {
   const params = useLocalSearchParams<{ id?: string }>();
   const rawId = params.id;
   const teamId = Array.isArray(rawId) ? rawId[0] : (rawId ?? "");
   const api = useAxiosWithClerk();
-  const navigation = useNavigation();
   const queryClient = useQueryClient();
   const { userId } = useAuth();
 
@@ -104,19 +103,6 @@ export default function InvitePlayersScreen() {
       .filter((user) => !pendingInvitees.has(user.id));
   }, [members, teamInvites, userDirectory, userId]);
 
-  useLayoutEffect(() => {
-    const renderHeader = () => (
-      <Header
-        left={<Button type="back" />}
-        center={<PageTitle title="Invite Players" />}
-      />
-    );
-
-    navigation.setOptions({
-      headerTitle: renderHeader,
-    });
-  }, [navigation]);
-
   const isBusy =
     membersLoading ||
     membersFetching ||
@@ -125,9 +111,12 @@ export default function InvitePlayersScreen() {
     createInviteMutation.isPending;
 
   return (
-    <ContentArea background={{ preset: "red" }}>
+    <ContentArea
+      background={{ preset: "red" }}
+      toolbar={<InviteMemberToolbar />}
+    >
       <InviteSection
-        title="Available Players"
+        title="Available Members"
         isBusy={isBusy}
         emptyText="No available players to invite."
         hasItems={availableUsers.length > 0}

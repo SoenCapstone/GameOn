@@ -7,10 +7,7 @@ type Props = {
   onChangeTeamName: (name: string) => void;
 };
 
-export function TeamNameField({
-  teamName,
-  onChangeTeamName,
-}: Readonly<Props>) {
+export function TeamNameField({ teamName, onChangeTeamName }: Readonly<Props>) {
   return (
     <View style={styles.fieldGroup}>
       <View style={styles.chip}>

@@ -1,116 +1,108 @@
 {
-  "fill-specializations" : [
+  "fill-specializations": [
     {
-      "value" : {
-        "solid" : "extended-gray:0.00000,1.00000"
+      "value": {
+        "solid": "extended-gray:0.00000,1.00000"
       }
     },
     {
-      "appearance" : "dark",
-      "value" : "automatic"
+      "appearance": "dark",
+      "value": "automatic"
     }
   ],
-  "groups" : [
+  "groups": [
     {
-      "blend-mode-specializations" : [
+      "blend-mode-specializations": [
         {
-          "appearance" : "dark",
-          "value" : "normal"
+          "appearance": "dark",
+          "value": "normal"
         }
       ],
-      "blur-material" : null,
-      "layers" : [
+      "blur-material": null,
+      "layers": [
         {
-          "fill-specializations" : [
+          "fill-specializations": [
             {
-              "value" : "none"
+              "value": "none"
             },
             {
-              "appearance" : "dark",
-              "value" : "none"
+              "appearance": "dark",
+              "value": "none"
             },
             {
-              "appearance" : "tinted",
-              "value" : "none"
+              "appearance": "tinted",
+              "value": "none"
             }
           ],
-          "glass-specializations" : [
+          "glass-specializations": [
             {
-              "value" : true
+              "value": true
             },
             {
-              "appearance" : "dark",
-              "value" : true
+              "appearance": "dark",
+              "value": true
             }
           ],
-          "hidden" : false,
-          "image-name" : "gameon.svg",
-          "name" : "gameon",
-          "position-specializations" : [
+          "hidden": false,
+          "image-name": "gameon.svg",
+          "name": "gameon",
+          "position-specializations": [
             {
-              "value" : {
-                "scale" : 1.07,
-                "translation-in-points" : [
-                  0,
-                  0
-                ]
+              "value": {
+                "scale": 1.07,
+                "translation-in-points": [0, 0]
               }
             },
             {
-              "idiom" : "square",
-              "value" : {
-                "scale" : 1.02,
-                "translation-in-points" : [
-                  0,
-                  0
-                ]
+              "idiom": "square",
+              "value": {
+                "scale": 1.02,
+                "translation-in-points": [0, 0]
               }
             }
           ]
         }
       ],
-      "lighting" : "individual",
-      "shadow" : {
-        "kind" : "layer-color",
-        "opacity" : 0.3
+      "lighting": "individual",
+      "shadow": {
+        "kind": "layer-color",
+        "opacity": 0.3
       },
-      "specular-specializations" : [
+      "specular-specializations": [
         {
-          "value" : true
+          "value": true
         },
         {
-          "appearance" : "tinted",
-          "value" : true
+          "appearance": "tinted",
+          "value": true
         }
       ],
-      "translucency-specializations" : [
+      "translucency-specializations": [
         {
-          "value" : {
-            "enabled" : true,
-            "value" : 0.35
+          "value": {
+            "enabled": true,
+            "value": 0.35
           }
         },
         {
-          "appearance" : "dark",
-          "value" : {
-            "enabled" : true,
-            "value" : 0.55
+          "appearance": "dark",
+          "value": {
+            "enabled": true,
+            "value": 0.55
           }
         },
         {
-          "appearance" : "tinted",
-          "value" : {
-            "enabled" : true,
-            "value" : 0.65
+          "appearance": "tinted",
+          "value": {
+            "enabled": true,
+            "value": 0.65
           }
         }
       ]
     }
   ],
-  "supported-platforms" : {
-    "circles" : [
-      "watchOS"
-    ],
-    "squares" : "shared"
+  "supported-platforms": {
+    "circles": ["watchOS"],
+    "squares": "shared"
   }
 }

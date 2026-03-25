@@ -1,6 +1,9 @@
 import { useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { GO_USER_SERVICE_ROUTES, useAxiosWithClerk } from "@/hooks/use-axios-clerk";
+import {
+  GO_USER_SERVICE_ROUTES,
+  useAxiosWithClerk,
+} from "@/hooks/use-axios-clerk";
 import { getMatchSection } from "@/features/matches/utils";
 import { useTeamsByIds } from "@/hooks/use-matches";
 
@@ -23,7 +26,10 @@ export function useMatchPresentation(match: MatchLike | undefined) {
 
   const homeTeam = teamsQuery.data?.[match?.homeTeamId ?? ""];
   const awayTeam = teamsQuery.data?.[match?.awayTeamId ?? ""];
-  const title = homeTeam && awayTeam ? `${homeTeam.name} vs ${awayTeam.name}` : "Match Details";
+  const title =
+    homeTeam && awayTeam
+      ? `${homeTeam.name} vs ${awayTeam.name}`
+      : "Match Details";
 
   const section = match
     ? getMatchSection(match.startTime, match.status)
