@@ -8,12 +8,12 @@ import {
   filterPendingTeamInvitesForOwner,
   buildMatchCards,
   splitMatchSections,
-} from "@/features/matches/utils";
+} from "@/utils/matches";
 import type {
   TeamSummary,
   TeamMatch,
   LeagueMatch,
-} from "@/features/matches/types";
+} from "@/types/matches";
 
 describe("getMatchSection", () => {
   it("returns 'today' when start date is today", () => {

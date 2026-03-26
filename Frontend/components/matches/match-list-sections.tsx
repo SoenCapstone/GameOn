@@ -17,8 +17,6 @@ type MatchItem = {
   isPast: boolean;
   homeScore?: number | null;
   awayScore?: number | null;
-  canCancel?: boolean;
-  onConfirmCancel?: () => Promise<void>;
 };
 
 interface MatchListSectionsProps {
@@ -66,8 +64,6 @@ function ListSection({
               isPast={match.isPast}
               homeScore={match.homeScore}
               awayScore={match.awayScore}
-              canCancel={Boolean(match.canCancel)}
-              onConfirmCancel={match.onConfirmCancel}
               onPress={() => onMatchPress(match)}
             />
           ))

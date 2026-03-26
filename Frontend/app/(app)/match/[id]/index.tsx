@@ -1,15 +1,23 @@
-import { ActivityIndicator, StyleSheet, Text, View } from "react-native";
+import { useCallback, useMemo } from "react";
+import { ActivityIndicator, Alert, StyleSheet, Text, View } from "react-native";
 import { useLocalSearchParams } from "expo-router";
+import { useAuth } from "@clerk/clerk-expo";
+import { useQueryClient } from "@tanstack/react-query";
 import { useLeagueDetail } from "@/hooks/use-league-detail";
 import { MatchDetailsContent } from "@/components/matches/match-details-content";
 import { useMatchPresentation } from "@/hooks/use-match-presentation";
+import { isCancelledMatchStatus, isPastMatch } from "@/utils/matches";
+import { errorToString } from "@/utils/error";
 import {
+  useCancelLeagueMatch,
+  useCancelTeamMatch,
   useLeagueVenue,
   useLeaguesByIds,
   useLeagueMatches,
   useTeamVenue,
   useTeamMatches,
   useTeamMatch,
+  useTeamsByIds,
 } from "@/hooks/use-matches";
 import {
   getContextLabel,
@@ -62,9 +70,117 @@ export default function MatchDetailsScreen() {
   const leagueMatch =
     context === "league" ? leagueMatches.find((m) => m.id === matchId) : null;
 
-  const { league } = useLeagueDetail(context === "league" ? contextId : "");
+  const { league, isOwner } = useLeagueDetail(
+    context === "league" ? contextId : "",
+  );
 
   const displayMatch = leagueMatch || match;
+
+  const { userId } = useAuth();
+  const queryClient = useQueryClient();
+  const cancelTeamMutation = useCancelTeamMatch();
+  const cancelLeagueMutation = useCancelLeagueMatch(
+    context === "league" ? contextId : "",
+  );
+
+  const cancelTeamIds = useMemo(() => {
+    if (
+      context !== "team" ||
+      !displayMatch ||
+      typeof displayMatch !== "object"
+    ) {
+      return [];
+    }
+    if (!("homeTeamId" in displayMatch) || !("awayTeamId" in displayMatch)) {
+      return [];
+    }
+    const home = displayMatch.homeTeamId;
+    const away = displayMatch.awayTeamId;
+    return typeof home === "string" && typeof away === "string"
+      ? [home, away]
+      : [];
+  }, [context, displayMatch]);
+
+  const teamsForCancelQuery = useTeamsByIds(cancelTeamIds);
+
+  const canCancelMatch = useMemo(() => {
+    if (!displayMatch || typeof displayMatch !== "object") return false;
+    if (
+      !("startTime" in displayMatch) ||
+      typeof displayMatch.startTime !== "string"
+    ) {
+      return false;
+    }
+    if (isPastMatch(displayMatch.startTime)) return false;
+    if (
+      "status" in displayMatch &&
+      typeof displayMatch.status === "string" &&
+      isCancelledMatchStatus(displayMatch.status)
+    ) {
+      return false;
+    }
+
+    if (context === "league") {
+      return isOwner;
+    }
+
+    const isLeagueMatch =
+      "leagueId" in displayMatch &&
+      typeof displayMatch.leagueId === "string" &&
+      Boolean(displayMatch.leagueId);
+    if (isLeagueMatch) return false;
+    if (!userId) return false;
+    if (!("homeTeamId" in displayMatch) || !("awayTeamId" in displayMatch)) {
+      return false;
+    }
+    const homeOwnerId =
+      teamsForCancelQuery.data?.[displayMatch.homeTeamId]?.ownerUserId;
+    const awayOwnerId =
+      teamsForCancelQuery.data?.[displayMatch.awayTeamId]?.ownerUserId;
+    return Boolean(
+      (homeOwnerId && homeOwnerId === userId) ||
+        (awayOwnerId && awayOwnerId === userId),
+    );
+  }, [context, displayMatch, isOwner, userId, teamsForCancelQuery.data]);
+
+  const onConfirmCancelMatch = useCallback(async () => {
+    if (
+      !displayMatch ||
+      typeof displayMatch !== "object" ||
+      !("id" in displayMatch)
+    ) {
+      return;
+    }
+    if (!canCancelMatch) return;
+    const mid = displayMatch.id as string;
+    try {
+      if (context === "league") {
+        await cancelLeagueMutation.mutateAsync({ matchId: mid });
+        await queryClient.invalidateQueries({
+          queryKey: ["league-matches", contextId],
+        });
+      } else {
+        await cancelTeamMutation.mutateAsync({ matchId: mid });
+        await Promise.all([
+          queryClient.invalidateQueries({ queryKey: ["team-match", mid] }),
+          queryClient.invalidateQueries({
+            queryKey: ["team-matches", contextId],
+          }),
+        ]);
+      }
+    } catch (err) {
+      Alert.alert("Cancel failed", errorToString(err));
+    }
+  }, [
+    displayMatch,
+    canCancelMatch,
+    context,
+    contextId,
+    cancelLeagueMutation,
+    cancelTeamMutation,
+    queryClient,
+  ]);
+
   const venueId = displayMatch?.venueId ?? "";
   const isLeagueContextMatch = Boolean(
     displayMatch && "leagueId" in displayMatch,
@@ -120,6 +236,8 @@ export default function MatchDetailsScreen() {
     <MatchDetailsContent
       startTime={displayMatch.startTime}
       status={displayMatch.status}
+      canCancelMatch={canCancelMatch}
+      onConfirmCancelMatch={canCancelMatch ? onConfirmCancelMatch : undefined}
       homeTeamName={HomeTeamName}
       awayTeamName={AwayTeamName}
       homeScore={homeScore}

@@ -6,7 +6,7 @@ import { GlassView } from "expo-glass-effect";
 import {
   RefereeMatchInviteCard,
   TeamMatchInviteCard,
-} from "@/features/matches/types";
+} from "@/types/matches";
 import { LeagueInviteCard } from "@/components/leagues/league-invite-utils";
 import { getSportLogo } from "@/utils/search";
 

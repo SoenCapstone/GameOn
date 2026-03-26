@@ -210,8 +210,8 @@ jest.mock("@/utils/logger", () => ({
   }),
 }));
 
-jest.mock("@/features/matches/utils", () => {
-  const actual = jest.requireActual("@/features/matches/utils");
+jest.mock("@/utils/matches", () => {
+  const actual = jest.requireActual("@/utils/matches");
   return {
     ...actual,
     isValidTimeRange: () => true,

@@ -12,8 +12,10 @@ import { AccentColors } from "@/constants/colors";
 import {
   buildVenueOptionMaps,
   buildVenueOptions,
+  buildStartEndIso,
+  isValidTimeRange,
   resolveSelectedVenueLabel,
-} from "@/features/matches/schedule-shared";
+} from "@/utils/matches";
 import {
   useCreateLeagueMatch,
   useLeagueTeams,
@@ -22,7 +24,6 @@ import {
   useTeamsByIds,
 } from "@/hooks/use-matches";
 import { useLeagueDetail } from "@/hooks/use-league-detail";
-import { buildStartEndIso, isValidTimeRange } from "@/features/matches/utils";
 import { toast } from "@/components/sign-up/utils";
 import { parseDraftDate } from "@/utils/date";
 import { createScopedLog } from "@/utils/logger";

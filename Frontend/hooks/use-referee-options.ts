@@ -4,7 +4,7 @@ import {
   GO_USER_SERVICE_ROUTES,
   useAxiosWithClerk,
 } from "@/hooks/use-axios-clerk";
-import { RefereeProfile } from "@/features/matches/types";
+import { RefereeProfile } from "@/types/matches";
 
 export function useRefereeOptions(referees: RefereeProfile[] | undefined) {
   const api = useAxiosWithClerk();

@@ -15,6 +15,7 @@ export default function AppLayout() {
       <Stack.Screen
         name="match/[id]/index"
         options={{
+          title: "",
           presentation: "formSheet",
           sheetAllowedDetents: "fitToContents",
           sheetCornerRadius: 58,
