@@ -4,7 +4,7 @@ import {
   GO_USER_SERVICE_ROUTES,
   useAxiosWithClerk,
 } from "@/hooks/use-axios-clerk";
-import { getMatchSection } from "@/features/matches/utils";
+import { getMatchSection } from "@/utils/matches";
 import { useTeamsByIds } from "@/hooks/use-matches";
 
 interface MatchLike {

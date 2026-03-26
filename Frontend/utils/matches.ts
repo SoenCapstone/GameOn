@@ -1,23 +1,11 @@
-import {
+import type {
   LeagueMatch,
   MatchStatusBadge,
   TeamMatch,
   TeamSummary,
-} from "@/features/matches/types";
+  Venue,
+} from "@/types/matches";
 import { isToday } from "@/utils/date";
-
-export const PROVINCE_OPTIONS = [
-  "Alberta",
-  "British Columbia",
-  "Manitoba",
-  "New Brunswick",
-  "Newfoundland and Labrador",
-  "Nova Scotia",
-  "Ontario",
-  "Prince Edward Island",
-  "Quebec",
-  "Saskatchewan",
-] as const;
 
 export function isPastMatch(startTime: string) {
   return new Date(startTime).getTime() < Date.now();
@@ -184,4 +172,35 @@ export function splitMatchSections<
     ),
     past: sortPastLatestFirst(matchItems.filter((item) => item.isPast)),
   };
+}
+
+export type VenueOption = {
+  id: string;
+  label: string;
+};
+
+export function buildVenueOptions(venues: Venue[] | undefined): VenueOption[] {
+  return (venues ?? []).map((venue) => ({
+    id: venue.id,
+    label: venue.name,
+  }));
+}
+
+export function buildVenueOptionMaps(options: VenueOption[]) {
+  return {
+    venueLabelToId: Object.fromEntries(
+      options.map((venue) => [venue.label, venue.id]),
+    ) as Record<string, string>,
+    venueIdToLabel: Object.fromEntries(
+      options.map((venue) => [venue.id, venue.label]),
+    ) as Record<string, string>,
+  };
+}
+
+export function resolveSelectedVenueLabel(
+  venueId: string,
+  venueIdToLabel: Record<string, string>,
+  newVenueName?: string,
+) {
+  return (venueId ? venueIdToLabel[venueId] : undefined) ?? newVenueName ?? "";
 }

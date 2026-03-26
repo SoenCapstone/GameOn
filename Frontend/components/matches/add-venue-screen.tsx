@@ -5,7 +5,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { ContentArea } from "@/components/ui/content-area";
 import { Form } from "@/components/form/form";
 import { AccentColors } from "@/constants/colors";
-import { PROVINCE_OPTIONS } from "@/features/matches/utils";
+import { ProvinceOptions } from "@/constants/provinces";
 import { useCreateLeagueVenue, useCreateTeamVenue } from "@/hooks/use-matches";
 import { errorToString } from "@/utils/error";
 import { FormToolbar } from "@/components/form/form-toolbar";
@@ -60,7 +60,7 @@ export function AddVenueScreen({
   const [street, setStreet] = useState("");
   const [city, setCity] = useState("");
   const [province, setProvince] = useState<
-    (typeof PROVINCE_OPTIONS)[number] | undefined
+    (typeof ProvinceOptions)[number] | undefined
   >(undefined);
   const [postalCode, setPostalCode] = useState("");
 
@@ -251,10 +251,10 @@ export function AddVenueScreen({
           <Form.Menu
             label="Province"
             placeholder="Select province"
-            options={[...PROVINCE_OPTIONS]}
+            options={[...ProvinceOptions]}
             value={province}
             onValueChange={(value) =>
-              setProvince(value as (typeof PROVINCE_OPTIONS)[number])
+              setProvince(value as (typeof ProvinceOptions)[number])
             }
           />
           <Form.Input

@@ -1,16 +1,88 @@
 import { Alert, Linking, StyleSheet, Text, View } from "react-native";
+import { useCallback } from "react";
 import { Image } from "expo-image";
 import { getSportLogo } from "@/utils/search";
-import {
-  formatMatchDateTime,
-  isCancelledMatchStatus,
-} from "@/features/matches/utils";
 import MapView, { Marker } from "react-native-maps";
 import { IconSymbol } from "@/components/ui/icon-symbol";
+import { Stack, Color } from "expo-router";
+import { formatMatchDateTime, isCancelledMatchStatus } from "@/utils/matches";
+
+export function MatchToolbar({
+  openInMaps,
+  status,
+  canCancelMatch = false,
+  onConfirmCancelMatch,
+}: Readonly<{
+  openInMaps: () => void;
+  status: string;
+  canCancelMatch?: boolean;
+  onConfirmCancelMatch?: () => Promise<void>;
+}>) {
+  const showCancelMatchConfirm = useCallback(() => {
+    if (!onConfirmCancelMatch) return;
+
+    Alert.alert("Cancel match", "Are you sure you want to cancel this match?", [
+      { text: "Keep", style: "cancel" },
+      {
+        text: "Cancel Match",
+        style: "destructive",
+        onPress: () => {
+          void onConfirmCancelMatch();
+        },
+      },
+    ]);
+  }, [onConfirmCancelMatch]);
+
+  const showCancelInMenu =
+    canCancelMatch &&
+    Boolean(onConfirmCancelMatch) &&
+    !isCancelledMatchStatus(status);
+
+  return (
+    <>
+      <Stack.Toolbar placement="bottom">
+        <Stack.Toolbar.Menu
+          icon="ellipsis"
+          variant="prominent"
+          tintColor={Color.ios.quaternarySystemFill}
+        >
+          <Stack.Toolbar.Menu title="Attendance" icon="person">
+            <Stack.Toolbar.MenuAction isOn>Attending</Stack.Toolbar.MenuAction>
+            <Stack.Toolbar.MenuAction destructive>
+              Not Attending
+            </Stack.Toolbar.MenuAction>
+          </Stack.Toolbar.Menu>
+          <Stack.Toolbar.MenuAction icon="rosette">
+            Enter Score
+          </Stack.Toolbar.MenuAction>
+          {showCancelInMenu ? (
+            <Stack.Toolbar.MenuAction
+              icon="xmark"
+              destructive
+              onPress={showCancelMatchConfirm}
+            >
+              Cancel Match
+            </Stack.Toolbar.MenuAction>
+          ) : null}
+        </Stack.Toolbar.Menu>
+        <Stack.Toolbar.Spacer />
+        <Stack.Toolbar.Button
+          variant="prominent"
+          tintColor={Color.ios.quaternarySystemFill}
+          onPress={openInMaps}
+        >
+          Open in Maps
+        </Stack.Toolbar.Button>
+      </Stack.Toolbar>
+    </>
+  );
+}
 
 interface MatchDetailsContentProps {
   readonly startTime: string;
   readonly status: string;
+  readonly canCancelMatch?: boolean;
+  readonly onConfirmCancelMatch?: () => Promise<void>;
   readonly homeTeamName: string;
   readonly awayTeamName: string;
   readonly homeScore?: number | null;
@@ -30,6 +102,8 @@ interface MatchDetailsContentProps {
 export function MatchDetailsContent({
   startTime,
   status,
+  canCancelMatch,
+  onConfirmCancelMatch,
   homeTeamName,
   awayTeamName,
   homeScore,
@@ -88,7 +162,7 @@ export function MatchDetailsContent({
   const handleMapPress = () => {
     if (!venueName && !venueAddress) return;
 
-    Alert.alert("Open in Maps", "Get directions to this venue in Maps.", [
+    Alert.alert("Open in Maps", "Do you want to open this venue in Maps?", [
       { text: "Cancel", style: "cancel" },
       {
         text: "Open",
@@ -100,8 +174,14 @@ export function MatchDetailsContent({
   };
 
   return (
-    <View style={styles.container}>
-      <View style={styles.content}>
+    <>
+      <MatchToolbar
+        openInMaps={handleMapPress}
+        status={status}
+        canCancelMatch={canCancelMatch}
+        onConfirmCancelMatch={onConfirmCancelMatch}
+      />
+      <View style={styles.container}>
         <View style={styles.summary}>
           <View style={styles.top}>
             <Image
@@ -161,7 +241,6 @@ export function MatchDetailsContent({
           >
             {hasCoordinates ? (
               <Marker
-                onPress={handleMapPress}
                 coordinate={{
                   latitude: venueLatitude,
                   longitude: venueLongitude,
@@ -194,15 +273,13 @@ export function MatchDetailsContent({
           ) : null}
         </View>
       </View>
-    </View>
+    </>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     paddingTop: 44,
-  },
-  content: {
     paddingHorizontal: 10,
   },
   summary: {

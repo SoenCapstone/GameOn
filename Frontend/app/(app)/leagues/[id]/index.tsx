@@ -1,10 +1,9 @@
 import { useCallback, useMemo, useState } from "react";
 import {
-  View,
   ActivityIndicator,
   RefreshControl,
   StyleSheet,
-  Alert,
+  View,
 } from "react-native";
 import {
   RelativePathString,
@@ -13,7 +12,6 @@ import {
   useLocalSearchParams,
   useRouter,
 } from "expo-router";
-import { useQueryClient } from "@tanstack/react-query";
 import { ContentArea } from "@/components/ui/content-area";
 import { getSportLogo } from "@/utils/search";
 import { LeagueBrowserTeams } from "@/components/leagues/league-browser-teams";
@@ -22,20 +20,15 @@ import {
   useLeagueDetailContext,
 } from "@/contexts/league-detail-context";
 import {
-  useLeagueBoardPosts,
   useDeleteLeagueBoardPost,
+  useLeagueBoardPosts,
 } from "@/hooks/use-league-board";
 import { BoardList } from "@/components/board/board-list";
 import { useDetailPageHandlers } from "@/hooks/use-detail-page-handlers";
 import { createScopedLog } from "@/utils/logger";
 import { MatchListSections } from "@/components/matches/match-list-sections";
-import {
-  useCancelLeagueMatch,
-  useLeagueMatches,
-  useTeamsByIds,
-} from "@/hooks/use-matches";
-import { buildMatchCards, splitMatchSections } from "@/features/matches/utils";
-import { errorToString } from "@/utils/error";
+import { useLeagueMatches, useTeamsByIds } from "@/hooks/use-matches";
+import { buildMatchCards, splitMatchSections } from "@/utils/matches";
 
 type LeagueTab = "board" | "matches" | "standings" | "teams";
 
@@ -136,7 +129,6 @@ function LeagueContent() {
   const [tab, setTab] = useState<LeagueTab>(initialTab);
   const router = useRouter();
   const log = createScopedLog("League Page");
-  const queryClient = useQueryClient();
 
   const {
     id,
@@ -181,8 +173,6 @@ function LeagueContent() {
     error: matchesError,
     refetch: refetchMatches,
   } = useLeagueMatches(id);
-  const cancelLeagueMutation = useCancelLeagueMatch(id);
-
   const teamIds = useMemo(
     () =>
       Array.from(new Set(matches.flatMap((m) => [m.homeTeamId, m.awayTeamId]))),
@@ -192,42 +182,12 @@ function LeagueContent() {
   const teamsQuery = useTeamsByIds(teamIds);
 
   const matchItems = useMemo(() => {
-    const items = buildMatchCards(
+    return buildMatchCards(
       matches,
       teamsQuery.data,
       league?.name ?? "League Match",
     );
-
-    return items.map((match) => {
-      const canCancel =
-        !match.isPast && isOwner && match.status !== "CANCELLED";
-
-      return {
-        ...match,
-        canCancel,
-        onConfirmCancel: canCancel
-          ? async () => {
-              try {
-                await cancelLeagueMutation.mutateAsync({ matchId: match.id });
-                await queryClient.invalidateQueries({
-                  queryKey: ["league-matches", id],
-                });
-              } catch (err) {
-                Alert.alert("Cancel failed", errorToString(err));
-              }
-            }
-          : undefined,
-      };
-    });
-  }, [
-    matches,
-    teamsQuery.data,
-    league?.name,
-    isOwner,
-    cancelLeagueMutation,
-    queryClient,
-    id,
-  ]);
+  }, [matches, teamsQuery.data, league?.name]);
 
   const { today, upcoming, past } = useMemo(
     () => splitMatchSections(matchItems),
