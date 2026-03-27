@@ -53,7 +53,7 @@ export function useLeagueDetail(id: string) {
   });
 
   const {
-    data: leagueTeams = [],
+    data: leagueTeamsData = [],
     isLoading: isLeagueTeamsLoading,
     error: leagueTeamsError,
     refetch: refetchLeagueTeams,
@@ -72,6 +72,8 @@ export function useLeagueDetail(id: string) {
     retry: false,
     refetchOnWindowFocus: false,
   });
+
+  const leagueTeams = Array.isArray(leagueTeamsData) ? leagueTeamsData : [];
 
   const onRefresh = useCallback(async () => {
     try {
