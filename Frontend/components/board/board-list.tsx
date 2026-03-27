@@ -1,12 +1,9 @@
-import React, { ComponentRef } from "react";
+import React from "react";
 import { View, Text, ActivityIndicator, StyleSheet } from "react-native";
 import { BoardPost } from "@/components/board/board-types";
 import { Post } from "@/components/board/post";
 import { LegendList } from "@legendapp/list/react-native";
-import { createScopedLog } from "@/utils/logger";
 import { ImageSource } from "expo-image";
-
-const log = createScopedLog("BoardList");
 
 interface BoardListProps {
   posts: BoardPost[];
@@ -25,15 +22,6 @@ export function BoardList({
   onDeletePost,
   canDelete = false,
 }: Readonly<BoardListProps>) {
-  const listRef = React.useRef<ComponentRef<typeof LegendList>>(null);
-
-  const handleContentSizeChange = React.useCallback(() => {
-    listRef.current?.scrollToIndex({ index: 0, animated: true });
-    log.info("Scrolled to top, number of posts displayed:", {
-      postCount: posts.length,
-    });
-  }, [posts.length]);
-
   const renderItem = React.useCallback(
     ({ item }: { item: BoardPost }) => {
       return (
@@ -59,7 +47,6 @@ export function BoardList({
 
   return (
     <LegendList
-      ref={listRef}
       data={posts}
       keyExtractor={(item) => item?.id}
       style={styles.legendList}
@@ -72,7 +59,6 @@ export function BoardList({
       }
       recycleItems={true}
       keyboardShouldPersistTaps="handled"
-      onContentSizeChange={handleContentSizeChange}
     />
   );
 }
