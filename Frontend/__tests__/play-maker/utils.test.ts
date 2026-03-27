@@ -1,4 +1,4 @@
-import type { Shape } from "@/components/play-maker/model";
+import type { Shape } from "@/types/playmaker";
 import * as Crypto from "expo-crypto";
 import {
   scanBoard,
@@ -7,14 +7,14 @@ import {
   addArrowBetweenShapes,
   assignPlayerToShape,
   isArrowSelectedOnBoard,
-} from "@/components/play-maker/utils";
+} from "@/utils/playmaker";
 
 jest.mock("expo-crypto", () => ({
   randomUUID: jest.fn(),
 }));
 
-jest.mock("@/components/play-maker/model", () => {
-  const actual = jest.requireActual("@/components/play-maker/model");
+jest.mock("@/constants/playmaker", () => {
+  const actual = jest.requireActual("@/constants/playmaker");
   return {
     ...actual,
     SHAPE_CONFIG: {
