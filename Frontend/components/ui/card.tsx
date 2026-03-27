@@ -4,15 +4,20 @@ import { GlassView } from "expo-glass-effect";
 
 interface CardProps {
   readonly isInteractive?: boolean;
+  readonly tintColor?: string | undefined;
   readonly children: React.ReactNode;
 }
 
-export function Card({ isInteractive = true, children }: Readonly<CardProps>) {
+export function Card({
+  isInteractive = true,
+  tintColor = "rgba(0,0,0,0.6)",
+  children,
+}: Readonly<CardProps>) {
   return (
     <GlassView
       isInteractive={isInteractive}
-      glassEffectStyle={"clear"}
-      tintColor={"rgba(0,0,0,0.6)"}
+      glassEffectStyle="clear"
+      tintColor={tintColor}
       style={styles.card}
     >
       {children}
