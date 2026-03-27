@@ -180,6 +180,14 @@ function LeagueContent() {
   );
 
   const teamsQuery = useTeamsByIds(teamIds);
+  const leagueTeamIds = useMemo(
+    () =>
+      Array.from(new Set((leagueTeams ?? []).map((team) => team.teamId))).filter(
+        Boolean,
+      ),
+    [leagueTeams],
+  );
+  const leagueTeamsQuery = useTeamsByIds(leagueTeamIds);
 
   const matchItems = useMemo(() => {
     return buildMatchCards(
@@ -295,6 +303,9 @@ function LeagueContent() {
                 leagueTeams={leagueTeams ?? []}
                 teamsFetching={Boolean(isLeagueTeamsLoading)}
                 leagueTeamsError={leagueTeamsError}
+                teamDetailsMap={leagueTeamsQuery.data}
+                detailsFetching={leagueTeamsQuery.isLoading}
+                detailsError={leagueTeamsQuery.error}
               />
             )}
           </>

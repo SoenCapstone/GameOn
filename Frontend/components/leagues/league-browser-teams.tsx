@@ -1,12 +1,9 @@
-import React, { useMemo } from "react";
 import { ActivityIndicator, View, Text, StyleSheet } from "react-native";
 import { useRouter } from "expo-router";
-import { useQueries } from "@tanstack/react-query";
-import { useAxiosWithClerk } from "@/hooks/use-axios-clerk";
-import { teamDetailQueryOptions } from "@/hooks/use-team-detail";
 import { InfoCard } from "@/components/info-card";
 import type { ImageSource } from "expo-image";
 import { getSportLogo } from "@/utils/search";
+import type { TeamSummary } from "@/types/matches";
 
 export type LeagueTeamResponse = {
   id: string;
@@ -19,62 +16,20 @@ type Props = Readonly<{
   leagueTeams: LeagueTeamResponse[];
   teamsFetching: boolean;
   leagueTeamsError: unknown;
+  teamDetailsMap?: Record<string, TeamSummary>;
+  detailsFetching: boolean;
+  detailsError: unknown;
 }>;
 
 export function LeagueBrowserTeams({
   leagueTeams,
   teamsFetching,
   leagueTeamsError,
+  teamDetailsMap,
+  detailsFetching,
+  detailsError,
 }: Props) {
-  const api = useAxiosWithClerk();
   const router = useRouter();
-
-  const teamIds = useMemo(
-    () => Array.from(new Set(leagueTeams.map((t) => t.teamId))).filter(Boolean),
-    [leagueTeams],
-  );
-
-  const teamQueries = useQueries({
-    queries: teamIds.map((teamId) => teamDetailQueryOptions(api, teamId)),
-  });
-
-  const detailsFetching = teamQueries.some((q) => q.isLoading);
-  const detailsError = teamQueries.find((q) => q.error)?.error;
-
-  const teamDetailsMap = useMemo(() => {
-    const entries = teamQueries.map((q, idx) => {
-      const teamId = teamIds[idx] ?? "";
-      const data = q.data ?? null;
-
-      if (!teamId) {
-        return [
-          "",
-          {
-            id: "",
-            name: "Team",
-            sport: null,
-            location: null,
-            logoUrl: null,
-          } as const,
-        ] as const;
-      }
-
-      if (data) return [teamId, data] as const;
-
-      return [
-        teamId,
-        {
-          id: teamId,
-          name: "Team",
-          sport: null,
-          location: null,
-          logoUrl: null,
-        } as const,
-      ] as const;
-    });
-
-    return Object.fromEntries(entries.filter(([k]) => Boolean(k)));
-  }, [teamQueries, teamIds]);
 
   const isLoading = teamsFetching || detailsFetching;
 

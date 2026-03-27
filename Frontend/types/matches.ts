@@ -2,6 +2,7 @@ export type TeamSummary = {
   id: string;
   name: string;
   sport?: string | null;
+  location?: string | null;
   allowedRegions?: string[] | null;
   logoUrl?: string | null;
   ownerUserId?: string;
