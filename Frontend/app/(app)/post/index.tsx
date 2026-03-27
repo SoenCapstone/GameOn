@@ -24,7 +24,9 @@ export default function Post() {
   const router = useRouter();
 
   const [title, setTitle] = useState("");
-  const [scope, setScope] = useState<BoardPostScope | undefined>(undefined);
+  const [scope, setScope] = useState<BoardPostScope | undefined>(
+    isPrivate ? "Members" : undefined,
+  );
   const [body, setBody] = useState("");
 
   const createTeamPostMutation = useCreateBoardPost(id);
