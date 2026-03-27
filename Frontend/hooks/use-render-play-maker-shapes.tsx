@@ -1,8 +1,15 @@
-import { useMemo } from "react";
-import { Shape } from "@/components/play-maker/model";
-import { Rect as SvgRect, Line, G, Path } from "react-native-svg";
-import { IconContainer } from "@/components/play-maker/play-maker-icon/icon-container";
-import { PERSON_SVG } from "@/components/play-maker/play-maker-icon/constants";
+import { useMemo, ReactElement } from "react";
+import type { Shape } from "@/types/playmaker";
+import { StyleSheet, View } from "react-native";
+import { IconSymbol } from "@/components/ui/icon-symbol";
+import { Color } from "expo-router";
+import {
+  Rect as SvgRect,
+  Line,
+  G,
+  Path,
+  ForeignObject,
+} from "react-native-svg";
 
 type OnSelect = (id: string) => void;
 
@@ -12,15 +19,16 @@ type RendererMap = {
     isSelected: boolean,
     selectedShapeId: string | null,
     onSelect: OnSelect,
-  ) => React.ReactElement | null;
+  ) => ReactElement | null;
 };
 
 const renderers: RendererMap = {
   select: () => null,
 
-  person: (s, isSelected, _selectedId, onSelect) => {
+  person: (s, isSelected, _selectedId, _onSelect) => {
     const size = s.size ?? 28;
     const hitPadding = 8;
+    const iconSize = isSelected ? size * 1.1 : size;
 
     const left = s.x - size / 2;
     const top = s.y - size / 2;
@@ -33,16 +41,17 @@ const renderers: RendererMap = {
           width={size + hitPadding * 2}
           height={size + hitPadding * 2}
           fill="transparent"
-          onPress={() => onSelect(s.id)}
         />
 
-        <IconContainer
-          size={isSelected ? size * 1.25 : size}
-          xml={PERSON_SVG.replace(
-            /currentColor/g,
-            isSelected ? "#4ade80" : "white",
-          )}
-        />
+        <ForeignObject width={iconSize} height={iconSize} pointerEvents="none">
+          <View pointerEvents="none" style={styles.iconContainer}>
+            <IconSymbol
+              name="person.fill"
+              size={iconSize}
+              color={isSelected ? Color.ios.systemYellow : "white"}
+            />
+          </View>
+        </ForeignObject>
       </G>
     );
   },
@@ -50,14 +59,11 @@ const renderers: RendererMap = {
   arrow: (s, isSelected, _selectedId, onSelect) => {
     if (!s.from || !s.to) return null;
 
-    const stroke = isSelected ? "#4ade80" : "rgba(255,255,255,0.85)";
+    const stroke = isSelected
+      ? Color.ios.systemYellow
+      : "rgba(255,255,255,0.85)";
     const strokeWidth = isSelected ? 4 : 3;
-
-    const x1 = s.from.x;
-    const y1 = s.from.y;
-    const x2 = s.to.x;
-    const y2 = s.to.y;
-
+    const { x1, y1, x2, y2 } = getArrowEndpoints(s.from, s.to);
     const d = buildArrowPath(x1, y1, x2, y2);
 
     return (
@@ -129,3 +135,46 @@ const buildArrowPath = (
           M ${x2} ${y2} L ${hx1} ${hy1}
           M ${x2} ${y2} L ${hx2} ${hy2}`;
 };
+
+const getArrowEndpoints = (
+  from: NonNullable<Shape["from"]>,
+  to: NonNullable<Shape["to"]>,
+) => {
+  const dx = to.x - from.x;
+  const dy = to.y - from.y;
+  const distance = Math.hypot(dx, dy);
+
+  if (distance === 0) {
+    return {
+      x1: from.x,
+      y1: from.y,
+      x2: to.x,
+      y2: to.y,
+    };
+  }
+
+  const unitX = dx / distance;
+  const unitY = dy / distance;
+  const endpointGap = 2;
+  const fromOffset = (from.size ?? 0) / 2 + endpointGap;
+  const toOffset = (to.size ?? 0) / 2 + endpointGap;
+  const maxOffset = Math.max(distance / 2 - 1, 0);
+  const safeFromOffset = Math.min(fromOffset, maxOffset);
+  const safeToOffset = Math.min(toOffset, maxOffset);
+
+  return {
+    x1: from.x + unitX * safeFromOffset,
+    y1: from.y + unitY * safeFromOffset,
+    x2: to.x - unitX * safeToOffset,
+    y2: to.y - unitY * safeToOffset,
+  };
+};
+
+const styles = StyleSheet.create({
+  iconContainer: {
+    width: "100%",
+    height: "100%",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+});
