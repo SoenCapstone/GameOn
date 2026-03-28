@@ -1,4 +1,8 @@
 import type { BubbleMessage } from "@/components/messages/bubble";
+export type {
+  TeamListResponse,
+  TeamSummaryResponse,
+} from "@/types/teams";
 
 export type ConversationType = "DIRECT" | "GROUP";
 
@@ -60,26 +64,6 @@ export interface UserDirectoryEntry {
   firstname?: string | null;
   lastname?: string | null;
   imageUrl?: string | null;
-}
-
-export interface TeamSummaryResponse {
-  id: string;
-  name: string;
-  sport?: string | null;
-  slug?: string | null;
-  logoUrl?: string | null;
-  privacy?: string | null;
-  archived: boolean;
-  createdAt: string;
-  updatedAt: string;
-}
-
-export interface TeamListResponse {
-  items: TeamSummaryResponse[];
-  totalElements: number;
-  page: number;
-  size: number;
-  hasNext: boolean;
 }
 
 export interface FetchMessagesParams {
