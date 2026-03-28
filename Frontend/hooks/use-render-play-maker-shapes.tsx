@@ -19,6 +19,8 @@ const renderers: RendererMap = {
   select: () => null,
 
   person: (s, isSelected, _selectedId, onSelect) => {
+    if (s.associatedPlayerId) return null;
+
     const size = s.size ?? 28;
     const hitPadding = 8;
 
@@ -93,7 +95,8 @@ export const useRenderPlayMakerShapes = (
   return useMemo(() => {
     return shapes
       .map((s) => {
-        const isSelected = "id" in s && s.id === selectedShapeId;
+        const isSelected = s.id === selectedShapeId;
+
         switch (s.type) {
           case "person":
             return renderers.person(s, isSelected, selectedShapeId, onSelect);
@@ -125,7 +128,7 @@ const buildArrowPath = (
   const hx2 = x2 - headLength * Math.cos(angle + headAngle);
   const hy2 = y2 - headLength * Math.sin(angle + headAngle);
 
-  return `M ${x1} ${y1} L ${x2} ${y2} 
+  return `M ${x1} ${y1} L ${x2} ${y2}
           M ${x2} ${y2} L ${hx1} ${hy1}
           M ${x2} ${y2} L ${hx2} ${hy2}`;
 };

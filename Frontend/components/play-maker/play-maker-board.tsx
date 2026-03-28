@@ -1,12 +1,17 @@
+import React from "react";
 import { View, StyleSheet, Pressable } from "react-native";
-import { PlayMakerBoardProps } from "@/components/play-maker/model";
 import { DefaultBoard } from "@/components/play-maker/play-maker-board-configurations/play-maker-default-board";
+
+type ExtendedPlayMakerBoardProps = any & {
+  overlayChildren?: React.ReactNode;
+};
 
 export const PlayMakerBoard = ({
   onBoardPress,
   boardConfig: BoardConfig,
   children,
-}: PlayMakerBoardProps) => {
+  overlayChildren,
+}: ExtendedPlayMakerBoardProps) => {
   const BoardWrapper = BoardConfig ?? DefaultBoard;
 
   return (
@@ -21,6 +26,10 @@ export const PlayMakerBoard = ({
         }}
       >
         <BoardWrapper>{children}</BoardWrapper>
+
+        <View pointerEvents="box-none" style={styles.overlay}>
+          {overlayChildren}
+        </View>
       </Pressable>
     </View>
   );
@@ -35,5 +44,9 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: "rgba(255,255,255,0.25)",
     overflow: "hidden",
+    position: "relative",
+  },
+  overlay: {
+    ...StyleSheet.absoluteFillObject,
   },
 });

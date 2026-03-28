@@ -1,22 +1,23 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { View, ActivityIndicator } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { PlayMakerBoard } from "@/components/play-maker/play-maker-board";
 import { ShapesTab } from "@/components/play-maker/shapes-tab";
-import type {
-  Shape,
-  ShapeTool,
-  PlayMakerAreaProps,
-} from "@/components/play-maker/model";
+import type { Shape, PersonShape } from "@/components/play-maker/model";
 import { scanBoard } from "@/components/play-maker/utils";
 import { useRenderPlayMakerShapes } from "@/hooks/use-render-play-maker-shapes";
 import { ClearShapesButton } from "@/components/play-maker/clear-shapes-button";
 import { PlayerAssignmentPanel } from "@/components/play-maker/player-assignment-panel";
 import { useGetTeamMembers } from "@/hooks/use-get-team-members/use-get-team-members";
 import { useTeamDetailContext } from "@/contexts/team-detail-context";
+import { PlayerCardsOverlay } from "@/components/play-maker/player-cards-overlay";
 
-type PlayMakerAreaWithCallbackProps = PlayMakerAreaProps & {
+type PlayMakerAreaWithCallbackProps = any & {
   onShapesChange?: (shapes: Shape[]) => void;
+};
+
+const isAssignedPersonShape = (shape: Shape): shape is PersonShape => {
+  return shape.type === "person" && !!shape.associatedPlayerId;
 };
 
 export const PlayMakerArea = ({
@@ -24,7 +25,7 @@ export const PlayMakerArea = ({
   boardConfig: BoardConfig,
   onShapesChange,
 }: PlayMakerAreaWithCallbackProps) => {
-  const [selectedTool, setSelectedTool] = useState<ShapeTool>("person");
+  const [selectedTool, setSelectedTool] = useState<any>("person");
   const [selectedShapeId, setSelectedShapeId] = useState<string | null>(null);
   const [shapes, setShapes] = useState<Shape[]>([]);
 
@@ -32,7 +33,6 @@ export const PlayMakerArea = ({
   const storageKey = `playmaker:${teamId}`;
   const { data, isLoading } = useGetTeamMembers(teamId);
 
-  // LOAD (when page opens) — only set if there is actual saved content
   useEffect(() => {
     (async () => {
       try {
@@ -49,19 +49,39 @@ export const PlayMakerArea = ({
     })();
   }, [storageKey]);
 
-  // Keep parent screen in sync with current shapes (used by Save button)
   useEffect(() => {
     onShapesChange?.(shapes);
   }, [shapes, onShapesChange]);
 
-  // SAVE (whenever shapes change)
   useEffect(() => {
     AsyncStorage.setItem(storageKey, JSON.stringify(shapes)).catch(() => {});
   }, [shapes, storageKey]);
 
-  const renderedShapes = useRenderPlayMakerShapes(shapes, selectedShapeId, (id) =>
-    setSelectedShapeId(id)
+  const assignedPersonShapes = useMemo(
+    () => shapes.filter(isAssignedPersonShape),
+    [shapes],
   );
+
+  const svgShapes = useMemo(
+    () =>
+      shapes.filter(
+        (shape) => !(shape.type === "person" && !!shape.associatedPlayerId),
+      ),
+    [shapes],
+  );
+
+  const renderedShapes = useRenderPlayMakerShapes(
+    svgShapes,
+    selectedShapeId,
+    setSelectedShapeId,
+  );
+
+  const playersById = useMemo(() => {
+    const members = Array.isArray(data) ? data : [];
+    return Object.fromEntries(
+      members.map((player: any) => [String(player.id), player]),
+    );
+  }, [data]);
 
   return (
     <View style={styles.container}>
@@ -78,8 +98,16 @@ export const PlayMakerArea = ({
               selectedTool,
               setShapes,
               selectedShapeId,
-              setSelectedShapeId
+              setSelectedShapeId,
             )
+          }
+          overlayChildren={
+            <PlayerCardsOverlay
+              shapes={assignedPersonShapes}
+              selectedShapeId={selectedShapeId}
+              onSelect={setSelectedShapeId}
+              playersById={playersById}
+            />
           }
         >
           {renderedShapes}
