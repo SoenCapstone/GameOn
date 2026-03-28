@@ -192,6 +192,7 @@ function LeagueSettingsContent() {
                 }
               >
                 <MenuCardItem
+                  square
                   title={teamName}
                   subtitle={formatMemberSince(teamMembership.joinedAt)}
                   image={
@@ -199,7 +200,6 @@ function LeagueSettingsContent() {
                       ? { uri: team.logoUrl }
                       : getSportLogo(team?.sport ?? league?.sport)
                   }
-                  square={true}
                 />
               </LeagueTeamMenu>
             );
