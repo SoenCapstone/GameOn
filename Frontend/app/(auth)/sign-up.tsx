@@ -44,7 +44,7 @@ function SignUpToolbar({
       <Stack.Screen.BackButton displayMode="minimal">
         Welcome
       </Stack.Screen.BackButton>
-      <Stack.Screen.Title> Sign Up</Stack.Screen.Title>
+      <Stack.Screen.Title>Create Account</Stack.Screen.Title>
       <Stack.Toolbar placement="bottom">
         <Stack.Toolbar.Spacer />
         {isLoading ? (

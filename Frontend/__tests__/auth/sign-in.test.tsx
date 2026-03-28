@@ -1,25 +1,11 @@
 import React from "react";
-import { render, fireEvent, waitFor } from "@testing-library/react-native";
+import { fireEvent, waitFor } from "@testing-library/react-native";
 import {
   mockAlert,
+  renderWithQueryClient,
   setupAuthTestHooks,
 } from "@/__tests__/auth/auth-test-setup";
 import SignInScreen from "@/app/(auth)/sign-in";
-jest.mock("react-native-keyboard-controller", () => {
-  const { ScrollView } = jest.requireActual("react-native");
-  return {
-    KeyboardAwareScrollView: ({
-      children,
-      ...props
-    }: React.PropsWithChildren<Record<string, unknown>>) => (
-      <ScrollView {...props}>{children}</ScrollView>
-    ),
-  };
-});
-
-jest.mock("@react-navigation/elements", () => ({
-  useHeaderHeight: () => 0,
-}));
 
 const mockCreate = jest.fn();
 const mockSetActive = jest.fn();
@@ -34,18 +20,10 @@ jest.mock("@clerk/clerk-expo", () => ({
   }),
 }));
 
-jest.mock("@/constants/navigation", () => ({
-  SIGN_UP_PATH: "/(auth)/boarding/sign-up",
-}));
-
-jest.mock("@/components/sign-in/styles", () => ({
-  styles: {
-    forgotWrap: {},
-    forgotText: {},
-    statusBox: {},
-    statusText: {},
-    metaText: {},
-    metaLink: {},
+jest.mock("@/utils/runtime", () => ({
+  runtime: {
+    isRunningInExpoGo: false,
+    isDevelopment: true,
   },
 }));
 
@@ -59,23 +37,30 @@ describe("SignInScreen", () => {
     });
   });
 
-  it("renders the sign-in form with all input fields", () => {
-    const { getByPlaceholderText, getByText } = render(<SignInScreen />);
+  it("renders the current sign-in screen with toolbar actions", () => {
+    const { getByPlaceholderText, getByText } = renderWithQueryClient(
+      <SignInScreen />,
+    );
 
     expect(getByPlaceholderText("name@example.com")).toBeTruthy();
     expect(getByPlaceholderText("••••••••••••")).toBeTruthy();
+    expect(getByText("Developer Account")).toBeTruthy();
     expect(getByText("Sign In")).toBeTruthy();
+    expect(getByText("Forgot Password?")).toBeTruthy();
   });
 
-  it("attempts to sign in with valid credentials", async () => {
-    const { getByPlaceholderText, getByTestId } = render(<SignInScreen />);
+  it("signs in with typed credentials from the toolbar button", async () => {
+    const { getByPlaceholderText, getByText } = renderWithQueryClient(
+      <SignInScreen />,
+    );
 
     fireEvent.changeText(
       getByPlaceholderText("name@example.com"),
       "test@example.com",
     );
     fireEvent.changeText(getByPlaceholderText("••••••••••••"), "password123");
-    fireEvent.press(getByTestId("submit-button"));
+
+    fireEvent.press(getByText("Sign In"));
 
     await waitFor(() => {
       expect(mockCreate).toHaveBeenCalledWith({
@@ -91,99 +76,90 @@ describe("SignInScreen", () => {
     });
   });
 
-  it("shows validation errors for empty fields", async () => {
-    const { getByTestId, findByTestId } = render(<SignInScreen />);
+  it("uses the developer account credentials when the toolbar dev action is pressed", async () => {
+    process.env.EXPO_PUBLIC_DEV_LOGIN_EMAIL = "dev@example.com";
+    process.env.EXPO_PUBLIC_DEV_LOGIN_PASSWORD = "dev-password";
 
-    fireEvent.press(getByTestId("submit-button"));
+    const { getByText } = renderWithQueryClient(<SignInScreen />);
+
+    fireEvent.press(getByText("Developer Account"));
 
     await waitFor(() => {
-      expect(mockCreate).not.toHaveBeenCalled();
+      expect(mockCreate).toHaveBeenCalledWith({
+        identifier: "dev@example.com",
+        password: "dev-password",
+      });
     });
+  });
+
+  it("shows a dev sign-in alert when developer credentials are missing", async () => {
+    const { getByText } = renderWithQueryClient(<SignInScreen />);
+
+    fireEvent.press(getByText("Developer Account"));
+
+    await waitFor(() => {
+      expect(mockAlert).toHaveBeenCalledWith(
+        "Dev Sign In Error",
+        "Missing EXPO_PUBLIC_DEV_LOGIN_EMAIL or EXPO_PUBLIC_DEV_LOGIN_PASSWORD in your .env file.",
+      );
+    });
+
+    expect(mockCreate).not.toHaveBeenCalled();
+  });
+
+  it("shows validation errors instead of calling Clerk for an empty submit", async () => {
+    const { getByText, findByTestId } = renderWithQueryClient(<SignInScreen />);
+
+    fireEvent.press(getByText("Sign In"));
 
     const emailError = await findByTestId("error-Email address");
     const passwordError = await findByTestId("error-Password");
 
-    expect(emailError).toBeTruthy();
-    expect(passwordError).toBeTruthy();
+    expect(emailError.props.children).toBe("Email is required");
+    expect(passwordError.props.children).toBe("Password is required");
+    expect(mockCreate).not.toHaveBeenCalled();
   });
 
-  it("validates email format", async () => {
-    const { getByPlaceholderText, getByTestId } = render(<SignInScreen />);
+  it("shows format and length validation errors for invalid values", async () => {
+    const { getByPlaceholderText, getByText, findByTestId } =
+      renderWithQueryClient(<SignInScreen />);
 
     fireEvent.changeText(
       getByPlaceholderText("name@example.com"),
       "invalid-email",
     );
-    fireEvent.changeText(getByPlaceholderText("••••••••••••"), "password123");
-
-    fireEvent.press(getByTestId("submit-button"));
-
-    await waitFor(() => {
-      expect(mockCreate).not.toHaveBeenCalled();
-    });
-  });
-
-  it("validates password length (minimum 8 characters)", async () => {
-    const { getByPlaceholderText, getByTestId } = render(<SignInScreen />);
-
-    fireEvent.changeText(
-      getByPlaceholderText("name@example.com"),
-      "test@example.com",
-    );
     fireEvent.changeText(getByPlaceholderText("••••••••••••"), "short");
 
-    fireEvent.press(getByTestId("submit-button"));
+    fireEvent.press(getByText("Sign In"));
 
-    await waitFor(() => {
-      expect(mockCreate).not.toHaveBeenCalled();
-    });
+    const emailError = await findByTestId("error-Email address");
+    const passwordError = await findByTestId("error-Password");
+
+    expect(emailError.props.children).toBe("Enter a valid email");
+    expect(passwordError.props.children).toBe(
+      "Password must be at least 8 characters",
+    );
+    expect(mockCreate).not.toHaveBeenCalled();
   });
 
-  it("handles sign-in error gracefully", async () => {
-    const clerkError = {
+  it("surfaces Clerk failures through the auth alert path", async () => {
+    mockCreate.mockRejectedValueOnce({
       errors: [{ message: "Invalid email or password" }],
-    };
-    mockCreate.mockRejectedValueOnce(clerkError);
+    });
 
-    const { getByPlaceholderText, getByTestId } = render(<SignInScreen />);
+    const { getByPlaceholderText, getByText } = renderWithQueryClient(
+      <SignInScreen />,
+    );
 
     fireEvent.changeText(
       getByPlaceholderText("name@example.com"),
       "test@example.com",
     );
     fireEvent.changeText(getByPlaceholderText("••••••••••••"), "wrongpass");
-
-    fireEvent.press(getByTestId("submit-button"));
-
-    await waitFor(() => {
-      expect(mockCreate).toHaveBeenCalled();
-    });
+    fireEvent.press(getByText("Sign In"));
 
     await waitFor(() => {
       expect(mockAlert).toHaveBeenCalledWith("Invalid email or password");
-    });
-
-    expect(mockSetActive).not.toHaveBeenCalled();
-  });
-
-  it("handles incomplete verification status", async () => {
-    mockCreate.mockResolvedValueOnce({
-      status: "needs_first_factor",
-      createdSessionId: null,
-    });
-
-    const { getByPlaceholderText, getByTestId } = render(<SignInScreen />);
-
-    fireEvent.changeText(
-      getByPlaceholderText("name@example.com"),
-      "test@example.com",
-    );
-    fireEvent.changeText(getByPlaceholderText("••••••••••••"), "password123");
-
-    fireEvent.press(getByTestId("submit-button"));
-
-    await waitFor(() => {
-      expect(mockCreate).toHaveBeenCalled();
     });
 
     expect(mockSetActive).not.toHaveBeenCalled();

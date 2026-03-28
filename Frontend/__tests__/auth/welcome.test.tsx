@@ -1,11 +1,9 @@
 import React from "react";
-import { render, screen, fireEvent } from "@testing-library/react-native";
+import { fireEvent, render, screen } from "@testing-library/react-native";
 import WelcomeScreen from "@/app/(auth)";
-import { ViewStyle } from "react-native";
-
-(globalThis as Record<string, unknown>).__DEV__ = false;
 
 const mockPush = jest.fn();
+
 jest.mock("expo-router", () => ({
   useRouter: () => ({ push: mockPush }),
   router: { push: mockPush },
@@ -26,27 +24,6 @@ jest.mock("expo-glass-effect", () => ({
   isLiquidGlassAvailable: () => false,
 }));
 
-jest.mock("@react-navigation/elements", () => ({
-  useHeaderHeight: () => 0,
-}));
-
-jest.mock("react-native-safe-area-context", () => {
-  const RN = jest.requireActual("react-native");
-  return {
-    ...jest.requireActual("react-native-safe-area-context"),
-    SafeAreaView: RN.View,
-    useSafeAreaInsets: () => ({ top: 0, right: 0, bottom: 0, left: 0 }),
-  };
-});
-
-jest.mock("@/constants/auth-styles", () => ({
-  authStyles: {
-    safe: { flex: 1 },
-    container: { flex: 1 },
-    hero: { alignItems: "center", justifyContent: "center" },
-  },
-}));
-
 jest.mock("@/components/auth/welcome-hero", () => ({
   WelcomeHero: () => {
     const { Text, View } = jest.requireActual("react-native");
@@ -62,62 +39,32 @@ jest.mock("@/components/privacy-disclaimer/privacy-disclaimer", () => ({
   PrivacyDisclaimer: () => null,
 }));
 
-jest.mock("@/components/ui/content-area", () => ({
-  ContentArea: ({
-    children,
-    style,
-  }: {
-    children?: React.ReactNode;
-    style?: ViewStyle;
-  }) => {
-    const { View } = jest.requireActual("react-native");
-    return <View style={style}>{children}</View>;
-  },
-}));
-
-jest.mock("@/components/ui/background", () => ({
-  Background: ({ children }: { children?: React.ReactNode }) => {
-    const { View } = jest.requireActual("react-native");
-    return <View>{children}</View>;
-  },
-}));
-
-jest.mock("@/components/auth/dev-login", () => ({
-  DevTools: () => null,
-}));
-
 describe("WelcomeScreen", () => {
   beforeEach(() => {
-    jest.clearAllMocks();
     mockPush.mockClear();
   });
 
-  it("renders welcome message and both buttons", () => {
+  it("renders the current welcome hero and primary auth actions", () => {
     render(<WelcomeScreen />);
 
-    expect(screen.getByText(/welcome to gameon/i)).toBeTruthy();
-    expect(screen.getByText(/sign in/i)).toBeTruthy();
-    expect(screen.getByText(/create account/i)).toBeTruthy();
+    expect(screen.getByTestId("welcome-hero")).toBeTruthy();
+    expect(screen.getByText("Sign In")).toBeTruthy();
+    expect(screen.getByText("Create Account")).toBeTruthy();
   });
 
-  it("routes to sign-in when Sign In button is pressed", () => {
+  it("navigates to sign in from the welcome button", () => {
     render(<WelcomeScreen />);
-    const signInButton = screen.getByText(/sign in/i);
-    fireEvent.press(signInButton);
+
+    fireEvent.press(screen.getByText("Sign In"));
 
     expect(mockPush).toHaveBeenCalledWith("/(auth)/sign-in");
   });
 
-  it("routes to sign-up when Create Account button is pressed", () => {
+  it("navigates to sign up from the welcome button", () => {
     render(<WelcomeScreen />);
-    const signUpButton = screen.getByText(/create account/i);
-    fireEvent.press(signUpButton);
+
+    fireEvent.press(screen.getByText("Create Account"));
 
     expect(mockPush).toHaveBeenCalledWith("/(auth)/sign-up");
-  });
-
-  it("displays the welcome hero", () => {
-    render(<WelcomeScreen />);
-    expect(screen.getByTestId("welcome-hero")).toBeTruthy();
   });
 });

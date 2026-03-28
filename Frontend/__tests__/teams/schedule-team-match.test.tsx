@@ -198,7 +198,7 @@ jest.mock("@/hooks/use-axios-clerk", () => ({
   },
 }));
 
-jest.mock("@/components/sign-up/utils", () => ({
+jest.mock("@/utils/sign-up", () => ({
   toast: (message: string) => mockToast(message),
 }));
 

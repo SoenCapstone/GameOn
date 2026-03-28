@@ -192,7 +192,7 @@ jest.mock("@clerk/clerk-expo", () => ({
   }),
 }));
 
-jest.mock("@/components/sign-up/utils", () => ({
+jest.mock("@/utils/sign-up", () => ({
   toast: (message: string) => mockToast(message),
 }));
 
