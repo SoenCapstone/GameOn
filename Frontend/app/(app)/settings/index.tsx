@@ -11,6 +11,7 @@ import { openPolicy } from "@/components/privacy-disclaimer/utils";
 import { images } from "@/constants/images";
 import { Alert } from "react-native";
 import { useReferee } from "@/contexts/referee-context";
+import { FormExample } from "@/components/form/form-example";
 
 function SettingToolbar() {
   return <Stack.Screen.Title>Settings</Stack.Screen.Title>;
@@ -162,6 +163,7 @@ export default function Settings() {
           />
         </Form.Section>
       </Form>
+      <FormExample />
     </ContentArea>
   );
 }
