@@ -150,7 +150,7 @@ export default function InviteTeamsScreen() {
                       ? { uri: details?.logoUrl ?? team.logoUrl ?? "" }
                       : getSportLogo(details?.sport ?? team.sport)
                   }
-                  square={true}
+                  square
                   button={{
                     label: "Invite",
                     onPress: () =>
