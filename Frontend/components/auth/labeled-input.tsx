@@ -1,6 +1,5 @@
 import { Text, TextInput, View, StyleSheet } from "react-native";
-import { authStyles } from "@/constants/auth-styles";
-import { LabeledInputProps } from "@/components/sign-up/models";
+import { LabeledInputProps } from "@/types/auth";
 import { BlurView } from "expo-blur";
 import { GlassView, isLiquidGlassAvailable } from "expo-glass-effect";
 
@@ -15,7 +14,7 @@ export const LabeledInput = ({
 
   return (
     <View style={{ gap: 10 }}>
-      <Text style={authStyles.label}>{label}</Text>
+      <Text style={styles.label}>{label}</Text>
       <TextField
         intensity={90}
         tint="dark"
@@ -23,28 +22,33 @@ export const LabeledInput = ({
         tintColor={"rgba(0,0,0,0.5)"}
         style={[
           style,
-          styles.TextField,
+          styles.field,
           isLiquidGlassAvailable() ? null : styles.blur,
           error ? { borderColor: "#EF4444" } : null,
         ]}
       >
         <TextInput
           {...inputProps}
-          style={authStyles.input}
+          style={styles.input}
           placeholderTextColor="#535252ff"
           selectionColor="white"
         />
-        {rightIcon ? (
-          <View style={authStyles.rightIcon}>{rightIcon}</View>
-        ) : null}
+        {rightIcon ? <View style={styles.icon}>{rightIcon}</View> : null}
       </TextField>
-      {error ? <Text style={authStyles.errorText}>{error}</Text> : null}
+      {error ? <Text style={styles.error}>{error}</Text> : null}
     </View>
   );
 };
 
 const styles = StyleSheet.create({
-  TextField: {
+  label: {
+    marginLeft: 16,
+    color: "rgba(235,235,245,0.6)",
+    fontSize: 17,
+    lineHeight: 22,
+    fontWeight: "600",
+  },
+  field: {
     width: "100%",
     height: 48,
     borderRadius: 100,
@@ -54,6 +58,19 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     flexDirection: "row",
     alignItems: "center",
+  },
+  input: {
+    flex: 1,
+    fontSize: 17,
+    color: "#bab8b8ff",
+  },
+  icon: {
+    marginLeft: 8,
+  },
+  error: {
+    color: "#EF4444",
+    fontSize: 12,
+    marginLeft: 16,
   },
   blur: {
     overflow: "hidden",

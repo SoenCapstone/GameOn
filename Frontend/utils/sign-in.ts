@@ -7,9 +7,9 @@ import {
   VALIDTION_PASSWORD_MESSAGE_LENGTH,
   VALIDATION_PASSWORD_MESSAGE_REQUIRED,
   EMAIL_VERIFICATION_STATUS,
-} from "@/components/sign-up/constants";
-import { UserSignIn } from "@/components/sign-up/models";
-import { humanizeClerkError, toast } from "@/components/sign-up/utils";
+} from "@/constants/sign-up";
+import { UserSignIn } from "@/types/auth";
+import { humanizeClerkError, toast } from "@/utils/sign-up";
 import { createScopedLog } from "@/utils/logger";
 
 const log = createScopedLog("Sign In Utils");
@@ -23,7 +23,21 @@ export const SignInSchema = Yup.object({
     .required(VALIDATION_PASSWORD_MESSAGE_REQUIRED),
 });
 
-export const login = async (
+export const getDevSignInValues = (): UserSignIn | null => {
+  const email = process.env.EXPO_PUBLIC_DEV_LOGIN_EMAIL;
+  const password = process.env.EXPO_PUBLIC_DEV_LOGIN_PASSWORD;
+
+  if (!email || !password) {
+    return null;
+  }
+
+  return {
+    emailAddress: email,
+    password,
+  };
+};
+
+export const signin = async (
   values: UserSignIn,
   signIn: SignInResource,
   setActive: SetActive,

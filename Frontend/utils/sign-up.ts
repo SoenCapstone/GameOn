@@ -16,12 +16,12 @@ import {
   EMAIL_VERIFICATION_STATUS,
   VALIDATION_PASSWORD_LENGTH,
   SIGN_UP_BACKEND_ERROR_MESSAGE,
-} from "@/components/sign-up/constants";
+} from "@/constants/sign-up";
 import {
   SignUpInputLabel,
   User,
   UpsertUserMutation,
-} from "@/components/sign-up/models";
+} from "@/types/auth";
 
 export const displayFormikError = (
   touched: FormikTouched<User>,
@@ -84,10 +84,9 @@ export const startClerkSignUp = async (
   values: User,
   isLoaded: boolean,
   signUp: SignUpResource | undefined,
-  setPendingVerification: React.Dispatch<React.SetStateAction<boolean>>,
-): Promise<void> => {
+): Promise<boolean> => {
   if (!isLoaded || !signUp) {
-    return;
+    return false;
   }
 
   try {
@@ -98,9 +97,10 @@ export const startClerkSignUp = async (
       lastName: values.lastname,
     });
     await signUp.prepareEmailAddressVerification({ strategy: "email_code" });
-    setPendingVerification(true);
+    return true;
   } catch (e: unknown) {
     Alert.alert("Sign up failed", humanizeClerkError(e));
+    return false;
   }
 };
 

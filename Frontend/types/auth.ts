@@ -1,5 +1,5 @@
-import React from "react";
 import { StyleProp, ViewStyle } from "react-native";
+import { ReactNode } from "react";
 
 export type User = {
   firstname: string;
@@ -26,7 +26,7 @@ export type LabeledInputProps = {
     | "decimal-pad";
   autoCapitalize?: "none" | "sentences" | "words" | "characters";
   secureTextEntry?: boolean;
-  rightIcon?: React.ReactNode;
+  rightIcon?: ReactNode;
   error?: string;
   style?: StyleProp<ViewStyle>;
 };

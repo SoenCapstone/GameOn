@@ -1,4 +1,4 @@
-import type { SignUpInputLabel } from "@/components/sign-up/models";
+import type { SignUpInputLabel } from "@/types/auth";
 
 const FIRST_NAME_LABEL = "First name";
 const FIRST_NAME_FIELD = "firstname";

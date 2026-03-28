@@ -1,16 +1,11 @@
-import { authStyles } from "@/constants/auth-styles";
-import { Text, View } from "react-native";
+import { Text, View, StyleSheet } from "react-native";
 import { useFormikContext } from "formik";
-import { User } from "@/components/sign-up/models";
+import { User } from "@/types/auth";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import { AccentColors } from "@/constants/colors";
 import { LabeledInput } from "@/components/auth/labeled-input";
 import { useState } from "react";
-import {
-  formatDate,
-  parseDate,
-  autoFormatDateInput,
-} from "@/components/sign-up/utils";
+import { formatDate, parseDate, autoFormatDateInput } from "@/utils/sign-up";
 
 export const SignUpDatePicker: React.FC = () => {
   const { errors, touched, setFieldValue } = useFormikContext<User>();
@@ -59,8 +54,16 @@ export const SignUpDatePicker: React.FC = () => {
         }
       />
       {touched.birth && errors.birth ? (
-        <Text style={authStyles.errorText}>{errors.birth}</Text>
+        <Text style={styles.error}>{errors.birth}</Text>
       ) : null}
     </View>
   );
 };
+
+const styles = StyleSheet.create({
+  error: {
+    color: "#EF4444",
+    fontSize: 12,
+    marginLeft: 16,
+  },
+});
