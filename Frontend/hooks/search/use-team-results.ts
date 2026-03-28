@@ -2,29 +2,7 @@ import { useQuery } from "@tanstack/react-query";
 import type { SearchResult } from "@/constants/search";
 import { fetchTeamResults, getSportLogo } from "@/utils/search";
 import { useAxiosWithClerk } from "@/hooks/use-axios-clerk";
-
-type TeamSummaryResponse = {
-  id: string;
-  name: string;
-  sport: string;
-  location: string;
-  leagueId?: string | null;
-  slug: string;
-  logoUrl?: string | null;
-  privacy: string;
-  maxRoster?: number | null;
-  archived: boolean;
-  createdAt: string;
-  updatedAt: string;
-};
-
-type TeamListResponse = {
-  items: TeamSummaryResponse[];
-  totalElements: number;
-  page: number;
-  size: number;
-  hasNext: boolean;
-};
+import type { TeamListResponse, TeamSummaryResponse } from "@/types/teams";
 
 export function useTeamResults(query: string, member?: boolean) {
   const api = useAxiosWithClerk();
@@ -42,10 +20,10 @@ export function useTeamResults(query: string, member?: boolean) {
     type: "team",
     name: t.name,
     subtitle: t.sport ? `${t.sport}` : "Team",
-    sport: t.sport,
+    sport: t.sport ?? "",
     logo: t.logoUrl ? { uri: t.logoUrl } : getSportLogo(t.sport),
     league: "",
-    location: t.location,
+    location: t.location ?? "",
     privacy: t.privacy ?? undefined,
   }));
 

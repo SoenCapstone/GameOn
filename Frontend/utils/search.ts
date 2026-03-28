@@ -4,6 +4,7 @@ import { AxiosInstance } from "axios";
 import { createScopedLog } from "@/utils/logger";
 import { ImageSource } from "expo-image";
 import { images } from "@/constants/images";
+import type { TeamListResponse } from "@/types/teams";
 import {
   GO_TEAM_SERVICE_ROUTES,
   GO_LEAGUE_SERVICE_ROUTES,
@@ -24,29 +25,6 @@ export function getSportLogo(sport?: string | null): ImageSource {
       return images.defaultLogo;
   }
 }
-
-type TeamSummaryResponse = {
-  id: string;
-  name: string;
-  sport: string;
-  location: string;
-  leagueId?: string | null;
-  slug: string;
-  logoUrl?: string | null;
-  privacy: string;
-  maxRoster?: number | null;
-  archived: boolean;
-  createdAt: string;
-  updatedAt: string;
-};
-
-type TeamListResponse = {
-  items: TeamSummaryResponse[];
-  totalElements: number;
-  page: number;
-  size: number;
-  hasNext: boolean;
-};
 
 type LeagueSummaryResponse = {
   id: string;
