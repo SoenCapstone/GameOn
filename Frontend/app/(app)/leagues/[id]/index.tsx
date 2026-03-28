@@ -71,10 +71,6 @@ function LeagueToolbar({
       {isMember || isOwner ? (
         <Stack.Toolbar placement="right">
           <Stack.Toolbar.Button
-            icon="person.2.fill"
-            onPress={() => router.push(`/leagues/${id}/manage`)}
-          />
-          <Stack.Toolbar.Button
             icon="gear"
             onPress={() => router.push(`/leagues/${id}/settings`)}
           />

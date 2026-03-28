@@ -1,7 +1,10 @@
-import { useState, useEffect } from "react";
-import { View, Text, ActivityIndicator, Alert } from "react-native";
+import { useState, useEffect, ReactNode } from "react";
+import { View, Text, ActivityIndicator, Alert, Pressable } from "react-native";
 import { Stack, useLocalSearchParams, useRouter } from "expo-router";
 import { useNavigation, StackActions } from "@react-navigation/native";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useActionSheet } from "@expo/react-native-action-sheet";
+import ContextMenu from "react-native-context-menu-view";
 import { ContentArea } from "@/components/ui/content-area";
 import { Form } from "@/components/form/form";
 import { AccentColors } from "@/constants/colors";
@@ -9,9 +12,22 @@ import { createScopedLog } from "@/utils/logger";
 import { errorToString } from "@/utils/error";
 import { settingsStyles } from "@/constants/settings-styles";
 import { usePayment, type PaymentEntityType } from "@/hooks/use-payment";
-import { useAxiosWithClerk } from "@/hooks/use-axios-clerk";
 import { formatAmount } from "@/utils/payment";
 import { getSportLogo } from "@/utils/search";
+import { formatMemberSince } from "@/utils/date";
+import { MenuCardItem } from "@/components/form/menu-card-item";
+import { useTeamsByIds } from "@/hooks/use-matches";
+import { isRunningInExpoGo } from "@/utils/runtime";
+import {
+  handleLeagueDelete,
+  handleLeagueRequestPurchase,
+  handleLeagueSetPrivate,
+  handleLeagueTeamRemove,
+} from "@/utils/leagues";
+import {
+  GO_LEAGUE_SERVICE_ROUTES,
+  useAxiosWithClerk,
+} from "@/hooks/use-axios-clerk";
 import {
   useUpdateLeague,
   useDeleteLeague,
@@ -22,7 +38,6 @@ import {
 } from "@/contexts/league-detail-context";
 
 const log = createScopedLog("League Settings");
-const PUBLICATION_FEE_CENTS = 1500;
 
 function LeagueSettingsToolbar() {
   return <Stack.Screen.Title>League Settings</Stack.Screen.Title>;
@@ -40,17 +55,23 @@ export default function LeagueSettingsScreen() {
 }
 
 function LeagueSettingsContent() {
+  const { showActionSheetWithOptions } = useActionSheet();
   const navigation = useNavigation();
   const router = useRouter();
   const api = useAxiosWithClerk();
+  const queryClient = useQueryClient();
   const {
     id,
     league,
     isLoading: leagueLoading,
     isOwner,
+    leagueTeams,
   } = useLeagueDetailContext();
 
   const [isPublic, setIsPublic] = useState(false);
+  const leagueTeamsQuery = useTeamsByIds(
+    leagueTeams.map((team) => team.teamId),
+  );
 
   useEffect(() => {
     setIsPublic((league?.privacy ?? "PRIVATE") === "PUBLIC");
@@ -60,7 +81,7 @@ function LeagueSettingsContent() {
     api,
     entityType: "LEAGUE" as PaymentEntityType,
     entityId: id,
-    amount: PUBLICATION_FEE_CENTS,
+    amount: 1500,
   });
 
   const updateLeagueMutation = useUpdateLeague(id, {
@@ -84,64 +105,20 @@ function LeagueSettingsContent() {
       Alert.alert("Delete failed", errorToString(err));
     },
   });
-
-  const handleRequestPurchase = () => {
-    if (!league) return;
-    const payload = {
-      name: league.name ?? "",
-      sport: league.sport ?? "",
-      level: league.level ?? "",
-      region: league.region ?? "",
-      location: league.location ?? "",
-      logoUrl: league.logoUrl ?? undefined,
-      privacy: "PUBLIC" as const,
-    };
-    Alert.alert(
-      "League Publication Payment",
-      `Amount: ${formatAmount(PUBLICATION_FEE_CENTS)}`,
-      [
-        { text: "Cancel", style: "cancel" },
-        {
-          text: "Pay & Continue",
-          onPress: () =>
-            runPayment(async () => {
-              updateLeagueMutation.mutate(payload);
-              setIsPublic(true);
-            }),
-        },
-      ],
-    );
-  };
-
-  const handleSetPrivate = () => {
-    if (!league) return;
-    const payload = {
-      name: league.name ?? "",
-      sport: league.sport ?? "",
-      level: league.level ?? "",
-      region: league.region ?? "",
-      location: league.location ?? "",
-      logoUrl: league.logoUrl ?? undefined,
-      privacy: "PRIVATE" as const,
-    };
-    updateLeagueMutation.mutate(payload);
-    setIsPublic(false);
-  };
-
-  const handleDeleteLeague = () => {
-    Alert.alert(
-      "Delete League",
-      "Are you sure you want to delete this league? This action cannot be undone.",
-      [
-        { text: "Cancel", onPress: () => {}, style: "cancel" },
-        {
-          text: "Delete",
-          onPress: () => deleteLeagueMutation.mutate(),
-          style: "destructive",
-        },
-      ],
-    );
-  };
+  const removeTeamMutation = useMutation({
+    mutationFn: async (teamId: string) => {
+      await api.delete(GO_LEAGUE_SERVICE_ROUTES.REMOVE_TEAM(id, teamId));
+    },
+    onSuccess: async () => {
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: ["league-teams", id] }),
+        queryClient.invalidateQueries({ queryKey: ["league-memberships"] }),
+      ]);
+    },
+    onError: (err) => {
+      Alert.alert("Remove failed", errorToString(err));
+    },
+  });
 
   if (!isOwner) {
     return (
@@ -195,6 +172,44 @@ function LeagueSettingsContent() {
           />
         </Form.Section>
 
+        <Form.Section header="Teams">
+          {leagueTeams.map((teamMembership) => {
+            const team = leagueTeamsQuery.data?.[teamMembership.teamId];
+            const teamName = team?.name ?? "Team";
+            return (
+              <LeagueTeamMenu
+                key={teamMembership.id}
+                canDelete={isOwner && !removeTeamMutation.isPending}
+                onDelete={() =>
+                  handleLeagueTeamRemove({
+                    teamId: teamMembership.teamId,
+                    teamName,
+                    leagueName: league?.name,
+                    onConfirm: (confirmedTeamId) =>
+                      removeTeamMutation.mutate(confirmedTeamId),
+                    showActionSheetWithOptions,
+                  })
+                }
+              >
+                <MenuCardItem
+                  title={teamName}
+                  subtitle={formatMemberSince(teamMembership.joinedAt)}
+                  image={
+                    team?.logoUrl
+                      ? { uri: team.logoUrl }
+                      : getSportLogo(team?.sport ?? league?.sport)
+                  }
+                  square={true}
+                />
+              </LeagueTeamMenu>
+            );
+          })}
+          <Form.Button
+            button="Invite Teams"
+            onPress={() => router.push(`/leagues/${id}/settings/invite`)}
+          />
+        </Form.Section>
+
         <Form.Section
           header="Visibility"
           footer={
@@ -207,14 +222,33 @@ function LeagueSettingsContent() {
             <Form.Button
               button="Switch to a Private League"
               color={AccentColors.red}
-              onPress={handleSetPrivate}
+              onPress={() =>
+                handleLeagueSetPrivate({
+                  league,
+                  onConfirm: (payload) => {
+                    updateLeagueMutation.mutate(payload);
+                    setIsPublic(false);
+                  },
+                })
+              }
               disabled={updateLeagueMutation.isPending}
             />
           ) : (
             <Form.Button
               button={isPaying ? "Processing…" : "Switch to a Public League"}
               color={AccentColors.red}
-              onPress={handleRequestPurchase}
+              onPress={() =>
+                handleLeagueRequestPurchase({
+                  league,
+                  amountCents: 1500,
+                  formatAmount,
+                  runPayment,
+                  onConfirm: (payload) => {
+                    updateLeagueMutation.mutate(payload);
+                    setIsPublic(true);
+                  },
+                })
+              }
               disabled={isPaying}
             />
           )}
@@ -226,11 +260,53 @@ function LeagueSettingsContent() {
               deleteLeagueMutation.isPending ? "Deleting..." : "Delete League"
             }
             color={AccentColors.red}
-            onPress={handleDeleteLeague}
+            onPress={() =>
+              handleLeagueDelete({
+                onConfirm: () => deleteLeagueMutation.mutate(),
+              })
+            }
             disabled={deleteLeagueMutation.isPending}
           />
         </Form.Section>
       </Form>
     </ContentArea>
+  );
+}
+
+function LeagueTeamMenu({
+  onDelete,
+  canDelete,
+  children,
+}: Readonly<{
+  onDelete: () => void;
+  canDelete: boolean;
+  children: ReactNode;
+}>) {
+  if (!canDelete) {
+    return children;
+  }
+
+  if (isRunningInExpoGo) {
+    return <Pressable onLongPress={onDelete}>{children}</Pressable>;
+  }
+
+  return (
+    <ContextMenu
+      actions={[
+        {
+          title: "Remove Team",
+          systemIcon: "trash",
+          destructive: true,
+        },
+      ]}
+      onPress={(event) => {
+        if (event.nativeEvent.name === "Remove Team") {
+          onDelete();
+        }
+      }}
+      previewBackgroundColor="transparent"
+    >
+      {children}
+    </ContextMenu>
   );
 }

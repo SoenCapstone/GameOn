@@ -7,7 +7,7 @@ import {
   RefereeMatchInviteCard,
   TeamMatchInviteCard,
 } from "@/types/matches";
-import { LeagueInviteCard } from "@/components/leagues/league-invite-utils";
+import { LeagueInviteCard } from "@/types/leagues";
 import { getSportLogo } from "@/utils/search";
 
 const denyColor = "#ff5b55";

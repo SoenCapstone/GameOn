@@ -20,7 +20,7 @@ import {
   useAxiosWithClerk,
 } from "@/hooks/use-axios-clerk";
 import { errorToString } from "@/utils/error";
-import { fetchLeagueInvitesWithDetails } from "@/components/leagues/league-invite-utils";
+import { fetchLeagueInvitesWithDetails } from "@/utils/leagues";
 import {
   fetchIncomingRefereeInvites,
   fetchIncomingTeamMatchInvites,
