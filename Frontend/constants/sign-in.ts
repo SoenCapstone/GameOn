@@ -6,8 +6,8 @@ import {
   EMAIL_AUTO_CAPITALIZE,
   EMAIL_KEYBOARD_TYPE,
   passwordInput,
-} from "@/components/sign-up/constants";
-import { SignUpInputLabel } from "@/components/sign-up/models";
+} from "@/constants/sign-up";
+import { SignUpInputLabel } from "@/types/auth";
 
 export const initialSignInValue = {
   emailAddress: EMPTY_STRING,

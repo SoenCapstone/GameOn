@@ -1,19 +1,17 @@
-import { authStyles } from "@/constants/auth-styles";
 import { StyleSheet, View } from "react-native";
 import { WelcomeHero } from "@/components/auth/welcome-hero";
 import { PrivacyDisclaimer } from "@/components/privacy-disclaimer/privacy-disclaimer";
 import { WelcomeAuthButton } from "@/components/auth/welcome-auth-button";
-import { DevTools } from "@/components/auth/dev-login";
-import { runtime } from "@/utils/runtime";
 
 export default function WelcomeScreen() {
   return (
     <View style={styles.container}>
       <WelcomeHero top={144} styleRenderWidth={200} styleRenderHeight={200} />
-      <View style={authStyles.container}>
-        <WelcomeAuthButton route={"/(auth)/sign-in"} label={"Sign In"} />
-        <WelcomeAuthButton route="/(auth)/sign-up" label={"Create Account"} />
-        {(runtime.isRunningInExpoGo || runtime.isDevelopment) && <DevTools />}
+      <View style={styles.content}>
+        <View style={styles.buttons}>
+          <WelcomeAuthButton route="/(auth)/sign-in" label="Sign In" />
+          <WelcomeAuthButton route="/(auth)/sign-up" label="Create Account" />
+        </View>
         <PrivacyDisclaimer />
       </View>
     </View>
@@ -27,5 +25,11 @@ const styles = StyleSheet.create({
     paddingTop: 8,
     paddingHorizontal: 16,
     paddingBottom: 50,
+  },
+  content: {
+    gap: 20,
+  },
+  buttons: {
+    gap: 16,
   },
 });

@@ -24,7 +24,7 @@ import {
   useTeamsByIds,
 } from "@/hooks/use-matches";
 import { useLeagueDetail } from "@/hooks/use-league-detail";
-import { toast } from "@/components/sign-up/utils";
+import { toast } from "@/utils/sign-up";
 import { parseDraftDate } from "@/utils/date";
 import { createScopedLog } from "@/utils/logger";
 import { showScheduleSubmitError } from "@/utils/schedule-errors";

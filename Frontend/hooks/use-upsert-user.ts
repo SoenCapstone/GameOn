@@ -1,11 +1,11 @@
 import { useMutation } from "@tanstack/react-query";
-import { toast } from "@/components/sign-up/utils";
+import { toast } from "@/utils/sign-up";
 import {
   GO_USER_SERVICE_ROUTES,
   useAxiosWithClerk,
 } from "@/hooks/use-axios-clerk";
-import { SIGN_UP_SUCCESS_MESSAGE } from "@/components/sign-up/constants";
-import type { UpsertUserMutation } from "@/components/sign-up/models";
+import { SIGN_UP_SUCCESS_MESSAGE } from "@/constants/sign-up";
+import type { UpsertUserMutation } from "@/types/auth";
 
 export const useUpsertUser = (): UpsertUserMutation => {
   const api = useAxiosWithClerk();
