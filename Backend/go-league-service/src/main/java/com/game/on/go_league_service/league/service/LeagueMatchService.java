@@ -1,17 +1,13 @@
 package com.game.on.go_league_service.league.service;
 
 import com.game.on.go_league_service.client.TeamClient;
+import com.game.on.go_league_service.client.dto.TeamSummaryResponse;
 import com.game.on.go_league_service.config.CurrentUserProvider;
 import com.game.on.go_league_service.exception.BadRequestException;
 import com.game.on.go_league_service.exception.ConflictException;
 import com.game.on.go_league_service.exception.ForbiddenException;
 import com.game.on.go_league_service.exception.NotFoundException;
-import com.game.on.go_league_service.league.dto.AssignRefereeRequest;
-import com.game.on.go_league_service.league.dto.LeagueMatchCancelRequest;
-import com.game.on.go_league_service.league.dto.LeagueMatchCreateRequest;
-import com.game.on.go_league_service.league.dto.LeagueMatchResponse;
-import com.game.on.go_league_service.league.dto.LeagueMatchScheduleValidationResponse;
-import com.game.on.go_league_service.league.dto.LeagueMatchScoreRequest;
+import com.game.on.go_league_service.league.dto.*;
 import com.game.on.go_league_service.league.model.League;
 import com.game.on.go_league_service.league.model.LeagueMatch;
 import com.game.on.go_league_service.league.model.LeagueMatchScore;
@@ -29,12 +25,10 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
+import java.time.Duration;
 import java.time.LocalDate;
 import java.time.OffsetDateTime;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
-import java.util.UUID;
+import java.util.*;
 
 @Slf4j
 @Service
@@ -83,9 +77,6 @@ public class LeagueMatchService {
         League league = requireActiveLeague(leagueId);
         ensureLeagueOwner(league, userId);
 
-        if (Boolean.FALSE.equals(request.requiresReferee())) {
-            throw new BadRequestException("League matches require a referee");
-        }
         if (request.homeTeamId().equals(request.awayTeamId())) {
             throw new BadRequestException("homeTeamId and awayTeamId must be different");
         }
@@ -127,23 +118,30 @@ public class LeagueMatchService {
                 .scheduledDate(request.scheduledDate())
                 .matchLocation(venue.getName())
                 .venueId(venue.getId())
-                .requiresReferee(true)
+                .requiresReferee(Boolean.TRUE.equals(request.requiresReferee()))
                 .status(LeagueMatchStatus.CONFIRMED)
                 .createdByUserId(userId)
                 .build();
 
-        var referee = refereeProfileRepository.findById(request.refereeUserId())
-                .orElseThrow(() -> new NotFoundException("Referee not found"));
-        if (!referee.isActive()) {
-            throw new BadRequestException("Referee profile is inactive");
+        if (match.isRequiresReferee()) {
+            if (!StringUtils.hasText(request.refereeUserId())) {
+                throw new BadRequestException("refereeUserId is required when requiresReferee is true");
+            }
+
+            var referee = refereeProfileRepository.findById(request.refereeUserId())
+                    .orElseThrow(() -> new NotFoundException("Referee not found"));
+            if (!referee.isActive()) {
+                throw new BadRequestException("Referee profile is inactive");
+            }
+            ensureRefereeEligible(referee, match);
+            match.setRefereeUserId(referee.getUserId());
         }
-        ensureRefereeEligible(referee, match);
-        match.setRefereeUserId(referee.getUserId());
 
         var saved = leagueMatchRepository.save(match);
         log.info("league_match_created matchId={} leagueId={} byUser={}", saved.getId(), leagueId, userId);
         return toResponse(saved);
     }
+
 
     @Transactional(readOnly = true)
     public List<LeagueMatchResponse> listMatches(UUID leagueId) {
@@ -181,22 +179,28 @@ public class LeagueMatchService {
     @Transactional
     public void submitScore(UUID leagueId, UUID matchId, LeagueMatchScoreRequest request) {
         String userId = userProvider.clerkUserId();
-        League league = requireActiveLeague(leagueId);
+        requireActiveLeague(leagueId);
 
         var match = leagueMatchRepository.findByIdAndLeague_Id(matchId, leagueId)
                 .orElseThrow(() -> new NotFoundException("Match not found"));
+
+        if (match.getStatus() == LeagueMatchStatus.CANCELLED) {
+            throw new ConflictException("Cannot submit a score for a cancelled match");
+        }
+        if (match.getStatus() == LeagueMatchStatus.COMPLETED) {
+            throw new ConflictException("Final score already submitted");
+        }
 
         leagueMatchScoreRepository.findByMatch_Id(matchId).ifPresent(score -> {
             throw new ConflictException("Final score already submitted");
         });
 
-        if (StringUtils.hasText(match.getRefereeUserId())) {
-            if (!match.getRefereeUserId().equals(userId)) {
-                throw new ForbiddenException("Only the referee can submit the score");
-            }
-        } else if (!league.getOwnerUserId().equals(userId)) {
-            throw new ForbiddenException("Only the league owner can submit the score when no referee is assigned");
-        }
+        validateScoreSubmissionPermissions(match, userId);
+        validateSubmittedEndTime(match, request.endTime());
+
+        match.setEndTime(request.endTime());
+        match.setStatus(LeagueMatchStatus.COMPLETED);
+        leagueMatchRepository.save(match);
 
         LeagueMatchScore score = LeagueMatchScore.builder()
                 .match(match)
@@ -205,6 +209,63 @@ public class LeagueMatchService {
                 .submittedByUserId(userId)
                 .build();
         leagueMatchScoreRepository.save(score);
+    }
+
+    @Transactional(readOnly = true)
+    public LeagueTeamStatsResponse getTeamStats(UUID leagueId, UUID teamId) {
+        League league = requireActiveLeague(leagueId);
+        String userId = userProvider.clerkUserId();
+        if (!canViewLeague(league, userId)) {
+            throw new ForbiddenException("You do not have permission to view this league");
+        }
+        if (!leagueTeamRepository.existsByLeague_IdAndTeamId(leagueId, teamId)) {
+            throw new NotFoundException("Team is not part of this league");
+        }
+
+        List<LeagueMatch> completedMatches = leagueMatchRepository.findByLeague_IdOrderByStartTimeDesc(leagueId)
+                .stream()
+                .filter(match -> match.getStatus() == LeagueMatchStatus.COMPLETED)
+                .filter(match -> teamId.equals(match.getHomeTeamId()) || teamId.equals(match.getAwayTeamId()))
+                .sorted(Comparator.comparing(LeagueMatch::getStartTime))
+                .toList();
+
+        int points = 0;
+        int matches = 0;
+        int currentWinStreak = 0;
+        long minutesPlayed = 0;
+
+        for (LeagueMatch match : completedMatches) {
+            LeagueMatchScore score = leagueMatchScoreRepository.findByMatch_Id(match.getId()).orElse(null);
+            if (score == null) {
+                continue;
+            }
+
+            matches++;
+            minutesPlayed += calculateMinutesPlayed(match);
+
+            boolean isHome = teamId.equals(match.getHomeTeamId());
+            int teamScore = isHome ? score.getHomeScore() : score.getAwayScore();
+            int opponentScore = isHome ? score.getAwayScore() : score.getHomeScore();
+
+            if (teamScore > opponentScore) {
+                points += 3;
+                currentWinStreak++;
+            } else if (teamScore == opponentScore) {
+                points += 1;
+                currentWinStreak = 0;
+            } else {
+                currentWinStreak = 0;
+            }
+        }
+
+        return new LeagueTeamStatsResponse(
+                leagueId,
+                teamId,
+                points,
+                matches,
+                currentWinStreak,
+                minutesPlayed
+        );
     }
 
     @Transactional
@@ -274,6 +335,24 @@ public class LeagueMatchService {
     private void ensureLeagueOwner(League league, String userId) {
         if (!league.getOwnerUserId().equals(userId)) {
             throw new ForbiddenException("Only the league owner can perform this action");
+        }
+    }
+
+    private boolean canViewLeague(League league, String userId) {
+        if (league.getOwnerUserId().equals(userId)) {
+            return true;
+        }
+
+        try {
+            var memberships = teamClient.listTeams(true).items();
+            if (memberships == null || memberships.isEmpty()) {
+                return false;
+            }
+            var teamIds = memberships.stream().map(item -> item.id()).toList();
+            return leagueTeamRepository.existsByLeague_IdAndTeamIdIn(league.getId(), teamIds);
+        } catch (Exception ex) {
+            log.error("Failed to fetch current user teams while checking league visibility", ex);
+            return false;
         }
     }
 
@@ -411,5 +490,43 @@ public class LeagueMatchService {
             return trimToNull(venueService.requireVenue(match.getVenueId()).getRegion());
         }
         return trimToNull(match.getMatchLocation());
+    }
+
+    private void validateScoreSubmissionPermissions(LeagueMatch match, String userId) {
+        if (match.isRequiresReferee()) {
+            if (!StringUtils.hasText(match.getRefereeUserId())) {
+                throw new ConflictException("A referee must be assigned before the score can be submitted");
+            }
+            if (!match.getRefereeUserId().equals(userId)) {
+                throw new ForbiddenException("Only the assigned referee can submit the score");
+            }
+            return;
+        }
+
+        TeamSummaryResponse homeTeam = teamClient.getTeam(match.getHomeTeamId());
+        TeamSummaryResponse awayTeam = teamClient.getTeam(match.getAwayTeamId());
+        boolean isHomeOwner = userId.equals(homeTeam.ownerUserId());
+        boolean isAwayOwner = userId.equals(awayTeam.ownerUserId());
+
+        if (!isHomeOwner && !isAwayOwner) {
+            throw new ForbiddenException("Only one of the team owners can submit the score when no referee is required");
+        }
+    }
+
+    private void validateSubmittedEndTime(LeagueMatch match, OffsetDateTime submittedEndTime) {
+        if (submittedEndTime == null) {
+            throw new BadRequestException("endTime is required");
+        }
+        if (!match.getStartTime().isBefore(submittedEndTime)) {
+            throw new BadRequestException("endTime must be after the match startTime");
+        }
+    }
+
+    private long calculateMinutesPlayed(LeagueMatch match) {
+        if (match.getStartTime() == null || match.getEndTime() == null) {
+            return 0;
+        }
+        long minutes = Duration.between(match.getStartTime(), match.getEndTime()).toMinutes();
+        return Math.max(minutes, 0);
     }
 }
