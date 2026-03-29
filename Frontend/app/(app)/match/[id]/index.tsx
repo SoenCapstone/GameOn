@@ -1,34 +1,51 @@
-import { useCallback, useMemo } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { ActivityIndicator, Alert, StyleSheet, Text, View } from "react-native";
-import { useLocalSearchParams } from "expo-router";
+import {
+  RelativePathString,
+  useLocalSearchParams,
+  useRouter,
+} from "expo-router";
 import { useAuth } from "@clerk/clerk-expo";
 import { useQueryClient } from "@tanstack/react-query";
-import { useLeagueDetail } from "@/hooks/use-league-detail";
 import { MatchDetailsContent } from "@/components/matches/match-details-content";
-import { useMatchPresentation } from "@/hooks/use-match-presentation";
-import { isCancelledMatchStatus, isPastMatch } from "@/utils/matches";
-import { errorToString } from "@/utils/error";
+import { MATCH_DETAILS_DEFAULTS } from "@/constants/match-details";
+import { useLeagueDetail } from "@/hooks/use-league-detail";
 import {
   useCancelLeagueMatch,
   useCancelTeamMatch,
   useLeagueVenue,
   useLeaguesByIds,
   useLeagueMatches,
+  useMatchMembersByTeam,
   useTeamVenue,
-  useTeamMatches,
   useTeamMatch,
+  useTeamMatches,
   useTeamsByIds,
+  useUpdateMatchAttendance,
 } from "@/hooks/use-matches";
+import { useRefereeName } from "@/hooks/use-referee-name";
+import { useTeamDetail } from "@/hooks/use-team-detail";
+import type {
+  MatchAttendanceAction,
+  MatchDetailsDisplayMatch,
+  MatchDetailsRouteParams,
+} from "@/types/match-details";
+import { errorToString } from "@/utils/error";
 import {
+  canUserCancelMatch,
+  canUserSubmitMatchScore,
   getContextLabel,
+  getMatchAttendanceAction,
   getIsMatchLoading,
+  getMatchLeagueId,
   getMatchScores,
-  getTeamContextLeagueId,
+  getMatchTeamIds,
+  isLeagueMatch,
 } from "@/utils/match-details";
 
 function renderMatchLoadingState(
   isMatchLoading: boolean,
-  displayMatch: unknown,
+  displayMatch: MatchDetailsDisplayMatch | undefined,
 ) {
   if (isMatchLoading && !displayMatch) {
     return (
@@ -42,184 +59,242 @@ function renderMatchLoadingState(
 }
 
 export default function MatchDetailsScreen() {
-  const params = useLocalSearchParams<{
-    id?: string;
-    context?: "team" | "league";
-    contextId?: string;
-    homeName?: string;
-    awayName?: string;
-    homeLogoUrl?: string;
-    awayLogoUrl?: string;
-  }>();
-
+  const params = useLocalSearchParams<MatchDetailsRouteParams>();
   const matchId = params.id ?? "";
-  const context = params.context ?? "team";
-  const contextId = params.contextId ?? "";
+  const space = params.space;
+  const spaceId = params.spaceId ?? "";
+  const router = useRouter();
 
-  const teamMatchQuery = useTeamMatch(context === "team" ? matchId : "");
-  const teamMatchesQuery = useTeamMatches(context === "team" ? contextId : "");
+  const teamMatchQuery = useTeamMatch(space === "league" ? "" : matchId);
+  const teamMatchesQuery = useTeamMatches(space === "team" ? spaceId : "");
+  const leagueMatchesQuery = useLeagueMatches(
+    space === "league" ? spaceId : "",
+  );
+
   const teamListMatch =
-    context === "team"
-      ? teamMatchesQuery.data?.find((m) => m.id === matchId)
+    space === "team"
+      ? teamMatchesQuery.data?.find((match) => match.id === matchId)
       : undefined;
-  const match = teamMatchQuery.data ?? teamListMatch;
-
-  const { data: leagueMatches = [] } = useLeagueMatches(
-    context === "league" ? contextId : "",
-  );
-  const leagueMatch =
-    context === "league" ? leagueMatches.find((m) => m.id === matchId) : null;
-
-  const { league, isOwner } = useLeagueDetail(
-    context === "league" ? contextId : "",
-  );
-
-  const displayMatch = leagueMatch || match;
+  const leagueListMatch =
+    space === "league"
+      ? leagueMatchesQuery.data?.find((match) => match.id === matchId)
+      : undefined;
+  const displayMatch = teamMatchQuery.data ?? teamListMatch ?? leagueListMatch;
 
   const { userId } = useAuth();
   const queryClient = useQueryClient();
+  const [hasSubmittedAttendance, setHasSubmittedAttendance] = useState(false);
+  const leagueId =
+    getMatchLeagueId(displayMatch) || (space === "league" ? spaceId : "");
+  const { league, isOwner: isLeagueOwner } = useLeagueDetail(leagueId);
+  const cancelLeagueMutation = useCancelLeagueMatch(leagueId);
   const cancelTeamMutation = useCancelTeamMatch();
-  const cancelLeagueMutation = useCancelLeagueMatch(
-    context === "league" ? contextId : "",
+  const attendanceMutation = useUpdateMatchAttendance();
+
+  const teamIds = useMemo(() => getMatchTeamIds(displayMatch), [displayMatch]);
+  const teamsQuery = useTeamsByIds(teamIds);
+  const teamDetail = useTeamDetail(space === "team" ? spaceId : "");
+  const matchMembersQuery = useMatchMembersByTeam(
+    matchId,
+    space === "team" ? spaceId : "",
   );
+  const matchLeagueQuery = useLeaguesByIds(
+    space !== "league" && leagueId ? [leagueId] : [],
+  );
+  const refereeNameQuery = useRefereeName(displayMatch?.refereeUserId);
 
-  const cancelTeamIds = useMemo(() => {
-    if (
-      context !== "team" ||
-      !displayMatch ||
-      typeof displayMatch !== "object"
-    ) {
-      return [];
-    }
-    if (!("homeTeamId" in displayMatch) || !("awayTeamId" in displayMatch)) {
-      return [];
-    }
-    const home = displayMatch.homeTeamId;
-    const away = displayMatch.awayTeamId;
-    return typeof home === "string" && typeof away === "string"
-      ? [home, away]
-      : [];
-  }, [context, displayMatch]);
-
-  const teamsForCancelQuery = useTeamsByIds(cancelTeamIds);
-
-  const canCancelMatch = useMemo(() => {
-    if (!displayMatch || typeof displayMatch !== "object") return false;
-    if (
-      !("startTime" in displayMatch) ||
-      typeof displayMatch.startTime !== "string"
-    ) {
-      return false;
-    }
-    if (isPastMatch(displayMatch.startTime)) return false;
-    if (
-      "status" in displayMatch &&
-      typeof displayMatch.status === "string" &&
-      isCancelledMatchStatus(displayMatch.status)
-    ) {
-      return false;
+  const canCancel = useMemo(
+    () =>
+      canUserCancelMatch({
+        isLeagueOwner,
+        match: displayMatch,
+        teamSummaryMap: teamsQuery.data,
+        userId,
+      }),
+    [displayMatch, isLeagueOwner, teamsQuery.data, userId],
+  );
+  const canSubmitScore = useMemo(
+    () =>
+      canUserSubmitMatchScore({
+        match: displayMatch,
+        teamSummaryMap: teamsQuery.data,
+        userId,
+      }),
+    [displayMatch, teamsQuery.data, userId],
+  );
+  const persistedAttendanceStatus = matchMembersQuery.data?.find(
+    (member) => member.userId === userId,
+  )?.status;
+  const hasRespondedToAttendance = useMemo(() => {
+    if (hasSubmittedAttendance) {
+      return true;
     }
 
-    if (context === "league") {
-      return isOwner;
+    if (teamDetail.role === "REPLACEMENT") {
+      return persistedAttendanceStatus === "CONFIRMED";
     }
 
-    const isLeagueMatch =
-      "leagueId" in displayMatch &&
-      typeof displayMatch.leagueId === "string" &&
-      Boolean(displayMatch.leagueId);
-    if (isLeagueMatch) return false;
-    if (!userId) return false;
-    if (!("homeTeamId" in displayMatch) || !("awayTeamId" in displayMatch)) {
-      return false;
+    if (teamDetail.role === "PLAYER") {
+      return persistedAttendanceStatus === "DECLINED";
     }
-    const homeOwnerId =
-      teamsForCancelQuery.data?.[displayMatch.homeTeamId]?.ownerUserId;
-    const awayOwnerId =
-      teamsForCancelQuery.data?.[displayMatch.awayTeamId]?.ownerUserId;
-    return Boolean(
-      (homeOwnerId && homeOwnerId === userId) ||
-        (awayOwnerId && awayOwnerId === userId),
-    );
-  }, [context, displayMatch, isOwner, userId, teamsForCancelQuery.data]);
 
-  const onConfirmCancelMatch = useCallback(async () => {
-    if (
-      !displayMatch ||
-      typeof displayMatch !== "object" ||
-      !("id" in displayMatch)
-    ) {
+    return false;
+  }, [hasSubmittedAttendance, persistedAttendanceStatus, teamDetail.role]);
+  const homeTeam = displayMatch
+    ? teamsQuery.data?.[displayMatch.homeTeamId]
+    : undefined;
+  const awayTeam = displayMatch
+    ? teamsQuery.data?.[displayMatch.awayTeamId]
+    : undefined;
+  const homeTeamName =
+    homeTeam?.name ??
+    params.homeName?.trim() ??
+    MATCH_DETAILS_DEFAULTS.homeTeamName;
+  const awayTeamName =
+    awayTeam?.name ??
+    params.awayName?.trim() ??
+    MATCH_DETAILS_DEFAULTS.awayTeamName;
+  const homeTeamLogoUrl =
+    homeTeam?.logoUrl ?? params.homeLogoUrl?.trim() ?? undefined;
+  const awayTeamLogoUrl =
+    awayTeam?.logoUrl ?? params.awayLogoUrl?.trim() ?? undefined;
+  const attendanceAction = useMemo<MatchAttendanceAction | null>(() => {
+    const action = getMatchAttendanceAction({
+      hasResponded: hasRespondedToAttendance,
+      isActiveMember: teamDetail.isActiveMember,
+      match: displayMatch,
+      role: teamDetail.role,
+      space,
+      spaceId,
+    });
+
+    if (!action) {
+      return null;
+    }
+
+    return {
+      ...action,
+      title: `${homeTeamName} vs ${awayTeamName}`,
+    };
+  }, [
+    awayTeamName,
+    displayMatch,
+    hasRespondedToAttendance,
+    homeTeamName,
+    space,
+    spaceId,
+    teamDetail.isActiveMember,
+    teamDetail.role,
+  ]);
+
+  const onSubmitScore = useCallback(() => {
+    if (!displayMatch || !canSubmitScore) {
       return;
     }
-    if (!canCancelMatch) return;
-    const mid = displayMatch.id as string;
+
+    router.push({
+      pathname: `/match/${displayMatch.id}/score` as RelativePathString,
+      params: {
+        awayName: awayTeamName,
+        homeName: homeTeamName,
+        spaceId,
+      },
+    });
+  }, [
+    awayTeamName,
+    canSubmitScore,
+    displayMatch,
+    homeTeamName,
+    router,
+    spaceId,
+  ]);
+
+  const onConfirmCancelMatch = useCallback(async () => {
+    if (!displayMatch || !canCancel) {
+      return;
+    }
+
     try {
-      if (context === "league") {
-        await cancelLeagueMutation.mutateAsync({ matchId: mid });
-        await queryClient.invalidateQueries({
-          queryKey: ["league-matches", contextId],
-        });
-      } else {
-        await cancelTeamMutation.mutateAsync({ matchId: mid });
+      if (isLeagueMatch(displayMatch)) {
+        await cancelLeagueMutation.mutateAsync({ matchId: displayMatch.id });
         await Promise.all([
-          queryClient.invalidateQueries({ queryKey: ["team-match", mid] }),
           queryClient.invalidateQueries({
-            queryKey: ["team-matches", contextId],
+            queryKey: ["league-matches", leagueId],
           }),
+          space === "team" && spaceId
+            ? queryClient.invalidateQueries({
+                queryKey: ["team-matches", spaceId],
+              })
+            : Promise.resolve(),
+        ]);
+      } else {
+        await cancelTeamMutation.mutateAsync({ matchId: displayMatch.id });
+        await Promise.all([
+          queryClient.invalidateQueries({
+            queryKey: ["team-match", displayMatch.id],
+          }),
+          spaceId
+            ? queryClient.invalidateQueries({
+                queryKey: ["team-matches", spaceId],
+              })
+            : Promise.resolve(),
         ]);
       }
     } catch (err) {
       Alert.alert("Cancel failed", errorToString(err));
     }
   }, [
-    displayMatch,
-    canCancelMatch,
-    context,
-    contextId,
+    canCancel,
     cancelLeagueMutation,
     cancelTeamMutation,
+    displayMatch,
+    leagueId,
     queryClient,
+    space,
+    spaceId,
   ]);
+  const onConfirmAttendanceAction = useCallback(async () => {
+    if (!displayMatch || !attendanceAction || !spaceId) {
+      return;
+    }
+
+    try {
+      await attendanceMutation.mutateAsync({
+        matchId: displayMatch.id,
+        attending: attendanceAction.attending,
+      });
+      setHasSubmittedAttendance(true);
+      await queryClient.invalidateQueries({
+        queryKey: ["match-members-by-team", displayMatch.id, spaceId],
+      });
+    } catch (err) {
+      Alert.alert("Attendance update failed", errorToString(err));
+    }
+  }, [attendanceAction, attendanceMutation, displayMatch, queryClient, spaceId]);
 
   const venueId = displayMatch?.venueId ?? "";
-  const isLeagueContextMatch = Boolean(
-    displayMatch && "leagueId" in displayMatch,
-  );
+  const displayMatchIsLeague = isLeagueMatch(displayMatch);
   const teamVenueQuery = useTeamVenue(
     venueId,
-    Boolean(venueId) && !isLeagueContextMatch,
+    Boolean(venueId) && !displayMatchIsLeague,
   );
   const leagueVenueQuery = useLeagueVenue(
     venueId,
-    Boolean(venueId) && isLeagueContextMatch,
+    Boolean(venueId) && displayMatchIsLeague,
   );
-  const venue = isLeagueContextMatch
+  const venue = displayMatchIsLeague
     ? leagueVenueQuery.data
     : teamVenueQuery.data;
   const { homeScore, awayScore } = getMatchScores(displayMatch);
-  const HomeName = params.homeName?.trim() || "Home Team";
-  const AwayName = params.awayName?.trim() || "Away Team";
-  const HomeLogoUrl = params.homeLogoUrl?.trim() || undefined;
-  const AwayLogoUrl = params.awayLogoUrl?.trim() || undefined;
-  const teamContextLeagueId = getTeamContextLeagueId(context, displayMatch);
-  const { data: teamContextLeagueMap } = useLeaguesByIds(
-    teamContextLeagueId ? [teamContextLeagueId] : [],
-  );
   const contextLabel = getContextLabel({
-    context,
     leagueName: league?.name,
-    teamContextLeagueId,
-    teamContextLeagueMap,
+    matchLeagueName: matchLeagueQuery.data?.[leagueId]?.name,
+    space,
   });
-  const { homeTeam, awayTeam, refereeName } =
-    useMatchPresentation(displayMatch);
-  const HomeTeamName = homeTeam?.name ?? HomeName;
-  const AwayTeamName = awayTeam?.name ?? AwayName;
-  const HomeTeamLogoUrl = homeTeam?.logoUrl ?? HomeLogoUrl;
-  const AwayTeamLogoUrl = awayTeam?.logoUrl ?? AwayLogoUrl;
   const isMatchLoading = getIsMatchLoading({
-    context,
-    teamMatchLoading: teamMatchQuery.isLoading,
+    directMatchLoading: teamMatchQuery.isLoading,
+    leagueMatchesLoading: leagueMatchesQuery.isLoading,
+    space,
     teamMatchesLoading: teamMatchesQuery.isLoading,
   });
   const loadingState = renderMatchLoadingState(isMatchLoading, displayMatch);
@@ -236,17 +311,23 @@ export default function MatchDetailsScreen() {
     <MatchDetailsContent
       startTime={displayMatch.startTime}
       status={displayMatch.status}
-      canCancelMatch={canCancelMatch}
-      onConfirmCancelMatch={canCancelMatch ? onConfirmCancelMatch : undefined}
-      homeTeamName={HomeTeamName}
-      awayTeamName={AwayTeamName}
+      attendanceAction={attendanceAction}
+      onConfirmAttendanceAction={
+        attendanceAction ? onConfirmAttendanceAction : undefined
+      }
+      canCancelMatch={canCancel}
+      onConfirmCancelMatch={canCancel ? onConfirmCancelMatch : undefined}
+      canSubmitScore={canSubmitScore}
+      onSubmitScore={canSubmitScore ? onSubmitScore : undefined}
+      homeTeamName={homeTeamName}
+      awayTeamName={awayTeamName}
       homeScore={homeScore}
       awayScore={awayScore}
-      homeTeamLogoUrl={HomeTeamLogoUrl}
-      awayTeamLogoUrl={AwayTeamLogoUrl}
+      homeTeamLogoUrl={homeTeamLogoUrl}
+      awayTeamLogoUrl={awayTeamLogoUrl}
       sport={displayMatch.sport}
       contextLabel={contextLabel}
-      refereeName={refereeName}
+      refereeName={refereeNameQuery.data ?? undefined}
       venueName={venue?.name ?? displayMatch.matchLocation}
       venueLocationLabel={venue ? `${venue.city}, ${venue.province}` : null}
       venueAddress={

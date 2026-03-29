@@ -2,13 +2,13 @@ import React from "react";
 import { render, fireEvent, waitFor, act } from "@testing-library/react-native";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import ScheduleTeamMatchScreen from "@/app/(app)/teams/[id]/matches/schedule";
-
 const mockSetOptions = jest.fn();
 const mockReplace = jest.fn();
 const mockDismissTo = jest.fn();
 const mockPush = jest.fn();
 const mockBack = jest.fn();
 const mockCreateTeamMatch = jest.fn();
+const mockValidateTeamMatchSchedule = jest.fn();
 const mockApiGet = jest.fn();
 const mockToast = jest.fn();
 const mockAlert = jest.fn();
@@ -26,18 +26,20 @@ jest.mock("expo-router", () => ({
   }),
 }));
 
-jest.mock("@/components/ui/content-area", () => {
-  const ReactMock = jest.requireActual("react");
-  return {
-    ContentArea: ({
-      children,
-      toolbar,
-    }: {
-      children: React.ReactNode;
-      toolbar?: React.ReactNode;
-    }) => ReactMock.createElement(ReactMock.Fragment, null, toolbar, children),
-  };
-});
+jest.mock("@/components/ui/content-area", () => ({
+  ContentArea: ({
+    children,
+    toolbar,
+  }: {
+    children: React.ReactNode;
+    toolbar?: React.ReactNode;
+  }) => (
+    <>
+      {toolbar}
+      {children}
+    </>
+  ),
+}));
 
 jest.mock("@/components/header/header", () => ({
   Header: ({ right }: { right: React.ReactNode }) => {
@@ -71,6 +73,18 @@ jest.mock("@/components/ui/button", () => ({
       },
       ReactMock.createElement(Text, null, label),
     );
+  },
+}));
+
+jest.mock("@/components/form/form-toolbar", () => ({
+  FormToolbar: ({
+    onSubmit,
+  }: {
+    onSubmit: () => void | Promise<void>;
+  }) => {
+    capturedSubmit = onSubmit;
+    scheduleHeaderRenderCount += 1;
+    return null;
   },
 }));
 
@@ -173,6 +187,10 @@ jest.mock("@/hooks/use-matches", () => ({
     mutateAsync: mockCreateTeamMatch,
     isPending: false,
   }),
+  useValidateTeamMatchSchedule: () => ({
+    mutateAsync: mockValidateTeamMatchSchedule,
+    isPending: false,
+  }),
   useReferees: () => ({
     data: [{ userId: "ref-1" }],
     isLoading: false,
@@ -210,21 +228,13 @@ jest.mock("@/utils/logger", () => ({
   }),
 }));
 
-jest.mock("@/utils/matches", () => {
-  const actual = jest.requireActual("@/utils/matches");
+jest.mock("@/utils/date", () => {
+  const actual = jest.requireActual("@/utils/date");
   return {
     ...actual,
     isValidTimeRange: () => true,
   };
 });
-
-jest.mock("@/components/form/form-toolbar", () => ({
-  FormToolbar: ({ onSubmit }: { onSubmit: () => void | Promise<void> }) => {
-    capturedSubmit = onSubmit;
-    scheduleHeaderRenderCount += 1;
-    return null;
-  },
-}));
 
 async function submitSchedule() {
   if (!capturedSubmit) {
@@ -257,6 +267,7 @@ describe("ScheduleTeamMatchScreen", () => {
       match: { id: "m1" },
       refereeInviteSent: true,
     });
+    mockValidateTeamMatchSchedule.mockResolvedValue({ allowed: true });
     mockApiGet.mockImplementation((url: string) => {
       if (url === "/teams") {
         return Promise.resolve({
@@ -305,6 +316,7 @@ describe("ScheduleTeamMatchScreen", () => {
     await submitSchedule();
 
     await waitFor(() => expect(mockCreateTeamMatch).toHaveBeenCalledTimes(1));
+    expect(mockValidateTeamMatchSchedule).toHaveBeenCalledTimes(1);
 
     expect(mockCreateTeamMatch).toHaveBeenCalledWith(
       expect.objectContaining({
@@ -347,6 +359,7 @@ describe("ScheduleTeamMatchScreen", () => {
     await submitSchedule();
 
     await waitFor(() => expect(mockCreateTeamMatch).toHaveBeenCalledTimes(1));
+    expect(mockValidateTeamMatchSchedule).toHaveBeenCalledTimes(1);
 
     expect(mockCreateTeamMatch).toHaveBeenCalledWith(
       expect.objectContaining({
@@ -356,6 +369,34 @@ describe("ScheduleTeamMatchScreen", () => {
         requiresReferee: true,
         refereeUserId: "ref-1",
       }) as unknown,
+    );
+  });
+
+  it("blocks submission when backend validation reports a schedule conflict", async () => {
+    mockValidateTeamMatchSchedule.mockResolvedValue({
+      allowed: false,
+      code: "TEAM_TIME_SLOT_CONFLICT",
+      conflictingTeamIds: ["team-2"],
+    });
+
+    const { getByTestId } = render(
+      <QueryClientProvider client={queryClient}>
+        <ScheduleTeamMatchScreen />
+      </QueryClientProvider>,
+    );
+
+    await waitFor(() =>
+      expect(getByTestId("menu-away-team-rivals")).toBeTruthy(),
+    );
+    fireEvent.press(getByTestId("menu-away-team-rivals"));
+    fireEvent.press(getByTestId("menu-venue-stadium"));
+    await submitSchedule();
+
+    expect(mockValidateTeamMatchSchedule).toHaveBeenCalledTimes(1);
+    expect(mockCreateTeamMatch).not.toHaveBeenCalled();
+    expect(mockAlert).toHaveBeenCalledWith(
+      "Match schedule failed",
+      "Rivals already has a confirmed match that overlaps this time or falls within the required 60-minute buffer.",
     );
   });
 });

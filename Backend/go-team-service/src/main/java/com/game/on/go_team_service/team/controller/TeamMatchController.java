@@ -3,6 +3,9 @@ package com.game.on.go_team_service.team.controller;
 import com.game.on.go_team_service.team.dto.TeamMatchCancelRequest;
 import com.game.on.go_team_service.team.dto.TeamMatchCreateRequest;
 import com.game.on.go_team_service.team.dto.TeamMatchResponse;
+import com.game.on.go_team_service.team.dto.TeamMatchMemberResponse;
+import com.game.on.go_team_service.team.dto.UpdateMatchAttendanceRequest;
+import com.game.on.go_team_service.team.dto.TeamMatchScheduleValidationResponse;
 import com.game.on.go_team_service.team.dto.TeamMatchScoreRequest;
 import com.game.on.go_team_service.team.service.TeamMatchService;
 import jakarta.validation.Valid;
@@ -17,6 +20,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 @RestController
@@ -31,6 +35,14 @@ public class TeamMatchController {
                                                                @Valid @RequestBody TeamMatchCreateRequest request) {
         var response = teamMatchService.createMatchInvite(teamId, request);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
+    }
+
+    @PostMapping("/teams/{teamId}/matches/validate")
+    public ResponseEntity<TeamMatchScheduleValidationResponse> validateMatchInvite(
+            @PathVariable UUID teamId,
+            @Valid @RequestBody TeamMatchCreateRequest request
+    ) {
+        return ResponseEntity.ok(teamMatchService.validateMatchInvite(teamId, request));
     }
 
     @GetMapping("/teams/{teamId}/matches")
@@ -70,5 +82,29 @@ public class TeamMatchController {
     public ResponseEntity<Void> assignReferee(@PathVariable UUID matchId) {
         teamMatchService.assignReferee(matchId);
         return ResponseEntity.noContent().build();
+    }
+
+    @PostMapping("/matches/{matchId}/members/attendance")
+    public ResponseEntity<Void> updateAttendance(
+            @PathVariable UUID matchId,
+            @RequestBody UpdateMatchAttendanceRequest request
+    ) {
+        teamMatchService.updateAttendance(matchId, request);
+        return ResponseEntity.noContent().build();
+    }
+
+    @GetMapping("/matches/{matchId}/members")
+    public ResponseEntity<Map<UUID, List<TeamMatchMemberResponse>>> getMatchMembers(@PathVariable UUID matchId) {
+        return ResponseEntity.ok(teamMatchService.getMatchMembers(matchId));
+
+    }
+
+    @GetMapping("/matches/{matchId}/teams/{teamId}/members")
+    public ResponseEntity<List<TeamMatchMemberResponse>> getTeamMembers(
+            @PathVariable UUID matchId,
+            @PathVariable UUID teamId
+    ) {
+        List<TeamMatchMemberResponse> members = teamMatchService.getMatchMembersByTeam(matchId, teamId);
+        return ResponseEntity.ok(members);
     }
 }

@@ -233,6 +233,7 @@ public class TeamService {
                             user.email(),
                             user.firstname(),
                             user.lastname(),
+                            user.imageUrl(),
                             member.getRole(),
                             member.getStatus(),
                             member.getJoinedAt()
@@ -441,6 +442,60 @@ public class TeamService {
         membership.setRole(TeamRole.PLAYER);
         var saved = teamMemberRepository.save(membership);
         log.info("team_member_self_demoted teamId={} userId={}", teamId, userId);
+        return teamMapper.toMember(saved);
+    }
+
+    @Transactional
+    public TeamMemberResponse updateMemberRole(UUID teamId, String targetUserId, TeamRole newRole) {
+        String callerId = userProvider.clerkUserId();
+
+        requireActiveTeam(teamId);
+        var callerMembership = requireActiveMembership(teamId, callerId);
+        var targetMembership = teamMemberRepository.findByTeamIdAndUserId(teamId, targetUserId)
+                .filter(m -> m.getStatus() == TeamMemberStatus.ACTIVE)
+                .orElseThrow(() -> new NotFoundException("Member not found"));
+
+        // Cannot change the owner's role — use transfer-ownership instead
+        if (targetMembership.getRole() == TeamRole.OWNER) {
+            throw new ForbiddenException("Cannot change the owner's role. Use transfer ownership instead.");
+        }
+
+        // Cannot assign OWNER via this endpoint
+        if (newRole == TeamRole.OWNER) {
+            throw new BadRequestException("Cannot assign OWNER role. Use the transfer ownership endpoint.");
+        }
+
+        // Cannot change your own role
+        if (callerId.equals(targetUserId)) {
+            throw new ForbiddenException("Cannot change your own role");
+        }
+
+        // No-op if already that role
+        if (targetMembership.getRole() == newRole) {
+            return teamMapper.toMember(targetMembership);
+        }
+
+        // Permission check: only OWNER and MANAGER can change roles
+        ensureRole(callerMembership, Set.of(TeamRole.OWNER, TeamRole.MANAGER),
+                "Only owners or managers can change member roles");
+
+        // Manager-specific restrictions
+        if (callerMembership.getRole() == TeamRole.MANAGER) {
+            // Managers can only change PLAYER and COACH roles
+            if (targetMembership.getRole() != TeamRole.PLAYER
+                    && targetMembership.getRole() != TeamRole.COACH) {
+                throw new ForbiddenException("Managers can only change the role of players and coaches");
+            }
+            // Managers cannot promote anyone to MANAGER
+            if (newRole == TeamRole.MANAGER) {
+                throw new ForbiddenException("Managers cannot grant manager access");
+            }
+        }
+
+        targetMembership.setRole(newRole);
+        var saved = teamMemberRepository.save(targetMembership);
+        log.info("Role updated: teamId={} targetUserId={} newRole={} byUser={}",
+                teamId, targetUserId, newRole, callerId);
         return teamMapper.toMember(saved);
     }
 

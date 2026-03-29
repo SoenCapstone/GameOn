@@ -1,11 +1,7 @@
-import React from "react";
 import { Pressable, Text, View, StyleSheet } from "react-native";
 import { Image } from "expo-image";
 import { getSportLogo } from "@/utils/search";
-import {
-  formatMatchDateTime,
-  isCancelledMatchStatus,
-} from "@/utils/matches";
+import { formatMatchDateTime, isCancelledMatchStatus } from "@/utils/matches";
 import { Card } from "@/components/ui/card";
 
 interface MatchCardProps {
@@ -56,8 +52,8 @@ export function MatchCard({
   };
 
   return (
-    <Card>
-      <Pressable onPress={onPress}>
+    <Pressable onPress={onPress}>
+      <Card isInteractive={Boolean(onPress)}>
         <View style={styles.content}>
           <View style={styles.top}>
             <Image
@@ -93,8 +89,8 @@ export function MatchCard({
             </View>
           </View>
         </View>
-      </Pressable>
-    </Card>
+      </Card>
+    </Pressable>
   );
 }
 

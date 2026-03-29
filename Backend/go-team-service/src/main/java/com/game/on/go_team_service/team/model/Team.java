@@ -68,6 +68,22 @@ public class Team {
     @Column(nullable = false, length = 20)
     private TeamPrivacy privacy;
 
+    @Builder.Default
+    @Column(name = "total_points", nullable = false)
+    private Integer totalPoints = 0;
+
+    @Builder.Default
+    @Column(name = "total_matches", nullable = false)
+    private Integer totalMatches = 0;
+
+    @Builder.Default
+    @Column(name = "win_streak", nullable = false)
+    private Integer winStreak = 0;
+
+    @Builder.Default
+    @Column(name = "minutes_played", nullable = false)
+    private Integer minutesPlayed = 0;
+
     @CreatedDate
     @Column(name = "created_at", nullable = false, updatable = false)
     private OffsetDateTime createdAt;

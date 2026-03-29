@@ -1,9 +1,9 @@
 import { useCallback, useMemo, useState } from "react";
 import {
+  View,
   ActivityIndicator,
   RefreshControl,
   StyleSheet,
-  View,
 } from "react-native";
 import {
   RelativePathString,
@@ -184,6 +184,7 @@ function TeamContent() {
     error: matchesError,
     refetch: refetchMatches,
   } = useTeamMatches(id);
+
   const teamIds = useMemo(
     () =>
       Array.from(new Set(matches.flatMap((m) => [m.homeTeamId, m.awayTeamId]))),
@@ -204,12 +205,13 @@ function TeamContent() {
   const leaguesQuery = useLeaguesByIds(leagueIds);
 
   const matchItems = useMemo(() => {
-    return buildMatchCards(matches, teamsQuery.data, (match) => {
+    const items = buildMatchCards(matches, teamsQuery.data, (match) => {
       if ("leagueId" in match && match.leagueId) {
         return leaguesQuery.data?.[match.leagueId]?.name ?? "League Match";
       }
       return "Team Match";
     });
+    return items;
   }, [matches, teamsQuery.data, leaguesQuery.data]);
 
   const {
@@ -321,8 +323,8 @@ function TeamContent() {
                   router.push({
                     pathname: `/match/${match.id}` as RelativePathString,
                     params: {
-                      context: "team",
-                      contextId: id,
+                      space: "team",
+                      spaceId: id,
                       homeName: match.homeName,
                       awayName: match.awayName,
                       homeLogoUrl: match.homeLogoUrl ?? "",

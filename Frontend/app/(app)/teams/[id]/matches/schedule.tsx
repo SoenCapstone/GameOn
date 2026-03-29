@@ -18,17 +18,22 @@ import {
 import {
   useCreateTeamMatch,
   useReferees,
+  useValidateTeamMatchSchedule,
   useTeamVenues,
 } from "@/hooks/use-matches";
 import {
   buildVenueOptionMaps,
   buildVenueOptions,
+  getBlockedScheduleValidationMessage,
+  resolveSelectedVenueLabel,
+} from "@/utils/schedule";
+import { toast } from "@/utils/sign-up";
+import {
   buildStartEndIso,
   isValidTimeRange,
-  resolveSelectedVenueLabel,
-} from "@/utils/matches";
-import { toast } from "@/utils/sign-up";
-import { parseDraftDate } from "@/utils/date";
+  formatLocalDateString,
+  parseDraftDate,
+} from "@/utils/date";
 import { createScopedLog } from "@/utils/logger";
 import { showScheduleSubmitError } from "@/utils/schedule-errors";
 import { useRefereeOptions } from "@/hooks/use-referee-options";
@@ -155,6 +160,7 @@ export default function ScheduleTeamMatchScreen() {
   });
 
   const createMutation = useCreateTeamMatch(teamId);
+  const validateMutation = useValidateTeamMatchSchedule(teamId);
 
   const teamNameToId = useMemo(
     () =>
@@ -166,6 +172,19 @@ export default function ScheduleTeamMatchScreen() {
   const awayTeamOptions = awayTeams.map((candidate) => candidate.name);
   const { refereeOptions, refereeLabelToId, refereeIdToLabel } =
     useRefereeOptions(refereesQuery.data);
+  const scheduleTeamNamesById = useMemo(
+    () => ({
+      ...(teamId ? { [teamId]: team?.name ?? "Home team" } : {}),
+      ...(awayTeamId
+        ? {
+            [awayTeamId]:
+              awayTeams.find((candidate) => candidate.id === awayTeamId)?.name ??
+              "Away team",
+          }
+        : {}),
+    }),
+    [awayTeamId, awayTeams, team?.name, teamId],
+  );
 
   useEffect(() => {
     if (teamSearch.error) {
@@ -198,6 +217,10 @@ export default function ScheduleTeamMatchScreen() {
       Alert.alert("Match schedule failed", "Away team is required");
       return;
     }
+    if (awayTeamId === teamId) {
+      Alert.alert("Match schedule failed", "Home and away teams must be different");
+      return;
+    }
     if (!venueId) {
       Alert.alert("Match schedule failed", "Venue is required");
       return;
@@ -219,12 +242,34 @@ export default function ScheduleTeamMatchScreen() {
       startTimeValue,
       endTimeValue,
     );
+    const scheduledDate = formatLocalDateString(date);
 
     try {
+      const validation = await validateMutation.mutateAsync({
+        homeTeamId: teamId,
+        awayTeamId,
+        sport: team?.sport ?? undefined,
+        scheduledDate,
+        startTime,
+        endTime,
+        venueId,
+        requiresReferee,
+      });
+
+      const validationMessage = getBlockedScheduleValidationMessage(
+        validation,
+        scheduleTeamNamesById,
+      );
+      if (validationMessage) {
+        Alert.alert("Match schedule failed", validationMessage);
+        return;
+      }
+
       const result = await createMutation.mutateAsync({
         homeTeamId: teamId,
         awayTeamId,
         sport: team?.sport ?? undefined,
+        scheduledDate,
         startTime,
         endTime,
         venueId,
@@ -250,6 +295,7 @@ export default function ScheduleTeamMatchScreen() {
         err,
         "Only team owner can schedule matches",
         handleSubmit,
+        scheduleTeamNamesById,
       );
     }
   }, [
@@ -261,8 +307,10 @@ export default function ScheduleTeamMatchScreen() {
     requiresReferee,
     refereeUserId,
     createMutation,
+    validateMutation,
     teamId,
     team?.sport,
+    scheduleTeamNamesById,
     queryClient,
     router,
   ]);
@@ -275,7 +323,7 @@ export default function ScheduleTeamMatchScreen() {
           title="Schedule a Match"
           icon="calendar.badge.plus"
           onSubmit={handleSubmit}
-          loading={createMutation.isPending}
+          loading={createMutation.isPending || validateMutation.isPending}
         />
       }
     >
@@ -302,6 +350,7 @@ export default function ScheduleTeamMatchScreen() {
             onValueChange={(value) => setAwayTeamId(teamNameToId[value])}
             disabled={
               createMutation.isPending ||
+              validateMutation.isPending ||
               teamSearch.isLoading ||
               awayTeamOptions.length === 0
             }
@@ -323,6 +372,7 @@ export default function ScheduleTeamMatchScreen() {
               pathname:
                 `/teams/${teamId}/matches/add-venue` as RelativePathString,
               params: {
+                id: teamId,
                 homeTeamId: teamId,
                 awayTeamId,
                 draftAwayTeamId: awayTeamId,
@@ -368,11 +418,12 @@ export default function ScheduleTeamMatchScreen() {
               onValueChange={(value) =>
                 setRefereeUserId(refereeLabelToId[value] ?? value)
               }
-              disabled={
-                createMutation.isPending ||
-                refereesQuery.isLoading ||
-                refereeOptions.length === 0
-              }
+            disabled={
+              createMutation.isPending ||
+              validateMutation.isPending ||
+              refereesQuery.isLoading ||
+              refereeOptions.length === 0
+            }
             />
           ) : null}
         </Form.Section>

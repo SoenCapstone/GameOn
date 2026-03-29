@@ -3,6 +3,7 @@ package com.game.on.go_team_service.team.dto;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 
+import java.time.LocalDate;
 import java.time.OffsetDateTime;
 import java.util.UUID;
 
@@ -17,6 +18,8 @@ public record TeamMatchCreateRequest(
         OffsetDateTime startTime,
         @NotNull(message = "endTime is required")
         OffsetDateTime endTime,
+        @NotNull(message = "scheduledDate is required")
+        LocalDate scheduledDate,
         UUID venueId,
         @Size(max = 255, message = "matchRegion cannot exceed 255 characters")
         String matchRegion,

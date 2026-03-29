@@ -86,6 +86,8 @@ export const GO_TEAM_SERVICE_ROUTES = {
     buildRoute(VERSIONING.v1, SERVICE.TEAMS, `${teamId}/posts/${postId}`),
   MATCHES: (teamId: string) =>
     buildRoute(VERSIONING.v1, SERVICE.TEAMS, `${teamId}/matches`),
+  VALIDATE_MATCH_INVITE: (teamId: string) =>
+    buildRoute(VERSIONING.v1, SERVICE.TEAMS, `${teamId}/matches/validate`),
   CREATE_MATCH_INVITE: (teamId: string) =>
     buildRoute(VERSIONING.v1, SERVICE.TEAMS, `${teamId}/matches/create-invite`),
   VENUES: buildRoute(VERSIONING.v1, SERVICE.TEAMS, "venues"),
@@ -94,6 +96,9 @@ export const GO_TEAM_SERVICE_ROUTES = {
 
   CREATE_PLAY: (teamId: string) =>
     buildRoute(VERSIONING.v1, SERVICE.TEAMS, `${teamId}/play-maker`),
+
+  UPDATE_MEMBER_ROLE: (teamId: string, userId: string) =>
+    buildRoute(VERSIONING.v1, SERVICE.TEAMS, `${teamId}/members/${userId}/role`),
 };
 
 export const GO_LEAGUE_SERVICE_ROUTES = {
@@ -111,6 +116,8 @@ export const GO_LEAGUE_SERVICE_ROUTES = {
     buildRoute(VERSIONING.v1, SERVICE.LEAGUES, `${leagueId}/invites`),
   MATCHES: (leagueId: string) =>
     buildRoute(VERSIONING.v1, SERVICE.LEAGUES, `${leagueId}/matches`),
+  VALIDATE_MATCH: (leagueId: string) =>
+    buildRoute(VERSIONING.v1, SERVICE.LEAGUES, `${leagueId}/matches/validate`),
   CREATE_MATCH: (leagueId: string) =>
     buildRoute(
       VERSIONING.v1,
@@ -187,6 +194,10 @@ export const GO_MATCH_ROUTES = {
     `${matchesBase}/${matchId}/ref-invite/accept`,
   DECLINE_REF_INVITE: (matchId: string) =>
     `${matchesBase}/${matchId}/ref-invite/decline`,
+  ATTENDANCE: (matchId: string) =>
+    `${matchesBase}/${matchId}/members/attendance`,
+    MATCH_MEMBERS_BY_TEAM: (matchId: string, teamId: string) =>
+      `${matchesBase}/${matchId}/teams/${teamId}/members`,
 };
 
 export const GO_REFEREE_ROUTES = {

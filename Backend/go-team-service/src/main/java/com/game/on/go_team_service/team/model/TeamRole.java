@@ -4,5 +4,6 @@ public enum TeamRole {
     OWNER,
     MANAGER,
     PLAYER,
-    COACH
+    COACH,
+    REPLACEMENT
 }

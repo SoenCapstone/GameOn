@@ -104,6 +104,14 @@ public class TeamController {
         return ResponseEntity.ok(teamService.demoteSelfToPlayer(teamId, userId));
     }
 
+    @PatchMapping("/{teamId}/members/{userId}/role")
+    public ResponseEntity<TeamMemberResponse> updateMemberRole(
+            @PathVariable UUID teamId,
+            @PathVariable String userId,
+            @Valid @RequestBody RoleUpdateRequest request) {
+        return ResponseEntity.ok(teamService.updateMemberRole(teamId, userId, request.role()));
+    }
+
     @PostMapping("/{teamId}/play-maker")
     public ResponseEntity<UUID> createPlay(@Valid @RequestBody List<PlayItemDTO> items) {
         return ResponseEntity.status(201).body(teamService.createPlay(items));

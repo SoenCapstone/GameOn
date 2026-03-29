@@ -9,6 +9,7 @@ import com.game.on.go_team_service.exception.NotFoundException;
 import com.game.on.go_team_service.team.dto.TeamMatchCancelRequest;
 import com.game.on.go_team_service.team.dto.TeamMatchCreateRequest;
 import com.game.on.go_team_service.team.dto.TeamMatchResponse;
+import com.game.on.go_team_service.team.dto.TeamMatchScheduleValidationResponse;
 import com.game.on.go_team_service.team.dto.TeamMatchScoreRequest;
 import com.game.on.go_team_service.team.model.Team;
 import com.game.on.go_team_service.team.model.TeamMatch;
@@ -18,25 +19,49 @@ import com.game.on.go_team_service.team.model.TeamMatchScore;
 import com.game.on.go_team_service.team.model.TeamMatchStatus;
 import com.game.on.go_team_service.team.model.TeamMatchType;
 import com.game.on.go_team_service.team.model.Venue;
+import com.game.on.go_team_service.team.model.TeamMatchMember;
+import com.game.on.go_team_service.team.model.AttendanceStatus;
+import com.game.on.go_team_service.team.model.TeamMember;
+import com.game.on.go_team_service.team.model.TeamRole;
 import com.game.on.go_team_service.team.repository.TeamMatchInviteRepository;
 import com.game.on.go_team_service.team.repository.TeamMatchRepository;
 import com.game.on.go_team_service.team.repository.TeamMatchScoreRepository;
 import com.game.on.go_team_service.team.repository.TeamMemberRepository;
 import com.game.on.go_team_service.team.repository.TeamRepository;
+import com.game.on.go_team_service.team.repository.TeamMatchMemberRepository;
+import com.game.on.go_team_service.team_post.dto.TeamPostCreateRequest;
+import com.game.on.go_team_service.team_post.model.TeamPostScope;
+import com.game.on.go_team_service.team_post.service.TeamPostService;
+import com.game.on.go_team_service.team.dto.UpdateMatchAttendanceRequest;
+import com.game.on.go_team_service.team.dto.TeamMatchMemberResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
+import java.time.Duration;
+import java.time.LocalDate;
 import java.time.OffsetDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 import java.util.UUID;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Service
 @RequiredArgsConstructor
 public class TeamMatchService {
+    private static final String TEAM_DAILY_LIMIT_EXCEEDED_CODE = "TEAM_DAILY_LIMIT_EXCEEDED";
+    private static final String TEAM_DAILY_LIMIT_EXCEEDED_MESSAGE =
+            "One of these teams already has 3 confirmed matches on this day.";
+    private static final String TEAM_TIME_SLOT_CONFLICT_CODE = "TEAM_TIME_SLOT_CONFLICT";
+    private static final String TEAM_TIME_SLOT_CONFLICT_MESSAGE =
+            "One of these teams already has a confirmed match that overlaps this time or falls within the required 60-minute buffer.";
 
     private final int MIN_REST_TIME_MINUTES = 60;
     private final int MAX_MATCHES_PER_DAY = 3;
@@ -46,9 +71,39 @@ public class TeamMatchService {
     private final TeamMatchRepository teamMatchRepository;
     private final TeamMatchInviteRepository teamMatchInviteRepository;
     private final TeamMatchScoreRepository teamMatchScoreRepository;
+    private final TeamMatchMemberRepository teamMatchMemberRepository;
     private final VenueService venueService;
     private final CurrentUserProvider userProvider;
     private final LeagueClient leagueClient;
+    private final TeamPostService teamPostService;
+
+    @Transactional(readOnly = true)
+    public TeamMatchScheduleValidationResponse validateMatchInvite(UUID teamId, TeamMatchCreateRequest request) {
+        String userId = userProvider.clerkUserId();
+
+        if (!teamId.equals(request.homeTeamId())) {
+            throw new BadRequestException("teamId in path must match homeTeamId");
+        }
+
+        Team homeTeam = requireActiveTeam(request.homeTeamId());
+        Team awayTeam = requireActiveTeam(request.awayTeamId());
+
+        if (!homeTeam.getOwnerUserId().equals(userId)) {
+            throw new ForbiddenException("Only the team owner can create team matches");
+        }
+        if (homeTeam.getId().equals(awayTeam.getId())) {
+            throw new BadRequestException("homeTeamId and awayTeamId must be different");
+        }
+
+        validateTimes(request.startTime(), request.endTime());
+        return validateScheduleAvailability(
+                homeTeam.getId(),
+                awayTeam.getId(),
+                request.scheduledDate(),
+                request.startTime(),
+                request.endTime()
+        );
+    }
 
     @Transactional
     public TeamMatchResponse createMatchInvite(UUID teamId, TeamMatchCreateRequest request) {
@@ -80,9 +135,19 @@ public class TeamMatchService {
         }
         validateTimes(request.startTime(), request.endTime());
 
-        if(checkHasSchedulingConflicts(homeTeam.getId(), request.startTime(), request.endTime()) ||
-            checkHasSchedulingConflicts(awayTeam.getId(), request.startTime(), request.endTime())) {
-            throw new ConflictException("Unable to create invite, another match is booked during this time or you have exceeded the daily limit.");
+        var validation = validateScheduleAvailability(
+                homeTeam.getId(),
+                awayTeam.getId(),
+                request.scheduledDate(),
+                request.startTime(),
+                request.endTime()
+        );
+        if (!validation.allowed()) {
+            throw new ConflictException(
+                    validation.code(),
+                    validation.message(),
+                    validation.conflictingTeamIds()
+            );
         }
 
         TeamMatch match = TeamMatch.builder()
@@ -92,6 +157,7 @@ public class TeamMatchService {
                 .sport(matchSport)
                 .startTime(request.startTime())
                 .endTime(request.endTime())
+                .scheduledDate(request.scheduledDate())
                 .matchLocation(venue != null ? venue.getName() : matchRegion)
                 .venueId(venue == null ? null : venue.getId())
                 .requiresReferee(Boolean.TRUE.equals(request.requiresReferee()))
@@ -101,6 +167,9 @@ public class TeamMatchService {
                 .build();
 
         var savedMatch = teamMatchRepository.save(match);
+
+        addTeamMembersToMatch(savedMatch, homeTeam.getId(), true);
+        addTeamMembersToMatch(savedMatch, awayTeam.getId(), false);
 
         TeamMatchInvite invite = TeamMatchInvite.builder()
                 .match(savedMatch)
@@ -119,17 +188,30 @@ public class TeamMatchService {
     @Transactional(readOnly = true)
     public List<TeamMatchResponse> listTeamMatches(UUID teamId) {
         requireActiveTeam(teamId);
-        return teamMatchRepository.findByHomeTeamIdOrAwayTeamIdOrderByStartTimeDesc(teamId, teamId)
-                .stream()
-                .map(this::toResponse)
-                .toList();
+        var matches = teamMatchRepository.findByHomeTeamIdOrAwayTeamIdOrderByStartTimeDesc(teamId, teamId);
+        if (matches.isEmpty()) {
+            return List.of();
+        }
+
+        var matchIds = matches.stream()
+            .map(TeamMatch::getId)
+            .toList();
+
+        Map<UUID, TeamMatchScore> scoresByMatchId = teamMatchScoreRepository.findByMatch_IdIn(matchIds)
+            .stream()
+            .collect(Collectors.toMap(score -> score.getMatch().getId(), Function.identity()));
+
+        return matches.stream()
+            .map(match -> toResponse(match, scoresByMatchId.get(match.getId())))
+            .toList();
     }
 
     @Transactional(readOnly = true)
     public TeamMatchResponse getMatch(UUID matchId) {
         var match = teamMatchRepository.findById(matchId)
                 .orElseThrow(() -> new NotFoundException("Match not found"));
-        return toResponse(match);
+        var score = teamMatchScoreRepository.findByMatch_Id(matchId).orElse(null);
+        return toResponse(match, score);
     }
 
     @Transactional
@@ -145,20 +227,34 @@ public class TeamMatchService {
             throw new ForbiddenException("Only the away team owner can accept the invite");
         }
 
-        if(checkHasSchedulingConflicts(match.getHomeTeamId(), match.getStartTime(), match.getEndTime())
-                || checkHasSchedulingConflicts(match.getAwayTeamId(), match.getStartTime(), match.getEndTime())) {
+        var validation = validateScheduleAvailability(
+                match.getHomeTeamId(),
+                match.getAwayTeamId(),
+                match.getScheduledDate(),
+                match.getStartTime(),
+                match.getEndTime()
+        );
+        if (!validation.allowed()) {
             invite.setStatus(TeamMatchInviteStatus.DECLINED);
             invite.setRespondedAt(OffsetDateTime.now());
             teamMatchInviteRepository.save(invite);
 
             match.setStatus(TeamMatchStatus.CANCELLED);
             teamMatchRepository.save(match);
-            throw new ConflictException("Another match was confirmed in this time slot before this match was confirmed, or your daily limit is exceeded at the time of acceptance.");
+            throw new ConflictException(
+                    validation.code(),
+                    validation.message(),
+                    validation.conflictingTeamIds()
+            );
         }
 
         invite.setStatus(TeamMatchInviteStatus.ACCEPTED);
         invite.setRespondedAt(OffsetDateTime.now());
         teamMatchInviteRepository.save(invite);
+
+        List<TeamMatchMember> awayMembers = teamMatchMemberRepository.findByMatch_IdAndTeamId(match.getId(), awayTeam.getId());
+        awayMembers.forEach(member -> member.setAttending(AttendanceStatus.CONFIRMED));
+        teamMatchMemberRepository.saveAll(awayMembers);
 
         match.setStatus(TeamMatchStatus.CONFIRMED);
         var saved = teamMatchRepository.save(match);
@@ -182,6 +278,10 @@ public class TeamMatchService {
         invite.setStatus(TeamMatchInviteStatus.DECLINED);
         invite.setRespondedAt(OffsetDateTime.now());
         teamMatchInviteRepository.save(invite);
+
+        List<TeamMatchMember> allMembers = teamMatchMemberRepository.findByMatch_Id(match.getId());
+        teamMatchMemberRepository.deleteAll(allMembers);
+
 
         match.setStatus(TeamMatchStatus.DECLINED);
         var saved = teamMatchRepository.save(match);
@@ -214,31 +314,52 @@ public class TeamMatchService {
 
     @Transactional
     public void submitScore(UUID matchId, TeamMatchScoreRequest request) {
+
         String userId = userProvider.clerkUserId();
 
         var match = teamMatchRepository.findById(matchId)
                 .orElseThrow(() -> new NotFoundException("Match not found"));
 
+        if (match.getStatus() != TeamMatchStatus.CONFIRMED) {
+            throw new BadRequestException("Only confirmed matches can have a final score submitted");
+        }
+
         teamMatchScoreRepository.findByMatch_Id(matchId).ifPresent(score -> {
             throw new ConflictException("Final score already submitted");
         });
 
-        if (StringUtils.hasText(match.getRefereeUserId())) {
-            if (!match.getRefereeUserId().equals(userId)) {
-                throw new ForbiddenException("Only the referee can submit the score");
-            }
-        } else if (!match.getCreatedByUserId().equals(userId)) {
-            throw new ForbiddenException("Only the match creator can submit the score when no referee is assigned");
-        }
+        Team homeTeam = requireActiveTeam(match.getHomeTeamId());
+        Team awayTeam = requireActiveTeam(match.getAwayTeamId());
+
+        validateScoreSubmissionPermissions(match, homeTeam, awayTeam, userId);
+        validateSubmittedEndTime(match.getStartTime(), request.endTime());
 
         TeamMatchScore score = TeamMatchScore.builder()
                 .match(match)
                 .homeScore(request.homeScore())
                 .awayScore(request.awayScore())
+                .officialEndTime(request.endTime())
                 .submittedByUserId(userId)
                 .build();
         teamMatchScoreRepository.save(score);
+
+        match.setEndTime(request.endTime());
+        match.setStatus(TeamMatchStatus.COMPLETED);
+        teamMatchRepository.save(match);
+
+        updateTeamStatistics(
+                homeTeam,
+                awayTeam,
+                request.homeScore(),
+                request.awayScore(),
+                match.getStartTime(),
+                request.endTime()
+        );
+
+        log.info("team_match_score_submitted matchId={} submittedBy={} homeScore={} awayScore={}",
+                matchId, userId, request.homeScore(), request.awayScore());
     }
+
 
     @Transactional
     public void assignReferee(UUID matchId) {
@@ -279,14 +400,54 @@ public class TeamMatchService {
         }
     }
 
-    private boolean checkHasSchedulingConflicts(UUID team, OffsetDateTime startTime, OffsetDateTime endTime) {
+    private TeamMatchScheduleValidationResponse validateScheduleAvailability(
+            UUID homeTeamId,
+            UUID awayTeamId,
+            LocalDate scheduledDate,
+            OffsetDateTime startTime,
+            OffsetDateTime endTime
+    ) {
+        var homeConflict = findSchedulingConflict(homeTeamId, scheduledDate, startTime, endTime);
+        var awayConflict = findSchedulingConflict(awayTeamId, scheduledDate, startTime, endTime);
+
+        if (homeConflict != null && awayConflict != null
+                && Objects.equals(homeConflict.code(), awayConflict.code())) {
+            var conflictingTeamIds = new ArrayList<UUID>();
+            if (homeConflict.conflictingTeamIds() != null) {
+                conflictingTeamIds.addAll(homeConflict.conflictingTeamIds());
+            }
+            if (awayConflict.conflictingTeamIds() != null) {
+                conflictingTeamIds.addAll(awayConflict.conflictingTeamIds());
+            }
+            return TeamMatchScheduleValidationResponse.blockedResult(
+                    homeConflict.code(),
+                    homeConflict.message(),
+                    conflictingTeamIds
+            );
+        }
+
+        if (homeConflict != null) {
+            return homeConflict;
+        }
+        if (awayConflict != null) {
+            return awayConflict;
+        }
+
+        return TeamMatchScheduleValidationResponse.allowedResult();
+    }
+
+    private TeamMatchScheduleValidationResponse findSchedulingConflict(
+            UUID team,
+            LocalDate scheduledDate,
+            OffsetDateTime startTime,
+            OffsetDateTime endTime
+    ) {
         var allTeamMatches = teamMatchRepository.findByHomeTeamIdOrAwayTeamIdOrderByStartTimeDesc(team, team);
 
         int curMatchCount = 0;
 
         for(var match : allTeamMatches) {
-            boolean isSameDay = (match.getStartTime().getYear() == startTime.getYear()
-                    && match.getStartTime().getDayOfYear() == startTime.getDayOfYear());
+            boolean isSameDay = isSameScheduledDate(match.getScheduledDate(), scheduledDate);
             boolean isConfirmed = match.getStatus() == TeamMatchStatus.CONFIRMED;
 
             if(isSameDay && isConfirmed) {
@@ -294,7 +455,11 @@ public class TeamMatchService {
             }
 
             if(curMatchCount >= MAX_MATCHES_PER_DAY){
-                return true;
+                return TeamMatchScheduleValidationResponse.blockedResult(
+                        TEAM_DAILY_LIMIT_EXCEEDED_CODE,
+                        TEAM_DAILY_LIMIT_EXCEEDED_MESSAGE,
+                        List.of(team)
+                );
             }
 
             // Rest time included
@@ -307,15 +472,18 @@ public class TeamMatchService {
                                 || (match.getStartTime().isBefore(startTime) && match.getEndTime().isAfter(endTime)));
 
             if((isBetweenStartAndEndTime || isOverlapped) && isConfirmed) {
-                return true;
+                return TeamMatchScheduleValidationResponse.blockedResult(
+                        TEAM_TIME_SLOT_CONFLICT_CODE,
+                        TEAM_TIME_SLOT_CONFLICT_MESSAGE,
+                        List.of(team)
+                );
             }
         }
 
         var allLeagueMatches = leagueClient.getLeagueMatchesForTeam(team);
 
         for(var match : allLeagueMatches) {
-            boolean isSameDay = (match.startTime().getYear() == startTime.getYear()
-                    && match.startTime().getDayOfYear() == startTime.getDayOfYear());
+            boolean isSameDay = isSameScheduledDate(match.scheduledDate(), scheduledDate);
             boolean isConfirmed = match.status().equalsIgnoreCase("confirmed");
 
             if(isSameDay && isConfirmed) {
@@ -323,7 +491,11 @@ public class TeamMatchService {
             }
 
             if(curMatchCount >= MAX_MATCHES_PER_DAY){
-                return true;
+                return TeamMatchScheduleValidationResponse.blockedResult(
+                        TEAM_DAILY_LIMIT_EXCEEDED_CODE,
+                        TEAM_DAILY_LIMIT_EXCEEDED_MESSAGE,
+                        List.of(team)
+                );
             }
 
             // Rest time included
@@ -336,11 +508,19 @@ public class TeamMatchService {
                     || (match.startTime().isBefore(startTime) && match.endTime().isAfter(endTime)));
 
             if((isBetweenStartAndEndTime || isOverlapped) && isConfirmed) {
-                return true;
+                return TeamMatchScheduleValidationResponse.blockedResult(
+                        TEAM_TIME_SLOT_CONFLICT_CODE,
+                        TEAM_TIME_SLOT_CONFLICT_MESSAGE,
+                        List.of(team)
+                );
             }
         }
 
-        return false;
+        return null;
+    }
+
+    private boolean isSameScheduledDate(LocalDate matchScheduledDate, LocalDate requestedScheduledDate) {
+        return matchScheduledDate != null && matchScheduledDate.equals(requestedScheduledDate);
     }
 
     private String resolveMatchSport(String requestedSport, Team homeTeam, Team awayTeam) {
@@ -386,15 +566,22 @@ public class TeamMatchService {
     }
 
     private TeamMatchResponse toResponse(TeamMatch match) {
+        return toResponse(match, null);
+    }
+
+    private TeamMatchResponse toResponse(TeamMatch match, TeamMatchScore score) {
         return new TeamMatchResponse(
                 match.getId(),
                 match.getMatchType(),
                 match.getStatus(),
                 match.getHomeTeamId(),
                 match.getAwayTeamId(),
+                score == null ? null : score.getHomeScore(),
+                score == null ? null : score.getAwayScore(),
                 match.getSport(),
                 match.getStartTime(),
                 match.getEndTime(),
+                match.getScheduledDate(),
                 match.getMatchLocation(),
                 match.getVenueId(),
                 match.isRequiresReferee(),
@@ -429,5 +616,195 @@ public class TeamMatchService {
             return false;
         }
         return values.stream().anyMatch(value -> value != null && value.equalsIgnoreCase(target));
+    }
+
+    private void validateScoreSubmissionPermissions(TeamMatch match, Team homeTeam, Team awayTeam, String userId) {
+        if (match.isRequiresReferee()) {
+            if (!StringUtils.hasText(match.getRefereeUserId())) {
+                throw new BadRequestException("This match requires a referee before a score can be submitted");
+            }
+
+            if (!match.getRefereeUserId().equals(userId)) {
+                throw new ForbiddenException("Only the assigned referee can submit the score");
+            }
+            return;
+        }
+
+        boolean isHomeOwner = homeTeam.getOwnerUserId().equals(userId);
+        boolean isAwayOwner = awayTeam.getOwnerUserId().equals(userId);
+
+        if (!isHomeOwner && !isAwayOwner) {
+            throw new ForbiddenException("Only one of the team owners can submit the score when no referee is required");
+        }
+    }
+
+    private void validateSubmittedEndTime(OffsetDateTime startTime, OffsetDateTime submittedEndTime) {
+        if (submittedEndTime == null) {
+            throw new BadRequestException("endTime is required");
+        }
+        if (startTime == null) {
+            throw new BadRequestException("Match start time is missing");
+        }
+        if (!submittedEndTime.isAfter(startTime)) {
+            throw new BadRequestException("Submitted endTime must be after the match startTime");
+        }
+    }
+
+    private void updateTeamStatistics(
+            Team homeTeam,
+            Team awayTeam,
+            int homeScore,
+            int awayScore,
+            OffsetDateTime startTime,
+            OffsetDateTime endTime
+    ) {
+        int playedMinutes = (int) Math.max(0, Duration.between(startTime, endTime).toMinutes());
+
+        incrementCommonStats(homeTeam, playedMinutes);
+        incrementCommonStats(awayTeam, playedMinutes);
+
+        if (homeScore > awayScore) {
+            homeTeam.setTotalPoints(safeInt(homeTeam.getTotalPoints()) + 3);
+            homeTeam.setWinStreak(safeInt(homeTeam.getWinStreak()) + 1);
+
+            awayTeam.setWinStreak(0);
+        } else if (awayScore > homeScore) {
+            awayTeam.setTotalPoints(safeInt(awayTeam.getTotalPoints()) + 3);
+            awayTeam.setWinStreak(safeInt(awayTeam.getWinStreak()) + 1);
+
+            homeTeam.setWinStreak(0);
+        } else {
+            homeTeam.setTotalPoints(safeInt(homeTeam.getTotalPoints()) + 1);
+            awayTeam.setTotalPoints(safeInt(awayTeam.getTotalPoints()) + 1);
+
+            homeTeam.setWinStreak(0);
+            awayTeam.setWinStreak(0);
+        }
+
+        teamRepository.save(homeTeam);
+        teamRepository.save(awayTeam);
+    }
+
+    private void incrementCommonStats(Team team, int playedMinutes) {
+        team.setTotalMatches(safeInt(team.getTotalMatches()) + 1);
+        team.setMinutesPlayed(safeInt(team.getMinutesPlayed()) + playedMinutes);
+    }
+
+    private void addTeamMembersToMatch(TeamMatch match, UUID teamId, Boolean isHomeTeam) {
+        List<TeamMember> players = teamMemberRepository
+                .findByTeamIdAndRole(teamId, TeamRole.PLAYER);
+
+        AttendanceStatus status = isHomeTeam
+                ? AttendanceStatus.CONFIRMED
+                : AttendanceStatus.PENDING;
+
+        List<TeamMatchMember> matchMembers = players.stream()
+                .map(member -> TeamMatchMember.builder()
+                        .match(match)
+                        .teamMember(member)
+                        .teamId(teamId)
+                        .role(member.getRole())
+                        .attending(status)
+                        .joinedAt(OffsetDateTime.now())
+                        .build()
+                )
+                .toList();
+
+        teamMatchMemberRepository.saveAll(matchMembers);
+    }
+
+    private int safeInt(Integer value) {
+        return value == null ? 0 : value;
+    }
+
+    public void updateAttendance(UUID matchId, UpdateMatchAttendanceRequest request) {
+        String userId = userProvider.clerkUserId();
+
+        if (request.attending() == null) {
+            throw new BadRequestException("Attendance status must be provided");
+        }
+
+        if (request.attending() == AttendanceStatus.PENDING) {
+            throw new BadRequestException("Cannot set status to PENDING");
+        }
+
+        TeamMatchMember member = teamMatchMemberRepository
+                .findByMatch_IdAndTeamMember_UserId(matchId, userId)
+                .orElseThrow(() -> new NotFoundException("Player not found in match"));
+
+        if (request.attending() == AttendanceStatus.DECLINED) {
+            List<TeamMember> replacements = teamMemberRepository
+                    .findByTeamIdAndRole(member.getTeamId(), TeamRole.REPLACEMENT);
+
+            List<TeamMatchMember> replacementMatchMembers = replacements.stream()
+                    .map(r -> TeamMatchMember.builder()
+                            .match(member.getMatch())
+                            .teamMember(r)
+                            .teamId(member.getTeamId())
+                            .role(r.getRole())
+                            .attending(AttendanceStatus.PENDING)
+                            .joinedAt(OffsetDateTime.now())
+                            .build())
+                    .toList();
+
+
+            TeamMatch match = teamMatchRepository.findById(matchId)
+                    .orElseThrow(() -> new NotFoundException("Match not found"));
+
+            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
+            String matchDateStr = match.getStartTime().format(formatter);
+
+            teamMatchMemberRepository.saveAll(replacementMatchMembers);
+            TeamPostCreateRequest postRequest = new TeamPostCreateRequest(
+                    "Replacement Needed",
+                    member.getTeamId(),
+                    "A player is unavailable for the upcoming match on " + matchDateStr,
+                    TeamPostScope.MEMBERS
+            );
+
+            teamPostService.createSystemPost(
+                    member.getTeamId(),
+                    postRequest
+            );
+        }
+
+        if (member.getAttending() == request.attending()) {
+            return;
+        }
+
+        member.setAttending(request.attending());
+
+        teamMatchMemberRepository.save(member);
+    }
+
+    @Transactional(readOnly = true)
+    public Map<UUID, List<TeamMatchMemberResponse>> getMatchMembers(UUID matchId) {
+        List<TeamMatchMember> allMembers = teamMatchMemberRepository.findByMatch_Id(matchId);
+        List<TeamMatchMemberResponse> dtoList = allMembers.stream()
+                .map(m -> new TeamMatchMemberResponse(
+                        m.getId(),
+                        m.getTeamId(),
+                        m.getTeamMember().getUserId(),
+                        m.getRole(),
+                        m.getAttending()
+                ))
+                .toList();
+
+        return dtoList.stream()
+                .collect(Collectors.groupingBy(TeamMatchMemberResponse::teamId));
+    }
+    @Transactional(readOnly = true)
+    public List<TeamMatchMemberResponse> getMatchMembersByTeam(UUID matchId, UUID teamId) {
+
+        return teamMatchMemberRepository.findByMatch_IdAndTeamId(matchId, teamId)
+                .stream()
+                .map(member -> new TeamMatchMemberResponse(
+                        member.getId(),
+                        member.getTeamId(),
+                        member.getTeamMember().getUserId(),
+                        member.getRole(),
+                        member.getAttending()
+                ))
+                .toList();
     }
 }

@@ -3,7 +3,6 @@ import type {
   MatchStatusBadge,
   TeamMatch,
   TeamSummary,
-  Venue,
 } from "@/types/matches";
 import { isToday } from "@/utils/date";
 
@@ -17,6 +16,10 @@ export function getMatchSection(
 ): "today" | "upcoming" | "past" {
   const now = new Date();
   const start = new Date(startTime);
+
+  if (status === "COMPLETED") {
+    return "past";
+  }
 
   if (isCancelledMatchStatus(status)) {
     return "past";
@@ -44,27 +47,6 @@ export function toBadgeStatus(status: string): MatchStatusBadge {
 
 export function isCancelledMatchStatus(status: string) {
   return status === "DECLINED" || status === "CANCELLED";
-}
-
-export function buildStartEndIso(date: Date, startTime: Date, endTime: Date) {
-  const start = new Date(date);
-  start.setHours(startTime.getHours(), startTime.getMinutes(), 0, 0);
-  const end = new Date(date);
-  end.setHours(endTime.getHours(), endTime.getMinutes(), 0, 0);
-
-  return {
-    startTime: start.toISOString(),
-    endTime: end.toISOString(),
-  };
-}
-
-export function isValidTimeRange(date: Date, startTime: Date, endTime: Date) {
-  const { startTime: startIso, endTime: endIso } = buildStartEndIso(
-    date,
-    startTime,
-    endTime,
-  );
-  return new Date(endIso).getTime() > new Date(startIso).getTime();
 }
 
 export function sortUpcomingFirst<T extends { startTime: string }>(items: T[]) {
@@ -113,6 +95,10 @@ export type MatchCardItem = {
   id: string;
   homeTeamId: string;
   awayTeamId: string;
+  requiresReferee: boolean;
+  refereeUserId?: string | null;
+  homeScore?: number | null;
+  awayScore?: number | null;
   homeName: string;
   awayName: string;
   homeLogoUrl?: string | null;
@@ -134,20 +120,26 @@ export function buildMatchCards(
   return matches.map((match) => {
     const home = teamMap?.[match.homeTeamId];
     const away = teamMap?.[match.awayTeamId];
-    const section = getMatchSection(match.startTime, match.status);
+    const hasScore = match.homeScore != null && match.awayScore != null;
+    const resolvedStatus = hasScore ? "COMPLETED" : match.status;
+    const section = getMatchSection(match.startTime, resolvedStatus);
     const resolvedContextLabel =
       typeof contextLabel === "function" ? contextLabel(match) : contextLabel;
     return {
       id: match.id,
       homeTeamId: match.homeTeamId,
       awayTeamId: match.awayTeamId,
+      requiresReferee: match.requiresReferee,
+      refereeUserId: match.refereeUserId,
+      homeScore: match.homeScore,
+      awayScore: match.awayScore,
       homeName: home?.name ?? "Home Team",
       awayName: away?.name ?? "Away Team",
       homeLogoUrl: home?.logoUrl,
       awayLogoUrl: away?.logoUrl,
       sport: match.sport,
       contextLabel: resolvedContextLabel,
-      status: match.status,
+      status: resolvedStatus,
       startTime: match.startTime,
       section,
       isPast: section === "past",
@@ -172,35 +164,4 @@ export function splitMatchSections<
     ),
     past: sortPastLatestFirst(matchItems.filter((item) => item.isPast)),
   };
-}
-
-export type VenueOption = {
-  id: string;
-  label: string;
-};
-
-export function buildVenueOptions(venues: Venue[] | undefined): VenueOption[] {
-  return (venues ?? []).map((venue) => ({
-    id: venue.id,
-    label: venue.name,
-  }));
-}
-
-export function buildVenueOptionMaps(options: VenueOption[]) {
-  return {
-    venueLabelToId: Object.fromEntries(
-      options.map((venue) => [venue.label, venue.id]),
-    ) as Record<string, string>,
-    venueIdToLabel: Object.fromEntries(
-      options.map((venue) => [venue.id, venue.label]),
-    ) as Record<string, string>,
-  };
-}
-
-export function resolveSelectedVenueLabel(
-  venueId: string,
-  venueIdToLabel: Record<string, string>,
-  newVenueName?: string,
-) {
-  return (venueId ? venueIdToLabel[venueId] : undefined) ?? newVenueName ?? "";
 }

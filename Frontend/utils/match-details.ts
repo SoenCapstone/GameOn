@@ -1,60 +1,164 @@
-export type MatchContext = "team" | "league";
+import {
+  MATCH_ATTENDANCE_ACTIONS,
+  MATCH_DETAILS_DEFAULTS,
+} from "@/constants/match-details";
+import type {
+  MatchAttendanceAction,
+  MatchDetailsDisplayMatch,
+  MatchSpace,
+  MatchTeamSummaryMap,
+} from "@/types/match-details";
+import { isCancelledMatchStatus, isPastMatch } from "@/utils/matches";
 
-export function getTeamContextLeagueId(
-  context: MatchContext,
-  displayMatch: unknown,
+export function isLeagueMatch(
+  match: MatchDetailsDisplayMatch | null | undefined,
+): match is MatchDetailsDisplayMatch & { leagueId: string } {
+  return Boolean(match && "leagueId" in match && typeof match.leagueId === "string");
+}
+
+export function getMatchLeagueId(
+  match: MatchDetailsDisplayMatch | null | undefined,
 ): string {
-  if (context !== "team" || !displayMatch) {
-    return "";
-  }
-
-  if (
-    typeof displayMatch === "object" &&
-    "leagueId" in displayMatch &&
-    typeof displayMatch.leagueId === "string"
-  ) {
-    return displayMatch.leagueId;
-  }
-
-  return "";
+  return isLeagueMatch(match) ? match.leagueId : "";
 }
 
-export function getContextLabel({
-  context,
-  leagueName,
-  teamContextLeagueId,
-  teamContextLeagueMap,
-}: {
-  context: MatchContext;
-  leagueName?: string;
-  teamContextLeagueId: string;
-  teamContextLeagueMap?: Record<string, { name?: string }>;
-}): string {
-  if (context === "league") {
-    return leagueName ?? "League Match";
+export function getMatchTeamIds(
+  match: MatchDetailsDisplayMatch | null | undefined,
+): string[] {
+  if (!match) {
+    return [];
   }
 
-  if (teamContextLeagueId) {
-    return teamContextLeagueMap?.[teamContextLeagueId]?.name ?? "League Match";
-  }
-
-  return "Team Match";
+  return [match.homeTeamId, match.awayTeamId].filter(Boolean);
 }
 
-export function getIsMatchLoading({
-  context,
-  teamMatchLoading,
-  teamMatchesLoading,
-}: {
-  context: MatchContext;
-  teamMatchLoading: boolean;
-  teamMatchesLoading: boolean;
+function isMatchTeamOwner(args: {
+  match: MatchDetailsDisplayMatch | null | undefined;
+  userId: string | null | undefined;
+  teamSummaryMap?: MatchTeamSummaryMap;
 }): boolean {
-  if (context === "league") {
+  const { match, userId, teamSummaryMap } = args;
+
+  if (!match || !userId) {
     return false;
   }
 
-  return teamMatchLoading || teamMatchesLoading;
+  const homeOwnerId = teamSummaryMap?.[match.homeTeamId]?.ownerUserId;
+  const awayOwnerId = teamSummaryMap?.[match.awayTeamId]?.ownerUserId;
+
+  return homeOwnerId === userId || awayOwnerId === userId;
+}
+
+export function canUserCancelMatch(args: {
+  match: MatchDetailsDisplayMatch | null | undefined;
+  userId: string | null | undefined;
+  isLeagueOwner: boolean;
+  teamSummaryMap?: MatchTeamSummaryMap;
+}): boolean {
+  const { match, userId, isLeagueOwner, teamSummaryMap } = args;
+
+  if (!match) {
+    return false;
+  }
+
+  if (isPastMatch(match.startTime) || isCancelledMatchStatus(match.status)) {
+    return false;
+  }
+
+  if (isLeagueMatch(match)) {
+    return isLeagueOwner;
+  }
+
+  return isMatchTeamOwner({ match, userId, teamSummaryMap });
+}
+
+export function canUserSubmitMatchScore(args: {
+  match: MatchDetailsDisplayMatch | null | undefined;
+  userId: string | null | undefined;
+  teamSummaryMap?: MatchTeamSummaryMap;
+}): boolean {
+  const { match, userId, teamSummaryMap } = args;
+
+  if (!match || !userId || isLeagueMatch(match) || match.status !== "CONFIRMED") {
+    return false;
+  }
+
+  if (match.requiresReferee) {
+    return match.refereeUserId === userId;
+  }
+
+  return isMatchTeamOwner({ match, userId, teamSummaryMap });
+}
+
+export function getMatchAttendanceAction(args: {
+  match: MatchDetailsDisplayMatch | null | undefined;
+  space?: MatchSpace;
+  spaceId?: string;
+  role?: string | null;
+  isActiveMember?: boolean;
+  hasResponded?: boolean;
+}): MatchAttendanceAction | null {
+  const { match, space, spaceId, role, isActiveMember, hasResponded } = args;
+
+  if (!match || space !== "team" || !spaceId || !isActiveMember || hasResponded) {
+    return null;
+  }
+
+  if (isPastMatch(match.startTime) || isCancelledMatchStatus(match.status)) {
+    return null;
+  }
+
+  if (role === "PLAYER") {
+    return MATCH_ATTENDANCE_ACTIONS.PLAYER;
+  }
+
+  if (role === "REPLACEMENT") {
+    return MATCH_ATTENDANCE_ACTIONS.REPLACEMENT;
+  }
+
+  return null;
+}
+
+export function getContextLabel(args: {
+  space?: MatchSpace;
+  leagueName?: string;
+  matchLeagueName?: string;
+}): string {
+  const { space, leagueName, matchLeagueName } = args;
+
+  if (space === "league") {
+    return leagueName ?? MATCH_DETAILS_DEFAULTS.leagueLabel;
+  }
+
+  if (matchLeagueName) {
+    return matchLeagueName;
+  }
+
+  return MATCH_DETAILS_DEFAULTS.teamLabel;
+}
+
+export function getIsMatchLoading(args: {
+  space?: MatchSpace;
+  leagueMatchesLoading: boolean;
+  directMatchLoading: boolean;
+  teamMatchesLoading: boolean;
+}): boolean {
+  const {
+    space,
+    leagueMatchesLoading,
+    directMatchLoading,
+    teamMatchesLoading,
+  } = args;
+
+  if (space === "league") {
+    return leagueMatchesLoading;
+  }
+
+  if (space === "team") {
+    return directMatchLoading || teamMatchesLoading;
+  }
+
+  return directMatchLoading;
 }
 
 function normalizeScore(value: unknown): number | null | undefined {
@@ -65,22 +169,18 @@ function normalizeScore(value: unknown): number | null | undefined {
   return undefined;
 }
 
-export function getMatchScores(displayMatch: unknown): {
+export function getMatchScores(
+  match: MatchDetailsDisplayMatch | null | undefined,
+): {
   homeScore?: number | null;
   awayScore?: number | null;
 } {
-  if (!displayMatch || typeof displayMatch !== "object") {
+  if (!match) {
     return {};
   }
 
-  const homeScore =
-    "homeScore" in displayMatch
-      ? normalizeScore(displayMatch.homeScore)
-      : undefined;
-  const awayScore =
-    "awayScore" in displayMatch
-      ? normalizeScore(displayMatch.awayScore)
-      : undefined;
-
-  return { homeScore, awayScore };
+  return {
+    awayScore: normalizeScore(match.awayScore),
+    homeScore: normalizeScore(match.homeScore),
+  };
 }
