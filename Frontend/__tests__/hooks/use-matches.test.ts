@@ -229,7 +229,7 @@ describe("use-matches", () => {
       });
 
     const merged = (await options.queryFn()) as { id: string }[];
-    expect(merged.map((match) => match.id).sort()).toEqual([
+    expect(merged.map((match) => match.id).sort((a, b) => a.localeCompare(b))).toEqual([
       "l1",
       "shared",
       "t1",
