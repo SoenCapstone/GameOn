@@ -5,19 +5,43 @@ import { getSportLogo } from "@/utils/search";
 import MapView, { Marker } from "react-native-maps";
 import { IconSymbol } from "@/components/ui/icon-symbol";
 import { Stack, Color } from "expo-router";
+import type { MatchAttendanceAction } from "@/types/match-details";
 import { formatMatchDateTime, isCancelledMatchStatus } from "@/utils/matches";
 
 export function MatchToolbar({
   openInMaps,
   status,
+  attendanceAction,
+  onConfirmAttendanceAction,
   canCancelMatch = false,
   onConfirmCancelMatch,
+  canSubmitScore = false,
+  onSubmitScore,
 }: Readonly<{
   openInMaps: () => void;
   status: string;
+  attendanceAction?: MatchAttendanceAction | null;
+  onConfirmAttendanceAction?: () => Promise<void>;
   canCancelMatch?: boolean;
   onConfirmCancelMatch?: () => Promise<void>;
+  canSubmitScore?: boolean;
+  onSubmitScore?: () => void;
 }>) {
+  const showAttendanceConfirm = useCallback(() => {
+    if (!attendanceAction || !onConfirmAttendanceAction) return;
+
+    Alert.alert(attendanceAction.title, attendanceAction.message, [
+      { text: "Cancel", style: "cancel" },
+      {
+        text: attendanceAction.label,
+        style: attendanceAction.destructive ? "destructive" : "default",
+        onPress: () => {
+          void onConfirmAttendanceAction();
+        },
+      },
+    ]);
+  }, [attendanceAction, onConfirmAttendanceAction]);
+
   const showCancelMatchConfirm = useCallback(() => {
     if (!onConfirmCancelMatch) return;
 
@@ -37,34 +61,51 @@ export function MatchToolbar({
     canCancelMatch &&
     Boolean(onConfirmCancelMatch) &&
     !isCancelledMatchStatus(status);
+  const showAttendanceInMenu =
+    Boolean(attendanceAction) && Boolean(onConfirmAttendanceAction);
+  const showMatchScoreInMenu = canSubmitScore && Boolean(onSubmitScore);
+  const showMenu =
+    showAttendanceInMenu || showMatchScoreInMenu || showCancelInMenu;
 
   return (
     <>
       <Stack.Toolbar placement="bottom">
-        <Stack.Toolbar.Menu
-          icon="ellipsis"
-          variant="prominent"
-          tintColor={Color.ios.quaternarySystemFill}
-        >
-          <Stack.Toolbar.Menu title="Attendance" icon="person">
-            <Stack.Toolbar.MenuAction isOn>Attending</Stack.Toolbar.MenuAction>
-            <Stack.Toolbar.MenuAction destructive>
-              Not Attending
-            </Stack.Toolbar.MenuAction>
+        {showMenu ? (
+          <Stack.Toolbar.Menu
+            icon="ellipsis"
+            variant="prominent"
+            tintColor={Color.ios.quaternarySystemFill}
+          >
+            {showAttendanceInMenu ? (
+              <Stack.Toolbar.Menu
+                title="Attendance"
+                icon="person.fill.checkmark.and.xmark"
+              >
+                <Stack.Toolbar.MenuAction
+                  icon={attendanceAction?.icon}
+                  destructive={attendanceAction?.destructive}
+                  onPress={showAttendanceConfirm}
+                >
+                  {attendanceAction?.label}
+                </Stack.Toolbar.MenuAction>
+              </Stack.Toolbar.Menu>
+            ) : null}
+            {showMatchScoreInMenu ? (
+              <Stack.Toolbar.MenuAction icon="rosette" onPress={onSubmitScore}>
+                Match Score
+              </Stack.Toolbar.MenuAction>
+            ) : null}
+            {showCancelInMenu ? (
+              <Stack.Toolbar.MenuAction
+                icon="xmark"
+                destructive
+                onPress={showCancelMatchConfirm}
+              >
+                Cancel Match
+              </Stack.Toolbar.MenuAction>
+            ) : null}
           </Stack.Toolbar.Menu>
-          <Stack.Toolbar.MenuAction icon="rosette">
-            Enter Score
-          </Stack.Toolbar.MenuAction>
-          {showCancelInMenu ? (
-            <Stack.Toolbar.MenuAction
-              icon="xmark"
-              destructive
-              onPress={showCancelMatchConfirm}
-            >
-              Cancel Match
-            </Stack.Toolbar.MenuAction>
-          ) : null}
-        </Stack.Toolbar.Menu>
+        ) : null}
         <Stack.Toolbar.Spacer />
         <Stack.Toolbar.Button
           variant="prominent"
@@ -81,8 +122,12 @@ export function MatchToolbar({
 interface MatchDetailsContentProps {
   readonly startTime: string;
   readonly status: string;
+  readonly attendanceAction?: MatchAttendanceAction | null;
+  readonly onConfirmAttendanceAction?: () => Promise<void>;
   readonly canCancelMatch?: boolean;
   readonly onConfirmCancelMatch?: () => Promise<void>;
+  readonly canSubmitScore?: boolean;
+  readonly onSubmitScore?: () => void;
   readonly homeTeamName: string;
   readonly awayTeamName: string;
   readonly homeScore?: number | null;
@@ -102,8 +147,12 @@ interface MatchDetailsContentProps {
 export function MatchDetailsContent({
   startTime,
   status,
+  attendanceAction,
+  onConfirmAttendanceAction,
   canCancelMatch,
   onConfirmCancelMatch,
+  canSubmitScore,
+  onSubmitScore,
   homeTeamName,
   awayTeamName,
   homeScore,
@@ -178,8 +227,12 @@ export function MatchDetailsContent({
       <MatchToolbar
         openInMaps={handleMapPress}
         status={status}
+        attendanceAction={attendanceAction}
+        onConfirmAttendanceAction={onConfirmAttendanceAction}
         canCancelMatch={canCancelMatch}
         onConfirmCancelMatch={onConfirmCancelMatch}
+        canSubmitScore={canSubmitScore}
+        onSubmitScore={onSubmitScore}
       />
       <View style={styles.container}>
         <View style={styles.summary}>

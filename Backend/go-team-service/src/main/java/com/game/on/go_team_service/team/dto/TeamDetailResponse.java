@@ -19,6 +19,10 @@ public record TeamDetailResponse(
         List<String> allowedRegions,
         Integer maxRoster,
         TeamPrivacy privacy,
+        Integer totalPoints,
+        Integer totalMatches,
+        Integer winStreak,
+        Integer minutesPlayed,
         boolean archived,
         OffsetDateTime createdAt,
         OffsetDateTime updatedAt

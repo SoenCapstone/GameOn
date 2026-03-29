@@ -44,7 +44,8 @@ export default function InvitePlayersScreen() {
   const queryClient = useQueryClient();
   const { userId } = useAuth();
 
-  const { isOwner } = useTeamDetail(teamId);
+  const { isOwner, role: myRole } = useTeamDetail(teamId);
+  const canInvite = isOwner || myRole === "MANAGER" || myRole === "COACH";
 
   const {
     data: members = [],
@@ -60,13 +61,13 @@ export default function InvitePlayersScreen() {
       const resp = await api.get(GO_TEAM_SERVICE_ROUTES.TEAM_INVITES(teamId));
       return resp.data ?? [];
     },
-    enabled: Boolean(teamId && isOwner),
+    enabled: Boolean(teamId && canInvite),
   });
 
   const { data: userDirectory = [], isLoading: usersLoading } = useQuery({
     queryKey: ["user-directory"],
     queryFn: async () => fetchUserDirectory(api),
-    enabled: Boolean(teamId && isOwner),
+    enabled: Boolean(teamId && canInvite),
     staleTime: 5 * 60 * 1000,
   });
 

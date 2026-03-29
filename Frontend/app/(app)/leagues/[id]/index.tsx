@@ -1,9 +1,9 @@
 import { useCallback, useMemo, useState } from "react";
 import {
+  View,
   ActivityIndicator,
   RefreshControl,
   StyleSheet,
-  View,
 } from "react-native";
 import {
   RelativePathString,
@@ -20,8 +20,8 @@ import {
   useLeagueDetailContext,
 } from "@/contexts/league-detail-context";
 import {
-  useDeleteLeagueBoardPost,
   useLeagueBoardPosts,
+  useDeleteLeagueBoardPost,
 } from "@/hooks/use-league-board";
 import { BoardList } from "@/components/board/board-list";
 import { useDetailPageHandlers } from "@/hooks/use-detail-page-handlers";
@@ -29,6 +29,8 @@ import { createScopedLog } from "@/utils/logger";
 import { MatchListSections } from "@/components/matches/match-list-sections";
 import { useLeagueMatches, useTeamsByIds } from "@/hooks/use-matches";
 import { buildMatchCards, splitMatchSections } from "@/utils/matches";
+import { useLeagueStandings } from "@/hooks/use-league-standings";
+import { LeagueStandings } from "@/components/leagues/league-standings";
 
 type LeagueTab = "board" | "matches" | "standings" | "teams";
 
@@ -125,7 +127,6 @@ function LeagueContent() {
   const [tab, setTab] = useState<LeagueTab>(initialTab);
   const router = useRouter();
   const log = createScopedLog("League Page");
-
   const {
     id,
     isLoading,
@@ -139,6 +140,12 @@ function LeagueContent() {
     isLeagueTeamsLoading,
     leagueTeamsError,
   } = useLeagueDetailContext();
+  const {
+    data: standings = [],
+    isLoading: standingsLoading,
+    error: standingsError,
+    refetch: refetchStandings,
+  } = useLeagueStandings(id);
 
   const openPost = useCallback(() => {
     router.push({
@@ -169,6 +176,7 @@ function LeagueContent() {
     error: matchesError,
     refetch: refetchMatches,
   } = useLeagueMatches(id);
+
   const teamIds = useMemo(
     () =>
       Array.from(new Set(matches.flatMap((m) => [m.homeTeamId, m.awayTeamId]))),
@@ -178,9 +186,9 @@ function LeagueContent() {
   const teamsQuery = useTeamsByIds(teamIds);
   const leagueTeamIds = useMemo(
     () =>
-      Array.from(new Set((leagueTeams ?? []).map((team) => team.teamId))).filter(
-        Boolean,
-      ),
+      Array.from(
+        new Set((leagueTeams ?? []).map((team) => team.teamId)),
+      ).filter(Boolean),
     [leagueTeams],
   );
   const leagueTeamsQuery = useTeamsByIds(leagueTeamIds);
@@ -282,8 +290,8 @@ function LeagueContent() {
                   router.push({
                     pathname: `/match/${match.id}` as RelativePathString,
                     params: {
-                      context: "league",
-                      contextId: id,
+                      space: "league",
+                      spaceId: id,
                       homeName: match.homeName,
                       awayName: match.awayName,
                       homeLogoUrl: match.homeLogoUrl ?? "",
@@ -293,7 +301,13 @@ function LeagueContent() {
                 }
               />
             )}
-
+            {tab === "standings" && (
+              <LeagueStandings
+                standings={standings}
+                isLoading={standingsLoading}
+                error={standingsError ? "Could not load standings." : null}
+              />
+            )}
             {tab === "teams" && (
               <LeagueBrowserTeams
                 leagueTeams={leagueTeams ?? []}

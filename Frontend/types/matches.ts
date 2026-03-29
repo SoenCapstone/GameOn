@@ -58,6 +58,8 @@ export type LeagueMatch = {
   cancelledByUserId?: string | null;
   cancelReason?: string | null;
   cancelledAt?: string | null;
+  homeScore?: number | null;
+  awayScore?: number | null;
   createdAt: string;
   updatedAt: string;
 };
@@ -65,7 +67,12 @@ export type LeagueMatch = {
 export type TeamMatch = {
   id: string;
   matchType: "TEAM_MATCH" | "LEAGUE_MATCH";
-  status: "PENDING_TEAM_ACCEPTANCE" | "CONFIRMED" | "DECLINED" | "CANCELLED";
+  status:
+    | "PENDING_TEAM_ACCEPTANCE"
+    | "CONFIRMED"
+    | "COMPLETED"
+    | "DECLINED"
+    | "CANCELLED";
   homeTeamId: string;
   awayTeamId: string;
   sport: string;
@@ -80,8 +87,22 @@ export type TeamMatch = {
   cancelledByUserId?: string | null;
   cancelReason?: string | null;
   cancelledAt?: string | null;
+  homeScore?: number | null;
+  awayScore?: number | null;
   createdAt: string;
   updatedAt: string;
+};
+
+export type ScheduleConflictCode =
+  | "LEAGUE_TEAM_SAME_DAY_CONFLICT"
+  | "TEAM_DAILY_LIMIT_EXCEEDED"
+  | "TEAM_TIME_SLOT_CONFLICT";
+
+export type MatchScheduleValidationResult = {
+  allowed: boolean;
+  code?: ScheduleConflictCode | null;
+  message?: string | null;
+  conflictingTeamIds?: string[] | null;
 };
 
 export type MatchStatusBadge =

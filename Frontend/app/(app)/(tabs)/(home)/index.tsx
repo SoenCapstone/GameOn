@@ -20,6 +20,8 @@ import {
   useAxiosWithClerk,
 } from "@/hooks/use-axios-clerk";
 import { errorToString } from "@/utils/error";
+import { getScheduleApiErrorMessage } from "@/utils/schedule-errors";
+import { ScheduleConflictCode } from "@/types/matches";
 import { fetchLeagueInvitesWithDetails } from "@/utils/leagues";
 import {
   fetchIncomingRefereeInvites,
@@ -98,6 +100,17 @@ export default function Home() {
 
   const handleInviteResponseError = useCallback((err: unknown) => {
     Alert.alert("Action failed", errorToString(err));
+  }, []);
+
+  const handleTeamMatchInviteResponseError = useCallback((err: unknown) => {
+    const { message } = getScheduleApiErrorMessage(
+      err as import("axios").AxiosError<{
+        message?: string;
+        code?: ScheduleConflictCode | null;
+      }>,
+      "Only the invited team owner can respond to this match invite.",
+    );
+    Alert.alert("Match action failed", message);
   }, []);
 
   const handleInviteResponseSuccess = useCallback(
@@ -197,7 +210,7 @@ export default function Home() {
           : "The team match invite was declined.",
       );
     },
-    onError: handleInviteResponseError,
+    onError: handleTeamMatchInviteResponseError,
   });
 
   const respondRefereeInviteMutation = useMutation({

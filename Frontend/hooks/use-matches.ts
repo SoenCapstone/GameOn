@@ -11,6 +11,7 @@ import {
 import {
   LeagueMatch,
   LeagueTeamMembership,
+  MatchScheduleValidationResult,
   RefereeMatchInviteCard,
   RefereeProfile,
   RefInviteResponse,
@@ -24,6 +25,14 @@ import {
   mapTeamsById,
 } from "@/utils/matches";
 import { createScopedLog } from "@/utils/logger";
+
+type TeamMatchMemberResponse = {
+  id: string;
+  teamId: string;
+  userId: string;
+  role: "OWNER" | "MANAGER" | "PLAYER" | "COACH" | "REPLACEMENT";
+  status: "CONFIRMED" | "DECLINED" | "PENDING";
+};
 
 const log = createScopedLog("Matches");
 
@@ -115,6 +124,7 @@ export function useTeamMatches(teamId: string) {
       for (const match of mergedMatches) {
         dedupedById.set(match.id, match);
       }
+
       return Array.from(dedupedById.values());
     },
     enabled: Boolean(teamId),
@@ -234,6 +244,40 @@ export function useReferees(params?: {
   });
 }
 
+export function useValidateLeagueMatchSchedule(leagueId: string) {
+  const api = useAxiosWithClerk();
+
+  return useMutation({
+    mutationFn: async (payload: {
+      homeTeamId: string;
+      awayTeamId: string;
+      scheduledDate: string;
+      startTime: string;
+      endTime: string;
+      venueId: string;
+      matchLocation?: string;
+      refereeUserId: string;
+    }) => {
+      const resp = await api.post<MatchScheduleValidationResult>(
+        GO_LEAGUE_SERVICE_ROUTES.VALIDATE_MATCH(leagueId),
+        {
+          homeTeamId: payload.homeTeamId,
+          awayTeamId: payload.awayTeamId,
+          scheduledDate: payload.scheduledDate,
+          startTime: payload.startTime,
+          endTime: payload.endTime,
+          venueId: payload.venueId,
+          matchLocation: payload.matchLocation,
+          requiresReferee: true,
+          refereeUserId: payload.refereeUserId,
+        },
+      );
+
+      return resp.data;
+    },
+  });
+}
+
 export function useCreateLeagueMatch(leagueId: string) {
   const api = useAxiosWithClerk();
 
@@ -241,6 +285,7 @@ export function useCreateLeagueMatch(leagueId: string) {
     mutationFn: async (payload: {
       homeTeamId: string;
       awayTeamId: string;
+      scheduledDate: string;
       startTime: string;
       endTime: string;
       venueId: string;
@@ -252,6 +297,7 @@ export function useCreateLeagueMatch(leagueId: string) {
         {
           homeTeamId: payload.homeTeamId,
           awayTeamId: payload.awayTeamId,
+          scheduledDate: payload.scheduledDate,
           startTime: payload.startTime,
           endTime: payload.endTime,
           venueId: payload.venueId,
@@ -266,6 +312,43 @@ export function useCreateLeagueMatch(leagueId: string) {
   });
 }
 
+export function useValidateTeamMatchSchedule(teamId: string) {
+  const api = useAxiosWithClerk();
+
+  return useMutation({
+    mutationFn: async (payload: {
+      homeTeamId: string;
+      awayTeamId: string;
+      sport?: string;
+      scheduledDate: string;
+      startTime: string;
+      endTime: string;
+      venueId?: string;
+      matchRegion?: string;
+      requiresReferee: boolean;
+      notes?: string;
+    }) => {
+      const resp = await api.post<MatchScheduleValidationResult>(
+        GO_TEAM_SERVICE_ROUTES.VALIDATE_MATCH_INVITE(teamId),
+        {
+          homeTeamId: payload.homeTeamId,
+          awayTeamId: payload.awayTeamId,
+          sport: payload.sport,
+          scheduledDate: payload.scheduledDate,
+          startTime: payload.startTime,
+          endTime: payload.endTime,
+          venueId: payload.venueId,
+          matchRegion: payload.matchRegion,
+          requiresReferee: payload.requiresReferee,
+          notes: payload.notes,
+        },
+      );
+
+      return resp.data;
+    },
+  });
+}
+
 export function useCreateTeamMatch(teamId: string) {
   const api = useAxiosWithClerk();
 
@@ -274,6 +357,7 @@ export function useCreateTeamMatch(teamId: string) {
       homeTeamId: string;
       awayTeamId: string;
       sport?: string;
+      scheduledDate: string;
       startTime: string;
       endTime: string;
       venueId?: string;
@@ -288,6 +372,7 @@ export function useCreateTeamMatch(teamId: string) {
           homeTeamId: payload.homeTeamId,
           awayTeamId: payload.awayTeamId,
           sport: payload.sport,
+          scheduledDate: payload.scheduledDate,
           startTime: payload.startTime,
           endTime: payload.endTime,
           venueId: payload.venueId,
@@ -483,6 +568,42 @@ export function useCancelTeamMatch() {
   });
 }
 
+export function useUpdateMatchAttendance() {
+  const api = useAxiosWithClerk();
+
+  return useMutation({
+    mutationFn: async ({
+      matchId,
+      attending,
+    }: {
+      matchId: string;
+      attending: "CONFIRMED" | "DECLINED";
+    }) => {
+      await api.post(GO_MATCH_ROUTES.ATTENDANCE(matchId), { attending });
+    },
+  });
+}
+
+
+export function useMatchMembersByTeam(matchId: string, teamId: string) {
+  const api = useAxiosWithClerk();
+
+  return useQuery<TeamMatchMemberResponse[]>({
+    queryKey: ["match-members-by-team", matchId, teamId],
+    queryFn: async () => {
+      const resp = await api.get<TeamMatchMemberResponse[]>(
+        GO_MATCH_ROUTES.MATCH_MEMBERS_BY_TEAM(matchId, teamId),
+      );
+      return resp.data ?? [];
+    },
+    enabled: Boolean(matchId && teamId),
+    retry: false,
+  });
+}
+
+
+
+
 export function useSubmitLeagueScore(leagueId: string) {
   const api = useAxiosWithClerk();
 
@@ -491,14 +612,17 @@ export function useSubmitLeagueScore(leagueId: string) {
       matchId,
       homeScore,
       awayScore,
+      endTime,
     }: {
       matchId: string;
       homeScore: number;
       awayScore: number;
+      endTime?: string;
     }) => {
       await api.post(GO_LEAGUE_SERVICE_ROUTES.SCORE_MATCH(leagueId, matchId), {
         homeScore,
         awayScore,
+        endTime,
       });
     },
   });
@@ -512,14 +636,17 @@ export function useSubmitTeamScore() {
       matchId,
       homeScore,
       awayScore,
+      endTime,
     }: {
       matchId: string;
       homeScore: number;
       awayScore: number;
+      endTime: string;
     }) => {
       await api.post(GO_MATCH_ROUTES.SCORE(matchId), {
         homeScore,
         awayScore,
+        endTime,
       });
     },
   });

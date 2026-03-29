@@ -106,23 +106,30 @@ describe("TeamDetailHeader", () => {
     expect(onFollow).toHaveBeenCalledTimes(1);
   });
 
-  it("shows settings button when user is member", () => {
+  it("shows settings button when user is member with admin role", () => {
     const { getByText } = render(
-      <TeamDetailHeader {...defaultProps} isMember={true} />,
+      <TeamDetailHeader {...defaultProps} isMember={true} role="OWNER" />,
     );
     expect(getByText("gear")).toBeTruthy();
   });
 
+  it("does not show settings button when user is a player", () => {
+    const { queryByText } = render(
+      <TeamDetailHeader {...defaultProps} isMember={true} role="PLAYER" />,
+    );
+    expect(queryByText("gear")).toBeNull();
+  });
+
   it("does not show Follow button when user is member", () => {
     const { queryByTestId } = render(
-      <TeamDetailHeader {...defaultProps} isMember={true} />,
+      <TeamDetailHeader {...defaultProps} isMember={true} role="OWNER" />,
     );
     expect(queryByTestId("header-button-custom-Follow")).toBeNull();
   });
 
   it("settings button has correct route", () => {
     const { getByText } = render(
-      <TeamDetailHeader {...defaultProps} isMember={true} />,
+      <TeamDetailHeader {...defaultProps} isMember={true} role="OWNER" />,
     );
     const settingsButton = getByText("gear");
     expect(settingsButton).toBeTruthy();
@@ -140,11 +147,11 @@ describe("TeamDetailHeader", () => {
 
   it("renders with different team IDs", () => {
     const { getByText, rerender } = render(
-      <TeamDetailHeader {...defaultProps} id="team1" isMember={true} />,
+      <TeamDetailHeader {...defaultProps} id="team1" isMember={true} role="OWNER" />,
     );
     expect(getByText("gear")).toBeTruthy();
 
-    rerender(<TeamDetailHeader {...defaultProps} id="team2" isMember={true} />);
+    rerender(<TeamDetailHeader {...defaultProps} id="team2" isMember={true} role="OWNER" />);
     expect(getByText("gear")).toBeTruthy();
   });
 
@@ -175,7 +182,7 @@ describe("TeamDetailHeader", () => {
     expect(getByTestId("header-button-custom-Follow")).toBeTruthy();
     expect(queryByTestId("header-button-custom-gear")).toBeNull();
 
-    rerender(<TeamDetailHeader {...defaultProps} isMember={true} />);
+    rerender(<TeamDetailHeader {...defaultProps} isMember={true} role="OWNER" />);
 
     expect(queryByTestId("header-button-custom-Follow")).toBeNull();
     expect(getByText("gear")).toBeTruthy();
