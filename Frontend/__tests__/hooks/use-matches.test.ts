@@ -229,11 +229,9 @@ describe("use-matches", () => {
       });
 
     const merged = (await options.queryFn()) as { id: string }[];
-    expect(merged.map((match) => match.id).sort((a, b) => a.localeCompare(b))).toEqual([
-      "l1",
-      "shared",
-      "t1",
-    ]);
+    expect(
+      merged.map((match) => match.id).sort((a, b) => a.localeCompare(b)),
+    ).toEqual(["l1", "shared", "t1"]);
   });
 
   it("falls back to direct team matches when league aggregation fails", async () => {

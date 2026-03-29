@@ -6,7 +6,7 @@ import {
   useNavigation,
   useRouter,
 } from "expo-router";
-import { useQueryClient } from "@tanstack/react-query";
+import { useQueryClient, type QueryClient } from "@tanstack/react-query";
 import { ContentArea } from "@/components/ui/content-area";
 import { Form } from "@/components/form/form";
 import { AccentColors } from "@/constants/colors";
@@ -22,6 +22,8 @@ import {
 } from "@/hooks/use-matches";
 import { LeagueMatch, TeamMatch } from "@/features/matches/types";
 import { errorToString } from "@/utils/error";
+
+type MatchContextType = "team" | "league";
 
 function parseScore(rawValue: string) {
   const trimmed = rawValue.trim();
@@ -55,11 +57,63 @@ function renderScoreHeader(onSave: () => void, isPending: boolean) {
   );
 }
 
+async function invalidateQueriesAfterScoreSubmit({
+  queryClient,
+  contextId,
+  contextMatchesQueryKey,
+  isLeagueMatch,
+  leagueId,
+  matchId,
+}: {
+  queryClient: QueryClient;
+  contextId: string;
+  contextMatchesQueryKey: readonly ["league-matches" | "team-matches", string];
+  isLeagueMatch: boolean;
+  leagueId: string;
+  matchId: string;
+}) {
+  if (contextId) {
+    await queryClient.invalidateQueries({
+      queryKey: contextMatchesQueryKey,
+    });
+  }
+
+  if (isLeagueMatch && leagueId) {
+    await queryClient.invalidateQueries({
+      queryKey: ["league-match", leagueId, matchId],
+    });
+    await queryClient.invalidateQueries({
+      queryKey: ["league-matches", leagueId],
+    });
+  }
+
+  if (!isLeagueMatch) {
+    await queryClient.invalidateQueries({
+      queryKey: ["team-match", matchId],
+    });
+  }
+
+  await queryClient.invalidateQueries({ queryKey: ["user-updates"] });
+}
+
+function resolveDestinationPath(
+  contextId: string,
+  contextType: MatchContextType,
+): RelativePathString {
+  if (!contextId) {
+    return "/home" as RelativePathString;
+  }
+
+  return contextType === "league"
+    ? (`/leagues/${contextId}` as RelativePathString)
+    : (`/teams/${contextId}` as RelativePathString);
+}
+
 export default function MatchScoreScreen() {
   const params = useLocalSearchParams<{
     id?: string;
     contextId?: string;
-    contextType?: "team" | "league";
+    contextType?: MatchContextType;
     leagueId?: string;
     startTime?: string;
     homeName?: string;
@@ -168,48 +222,16 @@ export default function MatchScoreScreen() {
         });
       }
 
-      if (contextId) {
-        await queryClient.invalidateQueries({
-          queryKey: contextMatchesQueryKey,
-        });
-      }
+      await invalidateQueriesAfterScoreSubmit({
+        queryClient,
+        contextId,
+        contextMatchesQueryKey,
+        isLeagueMatch,
+        leagueId,
+        matchId,
+      });
 
-      if (isLeagueMatch && leagueId) {
-        await queryClient.invalidateQueries({
-          queryKey: ["league-match", leagueId, matchId],
-        });
-        await queryClient.invalidateQueries({
-          queryKey: ["league-matches", leagueId],
-        });
-      }
-
-      if (!isLeagueMatch) {
-        await queryClient.invalidateQueries({
-          queryKey: ["team-match", matchId],
-        });
-      }
-
-      if (contextType === "team" && contextId) {
-        await queryClient.invalidateQueries({
-          queryKey: ["team-matches", contextId],
-        });
-      }
-
-      if (contextType === "league" && contextId) {
-        await queryClient.invalidateQueries({
-          queryKey: ["league-matches", contextId],
-        });
-      }
-
-      await queryClient.invalidateQueries({ queryKey: ["user-updates"] });
-
-      let destinationPath = "/home" as RelativePathString;
-      if (contextId) {
-        destinationPath =
-          contextType === "league"
-            ? (`/leagues/${contextId}` as RelativePathString)
-            : (`/teams/${contextId}` as RelativePathString);
-      }
+      const destinationPath = resolveDestinationPath(contextId, contextType);
 
       router.dismissTo({
         pathname: destinationPath,
