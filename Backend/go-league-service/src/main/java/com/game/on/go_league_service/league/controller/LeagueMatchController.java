@@ -6,6 +6,7 @@ import com.game.on.go_league_service.league.dto.LeagueMatchCreateRequest;
 import com.game.on.go_league_service.league.dto.LeagueMatchResponse;
 import com.game.on.go_league_service.league.dto.LeagueMatchScheduleValidationResponse;
 import com.game.on.go_league_service.league.dto.LeagueMatchScoreRequest;
+import com.game.on.go_league_service.league.dto.LeagueTeamStatsResponse;
 import com.game.on.go_league_service.league.service.LeagueMatchService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -68,6 +69,12 @@ public class LeagueMatchController {
                                                              @PathVariable UUID matchId,
                                                              @Valid @RequestBody AssignRefereeRequest request) {
         return ResponseEntity.ok(leagueMatchService.assignReferee(leagueId, matchId, request));
+    }
+
+    @GetMapping("/{leagueId}/teams/{teamId}/stats")
+    public ResponseEntity<LeagueTeamStatsResponse> getTeamStats(@PathVariable UUID leagueId,
+                                                                @PathVariable UUID teamId) {
+        return ResponseEntity.ok(leagueMatchService.getTeamStats(leagueId, teamId));
     }
 
     @GetMapping("/matches/{teamId}")
