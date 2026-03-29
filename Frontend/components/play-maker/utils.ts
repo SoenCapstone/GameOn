@@ -109,15 +109,35 @@ export const addArrowBetweenShapes = (
   ]);
 };
 
-export const assignPlayerToShape = (playerId: string, selectedShapeId: string | null, shapes: Shape[], setShapes: React.Dispatch<React.SetStateAction<Shape[]>>) => {
+export const assignPlayerToShape = (
+  playerId: string,
+  selectedShapeId: string | null,
+  shapes: Shape[],
+  setShapes: React.Dispatch<React.SetStateAction<Shape[]>>
+) => {
   if (!selectedShapeId || !shapes) return;
 
-  setShapes(prevShapes =>
-    prevShapes.map(shape =>
-      shape.id === selectedShapeId ? { ...shape, associatedPlayerId: playerId } : shape
-    )
+  setShapes((prevShapes) =>
+    prevShapes.map((shape) => {
+      const shouldUnassign = shape.associatedPlayerId === playerId;
+      const shouldAssign = shape.id === selectedShapeId;
+
+      if (shouldUnassign && !shouldAssign) {
+        const { associatedPlayerId, ...rest } = shape;
+        return rest;
+      }
+
+      if (shouldAssign) {
+        return {
+          ...shape,
+          associatedPlayerId: playerId,
+        };
+      }
+
+      return shape;
+    })
   );
-}
+};
 
 const isEndpointShape = (shape: Shape): shape is EndpointShape => shape.type !== "arrow";
 
