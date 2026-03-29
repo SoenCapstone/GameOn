@@ -5,6 +5,7 @@ import {
 import type {
   MatchAttendanceAction,
   MatchDetailsDisplayMatch,
+  MatchMemberAttendanceStatus,
   MatchSpace,
   MatchTeamSummaryMap,
 } from "@/types/match-details";
@@ -13,7 +14,7 @@ import { isCancelledMatchStatus, isPastMatch } from "@/utils/matches";
 export function isLeagueMatch(
   match: MatchDetailsDisplayMatch | null | undefined,
 ): match is MatchDetailsDisplayMatch & { leagueId: string } {
-  return Boolean(match && "leagueId" in match && typeof match.leagueId === "string");
+  return Boolean(match && "leagueId" in match);
 }
 
 export function getMatchLeagueId(
@@ -97,8 +98,17 @@ export function getMatchAttendanceAction(args: {
   role?: string | null;
   isActiveMember?: boolean;
   hasResponded?: boolean;
+  attendanceStatus?: MatchMemberAttendanceStatus | null;
 }): MatchAttendanceAction | null {
-  const { match, space, spaceId, role, isActiveMember, hasResponded } = args;
+  const {
+    match,
+    space,
+    spaceId,
+    role,
+    isActiveMember,
+    hasResponded,
+    attendanceStatus,
+  } = args;
 
   if (!match || space !== "team" || !spaceId || !isActiveMember || hasResponded) {
     return null;
@@ -112,7 +122,7 @@ export function getMatchAttendanceAction(args: {
     return MATCH_ATTENDANCE_ACTIONS.PLAYER;
   }
 
-  if (role === "REPLACEMENT") {
+  if (role === "REPLACEMENT" && attendanceStatus === "PENDING") {
     return MATCH_ATTENDANCE_ACTIONS.REPLACEMENT;
   }
 

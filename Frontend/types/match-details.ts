@@ -16,6 +16,11 @@ export type MatchDetailsRouteParams = {
 
 export type MatchTeamSummaryMap = Record<string, TeamSummary>;
 
+export type MatchMemberAttendanceStatus =
+  | "CONFIRMED"
+  | "DECLINED"
+  | "PENDING";
+
 export type MatchAttendanceAction = {
   attending: "CONFIRMED" | "DECLINED";
   destructive: boolean;
