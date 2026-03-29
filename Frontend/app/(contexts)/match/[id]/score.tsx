@@ -203,12 +203,16 @@ export default function MatchScoreScreen() {
 
       await queryClient.invalidateQueries({ queryKey: ["user-updates"] });
 
-      router.dismissTo({
-        pathname: contextId
-          ? contextType === "league"
+      let destinationPath = "/home" as RelativePathString;
+      if (contextId) {
+        destinationPath =
+          contextType === "league"
             ? (`/leagues/${contextId}` as RelativePathString)
-            : (`/teams/${contextId}` as RelativePathString)
-          : ("/home" as RelativePathString),
+            : (`/teams/${contextId}` as RelativePathString);
+      }
+
+      router.dismissTo({
+        pathname: destinationPath,
         params: contextId ? { tab: "matches" } : undefined,
       });
     } catch (err) {
