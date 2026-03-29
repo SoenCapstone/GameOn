@@ -102,14 +102,14 @@ export default function MatchScoreScreen() {
 
   const homeTeamName = homeTeam?.name ?? params.homeName?.trim() ?? "Home Team";
   const awayTeamName = awayTeam?.name ?? params.awayName?.trim() ?? "Away Team";
+  const fallbackStartTime = params.startTime;
+
   const matchStartTime = useMemo(
-    () =>
-      match?.startTime
-        ? new Date(match.startTime)
-        : params.startTime
-          ? new Date(params.startTime)
-          : null,
-    [match?.startTime, params.startTime],
+    () => {
+      const rawStartTime = match?.startTime ?? fallbackStartTime;
+      return rawStartTime ? new Date(rawStartTime) : null;
+    },
+    [match?.startTime, fallbackStartTime],
   );
 
   const isSubmitting =
