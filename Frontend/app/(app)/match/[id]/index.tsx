@@ -160,6 +160,7 @@ export default function MatchDetailsScreen() {
     awayTeam?.logoUrl ?? params.awayLogoUrl?.trim() ?? undefined;
   const attendanceAction = useMemo<MatchAttendanceAction | null>(() => {
     const action = getMatchAttendanceAction({
+      attendanceStatus: persistedAttendanceStatus,
       hasResponded: hasRespondedToAttendance,
       isActiveMember: teamDetail.isActiveMember,
       match: displayMatch,
@@ -181,6 +182,7 @@ export default function MatchDetailsScreen() {
     displayMatch,
     hasRespondedToAttendance,
     homeTeamName,
+    persistedAttendanceStatus,
     space,
     spaceId,
     teamDetail.isActiveMember,
