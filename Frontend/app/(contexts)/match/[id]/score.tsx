@@ -14,7 +14,11 @@ import { Header } from "@/components/header/header";
 import { PageTitle } from "@/components/header/page-title";
 import { Button } from "@/components/ui/button";
 import { useMatchPresentation } from "@/hooks/use-match-presentation";
-import { useSubmitTeamScore, useTeamMatch } from "@/hooks/use-matches";
+import {
+  useSubmitLeagueScore,
+  useSubmitTeamScore,
+  useTeamMatch,
+} from "@/hooks/use-matches";
 import { LeagueMatch, TeamMatch } from "@/features/matches/types";
 import { errorToString } from "@/utils/error";
 
@@ -54,31 +58,62 @@ export default function MatchScoreScreen() {
   const params = useLocalSearchParams<{
     id?: string;
     contextId?: string;
+    leagueId?: string;
+    startTime?: string;
     homeName?: string;
     awayName?: string;
   }>();
   const matchId = params.id ?? "";
   const contextId = params.contextId ?? "";
+  const leagueId = params.leagueId ?? "";
+  const isLeagueMatch = Boolean(leagueId);
 
   const navigation = useNavigation();
   const router = useRouter();
   const queryClient = useQueryClient();
+  const submitLeagueScoreMutation = useSubmitLeagueScore(leagueId);
   const submitScoreMutation = useSubmitTeamScore();
 
   const [homeScoreText, setHomeScoreText] = useState("");
   const [awayScoreText, setAwayScoreText] = useState("");
   const [endTimeValue, setEndTimeValue] = useState(new Date());
 
-  const teamMatchQuery = useTeamMatch(matchId);
-  const match = teamMatchQuery.data;
+  const teamMatchQuery = useTeamMatch(matchId, !isLeagueMatch);
+  const contextMatches =
+    queryClient.getQueryData<(TeamMatch | LeagueMatch)[]>([
+      "team-matches",
+      contextId,
+    ]) ?? [];
+  const contextualMatch = contextMatches.find((existingMatch) => {
+    if (existingMatch.id !== matchId) {
+      return false;
+    }
+
+    if (!isLeagueMatch) {
+      return "matchType" in existingMatch;
+    }
+
+    return "leagueId" in existingMatch && existingMatch.leagueId === leagueId;
+  });
+  const match = (
+    isLeagueMatch ? contextualMatch : (teamMatchQuery.data ?? contextualMatch)
+  ) as TeamMatch | LeagueMatch | undefined;
   const { homeTeam, awayTeam } = useMatchPresentation(match);
 
   const homeTeamName = homeTeam?.name ?? params.homeName?.trim() ?? "Home Team";
   const awayTeamName = awayTeam?.name ?? params.awayName?.trim() ?? "Away Team";
   const matchStartTime = useMemo(
-    () => (match?.startTime ? new Date(match.startTime) : null),
-    [match?.startTime],
+    () =>
+      match?.startTime
+        ? new Date(match.startTime)
+        : params.startTime
+          ? new Date(params.startTime)
+          : null,
+    [match?.startTime, params.startTime],
   );
+
+  const isSubmitting =
+    submitScoreMutation.isPending || submitLeagueScoreMutation.isPending;
 
   const onSubmit = useCallback(async () => {
     if (!matchId) {
@@ -108,26 +143,35 @@ export default function MatchScoreScreen() {
     try {
       const submittedEndTime = endTimeValue.toISOString();
 
-      await submitScoreMutation.mutateAsync({
-        matchId,
-        homeScore,
-        awayScore,
-        endTime: submittedEndTime,
-      });
+      if (isLeagueMatch) {
+        await submitLeagueScoreMutation.mutateAsync({
+          matchId,
+          homeScore,
+          awayScore,
+          endTime: submittedEndTime,
+        });
+      } else {
+        await submitScoreMutation.mutateAsync({
+          matchId,
+          homeScore,
+          awayScore,
+          endTime: submittedEndTime,
+        });
 
-      queryClient.setQueryData<TeamMatch | undefined>(
-        ["team-match", matchId],
-        (currentMatch) => {
-          if (!currentMatch) return currentMatch;
-          return {
-            ...currentMatch,
-            status: "COMPLETED",
-            endTime: submittedEndTime,
-            homeScore,
-            awayScore,
-          };
-        },
-      );
+        queryClient.setQueryData<TeamMatch | undefined>(
+          ["team-match", matchId],
+          (currentMatch) => {
+            if (!currentMatch) return currentMatch;
+            return {
+              ...currentMatch,
+              status: "COMPLETED",
+              endTime: submittedEndTime,
+              homeScore,
+              awayScore,
+            };
+          },
+        );
+      }
 
       if (contextId) {
         queryClient.setQueryData<(TeamMatch | LeagueMatch)[] | undefined>(
@@ -138,6 +182,15 @@ export default function MatchScoreScreen() {
             return currentMatches.map((existingMatch) => {
               if (existingMatch.id !== matchId) {
                 return existingMatch;
+              }
+
+              if (isLeagueMatch) {
+                return {
+                  ...existingMatch,
+                  endTime: submittedEndTime,
+                  homeScore,
+                  awayScore,
+                };
               }
 
               if (!("matchType" in existingMatch)) {
@@ -174,6 +227,8 @@ export default function MatchScoreScreen() {
     matchId,
     contextId,
     matchStartTime,
+    isLeagueMatch,
+    submitLeagueScoreMutation,
     submitScoreMutation,
     queryClient,
     router,
@@ -185,15 +240,12 @@ export default function MatchScoreScreen() {
   useLayoutEffect(() => {
     navigation.setOptions({
       headerTitle: () =>
-        renderScoreHeader(
-          () => submitRef.current(),
-          submitScoreMutation.isPending,
-        ),
+        renderScoreHeader(() => submitRef.current(), isSubmitting),
     });
-  }, [navigation, submitScoreMutation.isPending]);
+  }, [navigation, isSubmitting]);
 
   const loadingState = useMemo(() => {
-    if (teamMatchQuery.isLoading && !match) {
+    if (!isLeagueMatch && teamMatchQuery.isLoading && !match) {
       return (
         <View style={styles.loading}>
           <ActivityIndicator size="small" color="#fff" />
@@ -206,7 +258,7 @@ export default function MatchScoreScreen() {
     }
 
     return null;
-  }, [match, matchId, teamMatchQuery.isLoading]);
+  }, [match, matchId, isLeagueMatch, teamMatchQuery.isLoading]);
 
   if (loadingState) {
     return loadingState;
@@ -222,7 +274,7 @@ export default function MatchScoreScreen() {
             onChangeText={setHomeScoreText}
             keyboardType="number-pad"
             placeholder="Enter score"
-            editable={!submitScoreMutation.isPending}
+            editable={!isSubmitting}
           />
           <Form.Input
             label={awayTeamName}
@@ -230,7 +282,7 @@ export default function MatchScoreScreen() {
             onChangeText={setAwayScoreText}
             keyboardType="number-pad"
             placeholder="Enter score"
-            editable={!submitScoreMutation.isPending}
+            editable={!isSubmitting}
           />
           <Form.DateTime
             label="End Time"

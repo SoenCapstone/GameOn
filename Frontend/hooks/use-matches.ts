@@ -132,7 +132,7 @@ export function useTeamMatches(teamId: string) {
   });
 }
 
-export function useTeamMatch(matchId: string) {
+export function useTeamMatch(matchId: string, enabled = true) {
   const api = useAxiosWithClerk();
   return useQuery<TeamMatch>({
     queryKey: ["team-match", matchId],
@@ -140,7 +140,7 @@ export function useTeamMatch(matchId: string) {
       const resp = await api.get(GO_MATCH_ROUTES.GET(matchId));
       return resp.data;
     },
-    enabled: Boolean(matchId),
+    enabled: enabled && Boolean(matchId),
     retry: false,
   });
 }
@@ -584,7 +584,6 @@ export function useUpdateMatchAttendance() {
   });
 }
 
-
 export function useMatchMembersByTeam(matchId: string, teamId: string) {
   const api = useAxiosWithClerk();
 
@@ -600,9 +599,6 @@ export function useMatchMembersByTeam(matchId: string, teamId: string) {
     retry: false,
   });
 }
-
-
-
 
 export function useSubmitLeagueScore(leagueId: string) {
   const api = useAxiosWithClerk();

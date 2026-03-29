@@ -10,6 +10,7 @@ interface DetailPageHandlersConfig {
   onRefresh: () => Promise<void>;
   refetchPosts: () => Promise<unknown>;
   refetchOverview?: () => Promise<unknown>;
+  refetchStandings?: () => Promise<unknown>;
   deletePostMutation: {
     mutateAsync: (postId: string) => Promise<void>;
   };
@@ -24,6 +25,7 @@ export function useDetailPageHandlers({
   onRefresh,
   refetchPosts,
   refetchOverview,
+  refetchStandings,
   deletePostMutation,
   entityName,
   onMatchesRefresh,
@@ -66,6 +68,9 @@ export function useDetailPageHandlers({
       } else if (currentTab === "overview" && refetchOverview) {
         await refetchOverview();
         log.info("Overview data refreshed");
+      } else if (currentTab === "standings" && refetchStandings) {
+        await refetchStandings();
+        log.info("Standings refreshed");
       } else if (currentTab === "matches" && onMatchesRefresh) {
         await onMatchesRefresh();
         log.info("Matches refreshed");
@@ -84,6 +89,7 @@ export function useDetailPageHandlers({
     onRefresh,
     currentTab,
     refetchOverview,
+    refetchStandings,
     onMatchesRefresh,
     refetchPosts,
     log,
