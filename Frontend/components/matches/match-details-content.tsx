@@ -33,7 +33,7 @@ export function MatchToolbar({
     Alert.alert(attendanceAction.title, attendanceAction.message, [
       { text: "Cancel", style: "cancel" },
       {
-        text: attendanceAction.label,
+        text: attendanceAction.confirmLabel,
         style: attendanceAction.destructive ? "destructive" : "default",
         onPress: () => {
           void onConfirmAttendanceAction();

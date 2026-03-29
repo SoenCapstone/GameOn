@@ -46,6 +46,7 @@ import java.time.OffsetDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
 import java.util.UUID;
@@ -56,6 +57,10 @@ import java.util.stream.Collectors;
 @Service
 @RequiredArgsConstructor
 public class TeamMatchService {
+    private static final DateTimeFormatter REPLACEMENT_MATCH_DATE_FORMATTER =
+            DateTimeFormatter.ofPattern("EEEE, MMMM d", Locale.ENGLISH);
+    private static final DateTimeFormatter REPLACEMENT_MATCH_TIME_FORMATTER =
+            DateTimeFormatter.ofPattern("h:mm a", Locale.ENGLISH);
     private static final String TEAM_DAILY_LIMIT_EXCEEDED_CODE = "TEAM_DAILY_LIMIT_EXCEEDED";
     private static final String TEAM_DAILY_LIMIT_EXCEEDED_MESSAGE =
             "One of these teams already has 3 confirmed matches on this day.";
@@ -746,19 +751,25 @@ public class TeamMatchService {
                             .joinedAt(OffsetDateTime.now())
                             .build())
                     .toList();
-
-
             TeamMatch match = teamMatchRepository.findById(matchId)
                     .orElseThrow(() -> new NotFoundException("Match not found"));
-
-            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
-            String matchDateStr = match.getStartTime().format(formatter);
+            UUID otherTeamId = Objects.equals(member.getTeamId(), match.getHomeTeamId())
+                    ? match.getAwayTeamId()
+                    : match.getHomeTeamId();
+            Team otherTeam = requireActiveTeam(otherTeamId);
+            String matchDate = match.getStartTime().format(REPLACEMENT_MATCH_DATE_FORMATTER);
+            String matchTime = match.getStartTime().format(REPLACEMENT_MATCH_TIME_FORMATTER);
 
             teamMatchMemberRepository.saveAll(replacementMatchMembers);
             TeamPostCreateRequest postRequest = new TeamPostCreateRequest(
                     "Replacement Needed",
                     member.getTeamId(),
-                    "A player is unavailable for the upcoming match on " + matchDateStr,
+                    "A replacement is needed for our match against "
+                            + otherTeam.getName()
+                            + " on "
+                            + matchDate
+                            + " at "
+                            + matchTime,
                     TeamPostScope.MEMBERS
             );
 

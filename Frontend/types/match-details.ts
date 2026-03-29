@@ -23,6 +23,7 @@ export type MatchMemberAttendanceStatus =
 
 export type MatchAttendanceAction = {
   attending: "CONFIRMED" | "DECLINED";
+  confirmLabel: "Attending" | "Confirm";
   destructive: boolean;
   icon: "person.fill.checkmark" | "person.fill.xmark";
   label: "Attending" | "Not Attending";

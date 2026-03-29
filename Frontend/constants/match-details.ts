@@ -8,6 +8,7 @@ export const MATCH_DETAILS_DEFAULTS = {
 export const MATCH_ATTENDANCE_ACTIONS = {
   PLAYER: {
     attending: "DECLINED",
+    confirmLabel: "Confirm",
     destructive: true,
     icon: "person.fill.xmark",
     label: "Not Attending",
@@ -16,6 +17,7 @@ export const MATCH_ATTENDANCE_ACTIONS = {
   },
   REPLACEMENT: {
     attending: "CONFIRMED",
+    confirmLabel: "Confirm",
     destructive: false,
     icon: "person.fill.checkmark",
     label: "Attending",
