@@ -104,13 +104,10 @@ export default function MatchScoreScreen() {
   const awayTeamName = awayTeam?.name ?? params.awayName?.trim() ?? "Away Team";
   const fallbackStartTime = params.startTime;
 
-  const matchStartTime = useMemo(
-    () => {
-      const rawStartTime = match?.startTime ?? fallbackStartTime;
-      return rawStartTime ? new Date(rawStartTime) : null;
-    },
-    [match?.startTime, fallbackStartTime],
-  );
+  const matchStartTime = useMemo(() => {
+    const rawStartTime = match?.startTime ?? fallbackStartTime;
+    return rawStartTime ? new Date(rawStartTime) : null;
+  }, [match?.startTime, fallbackStartTime]);
 
   const isSubmitting =
     submitScoreMutation.isPending || submitLeagueScoreMutation.isPending;
