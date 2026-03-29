@@ -1,4 +1,4 @@
-import { useCallback, useLayoutEffect, useRef, useState } from "react";
+import { useCallback, useLayoutEffect, useRef } from "react";
 import {
   ActivityIndicator,
   RefreshControl,
@@ -16,6 +16,7 @@ import { Header } from "@/components/header/header";
 import { Button } from "@/components/ui/button";
 import { PageTitle } from "@/components/header/page-title";
 import type { Shape } from "@/components/play-maker/model";
+import { useMutation } from "@tanstack/react-query";
 
 import {
   GO_TEAM_SERVICE_ROUTES,
@@ -95,10 +96,23 @@ function PlayMakerContent() {
   } = useTeamDetailContext();
 
   const navigation = useNavigation();
+
+  const savePlayMutation = useMutation({
+    mutationFn: async (shapes: Shape[]) => {
+      const payload = toBackendPayload(shapes);
+      const route = GO_TEAM_SERVICE_ROUTES.CREATE_PLAY(teamId);
+      return api.post(route, payload);
+    },
+    onSuccess: () => {
+      Alert.alert("Saved", "Your play was saved successfully.");
+    },
+    onError: (err) => {
+      Alert.alert("Error while saving play:", errorToString(err));
+    },
+  });
   const api = useAxiosWithClerk();
 
   const latestShapesRef = useRef<Shape[]>([]);
-  const [saving, setSaving] = useState(false);
 
   const handleShapesChange = useCallback((shapes: Shape[]) => {
     latestShapesRef.current = shapes;
@@ -112,25 +126,18 @@ function PlayMakerContent() {
       return;
     }
 
-    setSaving(true);
-
-    try {
-      const payload = toBackendPayload(shapes);
-      const route = GO_TEAM_SERVICE_ROUTES.CREATE_PLAY(teamId);
-
-      await api.post(route, payload);
-
-      Alert.alert("Saved", "Your play was saved successfully.");
-    } catch (err) {
-      Alert.alert("Error while saving play:", errorToString(err));
-    } finally {
-      setSaving(false);
-    }
-  }, [api, teamId]);
+    savePlayMutation.mutate(shapes);
+  }, [savePlayMutation]);
 
   const headerTitle = useCallback(
-    () => <PlaymakerHeader title={title} saving={saving} onSave={onSave} />,
-    [title, saving, onSave],
+    () => (
+      <PlaymakerHeader
+        title={title}
+        saving={savePlayMutation.isPending}
+        onSave={onSave}
+      />
+    ),
+    [title, savePlayMutation.isPending, onSave],
   );
 
   useLayoutEffect(() => {

@@ -522,7 +522,7 @@ public class TeamService {
 
 
     @Transactional
-    public UUID createPlay(List<PlayItemDTO> items) {
+    public UUID createPlay(List<PlayItemDTO> items, UUID teamId) {
 
         List<PlayItemDTO> safeItems = (items == null) ? List.of() : items;
 
@@ -534,8 +534,14 @@ public class TeamService {
 
         UUID playId = UUID.randomUUID();
 
+        requireActiveTeam(teamId);
+
+        Team team = teamRepository.findById(teamId)
+                .orElseThrow(() -> new NotFoundException("Team not found"));
+
         Play play = Play.builder()
                 .id(playId)
+                .team(team)
                 .build();
 
         playRepository.save(play);

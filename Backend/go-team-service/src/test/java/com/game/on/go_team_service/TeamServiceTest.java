@@ -404,8 +404,13 @@ class TeamServiceTest {
 
         when(playNodeRepository.saveAll(anyList())).thenAnswer(inv -> inv.getArgument(0));
         when(playEdgeRepository.saveAll(anyList())).thenAnswer(inv -> inv.getArgument(0));
+        Team team = new Team();
+        team.setId(teamId);
 
-        UUID playId = teamService.createPlay(items);
+        when(teamRepository.findByIdAndDeletedAtIsNull(eq(teamId))).thenReturn(Optional.of(team));
+        
+        when(teamRepository.findById(eq(teamId))).thenReturn(Optional.of(team));
+        UUID playId = teamService.createPlay(items, teamId);
 
         verify(playRepository).save(playCaptor.capture());
         Play savedPlay = playCaptor.getValue();
