@@ -15,6 +15,7 @@ import { PageTitle } from "@/components/header/page-title";
 import { Button } from "@/components/ui/button";
 import { useMatchPresentation } from "@/hooks/use-match-presentation";
 import {
+  useLeagueMatch,
   useSubmitLeagueScore,
   useSubmitTeamScore,
   useTeamMatch,
@@ -58,6 +59,7 @@ export default function MatchScoreScreen() {
   const params = useLocalSearchParams<{
     id?: string;
     contextId?: string;
+    contextType?: "team" | "league";
     leagueId?: string;
     startTime?: string;
     homeName?: string;
@@ -65,6 +67,7 @@ export default function MatchScoreScreen() {
   }>();
   const matchId = params.id ?? "";
   const contextId = params.contextId ?? "";
+  const contextType = params.contextType === "league" ? "league" : "team";
   const leagueId = params.leagueId ?? "";
   const isLeagueMatch = Boolean(leagueId);
 
@@ -79,11 +82,18 @@ export default function MatchScoreScreen() {
   const [endTimeValue, setEndTimeValue] = useState(new Date());
 
   const teamMatchQuery = useTeamMatch(matchId, !isLeagueMatch);
+  const leagueMatchQuery = useLeagueMatch(leagueId, matchId, isLeagueMatch);
+  const contextMatchesQueryKey = useMemo(
+    () =>
+      contextType === "league"
+        ? (["league-matches", contextId] as const)
+        : (["team-matches", contextId] as const),
+    [contextType, contextId],
+  );
   const contextMatches =
-    queryClient.getQueryData<(TeamMatch | LeagueMatch)[]>([
-      "team-matches",
-      contextId,
-    ]) ?? [];
+    queryClient.getQueryData<(TeamMatch | LeagueMatch)[]>(
+      contextMatchesQueryKey,
+    ) ?? [];
   const contextualMatch = contextMatches.find((existingMatch) => {
     if (existingMatch.id !== matchId) {
       return false;
@@ -96,7 +106,9 @@ export default function MatchScoreScreen() {
     return "leagueId" in existingMatch && existingMatch.leagueId === leagueId;
   });
   const match = (
-    isLeagueMatch ? contextualMatch : (teamMatchQuery.data ?? contextualMatch)
+    isLeagueMatch
+      ? (leagueMatchQuery.data ?? contextualMatch)
+      : (teamMatchQuery.data ?? contextualMatch)
   ) as TeamMatch | LeagueMatch | undefined;
   const { homeTeam, awayTeam } = useMatchPresentation(match);
 
@@ -154,63 +166,48 @@ export default function MatchScoreScreen() {
           awayScore,
           endTime: submittedEndTime,
         });
-
-        queryClient.setQueryData<TeamMatch | undefined>(
-          ["team-match", matchId],
-          (currentMatch) => {
-            if (!currentMatch) return currentMatch;
-            return {
-              ...currentMatch,
-              status: "COMPLETED",
-              endTime: submittedEndTime,
-              homeScore,
-              awayScore,
-            };
-          },
-        );
       }
 
       if (contextId) {
-        queryClient.setQueryData<(TeamMatch | LeagueMatch)[] | undefined>(
-          ["team-matches", contextId],
-          (currentMatches) => {
-            if (!currentMatches) return currentMatches;
+        await queryClient.invalidateQueries({
+          queryKey: contextMatchesQueryKey,
+        });
+      }
 
-            return currentMatches.map((existingMatch) => {
-              if (existingMatch.id !== matchId) {
-                return existingMatch;
-              }
+      if (isLeagueMatch && leagueId) {
+        await queryClient.invalidateQueries({
+          queryKey: ["league-match", leagueId, matchId],
+        });
+        await queryClient.invalidateQueries({
+          queryKey: ["league-matches", leagueId],
+        });
+      }
 
-              if (isLeagueMatch) {
-                return {
-                  ...existingMatch,
-                  endTime: submittedEndTime,
-                  homeScore,
-                  awayScore,
-                };
-              }
+      if (!isLeagueMatch) {
+        await queryClient.invalidateQueries({
+          queryKey: ["team-match", matchId],
+        });
+      }
 
-              if (!("matchType" in existingMatch)) {
-                return existingMatch;
-              }
+      if (contextType === "team" && contextId) {
+        await queryClient.invalidateQueries({
+          queryKey: ["team-matches", contextId],
+        });
+      }
 
-              return {
-                ...existingMatch,
-                status: "COMPLETED",
-                endTime: submittedEndTime,
-                homeScore,
-                awayScore,
-              };
-            });
-          },
-        );
+      if (contextType === "league" && contextId) {
+        await queryClient.invalidateQueries({
+          queryKey: ["league-matches", contextId],
+        });
       }
 
       await queryClient.invalidateQueries({ queryKey: ["user-updates"] });
 
       router.dismissTo({
         pathname: contextId
-          ? (`/teams/${contextId}` as RelativePathString)
+          ? contextType === "league"
+            ? (`/leagues/${contextId}` as RelativePathString)
+            : (`/teams/${contextId}` as RelativePathString)
           : ("/home" as RelativePathString),
         params: contextId ? { tab: "matches" } : undefined,
       });
@@ -218,17 +215,20 @@ export default function MatchScoreScreen() {
       Alert.alert("Score submission failed", errorToString(err));
     }
   }, [
-    endTimeValue,
+    matchId,
     homeScoreText,
     awayScoreText,
-    matchId,
-    contextId,
     matchStartTime,
+    endTimeValue,
     isLeagueMatch,
-    submitLeagueScoreMutation,
-    submitScoreMutation,
+    contextId,
+    leagueId,
+    contextType,
     queryClient,
     router,
+    submitLeagueScoreMutation,
+    submitScoreMutation,
+    contextMatchesQueryKey,
   ]);
 
   const submitRef = useRef(onSubmit);
@@ -242,7 +242,11 @@ export default function MatchScoreScreen() {
   }, [navigation, isSubmitting]);
 
   const loadingState = useMemo(() => {
-    if (!isLeagueMatch && teamMatchQuery.isLoading && !match) {
+    const isMatchLoading = isLeagueMatch
+      ? leagueMatchQuery.isLoading
+      : teamMatchQuery.isLoading;
+
+    if (isMatchLoading && !match) {
       return (
         <View style={styles.loading}>
           <ActivityIndicator size="small" color="#fff" />
@@ -255,7 +259,13 @@ export default function MatchScoreScreen() {
     }
 
     return null;
-  }, [match, matchId, isLeagueMatch, teamMatchQuery.isLoading]);
+  }, [
+    match,
+    matchId,
+    isLeagueMatch,
+    teamMatchQuery.isLoading,
+    leagueMatchQuery.isLoading,
+  ]);
 
   if (loadingState) {
     return loadingState;

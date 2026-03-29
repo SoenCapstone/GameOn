@@ -296,6 +296,7 @@ function TeamContent() {
                 pathname: `/match/${match.id}/score` as RelativePathString,
                 params: {
                   contextId: id,
+                  contextType: "team",
                   leagueId: isLeagueMatch ? match.leagueId : undefined,
                   startTime: match.startTime,
                   homeName: match.homeName,
