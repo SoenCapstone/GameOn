@@ -1,9 +1,9 @@
 import { useCallback, useMemo, useState } from "react";
 import {
-  View,
   ActivityIndicator,
   RefreshControl,
   StyleSheet,
+  View,
 } from "react-native";
 import {
   RelativePathString,
@@ -205,13 +205,12 @@ function TeamContent() {
   const leaguesQuery = useLeaguesByIds(leagueIds);
 
   const matchItems = useMemo(() => {
-    const items = buildMatchCards(matches, teamsQuery.data, (match) => {
+    return buildMatchCards(matches, teamsQuery.data, (match) => {
       if ("leagueId" in match && match.leagueId) {
         return leaguesQuery.data?.[match.leagueId]?.name ?? "League Match";
       }
       return "Team Match";
     });
-    return items;
   }, [matches, teamsQuery.data, leaguesQuery.data]);
 
   const {

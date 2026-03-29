@@ -14,7 +14,6 @@ import { useMatchPresentation } from "@/hooks/use-match-presentation";
 import { useSubmitTeamScore, useTeamMatch } from "@/hooks/use-matches";
 import { LeagueMatch, TeamMatch } from "@/types/matches";
 import { errorToString } from "@/utils/error";
-import { Background } from "@/components/ui/background";
 
 function parseScore(rawValue: string) {
   const trimmed = rawValue.trim();
