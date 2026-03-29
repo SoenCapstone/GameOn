@@ -6,7 +6,6 @@ import com.game.on.go_league_service.client.dto.TeamSummaryResponse;
 import com.game.on.go_league_service.config.CurrentUserProvider;
 import com.game.on.go_league_service.exception.BadRequestException;
 import com.game.on.go_league_service.exception.ConflictException;
-import com.game.on.go_league_service.exception.ForbiddenException;
 import com.game.on.go_league_service.league.dto.AssignRefereeRequest;
 import com.game.on.go_league_service.league.dto.LeagueMatchCreateRequest;
 import com.game.on.go_league_service.league.dto.LeagueMatchScheduleValidationResponse;
@@ -306,12 +305,23 @@ class LeagueMatchServiceTest {
         LeagueMatch match = new LeagueMatch();
         match.setId(UUID.randomUUID());
         match.setLeague(league);
+        match.setRequiresReferee(false);
         match.setRefereeUserId(null);
+        match.setHomeTeamId(homeTeamId);
+        match.setAwayTeamId(awayTeamId);
 
         when(leagueMatchRepository.findByIdAndLeague_Id(match.getId(), leagueId)).thenReturn(Optional.of(match));
         when(leagueMatchScoreRepository.findByMatch_Id(match.getId())).thenReturn(Optional.empty());
+        when(teamClient.getTeam(homeTeamId)).thenReturn(new TeamSummaryResponse(homeTeamId, "soccer", List.of("Montreal"), "owner_1"));
+        when(teamClient.getTeam(awayTeamId)).thenReturn(new TeamSummaryResponse(awayTeamId, "soccer", List.of("Montreal"), "owner_2"));
 
-        LeagueMatchScoreRequest request = new LeagueMatchScoreRequest(2, 1);
+        match.setStartTime(OffsetDateTime.parse("2026-03-20T09:00:00Z"));
+
+        LeagueMatchScoreRequest request = new LeagueMatchScoreRequest(
+                2,
+                1,
+                OffsetDateTime.parse("2026-03-20T10:30:00Z")
+        );
 
         leagueMatchService.submitScore(leagueId, match.getId(), request);
         verify(leagueMatchScoreRepository).save(any(LeagueMatchScore.class));
