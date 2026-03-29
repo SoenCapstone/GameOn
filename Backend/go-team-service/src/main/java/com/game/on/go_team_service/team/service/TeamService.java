@@ -559,6 +559,18 @@ public class TeamService {
     }
 
     @Transactional(readOnly = true)
+    public List<UUID> getAllPlayIds(UUID teamId){
+        String userId = userProvider.clerkUserId();
+
+        requireActiveTeam(teamId);
+        requireActiveMembership(teamId, userId);
+
+        return playRepository.findAllByTeam_Id(teamId).stream()
+                .map(Play::getId)
+                .toList();
+    }
+
+    @Transactional(readOnly = true)
     public List<PlayItemDTO> getPlayItems(UUID teamId, UUID playId) {
         String userId = userProvider.clerkUserId();
 
