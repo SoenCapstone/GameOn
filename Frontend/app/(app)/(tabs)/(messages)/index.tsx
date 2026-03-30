@@ -67,6 +67,16 @@ export default function Messages() {
     return map;
   }, [users]);
 
+  const userImageMap = useMemo(() => {
+    const map = new Map<string, string>();
+    users?.forEach((user) => {
+      if (user.imageUrl) {
+        map.set(user.id, user.imageUrl);
+      }
+    });
+    return map;
+  }, [users]);
+
   const teamLogoMap = useMemo(() => {
     const map = new Map<string, string>();
     myTeams?.forEach((team) => {
@@ -107,7 +117,9 @@ export default function Messages() {
           subtitle = "Team chat";
         }
         const imageUrl =
-          isGroup && conversation.teamId
+          !isGroup && otherParticipant?.userId
+            ? (userImageMap.get(otherParticipant.userId) ?? null)
+            : isGroup && conversation.teamId
             ? (teamLogoMap.get(conversation.teamId) ?? null)
             : null;
         return {
@@ -120,7 +132,7 @@ export default function Messages() {
           imageUrl: imageUrl ?? undefined,
         } satisfies ChatItem;
       });
-  }, [data, filter, userId, userMap, teamLogoMap]);
+  }, [data, filter, userId, userImageMap, userMap, teamLogoMap]);
 
   useEffect(() => {
     listRef.current?.scrollToIndex({ index: 0, animated: true });
