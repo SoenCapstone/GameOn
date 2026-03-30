@@ -40,9 +40,13 @@ export function ProfileItem({
                 </BlurView>
               )}
               <View style={styles.labels}>
-                <Text style={styles.title}>{title}</Text>
+                <Text style={styles.title} numberOfLines={1}>
+                  {title}
+                </Text>
                 {subtitle != null && (
-                  <Text style={styles.subtitle}>{subtitle}</Text>
+                  <Text style={styles.subtitle} numberOfLines={1}>
+                    {subtitle}
+                  </Text>
                 )}
               </View>
             </View>
@@ -84,6 +88,7 @@ const styles = StyleSheet.create({
   },
   labels: {
     gap: 2,
+    maxWidth: 240,
   },
   title: {
     fontSize: 20,
