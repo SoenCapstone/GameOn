@@ -92,7 +92,7 @@ export default function Home() {
   const {
     data: invites = [],
     isLoading,
-    isFetching,
+    isRefetching,
     refetch,
   } = useQuery<InviteCardItem[]>({
     queryKey: ["user-updates", userId],
@@ -202,7 +202,6 @@ export default function Home() {
         ),
       );
       await Promise.all([
-        queryClient.invalidateQueries({ queryKey: ["user-updates", userId] }),
         queryClient.invalidateQueries({ queryKey: ["team-matches"] }),
       ]);
       Alert.alert(
@@ -236,9 +235,6 @@ export default function Home() {
             ),
         ),
       );
-      await queryClient.invalidateQueries({
-        queryKey: ["user-updates", userId],
-      });
       Alert.alert(
         variables.isAccepted ? "Invite accepted" : "Invite declined",
         variables.isAccepted
@@ -318,7 +314,7 @@ export default function Home() {
       toolbar={<HomeToolbar />}
       background={{ preset: "blue" }}
       refreshControl={
-        <RefreshControl refreshing={isFetching} onRefresh={onRefresh} />
+        <RefreshControl refreshing={isRefetching} onRefresh={onRefresh} />
       }
     >
       {tab === "feed" ? (
