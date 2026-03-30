@@ -12,6 +12,7 @@ export function useMyTeams() {
     queryKey: messagingKeys.myTeams(userId),
     queryFn: () => fetchMyTeams(api),
     staleTime: 60_000,
+    refetchOnMount: false,
     enabled: Boolean(userId),
   });
 }

@@ -12,6 +12,7 @@ export function useUserDirectory() {
     queryKey: messagingKeys.userDirectory(userId),
     queryFn: () => fetchUserDirectory(api),
     staleTime: 60_000,
+    refetchOnMount: false,
     enabled: Boolean(userId),
   });
 }

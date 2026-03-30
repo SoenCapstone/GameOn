@@ -16,6 +16,7 @@ export function useConversationsQuery() {
     queryKey: messagingKeys.conversations(userId),
     queryFn: () => fetchConversations(api),
     staleTime: 15_000,
+    refetchOnMount: false,
     select: (data) => sortConversations(data ?? []),
     enabled: Boolean(userId),
   });
