@@ -108,8 +108,7 @@ export default function InvitePlayersScreen() {
     membersLoading ||
     membersFetching ||
     invitesLoading ||
-    usersLoading ||
-    createInviteMutation.isPending;
+    usersLoading;
 
   return (
     <ContentArea
