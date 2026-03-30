@@ -47,6 +47,7 @@ function TeamToolbar({
   title,
   id,
   canManageSettings,
+  canFollow,
   onFollow,
   openPost,
   openSchedule,
@@ -55,6 +56,7 @@ function TeamToolbar({
   title: string;
   id: string;
   canManageSettings: boolean;
+  canFollow: boolean;
   onFollow: () => void;
   openPost?: () => void;
   openSchedule?: () => void;
@@ -72,11 +74,11 @@ function TeamToolbar({
             onPress={() => router.push(`/teams/${id}/settings`)}
           />
         </Stack.Toolbar>
-      ) : (
+      ) : canFollow ? (
         <Stack.Toolbar placement="right">
           <Stack.Toolbar.Button onPress={onFollow}>Follow</Stack.Toolbar.Button>
         </Stack.Toolbar>
-      )}
+      ) : null}
       {showBottomToolbar ? (
         <Stack.Toolbar placement="bottom">
           {openPlaymaker ? (
@@ -271,6 +273,7 @@ function TeamContent() {
             title={title}
             id={id}
             canManageSettings={isOwner || role === "MANAGER"}
+            canFollow={!isActiveMember}
             onFollow={handleFollow}
             openPost={canManage ? openPost : undefined}
             openSchedule={isOwner ? openSchedule : undefined}
