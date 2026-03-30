@@ -1,5 +1,5 @@
 import { GO_TEAM_SERVICE_ROUTES } from "@/hooks/use-axios-clerk";
-import { TeamMember } from "@/hooks/use-get-team-members/model";
+import { TeamMember } from "@/types/team-member";
 import { AxiosInstance, AxiosResponse } from "axios";
 
 export const fetchTeamMembers = (
