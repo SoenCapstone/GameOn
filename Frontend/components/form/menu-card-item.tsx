@@ -60,8 +60,12 @@ export function MenuCardItem({
           ]}
         />
         <View style={styles.info}>
-          <Text style={styles.name}>{title}</Text>
-          <Text style={styles.email}>{subtitle}</Text>
+          <Text style={styles.name} numberOfLines={1}>
+            {title}
+          </Text>
+          <Text style={styles.email} numberOfLines={1}>
+            {subtitle}
+          </Text>
         </View>
       </View>
       {menu ? (
@@ -128,6 +132,7 @@ const styles = StyleSheet.create({
   },
   info: {
     gap: 2,
+    maxWidth: 200,
   },
   name: {
     fontSize: 16,
