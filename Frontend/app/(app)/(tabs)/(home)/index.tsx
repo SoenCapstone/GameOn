@@ -2,7 +2,6 @@ import { useCallback, useState } from "react";
 import { ContentArea } from "@/components/ui/content-area";
 import {
   View,
-  Text,
   RefreshControl,
   Alert,
   StyleSheet,
@@ -36,6 +35,8 @@ import * as Haptics from "expo-haptics";
 import { router, Stack } from "expo-router";
 import { Image } from "expo-image";
 import { Logo } from "@/components/header/logo";
+import { Empty } from "@/components/ui/empty";
+import { Loading } from "@/components/ui/loading";
 
 type TeamInviteResponse = {
   id: string;
@@ -90,6 +91,7 @@ export default function Home() {
 
   const {
     data: invites = [],
+    isLoading,
     isFetching,
     refetch,
   } = useQuery<InviteCardItem[]>({
@@ -321,8 +323,10 @@ export default function Home() {
     >
       {tab === "feed" ? (
         <View style={styles.cardWrap}>
-          {invites.length === 0 ? (
-            <Text style={styles.inviteText}>No pending invitations.</Text>
+          {isLoading ? (
+            <Loading />
+          ) : invites.length === 0 ? (
+            <Empty message="No updates available" />
           ) : (
             invites.map((invite) => (
               <InviteCard
@@ -343,7 +347,7 @@ export default function Home() {
           )}
         </View>
       ) : (
-        <View />
+        <Empty message="No updates available" />
       )}
     </ContentArea>
   );
@@ -460,9 +464,5 @@ const styles = StyleSheet.create({
   },
   cardWrap: {
     gap: 14,
-  },
-  inviteText: {
-    color: "rgba(255,255,255,0.8)",
-    marginTop: 8,
   },
 });

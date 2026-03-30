@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react";
 import { ContentArea } from "@/components/ui/content-area";
-import { ActivityIndicator, Alert, StyleSheet } from "react-native";
+import { Alert, StyleSheet } from "react-native";
 import { LegendList } from "@legendapp/list/react-native";
 import { Stack, useRouter } from "expo-router";
 import { useAuth } from "@clerk/clerk-expo";
@@ -8,6 +8,8 @@ import { useMessagingContext } from "@/contexts/messaging";
 import { useUserDirectory } from "@/hooks/messages/use-user-directory";
 import { errorToString } from "@/utils/error";
 import { Form } from "@/components/form/form";
+import { Loading } from "@/components/ui/loading";
+import { Empty } from "@/components/ui/empty";
 
 function NewMessageToolbar({
   onSearchChange,
@@ -69,7 +71,9 @@ export default function NewMessage() {
       toolbar={<NewMessageToolbar onSearchChange={setQuery} />}
     >
       {loadingUsers ? (
-        <ActivityIndicator color="white" style={{ marginTop: 40 }} />
+        <Loading />
+      ) : filteredUsers.length === 0 ? (
+        <Empty message={query.trim() ? "No users found" : "No users available"} />
       ) : (
         <LegendList
           data={filteredUsers}

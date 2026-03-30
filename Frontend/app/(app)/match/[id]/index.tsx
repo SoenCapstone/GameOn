@@ -1,5 +1,5 @@
 import { useCallback, useMemo, useState } from "react";
-import { ActivityIndicator, Alert, StyleSheet, Text, View } from "react-native";
+import { Alert } from "react-native";
 import {
   RelativePathString,
   useLocalSearchParams,
@@ -42,17 +42,15 @@ import {
   getMatchTeamIds,
   isLeagueMatch,
 } from "@/utils/match-details";
+import { Loading } from "@/components/ui/loading";
+import { Empty } from "@/components/ui/empty";
 
 function renderMatchLoadingState(
   isMatchLoading: boolean,
   displayMatch: MatchDetailsDisplayMatch | undefined,
 ) {
   if (isMatchLoading && !displayMatch) {
-    return (
-      <View style={styles.loading}>
-        <ActivityIndicator size="small" color="#fff" />
-      </View>
-    );
+    return <Loading />;
   }
 
   return null;
@@ -306,7 +304,7 @@ export default function MatchDetailsScreen() {
   }
 
   if (!displayMatch) {
-    return <Text style={styles.empty}>Match not found</Text>;
+    return <Empty message="Match not found" />;
   }
 
   return (
@@ -342,15 +340,3 @@ export default function MatchDetailsScreen() {
     />
   );
 }
-
-const styles = StyleSheet.create({
-  loading: {
-    marginTop: 24,
-    alignItems: "center",
-  },
-  empty: {
-    color: "#fff",
-    fontSize: 16,
-    marginTop: 24,
-  },
-});

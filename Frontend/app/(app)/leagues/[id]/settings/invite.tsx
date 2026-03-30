@@ -1,8 +1,9 @@
 import { useMemo, useState } from "react";
-import { Alert, ActivityIndicator, Text } from "react-native";
+import { Alert } from "react-native";
 import { Stack, useLocalSearchParams } from "expo-router";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { ContentArea } from "@/components/ui/content-area";
+import { Empty } from "@/components/ui/empty";
 import { Form } from "@/components/form/form";
 import { useLeagueDetail } from "@/hooks/use-league-detail";
 import { errorToString } from "@/utils/error";
@@ -23,6 +24,7 @@ import {
   GO_LEAGUE_SERVICE_ROUTES,
   useAxiosWithClerk,
 } from "@/hooks/use-axios-clerk";
+import { Loading } from "@/components/ui/loading";
 
 function InviteTeamsToolbar() {
   return <Stack.Screen.Title>Invite Teams</Stack.Screen.Title>;
@@ -131,9 +133,9 @@ export default function InviteTeamsScreen() {
       <Form accentColor={AccentColors.red}>
         <Form.Section header="Available Teams">
           {isBusy ? (
-            <ActivityIndicator size="small" color="#fff" />
+            <Loading />
           ) : availableTeams.length === 0 ? (
-            <Text>No teams available to invite.</Text>
+            <Empty message="No teams available to invite." />
           ) : (
             availableTeams.map((team) => {
               const details = availableTeamDetailsQuery.data?.[team.id];

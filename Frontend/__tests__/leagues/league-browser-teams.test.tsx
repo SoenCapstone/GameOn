@@ -54,7 +54,7 @@ describe("LeagueBrowserTeams", () => {
       />,
     );
 
-    expect(getByText("No teams in this league yet.")).toBeTruthy();
+    expect(getByText("No teams in this league")).toBeTruthy();
     expect(mockInfoCard).not.toHaveBeenCalled();
   });
 

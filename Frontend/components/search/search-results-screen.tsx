@@ -1,9 +1,11 @@
 import { useCallback, useEffect, useMemo, useRef } from "react";
-import { View, Text, ActivityIndicator, StyleSheet } from "react-native";
+import { View, Text, StyleSheet } from "react-native";
 import { LegendList } from "@legendapp/list/react-native";
 import { InfoCard } from "@/components/info-card";
 import { createScopedLog } from "@/utils/logger";
 import { onSearchResultPress } from "@/utils/search";
+import { Loading } from "@/components/ui/loading";
+import { Empty } from "@/components/ui/empty";
 import type {
   SearchValue,
   SearchResult,
@@ -113,13 +115,17 @@ export function SearchResultsScreen({
     return base.filter((r) => r.name.toLowerCase().includes(q));
   }, [results, selectedMode, q, searchActive, resultFilter]);
 
+  const emptyMessage = useMemo(() => {
+    if (searchActive) {
+      return q ? "No results found" : null;
+    }
+
+    return `No ${selectedMode.label.toLowerCase()} available`;
+  }, [q, searchActive, selectedMode.label]);
+
   return (
     <>
-      {isLoading ? (
-        <View style={styles.loadingContainer}>
-          <ActivityIndicator size="small" color="#FFFFFF" />
-        </View>
-      ) : null}
+      {isLoading ? <Loading /> : null}
 
       {searchActive && teamError ? (
         <View style={styles.errorContainer}>
@@ -178,6 +184,9 @@ export function SearchResultsScreen({
         }}
         recycleItems={true}
         ItemSeparatorComponent={Separator}
+        ListEmptyComponent={
+          !isLoading && emptyMessage ? <Empty message={emptyMessage} /> : null
+        }
       />
     </>
   );
@@ -186,7 +195,7 @@ export function SearchResultsScreen({
 const styles = StyleSheet.create({
   separator: { height: 14 },
   resultsContentStatic: { paddingVertical: 0.1 },
-  loadingContainer: { alignItems: "center", padding: 8 },
+  loadingContainer: { padding: 8 },
   errorContainer: {
     backgroundColor: "#661313",
     padding: 8,

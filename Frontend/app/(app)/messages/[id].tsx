@@ -32,17 +32,11 @@ import {
   useState,
   type ComponentRef,
 } from "react";
-import {
-  ActivityIndicator,
-  Alert,
-  Pressable,
-  StyleSheet,
-  Text,
-  TextInput,
-  View,
-} from "react-native";
+import { Alert, Pressable, StyleSheet, TextInput, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Image } from "expo-image";
+import { Loading } from "@/components/ui/loading";
+import { Empty } from "@/components/ui/empty";
 
 export function ChatToolbar({
   title,
@@ -247,14 +241,9 @@ export default function ChatScreen() {
       />
       <Background preset="green" mode="form" />
       {loading ? (
-        <View style={styles.center}>
-          <ActivityIndicator color="rgba(255,255,255,0.9)" />
-        </View>
+        <Loading />
       ) : isError ? (
-        <View style={styles.center}>
-          <Text style={styles.lead}>Unable to load messages</Text>
-          <Text style={styles.error}>{errorToString(error)}</Text>
-        </View>
+        <Empty message={`Unable to load messages. ${errorToString(error)}`} />
       ) : (
         <KeyboardAvoidingLegendList
           ref={listRef}
@@ -322,23 +311,5 @@ const styles = StyleSheet.create({
   },
   content: {
     paddingHorizontal: 16,
-  },
-  center: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    paddingHorizontal: 24,
-  },
-  lead: {
-    color: "white",
-    fontSize: 17,
-    fontWeight: "700",
-    marginBottom: 8,
-    textAlign: "center",
-  },
-  error: {
-    color: "rgba(255,255,255,0.72)",
-    fontSize: 14,
-    textAlign: "center",
   },
 });

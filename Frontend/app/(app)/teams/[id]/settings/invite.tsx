@@ -1,14 +1,16 @@
 import { useMemo } from "react";
-import { ActivityIndicator, Alert, Text } from "react-native";
+import { Alert } from "react-native";
 import { Stack, useLocalSearchParams } from "expo-router";
 import { useAuth } from "@clerk/clerk-expo";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { ContentArea } from "@/components/ui/content-area";
+import { Empty } from "@/components/ui/empty";
 import { Form } from "@/components/form/form";
 import { AccentColors } from "@/constants/colors";
 import { images } from "@/constants/images";
 import { MenuCardItem } from "@/components/form/menu-card-item";
 import { formatFullName } from "@/components/teams/member-row-utils";
+import { Loading } from "@/components/ui/loading";
 import { useTeamDetail } from "@/hooks/use-team-detail";
 import { useGetTeamMembers } from "@/hooks/use-get-team-members";
 import { fetchUserDirectory } from "@/hooks/messages/api";
@@ -117,9 +119,9 @@ export default function InvitePlayersScreen() {
       <Form accentColor={AccentColors.red}>
         <Form.Section header="Available Users">
           {isBusy ? (
-            <ActivityIndicator size="small" color="#fff" />
+            <Loading />
           ) : availableUsers.length === 0 ? (
-            <Text>No available players to invite.</Text>
+            <Empty message="No available players to invite" />
           ) : (
             availableUsers.map((user) => {
               const name = formatFullName(user.firstname, user.lastname);

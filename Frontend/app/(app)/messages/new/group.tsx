@@ -1,6 +1,6 @@
 import { useCallback, useState } from "react";
 import { ContentArea } from "@/components/ui/content-area";
-import { ActivityIndicator, Alert } from "react-native";
+import { Alert } from "react-native";
 import { Form } from "@/components/form/form";
 import { AccentColors } from "@/constants/colors";
 import { useRouter } from "expo-router";
@@ -8,6 +8,7 @@ import { useMessagingContext } from "@/contexts/messaging";
 import { useMyTeams } from "@/hooks/messages/use-my-teams";
 import { errorToString } from "@/utils/error";
 import { FormToolbar } from "@/components/form/form-toolbar";
+import { Loading } from "@/components/ui/loading";
 
 export default function NewGroup() {
   const router = useRouter();
@@ -58,7 +59,7 @@ export default function NewGroup() {
       }
     >
       {loadingTeams ? (
-        <ActivityIndicator color="white" style={{ marginTop: 40 }} />
+        <Loading />
       ) : (
         <Form accentColor={AccentColors.green}>
           <Form.Section
