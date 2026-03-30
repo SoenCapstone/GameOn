@@ -54,7 +54,7 @@ export function Chat({
           <View style={styles.avatar}>
             <Image
               source={{ uri: item.imageUrl }}
-              style={styles.image}
+              style={item.group ? styles.logo : styles.image}
               contentFit="cover"
             />
           </View>
@@ -106,9 +106,16 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     marginRight: 12,
   },
-  image: {
+  logo: {
     width: 40,
     height: 40,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  image: {
+    borderRadius: 100,
+    width: 42,
+    height: 42,
     alignItems: "center",
     justifyContent: "center",
   },
