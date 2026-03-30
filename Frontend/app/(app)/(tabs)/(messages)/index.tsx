@@ -6,13 +6,7 @@ import {
   useRef,
   useState,
 } from "react";
-import {
-  ActivityIndicator,
-  RefreshControl,
-  StyleSheet,
-  Text,
-  View,
-} from "react-native";
+import { RefreshControl, StyleSheet, View } from "react-native";
 import { ContentArea } from "@/components/ui/content-area";
 import { LegendList } from "@legendapp/list/react-native";
 import { router, Stack, useRouter } from "expo-router";
@@ -23,6 +17,8 @@ import { useUserDirectory } from "@/hooks/messages/use-user-directory";
 import { useAuth } from "@clerk/clerk-expo";
 import { Chat, type ChatItem } from "@/components/messages/chat";
 import * as Haptics from "expo-haptics";
+import { Empty } from "@/components/ui/empty";
+import { Loading } from "@/components/ui/loading";
 
 function MessagesToolbar() {
   return (
@@ -157,16 +153,9 @@ export default function Messages() {
       }
     >
       {isLoading ? (
-        <View style={styles.emptyState}>
-          <ActivityIndicator color="white" />
-        </View>
+        <Loading />
       ) : listData.length === 0 ? (
-        <View style={styles.emptyState}>
-          <Text style={styles.emptyTitle}>No conversations yet</Text>
-          <Text style={styles.emptySubtitle}>
-            Start a direct message or create a team chat to begin.
-          </Text>
-        </View>
+        <Empty message="No messages available" />
       ) : (
         <LegendList
           ref={listRef}
@@ -193,22 +182,5 @@ const styles = StyleSheet.create({
     height: StyleSheet.hairlineWidth,
     marginVertical: 18,
     backgroundColor: "rgba(255,255,255,0.10)",
-  },
-  emptyState: {
-    alignItems: "center",
-    justifyContent: "center",
-    height: 160,
-    paddingHorizontal: 24,
-  },
-  emptyTitle: {
-    color: "white",
-    fontSize: 18,
-    fontWeight: "700",
-    marginBottom: 8,
-  },
-  emptySubtitle: {
-    color: "rgba(255,255,255,0.7)",
-    fontSize: 14,
-    textAlign: "center",
   },
 });

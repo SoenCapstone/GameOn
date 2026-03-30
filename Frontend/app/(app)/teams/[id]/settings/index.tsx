@@ -1,18 +1,13 @@
 import { useState, useEffect, ReactNode } from "react";
-import {
-  View,
-  Text,
-  ActivityIndicator,
-  Alert,
-  StyleSheet,
-  Pressable,
-} from "react-native";
+import { Alert, Pressable } from "react-native";
 import { Stack, useLocalSearchParams, useRouter } from "expo-router";
 import { useNavigation, StackActions } from "@react-navigation/native";
 import { useAuth } from "@clerk/clerk-expo";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import ContextMenu from "react-native-context-menu-view";
 import { ContentArea } from "@/components/ui/content-area";
+import { Empty } from "@/components/ui/empty";
+import { Loading } from "@/components/ui/loading";
 import { Form } from "@/components/form/form";
 import { AccentColors } from "@/constants/colors";
 import { images } from "@/constants/images";
@@ -271,9 +266,7 @@ function TeamSettingsContent() {
   if (!team && !isLoading) {
     return (
       <ContentArea background={{ preset: "red" }}>
-        <View style={styles.container}>
-          <Text style={styles.errorText}>Team not found</Text>
-        </View>
+        <Empty message="Team not found" />
       </ContentArea>
     );
   }
@@ -281,11 +274,7 @@ function TeamSettingsContent() {
   if (!canAccessSettings && team) {
     return (
       <ContentArea background={{ preset: "red" }}>
-        <View style={styles.container}>
-          <Text style={styles.errorText}>
-            You don&apos;t have permission to edit this team
-          </Text>
-        </View>
+        <Empty message="You don't have permission to edit this team" />
       </ContentArea>
     );
   }
@@ -295,11 +284,7 @@ function TeamSettingsContent() {
       background={{ preset: "red", mode: "form" }}
       toolbar={<TeamSettingsToolbar />}
     >
-      {isLoading && (
-        <View style={styles.loadingOverlay}>
-          <ActivityIndicator size="large" color="#fff" />
-        </View>
-      )}
+      {isLoading && <Loading />}
 
       <Form accentColor={AccentColors.red}>
         <Form.Section>
@@ -448,26 +433,3 @@ function TeamMemberMenu({
     </ContextMenu>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    width: "100%",
-    alignItems: "center",
-    paddingTop: 20,
-  },
-  errorText: {
-    color: "#fff",
-    fontSize: 16,
-  },
-  loadingOverlay: {
-    position: "absolute",
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    justifyContent: "center",
-    alignItems: "center",
-    backgroundColor: "rgba(0, 0, 0, 0.3)",
-    zIndex: 999,
-  },
-});

@@ -1,6 +1,5 @@
 import { useCallback, useMemo, useState } from "react";
 import {
-  ActivityIndicator,
   RefreshControl,
   StyleSheet,
   View,
@@ -31,6 +30,8 @@ import {
 } from "@/hooks/use-matches";
 import { buildMatchCards, splitMatchSections } from "@/utils/matches";
 import { TeamOverviewTab } from "@/components/teams/team-overview-tab";
+import { Loading } from "@/components/ui/loading";
+import { Empty } from "@/components/ui/empty";
 
 type TeamTab = "board" | "matches" | "overview";
 
@@ -282,9 +283,9 @@ function TeamContent() {
         }
       >
         {isLoading ? (
-          <View style={styles.container}>
-            <ActivityIndicator size="small" color="#fff" />
-          </View>
+          <Loading />
+        ) : !team ? (
+          <Empty message="Team not found" />
         ) : (
           <>
             {tab === "board" && (
@@ -355,13 +356,6 @@ function getTeamTabIndex(tab: TeamTab): number {
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    minHeight: 200,
-  },
-
   overviewSection: {
     marginTop: 12,
     gap: 12,

@@ -1,9 +1,11 @@
-import { ActivityIndicator, View, Text, StyleSheet } from "react-native";
+import { View, Text, StyleSheet } from "react-native";
 import { useRouter } from "expo-router";
 import { InfoCard } from "@/components/info-card";
 import type { ImageSource } from "expo-image";
 import { getSportLogo } from "@/utils/search";
 import type { TeamSummary } from "@/types/matches";
+import { Loading } from "@/components/ui/loading";
+import { Empty } from "@/components/ui/empty";
 
 export type LeagueTeamResponse = {
   id: string;
@@ -43,20 +45,13 @@ export function LeagueBrowserTeams({
   }
 
   if (!isLoading && leagueTeams.length === 0) {
-    return (
-      <View style={styles.section}>
-        <Text style={styles.title}>Teams</Text>
-        <Text style={styles.text}>No teams in this league yet.</Text>
-      </View>
-    );
+    return <Empty message="No teams in this league" />;
   }
 
   return (
     <>
       {isLoading ? (
-        <View style={styles.container}>
-          <ActivityIndicator size="small" color="#fff" />
-        </View>
+        <Loading />
       ) : (
         <View style={styles.list}>
           {leagueTeams.map((t) => {
@@ -104,11 +99,5 @@ const styles = StyleSheet.create({
   },
   list: {
     gap: 14,
-  },
-  container: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    minHeight: 200,
   },
 });

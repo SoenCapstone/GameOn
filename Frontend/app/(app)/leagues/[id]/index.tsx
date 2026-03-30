@@ -1,10 +1,5 @@
 import { useCallback, useMemo, useState } from "react";
-import {
-  View,
-  ActivityIndicator,
-  RefreshControl,
-  StyleSheet,
-} from "react-native";
+import { View, RefreshControl } from "react-native";
 import {
   RelativePathString,
   router,
@@ -31,6 +26,8 @@ import { useLeagueMatches, useTeamsByIds } from "@/hooks/use-matches";
 import { buildMatchCards, splitMatchSections } from "@/utils/matches";
 import { useLeagueStandings } from "@/hooks/use-league-standings";
 import { LeagueStandings } from "@/components/leagues/league-standings";
+import { Loading } from "@/components/ui/loading";
+import { Empty } from "@/components/ui/empty";
 
 type LeagueTab = "board" | "matches" | "standings" | "teams";
 
@@ -258,9 +255,9 @@ function LeagueContent() {
         }
       >
         {isLoading ? (
-          <View style={styles.container}>
-            <ActivityIndicator size="small" color="#fff" />
-          </View>
+          <Loading />
+        ) : !league ? (
+          <Empty message="League not found" />
         ) : (
           <>
             {tab === "board" && (
@@ -331,12 +328,3 @@ function resolveLeagueTab(tab?: string): LeagueTab {
   if (tab === "teams") return "teams";
   return "board";
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    minHeight: 200,
-  },
-});

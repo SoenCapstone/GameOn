@@ -1,9 +1,11 @@
 import React from "react";
-import { View, Text, ActivityIndicator, StyleSheet } from "react-native";
+import { StyleSheet } from "react-native";
 import { BoardPost } from "@/components/board/board-types";
 import { Post } from "@/components/board/post";
 import { LegendList } from "@legendapp/list/react-native";
 import { ImageSource } from "expo-image";
+import { Empty } from "@/components/ui/empty";
+import { Loading } from "@/components/ui/loading";
 
 interface BoardListProps {
   posts: BoardPost[];
@@ -38,11 +40,7 @@ export function BoardList({
   );
 
   if (isLoading) {
-    return (
-      <View style={styles.container}>
-        <ActivityIndicator size="large" color="#fff" />
-      </View>
-    );
+    return <Loading size="large" color="#fff" />;
   }
 
   return (
@@ -52,11 +50,7 @@ export function BoardList({
       style={styles.legendList}
       contentContainerStyle={styles.list}
       renderItem={renderItem}
-      ListEmptyComponent={
-        <View style={styles.container}>
-          <Text style={styles.emptyText}>No posts available</Text>
-        </View>
-      }
+      ListEmptyComponent={<Empty message="No posts available" />}
       recycleItems={true}
       keyboardShouldPersistTaps="handled"
     />
@@ -64,16 +58,6 @@ export function BoardList({
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    minHeight: 200,
-  },
-  emptyText: {
-    color: "rgba(255,255,255,0.6)",
-    fontSize: 16,
-  },
   legendList: { overflow: "visible" },
   list: {
     gap: 12,

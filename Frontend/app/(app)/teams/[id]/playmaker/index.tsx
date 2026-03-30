@@ -14,7 +14,6 @@ import type {
 } from "@/types/playmaker";
 import { useRenderPlayMakerShapes } from "@/hooks/use-render-play-maker-shapes";
 import {
-  ActivityIndicator,
   StyleSheet,
   View,
   Pressable,
@@ -43,6 +42,8 @@ import {
 import * as Haptics from "expo-haptics";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useHeaderHeight } from "@/hooks/use-header-height";
+import { Loading } from "@/components/ui/loading";
+import { Empty } from "@/components/ui/empty";
 
 function PlaymakerToolbar({
   onSubmit,
@@ -218,6 +219,9 @@ function PlayMakerContent() {
     setShapesState(previousShapes);
   }, []);
 
+  const membersLoading = isLoading || isTeamMembersLoading;
+  const hasMembers = (teamMembers?.length ?? 0) > 0;
+
   return (
     <>
       <Background preset="red" />
@@ -261,8 +265,10 @@ function PlayMakerContent() {
           </Pressable>
         </GlassView>
 
-        {isTeamMembersLoading ? (
-          <ActivityIndicator testID="team-loading" size="small" color="white" />
+        {membersLoading ? (
+          <Loading />
+        ) : !hasMembers ? (
+          <Empty message="No team members available" />
         ) : (
           <ScrollView
             style={styles.assignmentScroll}
@@ -320,7 +326,6 @@ function PlayMakerContent() {
           </ScrollView>
         )}
       </View>
-      {isLoading ? <ActivityIndicator size="small" color="#fff" /> : null}
     </>
   );
 }

@@ -1,4 +1,6 @@
-import { View, Text, StyleSheet, ActivityIndicator } from "react-native";
+import { View, Text, StyleSheet } from "react-native";
+import { Loading } from "@/components/ui/loading";
+import { Empty } from "@/components/ui/empty";
 
 type Standing = {
   teamId: string;
@@ -22,24 +24,16 @@ type Props = Readonly<{
 
 export function LeagueStandings({ standings, isLoading, error }: Props) {
   if (isLoading) {
-    return <ActivityIndicator size="small" color="#fff" />;
+    return <Loading />;
   }
 
   if (error) {
-    return (
-      <View style={styles.center}>
-        <Text style={styles.errorText}>{error}</Text>
-      </View>
-    );
+    return <Empty message="Could not load standings" />;
   }
 
   // ✅ Empty state (important for PR quality)
   if (!standings.length) {
-    return (
-      <View style={styles.center}>
-        <Text style={styles.errorText}>No standings yet.</Text>
-      </View>
-    );
+    return <Empty message="No standings available" />;
   }
 
   return (
@@ -120,10 +114,6 @@ const styles = StyleSheet.create({
     flex: 1,
     color: "white",
     paddingLeft: 8,
-  },
-  center: {
-    alignItems: "center",
-    paddingVertical: 20,
   },
   errorText: {
     color: "white",

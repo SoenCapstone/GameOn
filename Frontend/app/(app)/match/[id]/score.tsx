@@ -1,5 +1,5 @@
 import { useCallback, useMemo, useState } from "react";
-import { ActivityIndicator, Alert, StyleSheet, Text, View } from "react-native";
+import { Alert } from "react-native";
 import {
   RelativePathString,
   useLocalSearchParams,
@@ -14,6 +14,8 @@ import { useMatchPresentation } from "@/hooks/use-match-presentation";
 import { useSubmitTeamScore, useTeamMatch } from "@/hooks/use-matches";
 import { LeagueMatch, TeamMatch } from "@/types/matches";
 import { errorToString } from "@/utils/error";
+import { Loading } from "@/components/ui/loading";
+import { Empty } from "@/components/ui/empty";
 
 function parseScore(rawValue: string) {
   const trimmed = rawValue.trim();
@@ -159,15 +161,11 @@ export default function MatchScoreScreen() {
 
   const loadingState = useMemo(() => {
     if (teamMatchQuery.isLoading && !match) {
-      return (
-        <View style={styles.loading}>
-          <ActivityIndicator size="small" color="#fff" />
-        </View>
-      );
+      return <Loading />;
     }
 
     if (!matchId) {
-      return <Text style={styles.empty}>Match not found</Text>;
+      return <Empty message="Match not found" />;
     }
 
     return null;
@@ -227,15 +225,3 @@ export default function MatchScoreScreen() {
     </ContentArea>
   );
 }
-
-const styles = StyleSheet.create({
-  loading: {
-    marginTop: 24,
-    alignItems: "center",
-  },
-  empty: {
-    color: "#fff",
-    fontSize: 16,
-    marginTop: 24,
-  },
-});
