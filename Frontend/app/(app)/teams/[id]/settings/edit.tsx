@@ -1,5 +1,5 @@
 import { useCallback, useState } from "react";
-import { View, Text, ActivityIndicator, Alert } from "react-native";
+import { View, Text, ActivityIndicator, Alert, StyleSheet } from "react-native";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { ContentArea } from "@/components/ui/content-area";
 import { Form } from "@/components/form/form";
@@ -8,7 +8,6 @@ import { AccentColors } from "@/constants/colors";
 import { createScopedLog } from "@/utils/logger";
 import { errorToString } from "@/utils/error";
 import { useTeamForm } from "@/hooks/use-team-form";
-import { settingsStyles } from "@/constants/settings-styles";
 import { useUpdateTeam } from "@/hooks/use-team-league-settings";
 import {
   TeamDetailProvider,
@@ -148,8 +147,8 @@ function EditTeamContent() {
   if (!isOwner) {
     return (
       <ContentArea background={{ preset: "red" }}>
-        <View style={settingsStyles.container}>
-          <Text style={settingsStyles.errorText}>
+        <View style={styles.container}>
+          <Text style={styles.errorText}>
             You don&apos;t have permission to edit this team
           </Text>
         </View>
@@ -160,8 +159,8 @@ function EditTeamContent() {
   if (!team) {
     return (
       <ContentArea background={{ preset: "red" }}>
-        <View style={settingsStyles.container}>
-          <Text style={settingsStyles.errorText}>Team not found</Text>
+        <View style={styles.container}>
+          <Text style={styles.errorText}>Team not found</Text>
         </View>
       </ContentArea>
     );
@@ -179,7 +178,7 @@ function EditTeamContent() {
       }
     >
       {teamLoading && (
-        <View style={settingsStyles.loadingOverlay}>
+        <View style={styles.loadingOverlay}>
           <ActivityIndicator size="large" color="#fff" />
         </View>
       )}
@@ -221,3 +220,26 @@ function EditTeamContent() {
     </ContentArea>
   );
 }
+
+const styles = StyleSheet.create({
+  container: {
+    width: "100%",
+    alignItems: "center",
+    paddingTop: 20,
+  },
+  errorText: {
+    color: "#fff",
+    fontSize: 16,
+  },
+  loadingOverlay: {
+    position: "absolute",
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "rgba(0, 0, 0, 0.3)",
+    zIndex: 999,
+  },
+});

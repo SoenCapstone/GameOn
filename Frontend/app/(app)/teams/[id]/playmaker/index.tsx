@@ -28,7 +28,7 @@ import {
 } from "@/contexts/team-detail-context";
 import { useAxiosWithClerk } from "@/hooks/use-axios-clerk";
 import { Background } from "@/components/ui/background";
-import { useGetTeamMembers } from "@/hooks/use-get-team-members/use-get-team-members";
+import { useGetTeamMembers } from "@/hooks/use-get-team-members";
 import { DefaultBoard } from "@/components/play-maker/play-maker-default-board";
 import { GlassView } from "expo-glass-effect";
 import { Card } from "@/components/ui/card";

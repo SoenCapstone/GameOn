@@ -1,5 +1,12 @@
 import { useState, useEffect, ReactNode } from "react";
-import { View, Text, ActivityIndicator, Alert, Pressable } from "react-native";
+import {
+  View,
+  Text,
+  ActivityIndicator,
+  Alert,
+  Pressable,
+  StyleSheet,
+} from "react-native";
 import { Stack, useLocalSearchParams, useRouter } from "expo-router";
 import { useNavigation, StackActions } from "@react-navigation/native";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
@@ -10,7 +17,6 @@ import { Form } from "@/components/form/form";
 import { AccentColors } from "@/constants/colors";
 import { createScopedLog } from "@/utils/logger";
 import { errorToString } from "@/utils/error";
-import { settingsStyles } from "@/constants/settings-styles";
 import { usePayment, type PaymentEntityType } from "@/hooks/use-payment";
 import { formatAmount } from "@/utils/payment";
 import { getSportLogo } from "@/utils/search";
@@ -123,8 +129,8 @@ function LeagueSettingsContent() {
   if (!isOwner) {
     return (
       <ContentArea background={{ preset: "red" }}>
-        <View style={settingsStyles.container}>
-          <Text style={settingsStyles.errorText}>
+        <View style={styles.container}>
+          <Text style={styles.errorText}>
             You don&apos;t have permission to edit this league
           </Text>
         </View>
@@ -135,8 +141,8 @@ function LeagueSettingsContent() {
   if (!league && !leagueLoading) {
     return (
       <ContentArea background={{ preset: "red" }}>
-        <View style={settingsStyles.container}>
-          <Text style={settingsStyles.errorText}>League not found</Text>
+        <View style={styles.container}>
+          <Text style={styles.errorText}>League not found</Text>
         </View>
       </ContentArea>
     );
@@ -148,7 +154,7 @@ function LeagueSettingsContent() {
       toolbar={<LeagueSettingsToolbar />}
     >
       {leagueLoading && (
-        <View style={settingsStyles.loadingOverlay}>
+        <View style={styles.loadingOverlay}>
           <ActivityIndicator size="large" color="#fff" />
         </View>
       )}
@@ -272,6 +278,29 @@ function LeagueSettingsContent() {
     </ContentArea>
   );
 }
+
+const styles = StyleSheet.create({
+  container: {
+    width: "100%",
+    alignItems: "center",
+    paddingTop: 20,
+  },
+  errorText: {
+    color: "#fff",
+    fontSize: 16,
+  },
+  loadingOverlay: {
+    position: "absolute",
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "rgba(0, 0, 0, 0.3)",
+    zIndex: 999,
+  },
+});
 
 function LeagueTeamMenu({
   onDelete,

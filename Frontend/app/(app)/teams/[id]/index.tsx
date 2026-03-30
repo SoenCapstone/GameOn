@@ -45,7 +45,7 @@ const TeamTabLabels: Record<TeamTab, string> = {
 function TeamToolbar({
   title,
   id,
-  isMember,
+  canManageSettings,
   onFollow,
   openPost,
   openSchedule,
@@ -53,7 +53,7 @@ function TeamToolbar({
 }: Readonly<{
   title: string;
   id: string;
-  isMember: boolean;
+  canManageSettings: boolean;
   onFollow: () => void;
   openPost?: () => void;
   openSchedule?: () => void;
@@ -64,12 +64,8 @@ function TeamToolbar({
   return (
     <>
       <Stack.Screen.Title>{title}</Stack.Screen.Title>
-      {isMember ? (
+      {canManageSettings ? (
         <Stack.Toolbar placement="right">
-          <Stack.Toolbar.Button
-            icon="person.2.fill"
-            onPress={() => router.push(`/teams/${id}/manage-roles`)}
-          />
           <Stack.Toolbar.Button
             icon="gear"
             onPress={() => router.push(`/teams/${id}/settings`)}
@@ -136,7 +132,6 @@ function TeamContent() {
     handleFollow,
     title,
     isOwner,
-    isMember,
     isActiveMember,
     role,
     team,
@@ -274,7 +269,7 @@ function TeamContent() {
           <TeamToolbar
             title={title}
             id={id}
-            isMember={isMember}
+            canManageSettings={isOwner || role === "MANAGER"}
             onFollow={handleFollow}
             openPost={canManage ? openPost : undefined}
             openSchedule={isOwner ? openSchedule : undefined}
