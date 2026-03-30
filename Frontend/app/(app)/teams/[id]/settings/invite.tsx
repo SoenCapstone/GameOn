@@ -1,18 +1,16 @@
 import { useMemo } from "react";
-import { Alert, Pressable, Text } from "react-native";
+import { ActivityIndicator, Alert, Text } from "react-native";
 import { Stack, useLocalSearchParams } from "expo-router";
 import { useAuth } from "@clerk/clerk-expo";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { ContentArea } from "@/components/ui/content-area";
-import { Card } from "@/components/ui/card";
-import { MemberRow } from "@/components/teams/member-row";
+import { Form } from "@/components/form/form";
+import { AccentColors } from "@/constants/colors";
+import { images } from "@/constants/images";
+import { MenuCardItem } from "@/components/form/menu-card-item";
 import { formatFullName } from "@/components/teams/member-row-utils";
-import {
-  InviteSection,
-  inviteSectionStyles as styles,
-} from "@/components/invite/invite-section";
 import { useTeamDetail } from "@/hooks/use-team-detail";
-import { useGetTeamMembers } from "@/hooks/use-get-team-members/use-get-team-members";
+import { useGetTeamMembers } from "@/hooks/use-get-team-members";
 import { fetchUserDirectory } from "@/hooks/messages/api";
 import {
   GO_TEAM_SERVICE_ROUTES,
@@ -113,46 +111,44 @@ export default function InvitePlayersScreen() {
 
   return (
     <ContentArea
-      background={{ preset: "red" }}
+      background={{ preset: "red", mode: "form" }}
       toolbar={<InviteMemberToolbar />}
     >
-      <InviteSection
-        title="Available Members"
-        isBusy={isBusy}
-        emptyText="No available players to invite."
-        hasItems={availableUsers.length > 0}
-      >
-        {availableUsers.map((user) => {
-          const name = formatFullName(user.firstname, user.lastname);
-          return (
-            <Card key={user.id}>
-              <MemberRow
-                name={name}
-                email={user.email}
-                right={
-                  <Pressable
-                    style={[
-                      styles.inviteButton,
-                      createInviteMutation.isPending &&
-                        styles.inviteButtonDisabled,
-                    ]}
-                    onPress={() =>
+      <Form accentColor={AccentColors.red}>
+        <Form.Section header="Available Users">
+          {isBusy ? (
+            <ActivityIndicator size="small" color="#fff" />
+          ) : availableUsers.length === 0 ? (
+            <Text>No available players to invite.</Text>
+          ) : (
+            availableUsers.map((user) => {
+              const name = formatFullName(user.firstname, user.lastname);
+              return (
+                <MenuCardItem
+                  key={user.id}
+                  title={name}
+                  subtitle={user.email}
+                  image={
+                    user.imageUrl
+                      ? { uri: user.imageUrl }
+                      : images.defaultProfile
+                  }
+                  button={{
+                    label: "Invite",
+                    onPress: () =>
                       createInviteMutation.mutate({
                         teamId,
                         inviteeUserId: user.id,
                         role: "PLAYER",
-                      })
-                    }
-                    disabled={createInviteMutation.isPending}
-                  >
-                    <Text style={styles.inviteButtonText}>Invite</Text>
-                  </Pressable>
-                }
-              />
-            </Card>
-          );
-        })}
-      </InviteSection>
+                      }),
+                    disabled: createInviteMutation.isPending,
+                  }}
+                />
+              );
+            })
+          )}
+        </Form.Section>
+      </Form>
     </ContentArea>
   );
 }
