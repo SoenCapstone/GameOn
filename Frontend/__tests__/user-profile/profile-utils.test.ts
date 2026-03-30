@@ -184,7 +184,7 @@ describe("handleSaveProfile", () => {
       firstname: "John",
       lastname: "Doe",
       email: "john@example.com",
-      imageUrl: "https://clerk.test/original.jpg",
+      imageUrl: null,
     });
     expect(mockAlert).toHaveBeenCalledWith("Success", "Profile updated");
     expect(mockRouter.back).toHaveBeenCalled();
