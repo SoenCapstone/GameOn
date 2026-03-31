@@ -1,6 +1,7 @@
 import { View, Text, StyleSheet, ActivityIndicator } from "react-native";
 import { Image } from "expo-image";
 import { getSportLogo } from "../browse/utils";
+import { GlassView } from "expo-glass-effect";
 
 type Standing = {
   teamId: string;
@@ -47,7 +48,7 @@ export function LeagueStandings({ standings, isLoading, error, sport }: Props) {
   }
 
   return (
-    <View style={styles.container}>
+    <GlassView style={styles.container}>
       <View style={styles.headerInner}>
         <View style={styles.header}>
           <Text style={styles.rankHeader}></Text>
@@ -103,20 +104,19 @@ export function LeagueStandings({ standings, isLoading, error, sport }: Props) {
           );
         })}
       </View>
-    </View>
+    </GlassView>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     width: "100%",
-    borderRadius: 28,
+    borderRadius: 34,
     overflow: "hidden",
-    paddingHorizontal: 7,
+    paddingRight: 7,
+    paddingLeft: 4,
     paddingTop: 10,
     paddingBottom: 10,
-    borderWidth: 1,
-    borderColor: "rgba(255,255,255,0.14)",
   },
   headerInner: {
     width: "100%",
@@ -155,8 +155,8 @@ const styles = StyleSheet.create({
   rankCell: {
     width: 24,
     textAlign: "center",
-    color: "white",
-    fontSize: 14,
+    color: "rgba(255,255,255,0.6)",
+    fontSize: 12,
     fontWeight: "500",
   },
 
