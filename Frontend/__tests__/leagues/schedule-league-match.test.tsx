@@ -41,16 +41,6 @@ jest.mock("@/components/ui/content-area", () => ({
   ),
 }));
 
-jest.mock("@/components/header/header", () => ({
-  Header: ({ right }: { right: React.ReactNode }) => {
-    const ReactMock = jest.requireActual("react");
-    return ReactMock.createElement(ReactMock.Fragment, null, right);
-  },
-}));
-
-jest.mock("@/components/header/page-title", () => ({
-  PageTitle: () => null,
-}));
 
 jest.mock("@/components/ui/button", () => ({
   Button: ({
