@@ -253,17 +253,56 @@ describe("match-details utils", () => {
 
   describe("getIsMatchLoading", () => {
     it("returns leagueMatchesLoading when space is league", () => {
-      expect(getIsMatchLoading({ space: "league", leagueMatchesLoading: true, directMatchLoading: false, teamMatchesLoading: false })).toBe(true);
+      expect(
+        getIsMatchLoading({
+          space: "league",
+          leagueMatchLoading: false,
+          leagueMatchesLoading: true,
+          directMatchLoading: false,
+          teamMatchesLoading: false,
+        }),
+      ).toBe(true);
     });
 
     it("returns true if either direct or team match loading when space is team", () => {
-      expect(getIsMatchLoading({ space: "team", leagueMatchesLoading: false, directMatchLoading: true, teamMatchesLoading: false })).toBe(true);
-      expect(getIsMatchLoading({ space: "team", leagueMatchesLoading: false, directMatchLoading: false, teamMatchesLoading: true })).toBe(true);
-      expect(getIsMatchLoading({ space: "team", leagueMatchesLoading: false, directMatchLoading: false, teamMatchesLoading: false })).toBe(false);
+      expect(
+        getIsMatchLoading({
+          space: "team",
+          leagueMatchLoading: false,
+          leagueMatchesLoading: false,
+          directMatchLoading: true,
+          teamMatchesLoading: false,
+        }),
+      ).toBe(true);
+      expect(
+        getIsMatchLoading({
+          space: "team",
+          leagueMatchLoading: false,
+          leagueMatchesLoading: false,
+          directMatchLoading: false,
+          teamMatchesLoading: true,
+        }),
+      ).toBe(true);
+      expect(
+        getIsMatchLoading({
+          space: "team",
+          leagueMatchLoading: false,
+          leagueMatchesLoading: false,
+          directMatchLoading: false,
+          teamMatchesLoading: false,
+        }),
+      ).toBe(false);
     });
 
     it("returns directMatchLoading otherwise", () => {
-      expect(getIsMatchLoading({ leagueMatchesLoading: false, directMatchLoading: true, teamMatchesLoading: false })).toBe(true);
+      expect(
+        getIsMatchLoading({
+          leagueMatchLoading: false,
+          leagueMatchesLoading: false,
+          directMatchLoading: true,
+          teamMatchesLoading: false,
+        }),
+      ).toBe(true);
     });
   });
 

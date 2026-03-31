@@ -98,7 +98,7 @@ function LeagueSettingsContent() {
   const deleteLeagueMutation = useDeleteLeague(id, {
     onSuccess: () => {
       log.info("League deleted successfully");
-      navigation.dispatch(StackActions.pop(2));
+      navigation.dispatch(StackActions.pop(1));
       router.back();
     },
     onError: (err) => {

@@ -161,7 +161,7 @@ function TeamSettingsContent() {
   const deleteTeamMutation = useDeleteTeam(id, {
     onSuccess: () => {
       log.info("Team deleted successfully");
-      navigation.dispatch(StackActions.pop(2));
+      navigation.dispatch(StackActions.pop(1));
       router.back();
     },
     onError: (err) => {
