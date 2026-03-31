@@ -67,7 +67,7 @@ class LeagueMatchServiceTest {
         league = new League();
         league.setId(leagueId);
         league.setOwnerUserId("owner_1");
-        when(leagueRepository.findByIdAndArchivedAtIsNull(leagueId)).thenReturn(Optional.of(league));
+                lenient().when(leagueRepository.findByIdAndArchivedAtIsNull(leagueId)).thenReturn(Optional.of(league));
     }
 
     @Test
@@ -326,4 +326,64 @@ class LeagueMatchServiceTest {
         leagueMatchService.submitScore(leagueId, match.getId(), request);
         verify(leagueMatchScoreRepository).save(any(LeagueMatchScore.class));
     }
+
+        @Test
+        void listMatches_whenScoresExist_includesScoresInResponse() {
+                LeagueMatch match = new LeagueMatch();
+                match.setId(UUID.randomUUID());
+                match.setLeague(league);
+                match.setStatus(LeagueMatchStatus.COMPLETED);
+                match.setHomeTeamId(homeTeamId);
+                match.setAwayTeamId(awayTeamId);
+                match.setSport("soccer");
+                match.setStartTime(OffsetDateTime.parse("2026-03-20T09:00:00Z"));
+                match.setEndTime(OffsetDateTime.parse("2026-03-20T10:30:00Z"));
+                match.setScheduledDate(LocalDate.parse("2026-03-20"));
+
+                LeagueMatchScore score = new LeagueMatchScore();
+                score.setMatch(match);
+                score.setHomeScore(3);
+                score.setAwayScore(2);
+
+                when(leagueMatchRepository.findByLeague_IdOrderByStartTimeDesc(leagueId))
+                                .thenReturn(List.of(match));
+                when(leagueMatchScoreRepository.findByMatch_IdIn(List.of(match.getId())))
+                                .thenReturn(List.of(score));
+
+                var responses = leagueMatchService.listMatches(leagueId);
+
+                assertEquals(1, responses.size());
+                assertEquals(3, responses.get(0).homeScore());
+                assertEquals(2, responses.get(0).awayScore());
+        }
+
+        @Test
+        void listTeamMatches_whenScoresExist_includesScoresInResponse() {
+                LeagueMatch match = new LeagueMatch();
+                match.setId(UUID.randomUUID());
+                match.setLeague(league);
+                match.setStatus(LeagueMatchStatus.COMPLETED);
+                match.setHomeTeamId(homeTeamId);
+                match.setAwayTeamId(awayTeamId);
+                match.setSport("soccer");
+                match.setStartTime(OffsetDateTime.parse("2026-03-20T12:00:00Z"));
+                match.setEndTime(OffsetDateTime.parse("2026-03-20T13:30:00Z"));
+                match.setScheduledDate(LocalDate.parse("2026-03-20"));
+
+                LeagueMatchScore score = new LeagueMatchScore();
+                score.setMatch(match);
+                score.setHomeScore(1);
+                score.setAwayScore(1);
+
+                when(leagueMatchRepository.findByHomeTeamIdOrAwayTeamId(homeTeamId, homeTeamId))
+                                .thenReturn(List.of(match));
+                when(leagueMatchScoreRepository.findByMatch_IdIn(List.of(match.getId())))
+                                .thenReturn(List.of(score));
+
+                var responses = leagueMatchService.listTeamMatches(homeTeamId);
+
+                assertEquals(1, responses.size());
+                assertEquals(1, responses.get(0).homeScore());
+                assertEquals(1, responses.get(0).awayScore());
+        }
 }

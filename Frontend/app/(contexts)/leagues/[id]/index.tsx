@@ -12,6 +12,7 @@ import {
   useRouter,
 } from "expo-router";
 import { useQueryClient } from "@tanstack/react-query";
+import { useAuth } from "@clerk/clerk-expo";
 import { ContentArea } from "@/components/ui/content-area";
 import { getSportLogo } from "@/components/browse/utils";
 import { Button } from "@/components/ui/button";
@@ -29,7 +30,11 @@ import { BoardList } from "@/components/board/board-list";
 import { useDetailPageHandlers } from "@/hooks/use-detail-page-handlers";
 import { createScopedLog } from "@/utils/logger";
 import { MatchListSections } from "@/components/matches/match-list-sections";
-import { useCancelLeagueMatch, useLeagueMatches, useTeamsByIds } from "@/hooks/use-matches";
+import {
+  useCancelLeagueMatch,
+  useLeagueMatches,
+  useTeamsByIds,
+} from "@/hooks/use-matches";
 import { buildMatchCards, splitMatchSections } from "@/features/matches/utils";
 import { Card } from "@/components/ui/card";
 import { Tabs } from "@/components/ui/tabs";
@@ -66,7 +71,6 @@ export default function LeagueScreen() {
 }
 
 function LeagueContent() {
-
   const params = useLocalSearchParams<{ tab?: string }>();
   const initialTab: LeagueTab = resolveLeagueTab(params.tab);
   const [tab, setTab] = useState<LeagueTab>(initialTab);
@@ -74,12 +78,7 @@ function LeagueContent() {
   const router = useRouter();
   const log = createScopedLog("League Page");
   const queryClient = useQueryClient();
-  const {
-      data: standings = [],
-      isLoading: standingsLoading,
-      error: standingsError,
-      refetch: refetchStandings,
-  } = useLeagueStandings(id);
+  const { userId } = useAuth();
   const {
     id,
     isLoading,
@@ -93,6 +92,12 @@ function LeagueContent() {
     isLeagueTeamsLoading,
     leagueTeamsError,
   } = useLeagueDetailContext();
+  const {
+    data: standings = [],
+    isLoading: standingsLoading,
+    error: standingsError,
+    refetch: refetchStandings,
+  } = useLeagueStandings(id);
 
   const {
     data: boardPosts = [],
@@ -126,12 +131,27 @@ function LeagueContent() {
     );
 
     return items.map((match) => {
+      const homeOwnerId = teamsQuery.data?.[match.homeTeamId]?.ownerUserId;
+      const awayOwnerId = teamsQuery.data?.[match.awayTeamId]?.ownerUserId;
+      const isConfirmed = match.status === "CONFIRMED";
       const canCancel =
         !match.isPast && isOwner && match.status !== "CANCELLED";
+      const isTeamOwner = Boolean(
+        (homeOwnerId && homeOwnerId === userId) ||
+          (awayOwnerId && awayOwnerId === userId),
+      );
+      const canSubmitScore = Boolean(
+        userId &&
+          isConfirmed &&
+          (match.requiresReferee
+            ? match.refereeUserId === userId
+            : isTeamOwner),
+      );
 
       return {
         ...match,
         canCancel,
+        canSubmitScore,
         onConfirmCancel: canCancel
           ? async () => {
               try {
@@ -144,6 +164,21 @@ function LeagueContent() {
               }
             }
           : undefined,
+        onSubmitScore: canSubmitScore
+          ? () => {
+              router.push({
+                pathname: `/match/${match.id}/score` as RelativePathString,
+                params: {
+                  contextId: id,
+                  contextType: "league",
+                  leagueId: id,
+                  startTime: match.startTime,
+                  homeName: match.homeName,
+                  awayName: match.awayName,
+                },
+              });
+            }
+          : undefined,
       };
     });
   }, [
@@ -151,9 +186,11 @@ function LeagueContent() {
     teamsQuery.data,
     league?.name,
     isOwner,
+    userId,
     cancelLeagueMutation,
     queryClient,
     id,
+    router,
   ]);
 
   const { today, upcoming, past } = useMemo(
@@ -177,6 +214,7 @@ function LeagueContent() {
       boardPosts,
       onRefresh,
       refetchPosts,
+      refetchStandings,
       deletePostMutation,
       entityName: "League",
       onMatchesRefresh: handleMatchesRefresh,
@@ -246,7 +284,8 @@ function LeagueContent() {
                 onRetry={handleMatchesRefresh}
                 onMatchPress={(match) =>
                   router.push({
-                    pathname: `/(sheets)/match/${match.id}` as RelativePathString,
+                    pathname:
+                      `/(sheets)/match/${match.id}` as RelativePathString,
                     params: {
                       context: "league",
                       contextId: id,
@@ -264,7 +303,6 @@ function LeagueContent() {
                 standings={standings}
                 isLoading={standingsLoading}
                 error={standingsError ? "Could not load standings." : null}
-                onRetry={refetchStandings}
               />
             )}
             {tab === "teams" && (

@@ -243,32 +243,31 @@ function TeamContent() {
           (awayOwnerId && awayOwnerId === userId),
       );
       const canSubmitScore = Boolean(
-        !isLeagueMatch &&
-          userId &&
+        userId &&
           isConfirmed &&
           (match.requiresReferee ? match.refereeUserId === userId : isOwner),
       );
 
-      const persistedStatus = matchMembersByMatchId[match.id]
-        ?.find((member) => member.userId === String(userId))
-        ?.status;
+      const persistedStatus = matchMembersByMatchId[match.id]?.find(
+        (member) => member.userId === String(userId),
+      )?.status;
 
-    const isReplacement = role === "REPLACEMENT";
+      const isReplacement = role === "REPLACEMENT";
 
-    const alreadyRespondedPersisted = isReplacement
-      ? persistedStatus === "CONFIRMED"
-      : persistedStatus === "DECLINED";
+      const alreadyRespondedPersisted = isReplacement
+        ? persistedStatus === "CONFIRMED"
+        : persistedStatus === "DECLINED";
 
-   const isEligibleRole = role === "PLAYER" || role === "REPLACEMENT";
+      const isEligibleRole = role === "PLAYER" || role === "REPLACEMENT";
 
-   const canOptOut = Boolean(
-     isEligibleRole &&
-       isActiveMember &&
-       !match.isPast &&
-       match.status !== "CANCELLED" &&
-       !respondedMatchIds.has(match.id) &&
-       !alreadyRespondedPersisted,
-   );
+      const canOptOut = Boolean(
+        isEligibleRole &&
+          isActiveMember &&
+          !match.isPast &&
+          match.status !== "CANCELLED" &&
+          !respondedMatchIds.has(match.id) &&
+          !alreadyRespondedPersisted,
+      );
 
       return {
         ...match,
@@ -297,6 +296,9 @@ function TeamContent() {
                 pathname: `/match/${match.id}/score` as RelativePathString,
                 params: {
                   contextId: id,
+                  contextType: "team",
+                  leagueId: isLeagueMatch ? match.leagueId : undefined,
+                  startTime: match.startTime,
                   homeName: match.homeName,
                   awayName: match.awayName,
                 },
