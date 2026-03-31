@@ -40,7 +40,7 @@ export function BoardList({
   );
 
   if (isLoading) {
-    return <Loading size="large" color="#fff" />;
+    return <Loading />;
   }
 
   return (

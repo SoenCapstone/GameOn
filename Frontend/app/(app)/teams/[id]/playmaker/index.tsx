@@ -1,6 +1,7 @@
 import {
   useCallback,
   useEffect,
+  useMemo,
   useRef,
   useState,
   type SetStateAction,
@@ -190,9 +191,34 @@ function PlayMakerContent() {
     persistPlaymakerShapes(storageKey, shapes).catch(() => {});
   }, [shapes, storageKey]);
 
+  const memberImageMap = useMemo(() => {
+    const nextMap = new Map<string, string>();
+    teamMembers?.forEach((member) => {
+      const imageUrl = member.imageUrl ?? null;
+      if (!imageUrl) {
+        return;
+      }
+
+      nextMap.set(member.id, imageUrl);
+      if (member.userId) {
+        nextMap.set(member.userId, imageUrl);
+      }
+    });
+    return nextMap;
+  }, [teamMembers]);
+
+  const getPlayerImage = useCallback((playerId?: string) => {
+    if (!playerId) {
+      return null;
+    }
+
+    return memberImageMap.get(playerId) ?? null;
+  }, [memberImageMap]);
+
   const renderedShapes = useRenderPlayMakerShapes(
     shapes,
     selectedShapeId,
+    getPlayerImage,
     (id) => setSelectedShapeId(id),
   );
 
