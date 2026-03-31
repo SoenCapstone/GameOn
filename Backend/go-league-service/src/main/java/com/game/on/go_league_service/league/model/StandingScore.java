@@ -19,13 +19,15 @@ public class StandingScore {
     private int goalsFor;
     private int goalsAgainst;
     private int points;
+    private String logoUrl;
 
-    public StandingScore(UUID teamId, String teamName) {
+    public StandingScore(UUID teamId, String teamName, String logoUrl) {
         this.teamName = teamName;
         this.teamId = teamId;
+        this.logoUrl = logoUrl;
     }
 
     public int getGoalDifference() {
-        return Math.abs(goalsFor - goalsAgainst);
+        return goalsFor - goalsAgainst;
     }
 }
