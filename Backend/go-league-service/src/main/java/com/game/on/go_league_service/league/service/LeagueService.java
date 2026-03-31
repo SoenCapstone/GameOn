@@ -2,6 +2,7 @@ package com.game.on.go_league_service.league.service;
 
 import com.game.on.go_league_service.client.TeamClient;
 import com.game.on.go_league_service.client.dto.TeamListItem;
+import com.game.on.go_league_service.client.dto.TeamSummaryResponse;
 import com.game.on.go_league_service.config.CurrentUserProvider;
 import com.game.on.go_league_service.exception.BadRequestException;
 import com.game.on.go_league_service.exception.ForbiddenException;
@@ -318,10 +319,12 @@ public class LeagueService {
         League league = requireActiveLeague(leagueId);
         ensureCanView(league, userId);
 
-        List<UUID> teamIds = leagueTeamRepository.findByLeague_IdOrderByCreatedAtDesc(leagueId)
+         List<TeamSummaryResponse> teams  = leagueTeamRepository.findByLeague_IdOrderByCreatedAtDesc(leagueId)
                 .stream()
                 .map(LeagueTeam::getTeamId)
                 .distinct()
+                .map(teamClient::getTeam)
+                .filter(Objects::nonNull)
                 .toList();
 
         List<LeagueMatch> matches = leagueMatchRepository.findByLeague_IdOrderByStartTimeDesc(leagueId);
@@ -336,7 +339,7 @@ public class LeagueService {
 
         StandingStrategy strategy = StandingStrategyFactory.createStandingStrategy(league.getSport());
 
-        return strategy.calculateStanding(teamIds, matches, scoresByMatchId);
+        return strategy.calculateStanding(teams, matches, scoresByMatchId);
     }
 
     public List<LeagueTeamResponse> getMyLeagueMemberships(UUID leagueId) {
