@@ -1,6 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
 import {
-  GO_TEAM_SERVICE_ROUTES,
   useAxiosWithClerk,
 } from "@/hooks/use-axios-clerk";
 

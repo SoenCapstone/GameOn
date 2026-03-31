@@ -1,7 +1,6 @@
 import {
   useCallback,
   useLayoutEffect,
-  useRef,
   useState,
   useEffect,
 } from "react";
@@ -9,13 +8,12 @@ import {
   ActivityIndicator,
   RefreshControl,
   StyleSheet,
-  Alert,
   View,
   Text,
   Pressable,
   ScrollView,
 } from "react-native";
-import { useLocalSearchParams, useNavigation } from "expo-router";
+import { useLocalSearchParams, useNavigation, useRouter } from "expo-router";
 import { ContentArea } from "@/components/ui/content-area";
 import {
   TeamDetailProvider,
@@ -24,46 +22,14 @@ import {
 import { PlayMakerArea } from "@/components/play-maker/play-maker-area";
 import { Header } from "@/components/header/header";
 import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
 import { PageTitle } from "@/components/header/page-title";
 import type { Shape } from "@/components/play-maker/model";
-import { useMutation } from "@tanstack/react-query";
-
-import {
-  GO_TEAM_SERVICE_ROUTES,
-  useAxiosWithClerk,
-} from "@/hooks/use-axios-clerk";
-import { errorToString } from "@/utils/error";
 
 import { useTeamPlays } from "@/hooks/use-team-plays";
 import { usePlayDetails } from "@/hooks/use-play-details";
 
 // ── helpers ─────────────────────────────────────────────────────
-
-function toBackendPayload(shapes: Shape[]) {
-  return shapes
-    .filter((s): s is Exclude<Shape, { type: "select" }> => s.type !== "select")
-    .map((s) => {
-      if (s.type === "arrow") {
-        return {
-          type: "arrow",
-          id: s.id,
-          from: s.from,
-          to: s.to,
-        };
-      }
-
-      return {
-        type: "person",
-        id: s.id,
-        x: s.x,
-        y: s.y,
-        size: s.size,
-        ...(s.associatedPlayerId
-          ? { associatedPlayerId: s.associatedPlayerId }
-          : {}),
-      };
-    });
-}
 
 function fromBackendPayload(items: any[]): Shape[] {
   return items.map((item) => {
@@ -89,28 +55,13 @@ function fromBackendPayload(items: any[]): Shape[] {
   });
 }
 
-// ── header ──────────────────────────────────────────────────────
+// ── header (view mode — no Save button) ─────────────────────────
 
-type PlaymakerHeaderProps = Readonly<{
-  title: string;
-  saving: boolean;
-  onSave: () => void;
-}>;
-
-function PlaymakerHeader({ title, saving, onSave }: PlaymakerHeaderProps) {
+function PlaymakerHeader({ title }: { title: string }) {
   return (
     <Header
       left={<Button type="back" />}
       center={<PageTitle title={title} subtitle="Playmaker" />}
-      right={
-        <Button
-          isInteractive
-          type="custom"
-          label="Save"
-          onPress={onSave}
-          loading={saving}
-        />
-      }
     />
   );
 }
@@ -124,14 +75,14 @@ export default function PlayMaker() {
 
   return (
     <TeamDetailProvider id={id}>
-      <PlayMakerContent />
+      <PlayListContent />
     </TeamDetailProvider>
   );
 }
 
-// ── main content ────────────────────────────────────────────────
+// ── main content (view mode) ────────────────────────────────────
 
-function PlayMakerContent() {
+function PlayListContent() {
   const {
     isLoading,
     refreshing,
@@ -141,7 +92,7 @@ function PlayMakerContent() {
   } = useTeamDetailContext();
 
   const navigation = useNavigation();
-  const api = useAxiosWithClerk();
+  const router = useRouter();
 
   // ── play-loading state ──────────────────────────────────────
   const [selectedPlayId, setSelectedPlayId] = useState<string | null>(null);
@@ -166,47 +117,10 @@ function PlayMakerContent() {
     setLoadedShapes(shapes);
   }, [playItems]);
 
-  // ── save logic (unchanged) ──────────────────────────────────
-  const savePlayMutation = useMutation({
-    mutationFn: async (shapes: Shape[]) => {
-      const payload = toBackendPayload(shapes);
-      const route = GO_TEAM_SERVICE_ROUTES.CREATE_PLAY(teamId);
-      return api.post(route, payload);
-    },
-    onSuccess: () => {
-      Alert.alert("Saved", "Your play was saved successfully.");
-    },
-    onError: (err) => {
-      Alert.alert("Error while saving play:", errorToString(err));
-    },
-  });
-
-  const latestShapesRef = useRef<Shape[]>([]);
-
-  const handleShapesChange = useCallback((shapes: Shape[]) => {
-    latestShapesRef.current = shapes;
-  }, []);
-
-  const onSave = useCallback(() => {
-    const shapes = latestShapesRef.current;
-
-    if (!shapes || shapes.length === 0) {
-      Alert.alert("Nothing to save", "Add some shapes on the board first.");
-      return;
-    }
-
-    savePlayMutation.mutate(shapes);
-  }, [savePlayMutation]);
-
+  // ── header (no save button) ─────────────────────────────────
   const headerTitle = useCallback(
-    () => (
-      <PlaymakerHeader
-        title={title}
-        saving={savePlayMutation.isPending}
-        onSave={onSave}
-      />
-    ),
-    [title, savePlayMutation.isPending, onSave],
+    () => <PlaymakerHeader title={title} />,
+    [title],
   );
 
   useLayoutEffect(() => {
@@ -216,7 +130,6 @@ function PlayMakerContent() {
   // ── handle play selection ───────────────────────────────────
   const handleSelectPlay = (playId: string) => {
     if (selectedPlayId === playId) {
-      // tapping again deselects → back to empty board
       setSelectedPlayId(null);
       setLoadedShapes([]);
     } else {
@@ -226,7 +139,7 @@ function PlayMakerContent() {
 
   return (
     <ContentArea
-      paddingBottom={60}
+      paddingBottom={100}
       backgroundProps={{ preset: "red" }}
       refreshControl={
         <RefreshControl
@@ -237,7 +150,7 @@ function PlayMakerContent() {
       }
     >
       <ScrollView style={{ flex: 1 }} contentContainerStyle={{ flexGrow: 1 }}>
-        {/* ── Play list (always visible) ─────────────────────── */}
+        {/* ── Play list ──────────────────────────────────────── */}
         {playsLoading ? (
           <ActivityIndicator
             color="white"
@@ -250,39 +163,31 @@ function PlayMakerContent() {
 
               return (
                 <View key={id}>
-                  {/* ── Row ──────────────────────────────────── */}
-                  <Pressable
-                    style={[
-                      playStyles.row,
-                      isSelected && playStyles.rowSelected,
-                    ]}
-                    onPress={() => handleSelectPlay(id)}
-                  >
-                    <Text
-                      style={[
-                        playStyles.rowText,
-                        isSelected && playStyles.rowTextSelected,
-                      ]}
-                    >
-                      Play {index + 1}
-                    </Text>
+                  {/* ── Play row using Card ─────────────────── */}
+                  <Pressable onPress={() => handleSelectPlay(id)}>
+                    <Card isInteractive>
+                      <View style={playStyles.cardRow}>
+                        <Text style={playStyles.cardTitle}>
+                          Play {index + 1}
+                        </Text>
 
-                    {isSelected && playItemsLoading ? (
-                      <ActivityIndicator color="white" size="small" />
-                    ) : (
-                      <Text style={playStyles.chevron}>
-                        {isSelected ? "✓" : ">"}
-                      </Text>
-                    )}
+                        {isSelected && playItemsLoading ? (
+                          <ActivityIndicator color="white" size="small" />
+                        ) : (
+                          <Text style={playStyles.chevron}>
+                            {isSelected ? "✓" : ">"}
+                          </Text>
+                        )}
+                      </View>
+                    </Card>
                   </Pressable>
 
-                  {/* ── Expanded board (only for selected play) ─ */}
+                  {/* ── Expanded board (view only) ──────────── */}
                   {isSelected && (
                     <View style={playStyles.boardContainer}>
                       <PlayMakerArea
                         key={selectedPlayId}
                         styles={boardStyles}
-                        onShapesChange={handleShapesChange}
                         initialShapes={loadedShapes}
                       />
                     </View>
@@ -291,27 +196,33 @@ function PlayMakerContent() {
               );
             })}
           </View>
-        ) : null}
-
-        {/* ── "New Play" area (when nothing selected) ──────── */}
-        {!selectedPlayId && (
-          <View style={{ flex: 1 }}>
-            <Text style={playStyles.newPlayLabel}>New Play</Text>
-            <PlayMakerArea
-              key="new-play"
-              styles={boardStyles}
-              onShapesChange={handleShapesChange}
-            />
+        ) : (
+          <View style={playStyles.emptyContainer}>
+            <Text style={playStyles.emptyText}>
+              No saved plays yet
+            </Text>
           </View>
         )}
       </ScrollView>
+
+      {/* ── Create Play button (fixed at bottom) ─────────────── */}
+      <View style={playStyles.bottomBar}>
+        <Button
+          type="custom"
+          isInteractive
+          label="Create Play"
+          onPress={() =>
+            router.push(`/(contexts)/playmaker/${teamId}/create`)
+          }
+        />
+      </View>
 
       {isLoading ? <ActivityIndicator size="small" color="#fff" /> : null}
     </ContentArea>
   );
 }
 
-// ── layout styles for the board inside each play ────────────────
+// ── board styles for expanded view ──────────────────────────────
 
 const boardStyles = StyleSheet.create({
   container: { flex: 1 },
@@ -329,38 +240,22 @@ const boardStyles = StyleSheet.create({
 
 const playStyles = StyleSheet.create({
   list: {
-    paddingHorizontal: 12,
-    paddingTop: 8,
-    gap: 8,
+    gap: 10,
   },
 
-  row: {
+  cardRow: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    paddingVertical: 14,
-    paddingHorizontal: 16,
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: "rgba(255,255,255,0.2)",
-    backgroundColor: "rgba(255,255,255,0.06)",
   },
-  rowSelected: {
-    borderColor: "rgba(255,255,255,0.5)",
-    backgroundColor: "rgba(255,255,255,0.14)",
-  },
-  rowText: {
+  cardTitle: {
     color: "white",
-    fontSize: 16,
+    fontSize: 17,
     fontWeight: "600",
-    opacity: 0.85,
-  },
-  rowTextSelected: {
-    opacity: 1,
   },
   chevron: {
     color: "white",
-    fontSize: 18,
+    fontSize: 20,
     fontWeight: "700",
     opacity: 0.6,
   },
@@ -375,15 +270,25 @@ const playStyles = StyleSheet.create({
     minHeight: 560,
   },
 
-newPlayLabel: {
-  color: "white",
-  fontSize: 14,
-  fontWeight: "600",
-  opacity: 0.5,
-  textAlign: "left",
-  paddingTop: 12,
-  paddingBottom: 4,
-  paddingLeft: 16,
-  letterSpacing: 0.5,
-},
+  emptyContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    paddingVertical: 40,
+  },
+  emptyText: {
+    color: "white",
+    opacity: 0.4,
+    fontSize: 16,
+  },
+
+  bottomBar: {
+    position: "absolute",
+    bottom: 0,
+    left: 0,
+    right: 0,
+    paddingHorizontal: 16,
+    paddingVertical: 16,
+    paddingBottom: 32,
+  },
 });
