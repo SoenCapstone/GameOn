@@ -6,7 +6,7 @@ import {
   useNavigation,
   useRouter,
 } from "expo-router";
-import { useQueryClient } from "@tanstack/react-query";
+import { useQueryClient, type QueryClient } from "@tanstack/react-query";
 import { ContentArea } from "@/components/ui/content-area";
 import { Form } from "@/components/form/form";
 import { AccentColors } from "@/constants/colors";
@@ -14,9 +14,16 @@ import { Header } from "@/components/header/header";
 import { PageTitle } from "@/components/header/page-title";
 import { Button } from "@/components/ui/button";
 import { useMatchPresentation } from "@/hooks/use-match-presentation";
-import { useSubmitTeamScore, useTeamMatch } from "@/hooks/use-matches";
+import {
+  useLeagueMatch,
+  useSubmitLeagueScore,
+  useSubmitTeamScore,
+  useTeamMatch,
+} from "@/hooks/use-matches";
 import { LeagueMatch, TeamMatch } from "@/features/matches/types";
 import { errorToString } from "@/utils/error";
+
+type MatchContextType = "team" | "league";
 
 function parseScore(rawValue: string) {
   const trimmed = rawValue.trim();
@@ -50,35 +57,126 @@ function renderScoreHeader(onSave: () => void, isPending: boolean) {
   );
 }
 
+async function invalidateQueriesAfterScoreSubmit({
+  queryClient,
+  contextId,
+  contextMatchesQueryKey,
+  isLeagueMatch,
+  leagueId,
+  matchId,
+}: {
+  queryClient: QueryClient;
+  contextId: string;
+  contextMatchesQueryKey: readonly ["league-matches" | "team-matches", string];
+  isLeagueMatch: boolean;
+  leagueId: string;
+  matchId: string;
+}) {
+  if (contextId) {
+    await queryClient.invalidateQueries({
+      queryKey: contextMatchesQueryKey,
+    });
+  }
+
+  if (isLeagueMatch && leagueId) {
+    await queryClient.invalidateQueries({
+      queryKey: ["league-match", leagueId, matchId],
+    });
+    await queryClient.invalidateQueries({
+      queryKey: ["league-matches", leagueId],
+    });
+  }
+
+  if (!isLeagueMatch) {
+    await queryClient.invalidateQueries({
+      queryKey: ["team-match", matchId],
+    });
+  }
+
+  await queryClient.invalidateQueries({ queryKey: ["user-updates"] });
+}
+
+function resolveDestinationPath(
+  contextId: string,
+  contextType: MatchContextType,
+): RelativePathString {
+  if (!contextId) {
+    return "/home" as RelativePathString;
+  }
+
+  return contextType === "league"
+    ? (`/leagues/${contextId}` as RelativePathString)
+    : (`/teams/${contextId}` as RelativePathString);
+}
+
 export default function MatchScoreScreen() {
   const params = useLocalSearchParams<{
     id?: string;
     contextId?: string;
+    contextType?: MatchContextType;
+    leagueId?: string;
+    startTime?: string;
     homeName?: string;
     awayName?: string;
   }>();
   const matchId = params.id ?? "";
   const contextId = params.contextId ?? "";
+  const contextType = params.contextType === "league" ? "league" : "team";
+  const leagueId = params.leagueId ?? "";
+  const isLeagueMatch = Boolean(leagueId);
 
   const navigation = useNavigation();
   const router = useRouter();
   const queryClient = useQueryClient();
+  const submitLeagueScoreMutation = useSubmitLeagueScore(leagueId);
   const submitScoreMutation = useSubmitTeamScore();
 
   const [homeScoreText, setHomeScoreText] = useState("");
   const [awayScoreText, setAwayScoreText] = useState("");
   const [endTimeValue, setEndTimeValue] = useState(new Date());
 
-  const teamMatchQuery = useTeamMatch(matchId);
-  const match = teamMatchQuery.data;
+  const teamMatchQuery = useTeamMatch(matchId, !isLeagueMatch);
+  const leagueMatchQuery = useLeagueMatch(leagueId, matchId, isLeagueMatch);
+  const contextMatchesQueryKey = useMemo(
+    () =>
+      contextType === "league"
+        ? (["league-matches", contextId] as const)
+        : (["team-matches", contextId] as const),
+    [contextType, contextId],
+  );
+  const contextMatches =
+    queryClient.getQueryData<(TeamMatch | LeagueMatch)[]>(
+      contextMatchesQueryKey,
+    ) ?? [];
+  const contextualMatch = contextMatches.find((existingMatch) => {
+    if (existingMatch.id !== matchId) {
+      return false;
+    }
+
+    if (!isLeagueMatch) {
+      return "matchType" in existingMatch;
+    }
+
+    return "leagueId" in existingMatch && existingMatch.leagueId === leagueId;
+  });
+  const match = (
+    isLeagueMatch
+      ? (leagueMatchQuery.data ?? contextualMatch)
+      : (teamMatchQuery.data ?? contextualMatch)
+  ) as TeamMatch | LeagueMatch | undefined;
   const { homeTeam, awayTeam } = useMatchPresentation(match);
 
   const homeTeamName = homeTeam?.name ?? params.homeName?.trim() ?? "Home Team";
   const awayTeamName = awayTeam?.name ?? params.awayName?.trim() ?? "Away Team";
-  const matchStartTime = useMemo(
-    () => (match?.startTime ? new Date(match.startTime) : null),
-    [match?.startTime],
-  );
+  const fallbackStartTime = params.startTime;
+
+  const matchStartTime = useMemo(() => {
+    const rawStartTime = match?.startTime ?? fallbackStartTime;
+    return rawStartTime ? new Date(rawStartTime) : null;
+  }, [match?.startTime, fallbackStartTime]);
+
+  const isSubmitting =
+    submitScoreMutation.isPending || submitLeagueScoreMutation.isPending;
 
   const onSubmit = useCallback(async () => {
     if (!matchId) {
@@ -108,75 +206,55 @@ export default function MatchScoreScreen() {
     try {
       const submittedEndTime = endTimeValue.toISOString();
 
-      await submitScoreMutation.mutateAsync({
-        matchId,
-        homeScore,
-        awayScore,
-        endTime: submittedEndTime,
-      });
-
-      queryClient.setQueryData<TeamMatch | undefined>(
-        ["team-match", matchId],
-        (currentMatch) => {
-          if (!currentMatch) return currentMatch;
-          return {
-            ...currentMatch,
-            status: "COMPLETED",
-            endTime: submittedEndTime,
-            homeScore,
-            awayScore,
-          };
-        },
-      );
-
-      if (contextId) {
-        queryClient.setQueryData<(TeamMatch | LeagueMatch)[] | undefined>(
-          ["team-matches", contextId],
-          (currentMatches) => {
-            if (!currentMatches) return currentMatches;
-
-            return currentMatches.map((existingMatch) => {
-              if (existingMatch.id !== matchId) {
-                return existingMatch;
-              }
-
-              if (!("matchType" in existingMatch)) {
-                return existingMatch;
-              }
-
-              return {
-                ...existingMatch,
-                status: "COMPLETED",
-                endTime: submittedEndTime,
-                homeScore,
-                awayScore,
-              };
-            });
-          },
-        );
+      if (isLeagueMatch) {
+        await submitLeagueScoreMutation.mutateAsync({
+          matchId,
+          homeScore,
+          awayScore,
+          endTime: submittedEndTime,
+        });
+      } else {
+        await submitScoreMutation.mutateAsync({
+          matchId,
+          homeScore,
+          awayScore,
+          endTime: submittedEndTime,
+        });
       }
 
-      await queryClient.invalidateQueries({ queryKey: ["user-updates"] });
+      await invalidateQueriesAfterScoreSubmit({
+        queryClient,
+        contextId,
+        contextMatchesQueryKey,
+        isLeagueMatch,
+        leagueId,
+        matchId,
+      });
+
+      const destinationPath = resolveDestinationPath(contextId, contextType);
 
       router.dismissTo({
-        pathname: contextId
-          ? (`/teams/${contextId}` as RelativePathString)
-          : ("/home" as RelativePathString),
+        pathname: destinationPath,
         params: contextId ? { tab: "matches" } : undefined,
       });
     } catch (err) {
       Alert.alert("Score submission failed", errorToString(err));
     }
   }, [
-    endTimeValue,
+    matchId,
     homeScoreText,
     awayScoreText,
-    matchId,
-    contextId,
     matchStartTime,
-    submitScoreMutation,
+    endTimeValue,
+    isLeagueMatch,
+    contextId,
+    leagueId,
+    contextType,
     queryClient,
     router,
+    submitLeagueScoreMutation,
+    submitScoreMutation,
+    contextMatchesQueryKey,
   ]);
 
   const submitRef = useRef(onSubmit);
@@ -185,15 +263,16 @@ export default function MatchScoreScreen() {
   useLayoutEffect(() => {
     navigation.setOptions({
       headerTitle: () =>
-        renderScoreHeader(
-          () => submitRef.current(),
-          submitScoreMutation.isPending,
-        ),
+        renderScoreHeader(() => submitRef.current(), isSubmitting),
     });
-  }, [navigation, submitScoreMutation.isPending]);
+  }, [navigation, isSubmitting]);
 
   const loadingState = useMemo(() => {
-    if (teamMatchQuery.isLoading && !match) {
+    const isMatchLoading = isLeagueMatch
+      ? leagueMatchQuery.isLoading
+      : teamMatchQuery.isLoading;
+
+    if (isMatchLoading && !match) {
       return (
         <View style={styles.loading}>
           <ActivityIndicator size="small" color="#fff" />
@@ -206,7 +285,13 @@ export default function MatchScoreScreen() {
     }
 
     return null;
-  }, [match, matchId, teamMatchQuery.isLoading]);
+  }, [
+    match,
+    matchId,
+    isLeagueMatch,
+    teamMatchQuery.isLoading,
+    leagueMatchQuery.isLoading,
+  ]);
 
   if (loadingState) {
     return loadingState;
@@ -222,7 +307,7 @@ export default function MatchScoreScreen() {
             onChangeText={setHomeScoreText}
             keyboardType="number-pad"
             placeholder="Enter score"
-            editable={!submitScoreMutation.isPending}
+            editable={!isSubmitting}
           />
           <Form.Input
             label={awayTeamName}
@@ -230,7 +315,7 @@ export default function MatchScoreScreen() {
             onChangeText={setAwayScoreText}
             keyboardType="number-pad"
             placeholder="Enter score"
-            editable={!submitScoreMutation.isPending}
+            editable={!isSubmitting}
           />
           <Form.DateTime
             label="End Time"
