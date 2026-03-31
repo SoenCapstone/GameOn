@@ -1,20 +1,12 @@
-import type { Dispatch, RefObject, SetStateAction } from "react";
-import { Alert } from "react-native";
-import type { AxiosInstance } from "axios";
+import type { Dispatch, SetStateAction } from "react";
 import * as Crypto from "expo-crypto";
-import AsyncStorage from "@react-native-async-storage/async-storage";
 import type {
   EndpointShape,
   PlaymakerPayloadItem,
   Shape,
   ShapeTool,
 } from "@/types/playmaker";
-import {
-  PLAYMAKER_STORAGE_KEY_PREFIX,
-  SHAPE_CONFIG,
-} from "@/constants/playmaker";
-import { GO_TEAM_SERVICE_ROUTES } from "@/hooks/use-axios-clerk";
-import { errorToString } from "@/utils/error";
+import { SHAPE_CONFIG } from "@/constants/playmaker";
 
 export const scanBoard = (
   shapes: Shape[],
@@ -144,37 +136,26 @@ export const assignPlayerToShape = (
   if (!selectedShapeId || !shapes) return;
 
   setShapes((prevShapes) =>
-    prevShapes.map((shape) =>
-      shape.id === selectedShapeId
-        ? { ...shape, associatedPlayerId: playerId }
-        : shape,
-    ),
+    prevShapes.map((shape) => {
+      const shouldUnassign = shape.associatedPlayerId === playerId;
+      const shouldAssign = shape.id === selectedShapeId;
+
+      if (shouldUnassign && !shouldAssign) {
+        const { associatedPlayerId, ...rest } = shape;
+        return rest;
+      }
+
+      if (shouldAssign) {
+        return {
+          ...shape,
+          associatedPlayerId: playerId,
+        };
+      }
+
+      return shape;
+    })
   );
 };
-
-export function buildPlaymakerStorageKey(teamId: string) {
-  return `${PLAYMAKER_STORAGE_KEY_PREFIX}${teamId}`;
-}
-
-export async function loadSavedPlaymakerShapes(storageKey: string) {
-  try {
-    const saved = await AsyncStorage.getItem(storageKey);
-    if (!saved) return null;
-
-    const parsed = JSON.parse(saved);
-    if (Array.isArray(parsed) && parsed.length > 0) {
-      return parsed as Shape[];
-    }
-  } catch {
-    // ignore invalid saved payloads
-  }
-
-  return null;
-}
-
-export function persistPlaymakerShapes(storageKey: string, shapes: Shape[]) {
-  return AsyncStorage.setItem(storageKey, JSON.stringify(shapes));
-}
 
 export function toPlaymakerPayload(shapes: Shape[]): PlaymakerPayloadItem[] {
   return shapes
@@ -204,39 +185,6 @@ export function toPlaymakerPayload(shapes: Shape[]): PlaymakerPayloadItem[] {
     });
 }
 
-export async function savePlaymaker({
-  api,
-  teamId,
-  latestShapesRef,
-  setSaving,
-}: {
-  api: AxiosInstance;
-  teamId: string;
-  latestShapesRef: RefObject<Shape[]>;
-  setSaving: Dispatch<SetStateAction<boolean>>;
-}) {
-  const shapes = latestShapesRef.current;
-
-  if (!shapes || shapes.length === 0) {
-    Alert.alert("Nothing to save", "Add some shapes on the board first.");
-    return;
-  }
-
-  setSaving(true);
-
-  try {
-    const payload = toPlaymakerPayload(shapes);
-    const route = GO_TEAM_SERVICE_ROUTES.CREATE_PLAY(teamId);
-
-    await api.post(route, payload);
-
-    Alert.alert("Saved", "Your play was saved successfully.");
-  } catch (err) {
-    Alert.alert("Error while saving play:", errorToString(err));
-  } finally {
-    setSaving(false);
-  }
-}
 
 const isEndpointShape = (shape: Shape): shape is EndpointShape =>
   shape.type !== "arrow";

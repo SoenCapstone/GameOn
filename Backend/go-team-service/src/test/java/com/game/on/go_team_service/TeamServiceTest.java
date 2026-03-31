@@ -404,8 +404,13 @@ class TeamServiceTest {
 
         when(playNodeRepository.saveAll(anyList())).thenAnswer(inv -> inv.getArgument(0));
         when(playEdgeRepository.saveAll(anyList())).thenAnswer(inv -> inv.getArgument(0));
+        Team team = new Team();
+        team.setId(teamId);
 
-        UUID playId = teamService.createPlay(items);
+        when(teamRepository.findByIdAndDeletedAtIsNull(eq(teamId))).thenReturn(Optional.of(team));
+        
+        when(teamRepository.findById(eq(teamId))).thenReturn(Optional.of(team));
+        UUID playId = teamService.createPlay(items, teamId);
 
         verify(playRepository).save(playCaptor.capture());
         Play savedPlay = playCaptor.getValue();
@@ -552,4 +557,34 @@ class TeamServiceTest {
         verifyNoMoreInteractions(playNodeRepository, playEdgeRepository);
     }
 
+    @Test
+    void getAllPlayIds_whenMember_returnsIds() {
+        Team team = new Team();
+        team.setId(teamId);
+        team.setDeletedAt(null);
+
+        when(teamRepository.findByIdAndDeletedAtIsNull(teamId)).thenReturn(Optional.of(team));
+
+        TeamMember membership = new TeamMember();
+        membership.setTeam(team);
+        membership.setUserId(callerUserId);
+        membership.setStatus(TeamMemberStatus.ACTIVE);
+        when(teamMemberRepository.findByTeamIdAndUserId(teamId, callerUserId))
+                .thenReturn(Optional.of(membership));
+
+        UUID p1 = UUID.randomUUID();
+        UUID p2 = UUID.randomUUID();
+        Play play1 = Play.builder().id(p1).build();
+        Play play2 = Play.builder().id(p2).build();
+
+        when(playRepository.findAllByTeam_Id(teamId)).thenReturn(List.of(play1, play2));
+
+        List<UUID> ids = teamService.getAllPlayIds(teamId);
+
+        assertEquals(List.of(p1, p2), ids);
+
+        verify(teamRepository).findByIdAndDeletedAtIsNull(teamId);
+        verify(teamMemberRepository).findByTeamIdAndUserId(teamId, callerUserId);
+        verify(playRepository).findAllByTeam_Id(teamId);
+    }
 }

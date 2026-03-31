@@ -522,7 +522,7 @@ public class TeamService {
 
 
     @Transactional
-    public UUID createPlay(List<PlayItemDTO> items) {
+    public UUID createPlay(List<PlayItemDTO> items, UUID teamId) {
 
         List<PlayItemDTO> safeItems = (items == null) ? List.of() : items;
 
@@ -534,8 +534,14 @@ public class TeamService {
 
         UUID playId = UUID.randomUUID();
 
+        requireActiveTeam(teamId);
+
+        Team team = teamRepository.findById(teamId)
+                .orElseThrow(() -> new NotFoundException("Team not found"));
+
         Play play = Play.builder()
                 .id(playId)
+                .team(team)
                 .build();
 
         playRepository.save(play);
@@ -550,6 +556,18 @@ public class TeamService {
         playEdgeRepository.saveAll(edges);
 
         return playId;
+    }
+
+    @Transactional(readOnly = true)
+    public List<UUID> getAllPlayIds(UUID teamId){
+        String userId = userProvider.clerkUserId();
+
+        requireActiveTeam(teamId);
+        requireActiveMembership(teamId, userId);
+
+        return playRepository.findAllByTeam_Id(teamId).stream()
+                .map(Play::getId)
+                .toList();
     }
 
     @Transactional(readOnly = true)

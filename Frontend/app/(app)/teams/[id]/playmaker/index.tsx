@@ -21,12 +21,15 @@ import {
   Text,
   ScrollView,
   RefreshControl,
+  Alert,
 } from "react-native";
 import {
   TeamDetailProvider,
   useTeamDetailContext,
 } from "@/contexts/team-detail-context";
-import { useAxiosWithClerk } from "@/hooks/use-axios-clerk";
+import { useAxiosWithClerk, GO_TEAM_SERVICE_ROUTES } from "@/hooks/use-axios-clerk";
+import { useMutation } from "@tanstack/react-query";
+import { errorToString } from "@/utils/error";
 import { Background } from "@/components/ui/background";
 import { useGetTeamMembers } from "@/hooks/use-get-team-members";
 import { DefaultBoard } from "@/components/play-maker/play-maker-default-board";
@@ -34,11 +37,8 @@ import { GlassView } from "expo-glass-effect";
 import { Card } from "@/components/ui/card";
 import {
   assignPlayerToShape,
-  buildPlaymakerStorageKey,
-  loadSavedPlaymakerShapes,
-  persistPlaymakerShapes,
   scanBoard,
-  savePlaymaker,
+  toPlaymakerPayload,
 } from "@/utils/playmaker";
 import * as Haptics from "expo-haptics";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -132,17 +132,29 @@ function PlayMakerContent() {
   } = useTeamDetailContext();
   const api = useAxiosWithClerk();
   const { bottom: bottomInset } = useSafeAreaInsets();
-  const storageKey = buildPlaymakerStorageKey(teamId);
   const { data: teamMembers, isLoading: isTeamMembersLoading } =
     useGetTeamMembers(teamId);
   const headerHeight = useHeaderHeight();
+
+  const savePlayMutation = useMutation({
+    mutationFn: async (shapesToSave: Shape[]) => {
+      const payload = toPlaymakerPayload(shapesToSave);
+      const route = GO_TEAM_SERVICE_ROUTES.CREATE_PLAY(teamId);
+      return api.post(route, payload);
+    },
+    onSuccess: () => {
+      Alert.alert("Saved", "Your play was saved successfully.");
+    },
+    onError: (err) => {
+      Alert.alert("Error while saving play:", errorToString(err));
+    },
+  });
 
   const shapesHistoryRef = useRef<Shape[][]>([]);
   const latestShapesRef = useRef<Shape[]>([]);
   const [selectedTool, setSelectedTool] = useState<ShapeTool>("person");
   const [selectedShapeId, setSelectedShapeId] = useState<string | null>(null);
   const [shapes, setShapesState] = useState<Shape[]>([]);
-  const [saving, setSaving] = useState(false);
 
   const setShapes = useCallback((updater: SetStateAction<Shape[]>) => {
     setShapesState((prev) => {
@@ -164,15 +176,7 @@ function PlayMakerContent() {
     });
   }, []);
 
-  useEffect(() => {
-    (async () => {
-      const savedShapes = await loadSavedPlaymakerShapes(storageKey);
-      if (savedShapes) {
-        shapesHistoryRef.current = [];
-        setShapesState(savedShapes);
-      }
-    })();
-  }, [storageKey]);
+
 
   useEffect(() => {
     latestShapesRef.current = shapes;
@@ -187,9 +191,7 @@ function PlayMakerContent() {
     }
   }, [selectedShapeId, shapes]);
 
-  useEffect(() => {
-    persistPlaymakerShapes(storageKey, shapes).catch(() => {});
-  }, [shapes, storageKey]);
+
 
   const memberImageMap = useMemo(() => {
     const nextMap = new Map<string, string>();
@@ -227,14 +229,14 @@ function PlayMakerContent() {
     await onRefresh();
   }, [onRefresh]);
 
-  const onSave = useCallback(async () => {
-    await savePlaymaker({
-      api,
-      teamId,
-      latestShapesRef,
-      setSaving,
-    });
-  }, [api, teamId]);
+  const onSave = useCallback(() => {
+    const shapesToSave = latestShapesRef.current;
+    if (!shapesToSave || shapesToSave.length === 0) {
+      Alert.alert("Nothing to save", "Add some shapes on the board first.");
+      return;
+    }
+    savePlayMutation.mutate(shapesToSave);
+  }, [savePlayMutation]);
 
   const onUndo = useCallback(() => {
     const previousShapes = shapesHistoryRef.current.pop();
@@ -254,7 +256,7 @@ function PlayMakerContent() {
       <PlaymakerToolbar
         onSubmit={onSave}
         onUndo={onUndo}
-        loading={saving}
+        loading={savePlayMutation.isPending}
         selectedTool={selectedTool}
         setSelectedTool={setSelectedTool}
         shapes={shapes}
