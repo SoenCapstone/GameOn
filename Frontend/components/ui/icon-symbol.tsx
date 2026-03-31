@@ -5,7 +5,6 @@ import { ComponentProps } from "react";
 import { OpaqueColorValue, type StyleProp, type TextStyle } from "react-native";
 
 type MaterialIconName = ComponentProps<typeof MaterialIcons>["name"];
-type IconSymbolName = string;
 
 /**
  * Add your SF Symbols to Material Icons mappings here.
@@ -37,7 +36,7 @@ export function IconSymbol({
   color,
   style,
 }: {
-  readonly name: IconSymbolName;
+  readonly name: string;
   readonly size?: number;
   readonly color: string | OpaqueColorValue;
   readonly style?: StyleProp<TextStyle>;

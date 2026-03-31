@@ -105,6 +105,8 @@ const defaultModes = [
     type: "tournament" as const,
   },
 ];
+const teamsMode = defaultModes[0];
+const leaguesMode = defaultModes[1];
 
 function buildSearch(overrides: Partial<SearchValue> = {}): SearchValue {
   return {
@@ -138,7 +140,7 @@ describe("SearchResultsScreen", () => {
       <SearchResultsScreen
         scope="Test"
         search={search}
-        selectedMode={defaultModes[0]!}
+        selectedMode={teamsMode}
       />,
     );
 
@@ -150,7 +152,7 @@ describe("SearchResultsScreen", () => {
       <SearchResultsScreen
         scope="Test"
         search={search}
-        selectedMode={defaultModes[1]!}
+        selectedMode={leaguesMode}
       />,
     );
 
@@ -168,7 +170,7 @@ describe("SearchResultsScreen", () => {
       <SearchResultsScreen
         scope="Test"
         search={search}
-        selectedMode={defaultModes[0]!}
+        selectedMode={teamsMode}
         resultFilter={(result) => result.id !== "team2"}
       />,
     );
@@ -183,7 +185,7 @@ describe("SearchResultsScreen", () => {
       <SearchResultsScreen
         scope="Test"
         search={search}
-        selectedMode={defaultModes[0]!}
+        selectedMode={teamsMode}
       />,
     );
 
@@ -214,7 +216,7 @@ describe("SearchResultsScreen", () => {
       <SearchResultsScreen
         scope="Test"
         search={search}
-        selectedMode={defaultModes[0]!}
+        selectedMode={teamsMode}
       />,
     );
 
@@ -232,7 +234,7 @@ describe("SearchResultsScreen", () => {
       <SearchResultsScreen
         scope="Test"
         search={search}
-        selectedMode={defaultModes[0]!}
+        selectedMode={teamsMode}
       />,
     );
 
@@ -243,7 +245,7 @@ describe("SearchResultsScreen", () => {
       <SearchResultsScreen
         scope="Test"
         search={search}
-        selectedMode={defaultModes[1]!}
+        selectedMode={leaguesMode}
       />,
     );
 
@@ -261,7 +263,7 @@ describe("SearchResultsScreen", () => {
       <SearchResultsScreen
         scope="Test"
         search={searchActive}
-        selectedMode={defaultModes[0]!}
+        selectedMode={teamsMode}
       />,
     );
 
@@ -280,7 +282,7 @@ describe("SearchResultsScreen", () => {
       <SearchResultsScreen
         scope="Test"
         search={search}
-        selectedMode={defaultModes[0]!}
+        selectedMode={teamsMode}
       />,
     );
 
@@ -302,7 +304,7 @@ describe("SearchResultsScreen", () => {
       <SearchResultsScreen
         scope="Test"
         search={search}
-        selectedMode={defaultModes[0]!}
+        selectedMode={teamsMode}
       />,
     );
 
@@ -329,7 +331,7 @@ describe("SearchResultsScreen", () => {
       <SearchResultsScreen
         scope="Test"
         search={search}
-        selectedMode={defaultModes[0]!}
+        selectedMode={teamsMode}
       />,
     );
 
@@ -354,7 +356,7 @@ describe("SearchResultsScreen", () => {
       <SearchResultsScreen
         scope="Test"
         search={search}
-        selectedMode={defaultModes[1]!}
+        selectedMode={leaguesMode}
       />,
     );
 

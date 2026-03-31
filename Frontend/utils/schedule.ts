@@ -1,7 +1,10 @@
+import { VenueOption } from "@/types/schedule";
 import {
-  LEAGUE_SAME_DAY_CONFLICT_MESSAGE,
   SCHEDULE_CONFLICT_MESSAGE_BUILDERS,
   SCHEDULE_CONFLICT_MESSAGES,
+} from "@/constants/schedule";
+export {
+  LEAGUE_SAME_DAY_CONFLICT_MESSAGE,
   TEAM_DAILY_LIMIT_CONFLICT_MESSAGE,
   TEAM_TIME_CONFLICT_MESSAGE,
 } from "@/constants/schedule";
@@ -10,13 +13,6 @@ import {
   ScheduleConflictCode,
   Venue,
 } from "@/types/matches";
-import { VenueOption } from "@/types/schedule";
-
-export {
-  LEAGUE_SAME_DAY_CONFLICT_MESSAGE,
-  TEAM_DAILY_LIMIT_CONFLICT_MESSAGE,
-  TEAM_TIME_CONFLICT_MESSAGE,
-};
 
 export function buildVenueOptions(venues: Venue[] | undefined): VenueOption[] {
   return (venues ?? []).map((venue) => ({
@@ -41,7 +37,7 @@ export function resolveSelectedVenueLabel(
   venueIdToLabel: Record<string, string>,
   newVenueName?: string,
 ) {
-  return (venueId ? venueIdToLabel[venueId] : undefined) ?? (newVenueName ?? "");
+  return (venueId ? venueIdToLabel[venueId] : undefined) ?? newVenueName ?? "";
 }
 
 export function getScheduleConflictMessage(

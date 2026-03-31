@@ -1,6 +1,6 @@
 import { Stack } from "expo-router";
 import { SearchResultsScreen } from "@/components/search/search-results-screen";
-import { Tabs, type SearchValue } from "@/constants/search";
+import type { SearchValue } from "@/constants/search";
 import { useSearch } from "@/hooks/search/use-search";
 import { ContentArea } from "@/components/ui/content-area";
 import { Logo } from "@/components/header/logo";
@@ -36,8 +36,6 @@ export default function Explore() {
   });
   const { searchActive } = search;
 
-  const selectedMode = Tabs[0]!;
-
   return (
     <ContentArea
       toolbar={<ExploreToolbar search={search} />}
@@ -49,7 +47,6 @@ export default function Explore() {
         <SearchResultsScreen
           scope="Explore Page"
           search={search}
-          selectedMode={selectedMode}
         />
       )}
     </ContentArea>

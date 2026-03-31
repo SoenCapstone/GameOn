@@ -4,7 +4,7 @@ import { GlassView } from "expo-glass-effect";
 
 interface CardProps {
   readonly isInteractive?: boolean;
-  readonly tintColor?: string | undefined;
+  readonly tintColor?: string;
   readonly children: React.ReactNode;
 }
 

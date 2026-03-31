@@ -90,7 +90,7 @@ export function useLeagueDetail(id: string) {
   }, [userId, id]);
 
   const title = league?.name ?? (id ? `League ${id}` : "League");
-  const isOwner = Boolean(userId && league && league.ownerUserId === userId);
+  const isOwner = Boolean(userId && league?.ownerUserId === userId);
   const isMember = myLeagueTeams.length > 0;
 
   return {

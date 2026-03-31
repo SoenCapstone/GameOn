@@ -86,7 +86,7 @@ export function useTeamDetail(id: string) {
   }, [refetch]);
 
   const title = team?.name ?? (id ? `Team ${id}` : "Team");
-  const isOwner = Boolean(userId && team && team.ownerUserId === userId);
+  const isOwner = Boolean(userId && team?.ownerUserId === userId);
 
   const isMember = Boolean(membership);
   const isActiveMember = membership?.status === "ACTIVE";

@@ -141,7 +141,6 @@ function LeagueContent() {
     data: standings = [],
     isLoading: standingsLoading,
     error: standingsError,
-    refetch: refetchStandings,
   } = useLeagueStandings(id);
 
   const openPost = useCallback(() => {

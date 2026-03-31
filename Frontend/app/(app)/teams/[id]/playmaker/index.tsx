@@ -154,10 +154,10 @@ function PlayMakerContent() {
   const latestShapesRef = useRef<Shape[]>([]);
   const [selectedTool, setSelectedTool] = useState<ShapeTool>("person");
   const [selectedShapeId, setSelectedShapeId] = useState<string | null>(null);
-  const [shapes, setShapesState] = useState<Shape[]>([]);
+  const [shapes, setShapes] = useState<Shape[]>([]);
 
-  const setShapes = useCallback((updater: SetStateAction<Shape[]>) => {
-    setShapesState((prev) => {
+  const updateShapes = useCallback((updater: SetStateAction<Shape[]>) => {
+    setShapes((prev) => {
       const next =
         typeof updater === "function"
           ? (updater as (prev: Shape[]) => Shape[])(prev)
@@ -244,7 +244,7 @@ function PlayMakerContent() {
       return;
     }
 
-    setShapesState(previousShapes);
+    setShapes(previousShapes);
   }, []);
 
   const membersLoading = isLoading || isTeamMembersLoading;
@@ -260,7 +260,7 @@ function PlayMakerContent() {
         selectedTool={selectedTool}
         setSelectedTool={setSelectedTool}
         shapes={shapes}
-        setShapes={setShapes}
+        setShapes={updateShapes}
         selectedShapeId={selectedShapeId}
       />
       <View
@@ -283,7 +283,7 @@ function PlayMakerContent() {
                 locationX,
                 locationY,
                 selectedTool,
-                setShapes,
+                updateShapes,
                 selectedShapeId,
                 setSelectedShapeId,
               );
@@ -337,7 +337,7 @@ function PlayMakerContent() {
                               member.id,
                               selectedShapeId,
                               shapes,
-                              setShapes,
+                              updateShapes,
                             );
                           }}
                           accessibilityRole="button"

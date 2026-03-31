@@ -55,7 +55,7 @@ describe("useRenderPlayMakerShapes", () => {
 
     expect(result.current).toHaveLength(1);
 
-    const root = result.current[0] as React.ReactElement;
+    const root = result.current[0];
     const children = (root.props as { children: React.ReactElement[] })
       .children;
 
@@ -100,7 +100,7 @@ describe("useRenderPlayMakerShapes", () => {
 
     expect(result.current).toHaveLength(1);
 
-    const root = result.current[0] as React.ReactElement;
+    const root = result.current[0];
     const children = (root.props as { children: React.ReactElement[] })
       .children;
 
@@ -142,7 +142,7 @@ describe("useRenderPlayMakerShapes", () => {
       useRenderPlayMakerShapes(shapes, null, getPlayerImage, onSelect),
     );
 
-    const root = result.current[0] as React.ReactElement;
+    const root = result.current[0];
     const children = (root.props as { children: React.ReactElement[] })
       .children;
     const line = children.find(

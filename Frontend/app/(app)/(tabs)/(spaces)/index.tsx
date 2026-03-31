@@ -7,7 +7,12 @@ import { ContentArea } from "@/components/ui/content-area";
 import { useSearch } from "@/hooks/search/use-search";
 import { createScopedLog } from "@/utils/logger";
 import { Logo } from "@/components/header/logo";
-import { Tabs, type Modes, type SearchValue } from "@/constants/search";
+import {
+  Tabs,
+  teamsTab,
+  type Modes,
+  type SearchValue,
+} from "@/constants/search";
 
 const pageLog = createScopedLog("Spaces Page");
 
@@ -53,10 +58,10 @@ function SpacesToolbar({ search }: { readonly search: SearchValue }) {
 export default function Spaces() {
   const search = useSearch({ member: true, scope: "Spaces Page" });
   const { query, searchActive, refetch } = search;
-  const [mode, setMode] = useState<Modes>(Tabs[0]!.key);
+  const [mode, setMode] = useState<Modes>(teamsTab.key);
   const [refreshing, setRefreshing] = useState(false);
 
-  const selectedMode = Tabs.find((m) => m.key === mode) ?? Tabs[0]!;
+  const selectedMode = Tabs.find((m) => m.key === mode) ?? teamsTab;
   const q = (query || "").toLowerCase().trim();
   const showTabs = !q && !searchActive;
 

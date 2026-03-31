@@ -30,3 +30,15 @@ export type MatchAttendanceAction = {
   message: string;
   title: string;
 };
+
+export type MatchToolbarProps = {
+  attendanceAction?: MatchAttendanceAction | null;
+  onCancelMatch: () => void;
+  onOpenInMaps: () => void;
+  onSubmitScore: () => void;
+  onUpdateAttendance: () => void;
+  showAttendanceInMenu: boolean;
+  showCancelInMenu: boolean;
+  showMatchScoreInMenu: boolean;
+  showMenu: boolean;
+};
