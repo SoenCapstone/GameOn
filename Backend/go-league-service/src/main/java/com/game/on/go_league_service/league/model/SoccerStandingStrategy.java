@@ -1,5 +1,6 @@
 package com.game.on.go_league_service.league.model;
 
+import com.game.on.go_league_service.client.dto.TeamSummaryResponse;
 import lombok.Data;
 
 import java.util.*;
@@ -8,11 +9,12 @@ import java.util.*;
 public class SoccerStandingStrategy implements StandingStrategy {
 
     @Override
-    public List<StandingScore> calculateStanding(List<UUID> teamIds, List<LeagueMatch> leagueMatches, Map<UUID, LeagueMatchScore> scoresByMatchId) {
+    public List<StandingScore> calculateStanding(List<TeamSummaryResponse> teams, List<LeagueMatch> leagueMatches, Map<UUID, LeagueMatchScore> scoresByMatchId) {
         Map<UUID, StandingScore> standings = new HashMap<>();
 
-        for (UUID teamId : teamIds) {
-            standings.put(teamId, new StandingScore(teamId));
+        for (TeamSummaryResponse team : teams) {
+            UUID teamId = team.id();
+            standings.put(teamId, new StandingScore(teamId, team.name()));
         }
 
         for (LeagueMatch match : leagueMatches) {
