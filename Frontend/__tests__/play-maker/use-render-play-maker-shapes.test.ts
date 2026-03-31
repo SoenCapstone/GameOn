@@ -19,11 +19,18 @@ jest.mock("@/components/ui/icon-symbol", () => ({
 }));
 
 describe("useRenderPlayMakerShapes", () => {
+  const getPlayerImage = jest.fn(() => null);
+
+  beforeEach(() => {
+    getPlayerImage.mockClear();
+    getPlayerImage.mockReturnValue(null);
+  });
+
   it("returns empty array when shapes is empty", () => {
     const onSelect = jest.fn();
 
     const { result } = renderHook<React.ReactElement[], unknown>(() =>
-      useRenderPlayMakerShapes([], null, onSelect),
+      useRenderPlayMakerShapes([], null, getPlayerImage, onSelect),
     );
 
     expect(result.current).toEqual([]);
@@ -43,7 +50,7 @@ describe("useRenderPlayMakerShapes", () => {
     ];
 
     const { result } = renderHook<React.ReactElement[], unknown>(() =>
-      useRenderPlayMakerShapes(shapes, null, onSelect),
+      useRenderPlayMakerShapes(shapes, null, getPlayerImage, onSelect),
     );
 
     expect(result.current).toHaveLength(1);
@@ -69,7 +76,7 @@ describe("useRenderPlayMakerShapes", () => {
     const shapes: Shape[] = [{ type: "arrow", id: "a1" }];
 
     const { result } = renderHook<React.ReactElement[], unknown>(() =>
-      useRenderPlayMakerShapes(shapes, null, onSelect),
+      useRenderPlayMakerShapes(shapes, null, getPlayerImage, onSelect),
     );
 
     expect(result.current).toEqual([]);
@@ -88,7 +95,7 @@ describe("useRenderPlayMakerShapes", () => {
     ];
 
     const { result } = renderHook<React.ReactElement[], unknown>(() =>
-      useRenderPlayMakerShapes(shapes, null, onSelect),
+      useRenderPlayMakerShapes(shapes, null, getPlayerImage, onSelect),
     );
 
     expect(result.current).toHaveLength(1);
@@ -132,7 +139,7 @@ describe("useRenderPlayMakerShapes", () => {
     ];
 
     const { result } = renderHook<React.ReactElement[], unknown>(() =>
-      useRenderPlayMakerShapes(shapes, null, onSelect),
+      useRenderPlayMakerShapes(shapes, null, getPlayerImage, onSelect),
     );
 
     const root = result.current[0] as React.ReactElement;

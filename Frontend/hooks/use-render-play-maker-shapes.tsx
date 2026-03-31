@@ -2,6 +2,7 @@ import { useMemo, ReactElement } from "react";
 import type { Shape } from "@/types/playmaker";
 import { StyleSheet, View } from "react-native";
 import { IconSymbol } from "@/components/ui/icon-symbol";
+import { Image } from "expo-image";
 import { Color } from "expo-router";
 import {
   Rect as SvgRect,
@@ -12,12 +13,14 @@ import {
 } from "react-native-svg";
 
 type OnSelect = (id: string) => void;
+type GetPlayerImage = (playerId?: string) => string | null;
 
 type RendererMap = {
   [K in Shape["type"]]: (
     shape: Extract<Shape, { type: K }>,
     isSelected: boolean,
     selectedShapeId: string | null,
+    getPlayerImage: GetPlayerImage,
     onSelect: OnSelect,
   ) => ReactElement | null;
 };
@@ -25,10 +28,14 @@ type RendererMap = {
 const renderers: RendererMap = {
   select: () => null,
 
-  person: (s, isSelected, _selectedId, _onSelect) => {
+  person: (s, isSelected, _selectedId, getPlayerImage, _onSelect) => {
     const size = s.size ?? 28;
     const hitPadding = 8;
     const iconSize = isSelected ? size * 1.1 : size;
+    const playerImage = getPlayerImage(s.associatedPlayerId);
+    const avatarSize = size * 1.35;
+    const renderSize = playerImage ? avatarSize : iconSize;
+    const renderOffset = (size - renderSize) / 2;
 
     const left = s.x - size / 2;
     const top = s.y - size / 2;
@@ -43,20 +50,52 @@ const renderers: RendererMap = {
           fill="transparent"
         />
 
-        <ForeignObject width={iconSize} height={iconSize} pointerEvents="none">
+        <ForeignObject
+          x={renderOffset}
+          y={renderOffset}
+          width={renderSize}
+          height={renderSize}
+          pointerEvents="none"
+        >
           <View pointerEvents="none" style={styles.iconContainer}>
-            <IconSymbol
-              name="person.fill"
-              size={iconSize}
-              color={isSelected ? Color.ios.systemYellow : "white"}
-            />
+            {playerImage ? (
+              <View
+                style={[
+                  styles.avatarFrame,
+                  {
+                    width: renderSize,
+                    height: renderSize,
+                    borderRadius: renderSize / 2,
+                    borderColor: isSelected
+                      ? Color.ios.systemYellow
+                      : "transparent",
+                  },
+                ]}
+              >
+                <Image
+                  source={{ uri: playerImage }}
+                  style={{
+                    width: renderSize,
+                    height: renderSize,
+                    borderRadius: renderSize / 2,
+                  }}
+                  contentFit="cover"
+                />
+              </View>
+            ) : (
+              <IconSymbol
+                name="person.fill"
+                size={iconSize}
+                color={isSelected ? Color.ios.systemYellow : "white"}
+              />
+            )}
           </View>
         </ForeignObject>
       </G>
     );
   },
 
-  arrow: (s, isSelected, _selectedId, onSelect) => {
+  arrow: (s, isSelected, _selectedId, _getPlayerImage, onSelect) => {
     if (!s.from || !s.to) return null;
 
     const stroke = isSelected
@@ -94,6 +133,7 @@ const renderers: RendererMap = {
 export const useRenderPlayMakerShapes = (
   shapes: Shape[],
   selectedShapeId: string | null,
+  getPlayerImage: GetPlayerImage,
   onSelect: OnSelect,
 ) => {
   return useMemo(() => {
@@ -102,17 +142,35 @@ export const useRenderPlayMakerShapes = (
         const isSelected = "id" in s && s.id === selectedShapeId;
         switch (s.type) {
           case "person":
-            return renderers.person(s, isSelected, selectedShapeId, onSelect);
+            return renderers.person(
+              s,
+              isSelected,
+              selectedShapeId,
+              getPlayerImage,
+              onSelect,
+            );
           case "arrow":
-            return renderers.arrow(s, isSelected, selectedShapeId, onSelect);
+            return renderers.arrow(
+              s,
+              isSelected,
+              selectedShapeId,
+              getPlayerImage,
+              onSelect,
+            );
           case "select":
-            return renderers.select(s, isSelected, selectedShapeId, onSelect);
+            return renderers.select(
+              s,
+              isSelected,
+              selectedShapeId,
+              getPlayerImage,
+              onSelect,
+            );
           default:
             return null;
         }
       })
       .filter(Boolean) as React.ReactElement[];
-  }, [shapes, selectedShapeId, onSelect]);
+  }, [getPlayerImage, shapes, selectedShapeId, onSelect]);
 };
 
 const buildArrowPath = (
@@ -176,5 +234,9 @@ const styles = StyleSheet.create({
     height: "100%",
     alignItems: "center",
     justifyContent: "center",
+  },
+  avatarFrame: {
+    borderWidth: 1,
+    overflow: "hidden",
   },
 });
