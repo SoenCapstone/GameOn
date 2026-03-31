@@ -1,7 +1,11 @@
 import { Pressable, Text, View, StyleSheet } from "react-native";
 import { Image } from "expo-image";
 import { getSportLogo } from "@/utils/search";
-import { formatMatchDateTime, isCancelledMatchStatus } from "@/utils/matches";
+import {
+  formatMatchDate,
+  formatMatchDateTime,
+  isCancelledMatchStatus,
+} from "@/utils/matches";
 import { Card } from "@/components/ui/card";
 
 interface MatchCardProps {
@@ -32,20 +36,15 @@ export function MatchCard({
   awayScore,
   onPress,
 }: Readonly<MatchCardProps>) {
-  const renderCenterValue = () => {
+  const hasScore = homeScore != null && awayScore != null;
+
+  const renderMeta = () => {
     if (isCancelledMatchStatus(status)) {
       return <Text style={styles.pending}>Cancelled</Text>;
     }
 
-    const hasScore = homeScore != null && awayScore != null;
     if (hasScore) {
-      return (
-        <View style={styles.result}>
-          <Text style={styles.score}>{homeScore}</Text>
-          <Text style={styles.dash}>-</Text>
-          <Text style={styles.score}>{awayScore}</Text>
-        </View>
-      );
+      return <Text style={styles.date}>{formatMatchDate(startTime)}</Text>;
     }
 
     return <Text style={styles.date}>{formatMatchDateTime(startTime)}</Text>;
@@ -62,11 +61,25 @@ export function MatchCard({
               contentFit="contain"
             />
 
-            <View style={styles.middle}>
-              <Text style={styles.league} numberOfLines={1}>
-                {contextLabel}
-              </Text>
-              {renderCenterValue()}
+            <View style={styles.center}>
+              {hasScore ? (
+                <Text style={[styles.score, styles.leftscore]}>
+                  {homeScore}
+                </Text>
+              ) : null}
+
+              <View style={styles.middle}>
+                <Text style={styles.league} numberOfLines={1}>
+                  {contextLabel}
+                </Text>
+                {renderMeta()}
+              </View>
+
+              {hasScore ? (
+                <Text style={[styles.score, styles.rightscore]}>
+                  {awayScore}
+                </Text>
+              ) : null}
             </View>
 
             <Image
@@ -121,16 +134,26 @@ const styles = StyleSheet.create({
     width: 48,
     height: 48,
   },
+  center: {
+    flex: 1,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 8,
+  },
   middle: {
     alignItems: "center",
     justifyContent: "center",
     gap: 2,
-    maxWidth: "55%",
+    flexShrink: 1,
+    minWidth: 0,
+    maxWidth: "60%",
   },
   league: {
     color: "rgba(235,235,245,0.68)",
     fontSize: 12,
     lineHeight: 16,
+    textAlign: "center",
   },
   date: {
     color: "rgba(235,235,245,0.68)",
@@ -138,22 +161,19 @@ const styles = StyleSheet.create({
     lineHeight: 16,
     textAlign: "center",
   },
-  result: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-  },
   score: {
-    color: "rgba(235,235,245,0.68)",
+    color: "rgba(255,255,255,0.85)",
     fontSize: 24,
-    fontWeight: "500",
+    fontWeight: "600",
     fontVariant: ["tabular-nums"],
+    width: 32,
+    textAlign: "center",
   },
-  dash: {
-    color: "rgba(235,235,245,0.68)",
-    fontSize: 24,
-    fontWeight: "400",
-    marginHorizontal: 28,
+  leftscore: {
+    marginRight: 4,
+  },
+  rightscore: {
+    marginLeft: 4,
   },
   pending: {
     color: "rgba(235,235,245,0.68)",

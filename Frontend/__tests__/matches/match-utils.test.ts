@@ -3,6 +3,7 @@ import {
   toBadgeStatus,
   sortUpcomingFirst,
   sortPastLatestFirst,
+  formatMatchDate,
   formatMatchDateTime,
   mapTeamsById,
   filterPendingTeamInvitesForOwner,
@@ -90,6 +91,13 @@ describe("formatMatchDateTime", () => {
   it("formats date string", () => {
     const date = "2023-01-01T12:34:00Z";
     expect(typeof formatMatchDateTime(date)).toBe("string");
+  });
+});
+
+describe("formatMatchDate", () => {
+  it("formats date without time", () => {
+    const date = "2023-01-01T12:34:00Z";
+    expect(typeof formatMatchDate(date)).toBe("string");
   });
 });
 

@@ -6,7 +6,11 @@ import MapView, { Marker } from "react-native-maps";
 import { IconSymbol } from "@/components/ui/icon-symbol";
 import { Stack, Color } from "expo-router";
 import type { MatchAttendanceAction } from "@/types/match-details";
-import { formatMatchDateTime, isCancelledMatchStatus } from "@/utils/matches";
+import {
+  formatMatchDate,
+  formatMatchDateTime,
+  isCancelledMatchStatus,
+} from "@/utils/matches";
 
 export function MatchToolbar({
   openInMaps,
@@ -170,9 +174,6 @@ export function MatchDetailsContent({
 }: Readonly<MatchDetailsContentProps>) {
   const hasScore = homeScore != null && awayScore != null;
   const isCancelled = isCancelledMatchStatus(status);
-  const centerValue = isCancelled
-    ? "Cancelled"
-    : formatMatchDateTime(startTime);
   const hasCoordinates =
     typeof venueLatitude === "number" && typeof venueLongitude === "number";
   const hasVenue = Boolean(venueName?.trim());
@@ -245,21 +246,33 @@ export function MatchDetailsContent({
               contentFit="contain"
             />
 
-            <View style={styles.middle}>
-              <Text style={styles.context} numberOfLines={1}>
-                {contextLabel}
-              </Text>
-              {isCancelled && <Text style={styles.pending}>Cancelled</Text>}
-              {!isCancelled && hasScore && (
-                <View style={styles.result}>
-                  <Text style={styles.score}>{homeScore}</Text>
-                  <Text style={styles.dash}>-</Text>
-                  <Text style={styles.score}>{awayScore}</Text>
-                </View>
-              )}
-              {!isCancelled && !hasScore && (
-                <Text style={styles.date}>{centerValue}</Text>
-              )}
+            <View style={styles.center}>
+              {hasScore && !isCancelled ? (
+                <Text style={[styles.score, styles.leftscore]}>
+                  {homeScore}
+                </Text>
+              ) : null}
+
+              <View style={styles.middle}>
+                <Text style={styles.context} numberOfLines={1}>
+                  {contextLabel}
+                </Text>
+                {isCancelled ? (
+                  <Text style={styles.pending}>Cancelled</Text>
+                ) : (
+                  <Text style={styles.date}>
+                    {hasScore
+                      ? formatMatchDate(startTime)
+                      : formatMatchDateTime(startTime)}
+                  </Text>
+                )}
+              </View>
+
+              {hasScore && !isCancelled ? (
+                <Text style={[styles.score, styles.rightscore]}>
+                  {awayScore}
+                </Text>
+              ) : null}
             </View>
 
             <Image
@@ -349,37 +362,44 @@ const styles = StyleSheet.create({
     width: 54,
     height: 54,
   },
+  center: {
+    flex: 1,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 6,
+  },
   middle: {
     alignItems: "center",
     justifyContent: "center",
     gap: 4,
+    flexShrink: 1,
+    minWidth: 0,
     maxWidth: "55%",
   },
   context: {
     color: "rgba(235,235,245,0.68)",
     fontSize: 14,
+    textAlign: "center",
   },
   date: {
     color: "rgba(235,235,245,0.68)",
     fontSize: 14,
     textAlign: "center",
   },
-  result: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-  },
   score: {
-    color: "rgba(235,235,245,0.68)",
-    fontSize: 26,
-    fontWeight: "500",
+    color: "rgba(255,255,255,0.85)",
+    fontSize: 28,
+    fontWeight: "600",
     fontVariant: ["tabular-nums"],
+    width: 36,
+    textAlign: "center",
   },
-  dash: {
-    color: "rgba(235,235,245,0.68)",
-    fontSize: 26,
-    fontWeight: "400",
-    marginHorizontal: 32,
+  leftscore: {
+    marginRight: 6,
+  },
+  rightscore: {
+    marginLeft: 6,
   },
   pending: {
     color: "rgba(235,235,245,0.68)",
