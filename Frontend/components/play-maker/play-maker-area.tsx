@@ -16,12 +16,14 @@ import { useTeamDetailContext } from "@/contexts/team-detail-context";
 
 type PlayMakerAreaWithCallbackProps = PlayMakerAreaProps & {
   onShapesChange?: (shapes: Shape[]) => void;
+  initialShapes?: Shape[];
 };
 
 export const PlayMakerArea = ({
   styles,
   boardConfig: BoardConfig,
   onShapesChange,
+  initialShapes,
 }: PlayMakerAreaWithCallbackProps) => {
   const [selectedTool, setSelectedTool] = useState<ShapeTool>("person");
   const [selectedShapeId, setSelectedShapeId] = useState<string | null>(null);
@@ -30,7 +32,14 @@ export const PlayMakerArea = ({
   const { id: teamId } = useTeamDetailContext();
   const { data, isLoading } = useGetTeamMembers(teamId);
 
-  // Keep parent screen in sync with current shapes (used by Save button)
+  useEffect(() => {
+    if (initialShapes && initialShapes.length > 0) {
+      setShapes(initialShapes);
+      setSelectedShapeId(null);
+      setSelectedTool("select");
+    }
+  }, [initialShapes]);
+
   useEffect(() => {
     onShapesChange?.(shapes);
   }, [shapes, onShapesChange]);
