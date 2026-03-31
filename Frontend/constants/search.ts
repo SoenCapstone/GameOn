@@ -43,8 +43,26 @@ export interface SearchModeConfig {
   type: SearchResult["type"];
 }
 
+export const teamsTab: SearchModeConfig = {
+  key: "teams",
+  label: "Teams",
+  type: "team",
+};
+
+export const leaguesTab: SearchModeConfig = {
+  key: "leagues",
+  label: "Leagues",
+  type: "league",
+};
+
+export const tournamentsTab: SearchModeConfig = {
+  key: "tournaments",
+  label: "Tournaments",
+  type: "tournament",
+};
+
 export const Tabs: SearchModeConfig[] = [
-  { key: "teams", label: "Teams", type: "team" },
-  { key: "leagues", label: "Leagues", type: "league" },
-  { key: "tournaments", label: "Tournaments", type: "tournament" },
+  teamsTab,
+  leaguesTab,
+  tournamentsTab,
 ];

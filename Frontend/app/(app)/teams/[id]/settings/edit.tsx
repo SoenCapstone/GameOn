@@ -108,7 +108,7 @@ function EditTeamContent() {
       scope: selectedScope?.id ?? "",
       location: selectedCity?.label ?? "",
       allowedRegions: selectedAllowedRegions,
-      privacy: (team?.privacy ?? "PRIVATE") as "PUBLIC" | "PRIVATE",
+      privacy: team?.privacy ?? "PRIVATE",
     };
 
     if (pickedLogo) {

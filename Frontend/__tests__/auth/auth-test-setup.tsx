@@ -20,7 +20,6 @@ jest.mock("expo-router", () => {
     children,
   }: {
     children?: React.ReactNode;
-    placement?: string;
   }) => children ?? null;
   Toolbar.displayName = "Stack.Toolbar";
 

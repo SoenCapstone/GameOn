@@ -25,7 +25,10 @@ export class MessagingSocket {
   private currentWsUrl: string | null = null;
   private currentConnectHeaders: Record<string, string> = {};
   private userSubscription: StompSubscription | null = null;
-  private conversationSubscriptions = new Map<string, StompSubscription>();
+  private readonly conversationSubscriptions = new Map<
+    string,
+    StompSubscription
+  >();
   private desiredConversationIds = new Set<string>();
   private state: SocketState = "idle";
 
@@ -184,7 +187,7 @@ export class MessagingSocket {
   }
 
   private subscribeUserQueue() {
-    if (!this.client || !this.client.connected || this.userSubscription) {
+    if (!this.client?.connected || this.userSubscription) {
       return;
     }
     this.userSubscription = this.client.subscribe(
@@ -211,7 +214,7 @@ export class MessagingSocket {
   }
 
   private subscribeConversation(conversationId: string) {
-    if (!this.client || !this.client.connected) {
+    if (!this.client?.connected) {
       return;
     }
     if (this.conversationSubscriptions.has(conversationId)) {
@@ -241,7 +244,7 @@ export class MessagingSocket {
   }
 
   async sendMessage(payload: SendMessagePayload) {
-    if (!this.client || !this.client.connected) {
+    if (!this.client?.connected) {
       throw new Error("WebSocket not connected");
     }
     this.client.publish({

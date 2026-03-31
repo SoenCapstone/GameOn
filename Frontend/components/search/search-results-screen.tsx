@@ -6,6 +6,7 @@ import { createScopedLog } from "@/utils/logger";
 import { onSearchResultPress } from "@/utils/search";
 import { Loading } from "@/components/ui/loading";
 import { Empty } from "@/components/ui/empty";
+import { teamsTab } from "@/constants/search";
 import type {
   SearchValue,
   SearchResult,
@@ -15,7 +16,7 @@ import type {
 type Props = {
   readonly scope: string;
   readonly search: SearchValue;
-  readonly selectedMode: SearchModeConfig;
+  readonly selectedMode?: SearchModeConfig;
   readonly resultFilter?: (result: SearchResult) => boolean;
 };
 
@@ -26,7 +27,7 @@ function Separator() {
 export function SearchResultsScreen({
   scope,
   search,
-  selectedMode,
+  selectedMode = teamsTab,
   resultFilter,
 }: Props) {
   const log = createScopedLog(scope);

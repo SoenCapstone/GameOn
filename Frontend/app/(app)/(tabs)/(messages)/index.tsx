@@ -49,6 +49,10 @@ function MessagesToolbar() {
   );
 }
 
+function Separator() {
+  return <View style={styles.separator} />;
+}
+
 export default function Messages() {
   const router = useRouter();
   const { userId } = useAuth();
@@ -175,7 +179,7 @@ export default function Messages() {
           keyExtractor={(item) => item.id}
           style={{ overflow: "visible" }}
           contentContainerStyle={styles.listContent}
-          ItemSeparatorComponent={() => <View style={styles.separator} />}
+          ItemSeparatorComponent={Separator}
           renderItem={({ item }) => (
             <Chat item={item} onPress={openConversation} />
           )}

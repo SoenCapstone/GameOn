@@ -6,11 +6,13 @@ import { createScopedLog } from "@/utils/logger";
 const headerHeightStorageKey = "headerHeight";
 const log = createScopedLog("useHeaderHeight");
 
+function normalizeHeaderHeight(height: number) {
+  return Number.isInteger(height) && height > 0 ? height : null;
+}
+
 export function useHeaderHeight() {
   const [height, setHeight] = useState<number | null>(null);
-  const measured = ((h) => (Number.isInteger(h) && h > 0 ? h : null))(
-    useNavigationHeaderHeight(),
-  );
+  const measured = normalizeHeaderHeight(useNavigationHeaderHeight());
 
   useEffect(() => {
     AsyncStorage.getItem(headerHeightStorageKey)

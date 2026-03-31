@@ -48,7 +48,7 @@ describe("Button", () => {
 
   describe("custom button", () => {
     it("renders with custom icon", () => {
-      render(<Button type="custom" icon="house.fill" route="/home" />);
+      render(<Button type="custom" icon="house.fill" route="/(app)/(tabs)" />);
 
       const call = (IconSymbol as jest.Mock).mock.calls[0][0];
       expect(call.name).toBe("house.fill");
@@ -58,13 +58,13 @@ describe("Button", () => {
 
     it("calls router.push with route when pressed", () => {
       const { UNSAFE_getByProps } = render(
-        <Button type="custom" icon="house.fill" route="/home" />,
+        <Button type="custom" icon="house.fill" route="/(app)/(tabs)" />,
       );
       const pressable = UNSAFE_getByProps({ accessible: true });
 
       fireEvent.press(pressable);
 
-      expect(router.push).toHaveBeenCalledWith("/home");
+      expect(router.push).toHaveBeenCalledWith("/(app)/(tabs)");
       expect(router.back).not.toHaveBeenCalled();
     });
   });

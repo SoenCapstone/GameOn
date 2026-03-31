@@ -98,7 +98,7 @@ export default function Settings() {
       <Form accentColor={AccentColors.blue}>
         <Form.Section>
           <Form.Profile
-            title={user.fullName!}
+            title={user.fullName ?? "User Name"}
             subtitle={user.primaryEmailAddress?.emailAddress}
             image={
               user?.hasImage ? { uri: user.imageUrl } : images.defaultProfile

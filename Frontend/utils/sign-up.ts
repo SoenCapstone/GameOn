@@ -30,7 +30,7 @@ export const displayFormikError = (
 ): string | undefined => {
   const fieldKey = inputLabel.field as keyof User;
   return touched?.[fieldKey] && errors?.[fieldKey]
-    ? (errors[fieldKey] as string)
+    ? errors[fieldKey]
     : undefined;
 };
 

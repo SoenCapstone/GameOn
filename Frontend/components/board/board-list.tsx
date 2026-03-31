@@ -25,7 +25,7 @@ export function BoardList({
   canDelete = false,
 }: Readonly<BoardListProps>) {
   const renderItem = React.useCallback(
-    ({ item }: { item: BoardPost }) => {
+    ({ item }: Readonly<{ item: BoardPost }>) => {
       return (
         <Post
           post={item}

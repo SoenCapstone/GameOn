@@ -532,7 +532,7 @@ describe("useLeagueDetail", () => {
   });
 
   it("handles different league structures", async () => {
-    await cleanup();
+    cleanup();
     queryClient = createQueryClient();
 
     const leagueData = {
@@ -560,7 +560,7 @@ describe("useLeagueDetail", () => {
   });
 
   it("handles multiple sequential refreshes", async () => {
-    await cleanup();
+    cleanup();
     queryClient = createQueryClient();
 
     const leagueData = {

@@ -201,9 +201,7 @@ export default function Home() {
             ),
         ),
       );
-      await Promise.all([
-        queryClient.invalidateQueries({ queryKey: ["team-matches"] }),
-      ]);
+      await queryClient.invalidateQueries({ queryKey: ["team-matches"] });
       Alert.alert(
         variables.isAccepted ? "Match accepted" : "Match declined",
         variables.isAccepted
@@ -319,12 +317,16 @@ export default function Home() {
     >
       {tab === "feed" ? (
         <View style={styles.cardWrap}>
-          {isLoading ? (
-            <Loading />
-          ) : invites.length === 0 ? (
-            <Empty message="No updates available" />
-          ) : (
-            invites.map((invite) => (
+          {(() => {
+            if (isLoading) {
+              return <Loading />;
+            }
+
+            if (invites.length === 0) {
+              return <Empty message="No updates available" />;
+            }
+
+            return invites.map((invite) => (
               <InviteCard
                 key={invite.id}
                 invite={invite}
@@ -339,8 +341,8 @@ export default function Home() {
                   respondRefereeInviteMutation.mutate({ matchId, isAccepted })
                 }
               />
-            ))
-          )}
+            ));
+          })()}
         </View>
       ) : (
         <Empty message="No updates available" />
