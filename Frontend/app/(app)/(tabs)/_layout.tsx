@@ -29,16 +29,16 @@ export default function TabLayout() {
           selectedColor="white"
         />
       </NativeTabs.Trigger>
-      <NativeTabs.Trigger name="(messages)">
-        <NativeTabs.Trigger.Label>Messages</NativeTabs.Trigger.Label>
-        <NativeTabs.Trigger.Icon sf="message.fill" selectedColor="white" />
-      </NativeTabs.Trigger>
       <NativeTabs.Trigger name="(spaces)">
         <NativeTabs.Trigger.Label>Spaces</NativeTabs.Trigger.Label>
         <NativeTabs.Trigger.Icon
           sf="circle.grid.2x2.fill"
           selectedColor="white"
         />
+      </NativeTabs.Trigger>
+      <NativeTabs.Trigger name="(messages)">
+        <NativeTabs.Trigger.Label>Messages</NativeTabs.Trigger.Label>
+        <NativeTabs.Trigger.Icon sf="message.fill" selectedColor="white" />
       </NativeTabs.Trigger>
     </NativeTabs>
   );
