@@ -1,4 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
+import { useAxiosWithClerk } from "./use-axios-clerk";
 
 const API_BASE_URL = process.env.EXPO_PUBLIC_API_BASE_URL;
 
@@ -13,24 +14,21 @@ export type Standing = {
 };
 
 export const useLeagueStandings = (leagueId: string) => {
+  const api = useAxiosWithClerk();
+
   return useQuery<Standing[], Error>({
     queryKey: ["league-standings", leagueId],
 
     queryFn: async () => {
-      const res = await fetch(
+      const res = await api.get(
         `${API_BASE_URL}/api/v1/leagues/${leagueId}/standings`
       );
 
-      if (!res.ok) {
-        throw new Error("Failed to fetch standings");
-      }
-
-      const data: Standing[] = await res.json();
-
-      // sort by points descending
-      return data.sort((a, b) => (b.points ?? 0) - (a.points ?? 0));
+      return res.data.sort(
+        (a: Standing, b: Standing) => (b.points ?? 0) - (a.points ?? 0)
+      );
     },
 
-    enabled: !!leagueId, // only run if leagueId exists
+    enabled: !!leagueId,
   });
 };

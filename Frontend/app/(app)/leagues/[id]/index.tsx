@@ -141,6 +141,7 @@ function LeagueContent() {
     data: standings = [],
     isLoading: standingsLoading,
     error: standingsError,
+    refetch: refetchStandings,
   } = useLeagueStandings(id);
 
   const openPost = useCallback(() => {
@@ -216,6 +217,7 @@ function LeagueContent() {
       boardPosts,
       onRefresh,
       refetchPosts,
+      refetchStandings,
       deletePostMutation,
       entityName: "League",
       onMatchesRefresh: handleMatchesRefresh,

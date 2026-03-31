@@ -11,6 +11,7 @@ interface DetailPageHandlersConfig {
   onRefresh: () => Promise<void>;
   refetchPosts: () => Promise<unknown>;
   refetchOverview?: () => Promise<unknown>;
+  refetchStandings?: () => Promise<unknown>;
   deletePostMutation: {
     mutateAsync: (postId: string) => Promise<void>;
   };
@@ -25,12 +26,29 @@ export function useDetailPageHandlers({
   onRefresh,
   refetchPosts,
   refetchOverview,
+  refetchStandings,
   deletePostMutation,
   entityName,
   onMatchesRefresh,
 }: DetailPageHandlersConfig) {
   const [refreshing, setRefreshing] = useState(false);
   const log = createScopedLog(`${entityName} Detail Page`);
+
+  const confirmDeletePost = useCallback(
+    async (postId: string) => {
+      try {
+        await deletePostMutation.mutateAsync(postId);
+        log.info("Post deleted", { postId });
+      } catch (err) {
+        log.error("Failed to delete post", {
+          postId,
+          error: errorToString(err),
+        });
+        Alert.alert("Failed to delete", errorToString(err));
+      }
+    },
+    [deletePostMutation, log],
+  );
 
   const handleDeletePost = (postId: string) => {
     Alert.alert("Delete Post", "Are you sure you want to delete this post?", [
@@ -40,17 +58,8 @@ export function useDetailPageHandlers({
       },
       {
         text: "Delete",
-        onPress: async () => {
-          try {
-            await deletePostMutation.mutateAsync(postId);
-            log.info("Post deleted", { postId });
-          } catch (err) {
-            log.error("Failed to delete post", {
-              postId,
-              error: errorToString(err),
-            });
-            Alert.alert("Failed to delete", errorToString(err));
-          }
+        onPress: () => {
+          void confirmDeletePost(postId);
         },
         style: "destructive",
       },
@@ -68,6 +77,9 @@ export function useDetailPageHandlers({
       } else if (currentTab === "overview" && refetchOverview) {
         await refetchOverview();
         log.info("Overview data refreshed");
+      } else if (currentTab === "standings" && refetchStandings) {
+        await refetchStandings();
+        log.info("Standings refreshed");
       } else if (currentTab === "matches" && onMatchesRefresh) {
         await onMatchesRefresh();
         log.info("Matches refreshed");
@@ -86,6 +98,7 @@ export function useDetailPageHandlers({
     onRefresh,
     currentTab,
     refetchOverview,
+    refetchStandings,
     onMatchesRefresh,
     refetchPosts,
     log,

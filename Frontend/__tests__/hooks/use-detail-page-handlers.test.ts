@@ -201,4 +201,145 @@ describe("useDetailPageHandlers", () => {
       expect(logger.createScopedLog).toHaveBeenCalledWith("Team Detail Page");
     });
   });
+
+  describe("Delete post Cancel button", () => {
+    it("logs cancel action when Cancel button is pressed", () => {
+      const { result } = renderHook(() => useDetailPageHandlers(mockConfig));
+      const mockLog = (logger.createScopedLog as jest.Mock).mock.results[0]
+        .value.info as jest.Mock;
+
+      act(() => {
+        result.current.handleDeletePost("post-456");
+      });
+
+      const alertCall = (Alert.alert as jest.Mock).mock.calls[0];
+      const cancelButton = alertCall[2].find(
+        (btn: { text: string; onPress?: () => void }) => btn.text === "Cancel",
+      );
+
+      act(() => {
+        cancelButton.onPress();
+      });
+
+      expect(mockLog).toHaveBeenCalledWith("Delete post cancelled", {
+        postId: "post-456",
+      });
+    });
+  });
+
+  describe("handleRefresh - different tabs", () => {
+    it("calls refetchOverview when on overview tab", async () => {
+      const refetchOverview = jest.fn().mockResolvedValue(undefined);
+      const config = {
+        ...mockConfig,
+        currentTab: "overview",
+        refetchOverview,
+      };
+      const { result } = renderHook(() => useDetailPageHandlers(config));
+
+      await act(async () => {
+        await result.current.handleRefresh();
+      });
+
+      expect(mockConfig.onRefresh).toHaveBeenCalledTimes(1);
+      expect(refetchOverview).toHaveBeenCalledTimes(1);
+    });
+
+    it("calls refetchStandings when on standings tab", async () => {
+      const refetchStandings = jest.fn().mockResolvedValue(undefined);
+      const config = {
+        ...mockConfig,
+        currentTab: "standings",
+        refetchStandings,
+      };
+      const { result } = renderHook(() => useDetailPageHandlers(config));
+
+      await act(async () => {
+        await result.current.handleRefresh();
+      });
+
+      expect(mockConfig.onRefresh).toHaveBeenCalledTimes(1);
+      expect(refetchStandings).toHaveBeenCalledTimes(1);
+    });
+
+    it("calls onMatchesRefresh when on matches tab", async () => {
+      const onMatchesRefresh = jest.fn().mockResolvedValue(undefined);
+      const config = {
+        ...mockConfig,
+        currentTab: "matches",
+        onMatchesRefresh,
+      };
+      const { result } = renderHook(() => useDetailPageHandlers(config));
+
+      await act(async () => {
+        await result.current.handleRefresh();
+      });
+
+      expect(mockConfig.onRefresh).toHaveBeenCalledTimes(1);
+      expect(onMatchesRefresh).toHaveBeenCalledTimes(1);
+    });
+
+    it("handles refresh when overview refetch is not provided", async () => {
+      const config = {
+        ...mockConfig,
+        currentTab: "overview",
+        refetchOverview: undefined,
+      };
+      const { result } = renderHook(() => useDetailPageHandlers(config));
+
+      await act(async () => {
+        await result.current.handleRefresh();
+      });
+
+      expect(mockConfig.onRefresh).toHaveBeenCalledTimes(1);
+      expect(result.current.refreshing).toBe(false);
+    });
+
+    it("handles refresh when standings refetch is not provided", async () => {
+      const config = {
+        ...mockConfig,
+        currentTab: "standings",
+        refetchStandings: undefined,
+      };
+      const { result } = renderHook(() => useDetailPageHandlers(config));
+
+      await act(async () => {
+        await result.current.handleRefresh();
+      });
+
+      expect(mockConfig.onRefresh).toHaveBeenCalledTimes(1);
+      expect(result.current.refreshing).toBe(false);
+    });
+
+    it("handles refresh when onMatchesRefresh is not provided", async () => {
+      const config = {
+        ...mockConfig,
+        currentTab: "matches",
+        onMatchesRefresh: undefined,
+      };
+      const { result } = renderHook(() => useDetailPageHandlers(config));
+
+      await act(async () => {
+        await result.current.handleRefresh();
+      });
+
+      expect(mockConfig.onRefresh).toHaveBeenCalledTimes(1);
+      expect(result.current.refreshing).toBe(false);
+    });
+
+    it("falls through to generic refresh for unknown tab", async () => {
+      const config = {
+        ...mockConfig,
+        currentTab: "unknown",
+      };
+      const { result } = renderHook(() => useDetailPageHandlers(config));
+
+      await act(async () => {
+        await result.current.handleRefresh();
+      });
+
+      expect(mockConfig.onRefresh).toHaveBeenCalledTimes(1);
+      expect(result.current.refreshing).toBe(false);
+    });
+  });
 });

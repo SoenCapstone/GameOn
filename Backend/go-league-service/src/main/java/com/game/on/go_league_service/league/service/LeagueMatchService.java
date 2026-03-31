@@ -29,6 +29,8 @@ import java.time.Duration;
 import java.time.LocalDate;
 import java.time.OffsetDateTime;
 import java.util.*;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -146,17 +148,41 @@ public class LeagueMatchService {
     @Transactional(readOnly = true)
     public List<LeagueMatchResponse> listMatches(UUID leagueId) {
         requireActiveLeague(leagueId);
-        return leagueMatchRepository.findByLeague_IdOrderByStartTimeDesc(leagueId)
-                .stream()
-                .map(this::toResponse)
-                .toList();
+        var matches = leagueMatchRepository.findByLeague_IdOrderByStartTimeDesc(leagueId);
+        if (matches.isEmpty()) {
+            return List.of();
+        }
+
+        var matchIds = matches.stream()
+            .map(LeagueMatch::getId)
+            .toList();
+
+        Map<UUID, LeagueMatchScore> scoresByMatchId = leagueMatchScoreRepository.findByMatch_IdIn(matchIds)
+            .stream()
+            .collect(Collectors.toMap(score -> score.getMatch().getId(), Function.identity()));
+
+        return matches.stream()
+            .map(match -> toResponse(match, scoresByMatchId.get(match.getId())))
+            .toList();
     }
 
     public List<LeagueMatchResponse> listTeamMatches(UUID teamId) {
-        return leagueMatchRepository.findByHomeTeamIdOrAwayTeamId(teamId, teamId)
-                .stream()
-                .map(this::toResponse)
-                .toList();
+        var matches = leagueMatchRepository.findByHomeTeamIdOrAwayTeamId(teamId, teamId);
+        if (matches.isEmpty()) {
+            return List.of();
+        }
+
+        var matchIds = matches.stream()
+            .map(LeagueMatch::getId)
+            .toList();
+
+        Map<UUID, LeagueMatchScore> scoresByMatchId = leagueMatchScoreRepository.findByMatch_IdIn(matchIds)
+            .stream()
+            .collect(Collectors.toMap(score -> score.getMatch().getId(), Function.identity()));
+
+        return matches.stream()
+            .map(match -> toResponse(match, scoresByMatchId.get(match.getId())))
+            .toList();
     }
 
     @Transactional
@@ -451,12 +477,18 @@ public class LeagueMatchService {
     }
 
     private LeagueMatchResponse toResponse(LeagueMatch match) {
+        return toResponse(match, null);
+    }
+
+    private LeagueMatchResponse toResponse(LeagueMatch match, LeagueMatchScore score) {
         return new LeagueMatchResponse(
                 match.getId(),
                 match.getLeague().getId(),
                 match.getStatus(),
                 match.getHomeTeamId(),
                 match.getAwayTeamId(),
+                score == null ? null : score.getHomeScore(),
+                score == null ? null : score.getAwayScore(),
                 match.getSport(),
                 match.getStartTime(),
                 match.getEndTime(),

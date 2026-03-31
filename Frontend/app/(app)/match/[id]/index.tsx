@@ -16,6 +16,7 @@ import { useLeagueDetail } from "@/hooks/use-league-detail";
 import {
   useCancelLeagueMatch,
   useCancelTeamMatch,
+  useLeagueMatch,
   useLeagueVenue,
   useLeaguesByIds,
   useLeagueMatches,
@@ -30,6 +31,7 @@ import { useRefereeName } from "@/hooks/use-referee-name";
 import { useTeamDetail } from "@/hooks/use-team-detail";
 import type {
   MatchDetailsRouteParams,
+  MatchSpace,
   MatchToolbarProps,
 } from "@/types/match-details";
 import { errorToString } from "@/utils/error";
@@ -37,15 +39,17 @@ import {
   canUserCancelMatch,
   cancelMatch,
   canUserSubmitMatchScore,
+  getDirectLeagueMatchId,
   getContextLabel,
   getDisplayMatch,
   getMatchAttendanceActionWithTitle,
   getIsMatchLoading,
-  getMatchLeagueId,
   getMatchScores,
   getMatchTeamIds,
   getMatchToolbarVisibility,
   getMatchVenuePresentation,
+  getResolvedMatchLeagueId,
+  getTeamSpaceId,
   getTeamPresentation,
   hasRespondedToAttendance,
   isLeagueMatch,
@@ -269,17 +273,23 @@ function pushMatchScoreRoute(args: {
   awayTeamName: string;
   canSubmitScore: boolean;
   homeTeamName: string;
+  leagueId?: string;
   matchId?: string;
   router: ReturnType<typeof useRouter>;
+  space?: MatchSpace;
   spaceId: string;
+  startTime?: string;
 }) {
   const {
     awayTeamName,
     canSubmitScore,
     homeTeamName,
+    leagueId,
     matchId,
     router,
+    space,
     spaceId,
+    startTime,
   } = args;
 
   if (!matchId || !canSubmitScore) {
@@ -291,7 +301,10 @@ function pushMatchScoreRoute(args: {
     params: {
       awayName: awayTeamName,
       homeName: homeTeamName,
+      leagueId,
+      space,
       spaceId,
+      startTime,
     },
   });
 }
@@ -308,8 +321,26 @@ export default function MatchScreen() {
   const leagueMatchesQuery = useLeagueMatches(
     space === "league" ? spaceId : "",
   );
+  const fallbackDisplayMatch = getDisplayMatch({
+    leagueMatches: leagueMatchesQuery.data,
+    matchId,
+    space,
+    teamMatch: teamMatchQuery.data,
+    teamMatches: teamMatchesQuery.data,
+  });
+  const directLeagueMatchId = getDirectLeagueMatchId({
+    fallbackDisplayMatch,
+    space,
+    spaceId,
+  });
+  const leagueMatchQuery = useLeagueMatch(
+    directLeagueMatchId,
+    matchId,
+    Boolean(directLeagueMatchId),
+  );
 
   const displayMatch = getDisplayMatch({
+    leagueMatch: leagueMatchQuery.data,
     leagueMatches: leagueMatchesQuery.data,
     matchId,
     space,
@@ -320,8 +351,12 @@ export default function MatchScreen() {
   const { userId } = useAuth();
   const queryClient = useQueryClient();
   const [hasSubmittedAttendance, setHasSubmittedAttendance] = useState(false);
-  const leagueId =
-    getMatchLeagueId(displayMatch) || (space === "league" ? spaceId : "");
+  const teamSpaceId = getTeamSpaceId(space, spaceId);
+  const leagueId = getResolvedMatchLeagueId({
+    displayMatch,
+    space,
+    spaceId,
+  });
   const { league, isOwner: isLeagueOwner } = useLeagueDetail(leagueId);
   const cancelLeagueMutation = useCancelLeagueMatch(leagueId);
   const cancelTeamMutation = useCancelTeamMatch();
@@ -329,11 +364,8 @@ export default function MatchScreen() {
 
   const teamIds = useMemo(() => getMatchTeamIds(displayMatch), [displayMatch]);
   const teamsQuery = useTeamsByIds(teamIds);
-  const teamDetail = useTeamDetail(space === "team" ? spaceId : "");
-  const matchMembersQuery = useMatchMembersByTeam(
-    matchId,
-    space === "team" ? spaceId : "",
-  );
+  const teamDetail = useTeamDetail(teamSpaceId);
+  const matchMembersQuery = useMatchMembersByTeam(matchId, teamSpaceId);
   const matchLeagueQuery = useLeaguesByIds(
     space !== "league" && leagueId ? [leagueId] : [],
   );
@@ -410,9 +442,12 @@ export default function MatchScreen() {
       awayTeamName,
       canSubmitScore,
       homeTeamName,
+      leagueId: isLeagueMatch(displayMatch) ? displayMatch.leagueId : undefined,
       matchId: displayMatch?.id,
       router,
+      space,
       spaceId,
+      startTime: displayMatch?.startTime,
     });
   }, [
     awayTeamName,
@@ -420,6 +455,7 @@ export default function MatchScreen() {
     displayMatch,
     homeTeamName,
     router,
+    space,
     spaceId,
   ]);
 
@@ -490,6 +526,7 @@ export default function MatchScreen() {
     space,
   });
   const isMatchLoading = getIsMatchLoading({
+    leagueMatchLoading: leagueMatchQuery.isLoading,
     directMatchLoading: teamMatchQuery.isLoading,
     leagueMatchesLoading: leagueMatchesQuery.isLoading,
     space,
@@ -515,6 +552,7 @@ export default function MatchScreen() {
     canCancel,
     canSubmitScore,
     hasDisplayMatch: Boolean(displayMatch),
+    hasScore,
     isCancelled,
   });
   const placeholder = getMatchDetailsPlaceholder({
