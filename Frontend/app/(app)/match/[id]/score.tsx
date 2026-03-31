@@ -11,11 +11,27 @@ import { Form } from "@/components/form/form";
 import { FormToolbar } from "@/components/form/form-toolbar";
 import { AccentColors } from "@/constants/colors";
 import { useMatchPresentation } from "@/hooks/use-match-presentation";
-import { useSubmitTeamScore, useTeamMatch } from "@/hooks/use-matches";
-import { LeagueMatch, TeamMatch } from "@/types/matches";
+import {
+  useLeagueMatch,
+  useSubmitLeagueScore,
+  useSubmitTeamScore,
+  useTeamMatch,
+} from "@/hooks/use-matches";
+import type { MatchSpace } from "@/types/match-details";
+import type { LeagueMatch, TeamMatch } from "@/types/matches";
 import { errorToString } from "@/utils/error";
-import { Loading } from "@/components/ui/loading";
 import { Empty } from "@/components/ui/empty";
+import { Loading } from "@/components/ui/loading";
+
+type MatchScoreRouteParams = {
+  id?: string;
+  space?: MatchSpace;
+  spaceId?: string;
+  leagueId?: string;
+  startTime?: string;
+  homeName?: string;
+  awayName?: string;
+};
 
 function parseScore(rawValue: string) {
   const trimmed = rawValue.trim();
@@ -31,34 +47,117 @@ function parseScore(rawValue: string) {
   return value;
 }
 
+async function invalidateQueriesAfterScoreSubmit(args: {
+  isLeagueMatch: boolean;
+  leagueId: string;
+  matchId: string;
+  queryClient: ReturnType<typeof useQueryClient>;
+  space?: MatchSpace;
+  spaceId: string;
+}) {
+  const { isLeagueMatch, leagueId, matchId, queryClient, space, spaceId } =
+    args;
+  const tasks: Promise<unknown>[] = [
+    queryClient.invalidateQueries({ queryKey: ["user-updates"] }),
+  ];
+
+  if (spaceId) {
+    tasks.push(
+      queryClient.invalidateQueries({
+        queryKey: [space === "league" ? "league-matches" : "team-matches", spaceId],
+      }),
+    );
+  }
+
+  if (isLeagueMatch) {
+    tasks.push(
+      queryClient.invalidateQueries({
+        queryKey: ["league-match", leagueId, matchId],
+      }),
+      queryClient.invalidateQueries({
+        queryKey: ["league-matches", leagueId],
+      }),
+    );
+  } else {
+    tasks.push(
+      queryClient.invalidateQueries({
+        queryKey: ["team-match", matchId],
+      }),
+    );
+  }
+
+  await Promise.all(tasks);
+}
+
+function resolveDestinationPath(
+  space?: MatchSpace,
+  spaceId?: string,
+): RelativePathString {
+  if (!spaceId) {
+    return "/home" as RelativePathString;
+  }
+
+  return space === "league"
+    ? (`/leagues/${spaceId}` as RelativePathString)
+    : (`/teams/${spaceId}` as RelativePathString);
+}
+
 export default function MatchScoreScreen() {
-  const params = useLocalSearchParams<{
-    id?: string;
-    spaceId?: string;
-    homeName?: string;
-    awayName?: string;
-  }>();
+  const params = useLocalSearchParams<MatchScoreRouteParams>();
   const matchId = params.id ?? "";
+  const space = params.space;
   const spaceId = params.spaceId ?? "";
+  const leagueId = params.leagueId ?? "";
+  const isLeagueMatch = Boolean(leagueId);
 
   const router = useRouter();
   const queryClient = useQueryClient();
-  const submitScoreMutation = useSubmitTeamScore();
+  const submitLeagueScoreMutation = useSubmitLeagueScore(leagueId);
+  const submitTeamScoreMutation = useSubmitTeamScore();
 
   const [homeScoreText, setHomeScoreText] = useState("");
   const [awayScoreText, setAwayScoreText] = useState("");
   const [endTimeValue, setEndTimeValue] = useState(new Date());
 
-  const teamMatchQuery = useTeamMatch(matchId);
-  const match = teamMatchQuery.data;
+  const teamMatchQuery = useTeamMatch(matchId, !isLeagueMatch);
+  const leagueMatchQuery = useLeagueMatch(leagueId, matchId, isLeagueMatch);
+  const contextMatchesQueryKey = useMemo(
+    () =>
+      spaceId
+        ? ([space === "league" ? "league-matches" : "team-matches", spaceId] as const)
+        : null,
+    [space, spaceId],
+  );
+  const contextMatches =
+    (contextMatchesQueryKey
+      ? queryClient.getQueryData<(TeamMatch | LeagueMatch)[]>(contextMatchesQueryKey)
+      : undefined) ?? [];
+  const contextualMatch = contextMatches.find((existingMatch) => {
+    if (existingMatch.id !== matchId) {
+      return false;
+    }
+
+    if (!isLeagueMatch) {
+      return !("leagueId" in existingMatch);
+    }
+
+    return "leagueId" in existingMatch && existingMatch.leagueId === leagueId;
+  });
+  const match = (
+    isLeagueMatch
+      ? (leagueMatchQuery.data ?? contextualMatch)
+      : (teamMatchQuery.data ?? contextualMatch)
+  ) as TeamMatch | LeagueMatch | undefined;
   const { homeTeam, awayTeam } = useMatchPresentation(match);
 
   const homeTeamName = homeTeam?.name ?? params.homeName?.trim() ?? "Home Team";
   const awayTeamName = awayTeam?.name ?? params.awayName?.trim() ?? "Away Team";
-  const matchStartTime = useMemo(
-    () => (match?.startTime ? new Date(match.startTime) : null),
-    [match?.startTime],
-  );
+  const matchStartTime = useMemo(() => {
+    const rawStartTime = match?.startTime ?? params.startTime;
+    return rawStartTime ? new Date(rawStartTime) : null;
+  }, [match?.startTime, params.startTime]);
+  const isSubmitting =
+    submitTeamScoreMutation.isPending || submitLeagueScoreMutation.isPending;
 
   const onSubmit = useCallback(async () => {
     if (!matchId) {
@@ -86,93 +185,66 @@ export default function MatchScoreScreen() {
     }
 
     try {
-      const submittedEndTime = endTimeValue.toISOString();
+      const endTime = endTimeValue.toISOString();
 
-      await submitScoreMutation.mutateAsync({
-        matchId,
-        homeScore,
-        awayScore,
-        endTime: submittedEndTime,
-      });
-
-      queryClient.setQueryData<TeamMatch | undefined>(
-        ["team-match", matchId],
-        (currentMatch) => {
-          if (!currentMatch) return currentMatch;
-          return {
-            ...currentMatch,
-            status: "COMPLETED",
-            endTime: submittedEndTime,
-            homeScore,
-            awayScore,
-          };
-        },
-      );
-
-      if (spaceId) {
-        queryClient.setQueryData<(TeamMatch | LeagueMatch)[] | undefined>(
-          ["team-matches", spaceId],
-          (currentMatches) => {
-            if (!currentMatches) return currentMatches;
-
-            return currentMatches.map((existingMatch) => {
-              if (existingMatch.id !== matchId) {
-                return existingMatch;
-              }
-
-              if (!("matchType" in existingMatch)) {
-                return existingMatch;
-              }
-
-              return {
-                ...existingMatch,
-                status: "COMPLETED",
-                endTime: submittedEndTime,
-                homeScore,
-                awayScore,
-              };
-            });
-          },
-        );
+      if (isLeagueMatch) {
+        await submitLeagueScoreMutation.mutateAsync({
+          matchId,
+          homeScore,
+          awayScore,
+          endTime,
+        });
+      } else {
+        await submitTeamScoreMutation.mutateAsync({
+          matchId,
+          homeScore,
+          awayScore,
+          endTime,
+        });
       }
 
-      await queryClient.invalidateQueries({ queryKey: ["user-updates"] });
+      await invalidateQueriesAfterScoreSubmit({
+        isLeagueMatch,
+        leagueId,
+        matchId,
+        queryClient,
+        space,
+        spaceId,
+      });
 
       router.dismissTo({
-        pathname: spaceId
-          ? (`/teams/${spaceId}` as RelativePathString)
-          : ("/home" as RelativePathString),
+        pathname: resolveDestinationPath(space, spaceId),
         params: spaceId ? { tab: "matches" } : undefined,
       });
     } catch (err) {
       Alert.alert("Score submission failed", errorToString(err));
     }
   }, [
+    awayScoreText,
     endTimeValue,
     homeScoreText,
-    awayScoreText,
+    isLeagueMatch,
+    leagueId,
     matchId,
-    spaceId,
     matchStartTime,
-    submitScoreMutation,
     queryClient,
     router,
+    space,
+    spaceId,
+    submitLeagueScoreMutation,
+    submitTeamScoreMutation,
   ]);
 
-  const loadingState = useMemo(() => {
-    if (teamMatchQuery.isLoading && !match) {
-      return <Loading />;
-    }
+  const isMatchLoading = isLeagueMatch
+    ? leagueMatchQuery.isLoading
+    : teamMatchQuery.isLoading;
 
-    if (!matchId) {
-      return <Empty message="Match not found" />;
-    }
+  if (isMatchLoading && !match) {
+    return <Loading />;
+  }
 
-    return null;
-  }, [match, matchId, teamMatchQuery.isLoading]);
-
-  if (loadingState) {
-    return loadingState;
+  if (!matchId) {
+    return <Empty message="Match not found" />;
   }
 
   return (
@@ -181,16 +253,11 @@ export default function MatchScoreScreen() {
         <FormToolbar
           title="Match Score"
           onSubmit={onSubmit}
-          loading={submitScoreMutation.isPending}
+          loading={isSubmitting}
         />
       }
     >
       <Form accentColor={AccentColors.red}>
-        <FormToolbar
-          title="Match Score"
-          onSubmit={onSubmit}
-          loading={submitScoreMutation.isPending}
-        />
         <Form.Section>
           <Form.Input
             label={homeTeamName}
@@ -198,7 +265,7 @@ export default function MatchScoreScreen() {
             onChangeText={setHomeScoreText}
             keyboardType="number-pad"
             placeholder="Enter score"
-            editable={!submitScoreMutation.isPending}
+            editable={!isSubmitting}
           />
           <Form.Input
             label={awayTeamName}
@@ -206,7 +273,7 @@ export default function MatchScoreScreen() {
             onChangeText={setAwayScoreText}
             keyboardType="number-pad"
             placeholder="Enter score"
-            editable={!submitScoreMutation.isPending}
+            editable={!isSubmitting}
           />
           <Form.DateTime
             label="End Time"

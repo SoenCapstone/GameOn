@@ -389,6 +389,13 @@ class LeagueServiceTest {
         when(leagueTeamRepository.findByLeague_IdOrderByCreatedAtDesc(leagueId))
                 .thenReturn(List.of(lt1, lt2, lt3));
 
+        when(client.getTeam(teamA)).thenReturn(new com.game.on.go_league_service.client.dto.TeamSummaryResponse(
+                teamA, "soccer", List.of(), "owner", "Team A"));
+        when(client.getTeam(teamB)).thenReturn(new com.game.on.go_league_service.client.dto.TeamSummaryResponse(
+                teamB, "soccer", List.of(), "owner", "Team B"));
+        when(client.getTeam(teamC)).thenReturn(new com.game.on.go_league_service.client.dto.TeamSummaryResponse(
+                teamC, "soccer", List.of(), "owner", "Team C"));
+
         LeagueMatch match1 = LeagueMatch.builder()
                 .id(UUID.randomUUID())
                 .league(league)
@@ -480,8 +487,8 @@ class LeagueServiceTest {
         assertThat(teamCStanding.getWins()).isZero();
         assertThat(teamCStanding.getDraws()).isEqualTo(1);
         assertThat(teamCStanding.getLosses()).isZero();
-        assertThat(teamCStanding.getGoalsFor()).isZero();
-        assertThat(teamCStanding.getGoalsAgainst()).isZero();
+        assertThat(teamCStanding.getGoalsFor()).isEqualTo(0);
+        assertThat(teamCStanding.getGoalsAgainst()).isEqualTo(0);
         assertThat(teamCStanding.getGoalDifference()).isZero();
         assertThat(teamCStanding.getPoints()).isEqualTo(1);
     }
@@ -518,6 +525,11 @@ class LeagueServiceTest {
 
         when(leagueTeamRepository.findByLeague_IdOrderByCreatedAtDesc(leagueId))
                 .thenReturn(List.of(lt1, lt2));
+
+        when(client.getTeam(teamA)).thenReturn(new com.game.on.go_league_service.client.dto.TeamSummaryResponse(
+                teamA, "soccer", List.of(), "owner", "Team A"));
+        when(client.getTeam(teamB)).thenReturn(new com.game.on.go_league_service.client.dto.TeamSummaryResponse(
+                teamB, "soccer", List.of(), "owner", "Team B"));
 
         LeagueMatch match = LeagueMatch.builder()
                 .id(UUID.randomUUID())
@@ -612,6 +624,9 @@ class LeagueServiceTest {
 
         when(leagueTeamRepository.findByLeague_IdOrderByCreatedAtDesc(leagueId))
                 .thenReturn(List.of(lt1));
+
+        when(client.getTeam(teamA)).thenReturn(new com.game.on.go_league_service.client.dto.TeamSummaryResponse(
+                teamA, "soccer", List.of(), "owner", "Team A"));
 
         LeagueMatch match = LeagueMatch.builder()
                 .id(UUID.randomUUID())

@@ -11,6 +11,7 @@ import java.util.UUID;
 @NoArgsConstructor
 public class StandingScore {
     private UUID teamId;
+    private String teamName;
     private int played;
     private int wins;
     private int draws;
@@ -19,7 +20,8 @@ public class StandingScore {
     private int goalsAgainst;
     private int points;
 
-    public StandingScore(UUID teamId) {
+    public StandingScore(UUID teamId, String teamName) {
+        this.teamName = teamName;
         this.teamId = teamId;
     }
 

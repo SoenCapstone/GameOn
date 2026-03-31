@@ -26,6 +26,29 @@ export function getMatchLeagueId(
   return isLeagueMatch(match) ? match.leagueId : "";
 }
 
+export function getDirectLeagueMatchId(args: {
+  fallbackDisplayMatch?: MatchDetailsDisplayMatch;
+  space?: MatchSpace;
+  spaceId: string;
+}): string {
+  const { fallbackDisplayMatch, space, spaceId } = args;
+
+  return space === "league" ? spaceId : getMatchLeagueId(fallbackDisplayMatch);
+}
+
+export function getResolvedMatchLeagueId(args: {
+  displayMatch?: MatchDetailsDisplayMatch;
+  space?: MatchSpace;
+  spaceId: string;
+}): string {
+  const { displayMatch, space, spaceId } = args;
+  return getMatchLeagueId(displayMatch) || (space === "league" ? spaceId : "");
+}
+
+export function getTeamSpaceId(space?: MatchSpace, spaceId = ""): string {
+  return space === "team" ? spaceId : "";
+}
+
 export function getMatchTeamIds(
   match: MatchDetailsDisplayMatch | null | undefined,
 ): string[] {
@@ -37,13 +60,15 @@ export function getMatchTeamIds(
 }
 
 export function getDisplayMatch(args: {
+  leagueMatch?: MatchDetailsDisplayMatch;
   leagueMatches?: MatchDetailsDisplayMatch[];
   matchId: string;
   space?: MatchSpace;
   teamMatch?: MatchDetailsDisplayMatch;
   teamMatches?: MatchDetailsDisplayMatch[];
 }) {
-  const { leagueMatches, matchId, space, teamMatch, teamMatches } = args;
+  const { leagueMatch, leagueMatches, matchId, space, teamMatch, teamMatches } =
+    args;
 
   const teamListMatch =
     space === "team"
@@ -54,7 +79,7 @@ export function getDisplayMatch(args: {
       ? leagueMatches?.find((match) => match.id === matchId)
       : undefined;
 
-  return teamMatch ?? teamListMatch ?? leagueListMatch;
+  return teamMatch ?? leagueMatch ?? teamListMatch ?? leagueListMatch;
 }
 
 export function hasRespondedToAttendance(args: {
@@ -159,7 +184,7 @@ export function canUserSubmitMatchScore(args: {
 }): boolean {
   const { match, userId, teamSummaryMap } = args;
 
-  if (!match || !userId || isLeagueMatch(match) || match.status !== "CONFIRMED") {
+  if (!match || !userId || match.status !== "CONFIRMED") {
     return false;
   }
 
@@ -259,11 +284,13 @@ export function getContextLabel(args: {
 
 export function getIsMatchLoading(args: {
   space?: MatchSpace;
+  leagueMatchLoading: boolean;
   leagueMatchesLoading: boolean;
   directMatchLoading: boolean;
   teamMatchesLoading: boolean;
 }): boolean {
   const {
+    leagueMatchLoading,
     space,
     leagueMatchesLoading,
     directMatchLoading,
@@ -271,14 +298,14 @@ export function getIsMatchLoading(args: {
   } = args;
 
   if (space === "league") {
-    return leagueMatchesLoading;
+    return leagueMatchLoading || leagueMatchesLoading;
   }
 
   if (space === "team") {
-    return directMatchLoading || teamMatchesLoading;
+    return directMatchLoading || leagueMatchLoading || teamMatchesLoading;
   }
 
-  return directMatchLoading;
+  return directMatchLoading || leagueMatchLoading;
 }
 
 function normalizeScore(value: unknown): number | null | undefined {
@@ -346,6 +373,7 @@ export function getMatchToolbarVisibility(args: {
   canCancel: boolean;
   canSubmitScore: boolean;
   hasDisplayMatch: boolean;
+  hasScore: boolean;
   isCancelled: boolean;
 }) {
   const {
@@ -353,11 +381,12 @@ export function getMatchToolbarVisibility(args: {
     canCancel,
     canSubmitScore,
     hasDisplayMatch,
+    hasScore,
     isCancelled,
   } = args;
   const showCancelInMenu = canCancel && !isCancelled && hasDisplayMatch;
   const showAttendanceInMenu = Boolean(attendanceAction);
-  const showMatchScoreInMenu = canSubmitScore;
+  const showMatchScoreInMenu = canSubmitScore && !hasScore;
 
   return {
     showAttendanceInMenu,
