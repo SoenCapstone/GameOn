@@ -11,14 +11,15 @@ public record TeamSummaryResponse(
         String sport,
         List<String> allowedRegions,
         String ownerUserId,
-        String name
+        String name,
+        String logoUrl
 ) {
     // Backward-compatible constructor used by existing call sites (defaults name to null)
     public TeamSummaryResponse(UUID id, String sport, List<String> allowedRegions, String ownerUserId) {
-        this(id, sport, allowedRegions, ownerUserId, null);
+        this(id, sport, allowedRegions, ownerUserId, null, null);
     }
 
-    public static TeamSummaryResponse withName(UUID id, String sport, List<String> allowedRegions, String ownerUserId, String name) {
-        return new TeamSummaryResponse(id, sport, allowedRegions, ownerUserId, name);
+    public static TeamSummaryResponse withName(UUID id, String sport, List<String> allowedRegions, String ownerUserId, String name, String logoUrl) {
+        return new TeamSummaryResponse(id, sport, allowedRegions, ownerUserId, name, logoUrl);
     }
 }
