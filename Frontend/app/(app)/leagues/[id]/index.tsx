@@ -301,6 +301,7 @@ function LeagueContent() {
             )}
             {tab === "standings" && (
               <LeagueStandings
+                sport={league?.sport}
                 standings={standings}
                 isLoading={standingsLoading}
                 error={standingsError ? "Could not load standings." : null}
