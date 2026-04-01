@@ -1,7 +1,6 @@
 import { useCallback, useMemo, useState } from "react";
 import { Alert } from "react-native";
 import {
-  RelativePathString,
   useLocalSearchParams,
   useRouter,
 } from "expo-router";
@@ -87,19 +86,6 @@ async function invalidateQueriesAfterScoreSubmit(args: {
   }
 
   await Promise.all(tasks);
-}
-
-function resolveDestinationPath(
-  space?: MatchSpace,
-  spaceId?: string,
-): RelativePathString {
-  if (!spaceId) {
-    return "/home" as RelativePathString;
-  }
-
-  return space === "league"
-    ? (`/leagues/${spaceId}` as RelativePathString)
-    : (`/teams/${spaceId}` as RelativePathString);
 }
 
 export default function MatchScoreScreen() {
@@ -212,10 +198,7 @@ export default function MatchScoreScreen() {
         spaceId,
       });
 
-      router.dismissTo({
-        pathname: resolveDestinationPath(space, spaceId),
-        params: spaceId ? { tab: "matches" } : undefined,
-      });
+      router.dismiss();
     } catch (err) {
       Alert.alert("Score submission failed", errorToString(err));
     }
