@@ -10,17 +10,11 @@ jest.mock("@react-navigation/elements", () => ({
 describe("use-header-height", () => {
   const mockedAsyncStorage = AsyncStorage as jest.Mocked<typeof AsyncStorage>;
   const mockedNavigationHeaderHeight = jest.mocked(useNavigationHeaderHeight);
-  const originalConsoleLog = console.log;
 
   beforeEach(() => {
     jest.clearAllMocks();
     mockedAsyncStorage.getItem.mockResolvedValue(null);
     mockedNavigationHeaderHeight.mockReturnValue(0);
-    console.log = jest.fn();
-  });
-
-  afterAll(() => {
-    console.log = originalConsoleLog;
   });
 
   it("returns the live navigation height when it is a positive whole number", () => {
