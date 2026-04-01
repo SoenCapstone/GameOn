@@ -7,8 +7,8 @@ describe("useLeagueForm", () => {
     const { result } = renderHook(() => useLeagueForm());
 
     expect(result.current.leagueName).toBe("");
-    expect(result.current.selectedSport).toBeNull();
-    expect(result.current.selectedLevel).toBeNull();
+    expect(result.current.selectedSport).toBeUndefined();
+    expect(result.current.selectedLevel).toBeUndefined();
     expect(result.current.region).toBe("");
     expect(result.current.location).toBe("");
     expect(result.current.isPublic).toBe(true);
@@ -99,8 +99,8 @@ describe("useLeagueForm", () => {
     const { result } = renderHook(() => useLeagueForm({ initialData }));
 
     expect(result.current.leagueName).toBe("Partial League");
-    expect(result.current.selectedSport).toBeNull();
-    expect(result.current.selectedLevel).toBeNull();
+    expect(result.current.selectedSport).toBeUndefined();
+    expect(result.current.selectedLevel).toBeUndefined();
     expect(result.current.region).toBe("");
     expect(result.current.location).toBe("");
   });
@@ -149,8 +149,8 @@ describe("useLeagueForm", () => {
 
     const { result } = renderHook(() => useLeagueForm({ initialData }));
 
-    expect(result.current.selectedSport).toBeNull();
-    expect(result.current.selectedLevel).toBeNull();
+    expect(result.current.selectedSport).toBeUndefined();
+    expect(result.current.selectedLevel).toBeUndefined();
   });
 
   it("handles empty strings and null initialData", () => {
@@ -237,15 +237,15 @@ describe("useLeagueForm", () => {
       result.current.setRegion("");
       result.current.setLocation("");
       result.current.setIsPublic(true);
-      result.current.setSelectedSport(null);
-      result.current.setSelectedLevel(null);
+      result.current.setSelectedSport(undefined);
+      result.current.setSelectedLevel(undefined);
     });
 
     expect(result.current.leagueName).toBe("");
     expect(result.current.region).toBe("");
     expect(result.current.isPublic).toBe(true);
-    expect(result.current.selectedSport).toBeNull();
-    expect(result.current.selectedLevel).toBeNull();
+    expect(result.current.selectedSport).toBeUndefined();
+    expect(result.current.selectedLevel).toBeUndefined();
   });
 
   it("handles sport option updates without crashing", () => {

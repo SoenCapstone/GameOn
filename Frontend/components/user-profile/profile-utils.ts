@@ -44,7 +44,8 @@ export const handleSaveProfile = async ({
 
   try {
     if (user) {
-      let imageUrl: string | null = user.imageUrl ?? null;
+      let imageUrl: string | null =
+        user.hasImage ? (user.imageUrl ?? null) : null;
 
       await user.update({
         firstName,

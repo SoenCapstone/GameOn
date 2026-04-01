@@ -1,7 +1,9 @@
-import { View, Text, StyleSheet, ActivityIndicator } from "react-native";
+import { View, Text, StyleSheet } from "react-native";
 import { Image } from "expo-image";
-import { getSportLogo } from "../browse/utils";
+import { getSportLogo } from "@/utils/search";
 import { GlassView } from "expo-glass-effect";
+import { Loading } from "@/components/ui/loading";
+import { Empty } from "@/components/ui/empty";
 
 type Standing = {
   teamId: string;
@@ -28,23 +30,15 @@ type Props = Readonly<{
 
 export function LeagueStandings({ standings, isLoading, error, sport }: Props) {
   if (isLoading) {
-    return <ActivityIndicator size="small" color="#fff" />;
+    return <Loading />;
   }
 
   if (error) {
-    return (
-      <View style={styles.center}>
-        <Text style={styles.errorText}>{error}</Text>
-      </View>
-    );
+    return <Empty message={error} />;
   }
 
   if (!standings.length) {
-    return (
-      <View style={styles.center}>
-        <Text style={styles.errorText}>No standings yet.</Text>
-      </View>
-    );
+    return <Empty message="No standings available" />;
   }
 
   return (
@@ -211,14 +205,5 @@ const styles = StyleSheet.create({
   logo: {
     width: 22,
     height: 22,
-  },
-  center: {
-    alignItems: "center",
-    justifyContent: "center",
-    paddingVertical: 20,
-  },
-  errorText: {
-    color: "white",
-    fontSize: 14,
   },
 });

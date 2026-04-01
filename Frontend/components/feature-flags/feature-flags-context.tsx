@@ -4,13 +4,18 @@
  * global propagation of flag states across all devices.
  */
 
-import React, { createContext, useContext, useEffect, useMemo, useState } from "react";
+import React, {
+  createContext,
+  useContext,
+  useEffect,
+  useMemo,
+  useState,
+} from "react";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Platform } from "react-native";
 import { createScopedLog } from "@/utils/logger";
 
 const log = createScopedLog("Feature Flags Context");
-
 
 type Flags = {
   newUI: boolean;
@@ -39,7 +44,9 @@ const syncWithServer = async (updatedFlags: Record<string, boolean>) => {
 
 const FeatureFlagsContext = createContext<FeatureFlagsContextType | null>(null);
 
-export const FeatureFlagsProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+export const FeatureFlagsProvider: React.FC<{ children: React.ReactNode }> = ({
+  children,
+}) => {
   const [flags, setFlags] = useState<Flags>({
     newUI: false,
     betaMode: false,
@@ -91,6 +98,7 @@ export const FeatureFlagsProvider: React.FC<{ children: React.ReactNode }> = ({ 
 
 export const useFeatureFlags = () => {
   const context = useContext(FeatureFlagsContext);
-  if (!context) throw new Error("useFeatureFlags must be used within FeatureFlagsProvider");
+  if (!context)
+    throw new Error("useFeatureFlags must be used within FeatureFlagsProvider");
   return context;
 };

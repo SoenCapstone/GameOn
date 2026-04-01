@@ -1,6 +1,5 @@
 import { renderHook, act } from "@testing-library/react-native";
 import { useTeamForm } from "@/hooks/use-team-form";
-import { SCOPE_OPTIONS } from "@/constants/form-constants";
 import type { TeamDetailResponse } from "@/hooks/use-team-detail";
 
 type TeamFormInitialData = TeamDetailResponse;
@@ -27,9 +26,9 @@ describe("useTeamForm", () => {
     const { result } = renderHook(() => useTeamForm());
 
     expect(result.current.teamName).toBe("");
-    expect(result.current.selectedSport).toBeNull();
-    expect(result.current.selectedScope).toEqual(SCOPE_OPTIONS[0]);
-    expect(result.current.selectedCity).toBeNull();
+    expect(result.current.selectedSport).toBeUndefined();
+    expect(result.current.selectedScope).toBeUndefined();
+    expect(result.current.selectedCity).toBeUndefined();
     expect(result.current.logoUri).toBeNull();
     expect(result.current.isPublic).toBe(true);
     expect(result.current.openPicker).toBeNull();
@@ -220,7 +219,7 @@ describe("useTeamForm", () => {
 
     const { result } = renderHook(() => useTeamForm({ initialData }));
 
-    expect(result.current.selectedSport).toBeNull();
+    expect(result.current.selectedSport).toBeUndefined();
   });
 
   it("handles missing scope in initial data gracefully", () => {
@@ -231,7 +230,7 @@ describe("useTeamForm", () => {
 
     const { result } = renderHook(() => useTeamForm({ initialData }));
 
-    expect(result.current.selectedScope).toEqual(SCOPE_OPTIONS[0]);
+    expect(result.current.selectedScope).toBeUndefined();
   });
 
   it("handles missing city in initial data gracefully", () => {
@@ -242,7 +241,7 @@ describe("useTeamForm", () => {
 
     const { result } = renderHook(() => useTeamForm({ initialData }));
 
-    expect(result.current.selectedCity).toBeNull();
+    expect(result.current.selectedCity).toBeUndefined();
   });
 
   it("handles empty initial data object", () => {
@@ -259,7 +258,7 @@ describe("useTeamForm", () => {
     const { result } = renderHook(() => useTeamForm({ initialData }));
 
     expect(result.current.teamName).toBe("");
-    expect(result.current.selectedSport).toBeNull();
+    expect(result.current.selectedSport).toBeUndefined();
     expect(result.current.logoUri).toBeNull();
     expect(result.current.isPublic).toBe(false);
   });
@@ -270,7 +269,7 @@ describe("useTeamForm", () => {
         useTeamForm({ initialData: props.initialData }),
       {
         initialProps: {
-        initialData: {
+          initialData: {
             ...makeInitialData({
               name: "First Team",
               sport: "Soccer",

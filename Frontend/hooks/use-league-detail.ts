@@ -39,7 +39,7 @@ export function useLeagueDetail(id: string) {
     queryFn: async () => {
       try {
         const resp = await api.get(
-          `${GO_LEAGUE_SERVICE_ROUTES.GET(id)}/memberships/me`
+          `${GO_LEAGUE_SERVICE_ROUTES.GET(id)}/memberships/me`,
         );
         return resp.data;
       } catch (err) {
@@ -53,7 +53,7 @@ export function useLeagueDetail(id: string) {
   });
 
   const {
-    data: leagueTeams = [],
+    data: leagueTeamsData = [],
     isLoading: isLeagueTeamsLoading,
     error: leagueTeamsError,
     refetch: refetchLeagueTeams,
@@ -73,6 +73,8 @@ export function useLeagueDetail(id: string) {
     refetchOnWindowFocus: false,
   });
 
+  const leagueTeams = Array.isArray(leagueTeamsData) ? leagueTeamsData : [];
+
   const onRefresh = useCallback(async () => {
     try {
       setRefreshing(true);
@@ -88,7 +90,7 @@ export function useLeagueDetail(id: string) {
   }, [userId, id]);
 
   const title = league?.name ?? (id ? `League ${id}` : "League");
-  const isOwner = Boolean(userId && league && league.ownerUserId === userId);
+  const isOwner = Boolean(userId && league?.ownerUserId === userId);
   const isMember = myLeagueTeams.length > 0;
 
   return {

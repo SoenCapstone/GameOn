@@ -34,7 +34,11 @@ export function LinkItem({
               {label}
             </Text>
             <View
-              style={hasPreview ? [styles.right, pressed && styles.pressed] : styles.right}
+              style={
+                hasPreview
+                  ? [styles.right, pressed && styles.pressed]
+                  : styles.right
+              }
             >
               {hasPreview && (
                 <Text

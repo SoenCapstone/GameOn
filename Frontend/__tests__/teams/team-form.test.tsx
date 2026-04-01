@@ -42,9 +42,9 @@ describe("TeamForm", () => {
 
   const baseValues = {
     teamName: "My Team",
-    selectedSport: null,
-    selectedScope: { id: "casual", label: "Casual" },
-    selectedCity: null,
+    selectedSport: undefined,
+    selectedScope: undefined,
+    selectedCity: undefined,
     selectedAllowedRegions: ["Toronto"],
   };
 
@@ -120,8 +120,6 @@ describe("TeamForm", () => {
     const cityMenu = menuCalls.find((x) => x.label === "Location");
 
     if (sportMenu && typeof sportMenu.onValueChange === "function") {
-      (sportMenu.onValueChange as (value: string) => void)("None");
-      expect(onChange.onSportChange).toHaveBeenCalledWith(null);
       (sportMenu.onValueChange as (value: string) => void)("Soccer");
       expect(onChange.onSportChange).toHaveBeenCalledWith({
         id: "soccer",
@@ -138,8 +136,6 @@ describe("TeamForm", () => {
     }
 
     if (cityMenu && typeof cityMenu.onValueChange === "function") {
-      cityMenu.onValueChange("Select location");
-      expect(onChange.onCityChange).toHaveBeenCalledWith(null);
       cityMenu.onValueChange("Toronto");
       expect(onChange.onCityChange).toHaveBeenCalledWith({
         id: "tor",

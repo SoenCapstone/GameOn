@@ -165,24 +165,22 @@ export const styles = StyleSheet.create({
     fontWeight: "800",
   },
   screen: {
-  flex: 1,
-},
-emptyWrap: {
-  marginTop: 120,
-  alignItems: "center",
-},
+    flex: 1,
+  },
+  emptyWrap: {
+    marginTop: 120,
+    alignItems: "center",
+  },
 
-emptyTitle: {
-  color: "white",
-  fontSize: 22,
-  fontWeight: "700",
-},
+  emptyTitle: {
+    color: "white",
+    fontSize: 22,
+    fontWeight: "700",
+  },
 
-emptySubtitle: {
-  marginTop: 6,
-  color: "rgba(255,255,255,0.7)",
-  fontSize: 14,
-},
-
-
+  emptySubtitle: {
+    marginTop: 6,
+    color: "rgba(255,255,255,0.7)",
+    fontSize: 14,
+  },
 });

@@ -4,24 +4,20 @@ import { isToday } from "@/utils/date";
 export function MatchDetailsSection(props: {
   readonly date: Date;
   readonly startTimeValue: Date;
-  readonly endTimeValue: Date;
   readonly venue: string;
   readonly venueOptions?: string[];
   readonly onDateChange: (date: Date) => void;
   readonly onStartTimeChange: (date: Date) => void;
-  readonly onEndTimeChange: (date: Date) => void;
   readonly onVenueChange: (value: string) => void;
   readonly onAddVenue: () => void;
 }) {
   const {
     date,
     startTimeValue,
-    endTimeValue,
     venue,
     venueOptions = [],
     onDateChange,
     onStartTimeChange,
-    onEndTimeChange,
     onVenueChange,
     onAddVenue,
   } = props;
@@ -55,23 +51,12 @@ export function MatchDetailsSection(props: {
         }}
       />
 
-      <Form.DateTime
-        label="End Time (estimate)"
-        value={endTimeValue}
-        mode="time"
-        display="default"
-        minimumDate={startTimeValue}
-        onChange={(_event, selectedDate) => {
-          if (selectedDate) onEndTimeChange(selectedDate);
-        }}
-      />
-
       <Form.Menu
         label="Venue"
         options={uniqueVenueOptions}
-        value={
-          venue ||
-          (uniqueVenueOptions.length === 0 ? "No venues available" : "Select")
+        value={venue}
+        placeholder={
+          venueOptions.length === 0 ? "No venues available" : "Select venue"
         }
         onValueChange={onVenueChange}
         disabled={uniqueVenueOptions.length === 0 && !venue}

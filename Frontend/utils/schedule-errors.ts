@@ -1,7 +1,7 @@
 import { Alert } from "react-native";
 import type { AxiosError } from "axios";
-import { getScheduleConflictMessage } from "@/features/matches/schedule-shared";
-import { ScheduleConflictCode } from "@/features/matches/types";
+import { getScheduleConflictMessage } from "@/utils/schedule";
+import { ScheduleConflictCode } from "@/types/matches";
 
 export function getScheduleApiErrorMessage(
   err:
