@@ -95,26 +95,22 @@ describe("getScheduleConflictMessage", () => {
 });
 
 describe("MatchDetailsSection", () => {
-  it("calls onDateChange, onStartTimeChange, onEndTimeChange when date/time is selected", () => {
+  it("calls onDateChange and onStartTimeChange when date/time is selected", () => {
     const onDateChange = jest.fn();
     const onStartTimeChange = jest.fn();
-    const onEndTimeChange = jest.fn();
     const onVenueChange = jest.fn();
     const onAddVenue = jest.fn();
     const date = new Date("2023-01-01");
     const startTimeValue = new Date("2023-01-01T10:00:00");
-    const endTimeValue = new Date("2023-01-01T11:00:00");
     const venue = "Test Venue";
 
     const { getAllByTestId } = render(
       <MatchDetailsSection
         date={date}
         startTimeValue={startTimeValue}
-        endTimeValue={endTimeValue}
         venue={venue}
         onDateChange={onDateChange}
         onStartTimeChange={onStartTimeChange}
-        onEndTimeChange={onEndTimeChange}
         onVenueChange={onVenueChange}
         onAddVenue={onAddVenue}
       />,
@@ -125,30 +121,24 @@ describe("MatchDetailsSection", () => {
     expect(onDateChange).toHaveBeenCalledWith(date);
     pickers[1].props.onChange(null, startTimeValue);
     expect(onStartTimeChange).toHaveBeenCalledWith(startTimeValue);
-    pickers[2].props.onChange(null, endTimeValue);
-    expect(onEndTimeChange).toHaveBeenCalledWith(endTimeValue);
   });
 
   it("does not call handlers when selectedDate is null", () => {
     const onDateChange = jest.fn();
     const onStartTimeChange = jest.fn();
-    const onEndTimeChange = jest.fn();
     const onVenueChange = jest.fn();
     const onAddVenue = jest.fn();
     const date = new Date("2023-01-01");
     const startTimeValue = new Date("2023-01-01T10:00:00");
-    const endTimeValue = new Date("2023-01-01T11:00:00");
     const venue = "Test Venue";
 
     const { getAllByTestId } = render(
       <MatchDetailsSection
         date={date}
         startTimeValue={startTimeValue}
-        endTimeValue={endTimeValue}
         venue={venue}
         onDateChange={onDateChange}
         onStartTimeChange={onStartTimeChange}
-        onEndTimeChange={onEndTimeChange}
         onVenueChange={onVenueChange}
         onAddVenue={onAddVenue}
       />,
@@ -159,7 +149,5 @@ describe("MatchDetailsSection", () => {
     expect(onDateChange).not.toHaveBeenCalled();
     pickers[1].props.onChange(null, null);
     expect(onStartTimeChange).not.toHaveBeenCalled();
-    pickers[2].props.onChange(null, null);
-    expect(onEndTimeChange).not.toHaveBeenCalled();
   });
 });

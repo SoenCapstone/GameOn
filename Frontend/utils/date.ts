@@ -67,10 +67,9 @@ export function toOffsetIsoString(value: Date) {
 }
 
 export function isValidTimeRange(date: Date, startTime: Date, endTime: Date) {
-  const { startTime: startIso, endTime: endIso } = buildStartEndIso(
-    date,
-    startTime,
-    endTime,
-  );
-  return new Date(endIso).getTime() > new Date(startIso).getTime();
+  const start = new Date(date);
+  start.setHours(startTime.getHours(), startTime.getMinutes(), 0, 0);
+  const end = new Date(date);
+  end.setHours(endTime.getHours(), endTime.getMinutes(), 0, 0);
+  return end.getTime() > start.getTime();
 }

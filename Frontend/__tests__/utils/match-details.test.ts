@@ -9,11 +9,18 @@ import {
   getIsMatchLoading,
   getMatchScores,
 } from "@/utils/match-details";
+import type { MatchDetailsDisplayMatch, MatchTeamSummaryMap } from "@/types/match-details";
+import type { TeamMatch } from "@/types/matches";
 
 const futureStartTime = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString();
 const pastStartTime = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
 
-const baseMatch = {
+type MatchWithUnknownScores = Omit<TeamMatch, "homeScore" | "awayScore"> & {
+  homeScore?: unknown;
+  awayScore?: unknown;
+};
+
+const baseMatch: TeamMatch = {
   id: "match-1",
   matchType: "TEAM_MATCH" as const,
   status: "CONFIRMED" as const,
@@ -28,16 +35,15 @@ const baseMatch = {
   updatedAt: futureStartTime,
 };
 
-const leagueMatch = {
+const leagueMatch: MatchDetailsDisplayMatch & { leagueId: string } = {
   ...baseMatch,
-  matchType: "LEAGUE_MATCH" as const,
   leagueId: "league-1",
 };
 
 describe("match-details utils", () => {
   describe("isLeagueMatch", () => {
     it("returns true if match has leagueId", () => {
-      expect(isLeagueMatch(leagueMatch as any)).toBe(true);
+      expect(isLeagueMatch(leagueMatch)).toBe(true);
     });
 
     it("returns false if match is null or lacks leagueId", () => {
@@ -49,7 +55,7 @@ describe("match-details utils", () => {
 
   describe("getMatchLeagueId", () => {
     it("returns leagueId if present", () => {
-      expect(getMatchLeagueId(leagueMatch as any)).toBe("league-1");
+      expect(getMatchLeagueId(leagueMatch)).toBe("league-1");
     });
 
     it("returns empty string if not a league match", () => {
@@ -73,9 +79,9 @@ describe("match-details utils", () => {
   });
 
   describe("canUserCancelMatch", () => {
-    const teamSummaryMap = {
-      "team-1": { ownerUserId: "user-owner" } as any,
-      "team-2": { ownerUserId: "other-owner" } as any,
+    const teamSummaryMap: MatchTeamSummaryMap = {
+      "team-1": { id: "team-1", name: "Team 1", ownerUserId: "user-owner" },
+      "team-2": { id: "team-2", name: "Team 2", ownerUserId: "other-owner" },
     };
 
     it("returns false if match is null or missing", () => {
@@ -91,7 +97,7 @@ describe("match-details utils", () => {
       })).toBe(false);
 
       expect(canUserCancelMatch({
-        match: { ...baseMatch, status: "CANCELLED" as any },
+        match: { ...baseMatch, status: "CANCELLED" },
         userId: "user-owner",
         isLeagueOwner: false,
         teamSummaryMap,
@@ -100,13 +106,13 @@ describe("match-details utils", () => {
 
     it("for league match: returns true only if isLeagueOwner", () => {
       expect(canUserCancelMatch({
-        match: leagueMatch as any,
+        match: leagueMatch,
         userId: "random-user",
         isLeagueOwner: true,
       })).toBe(true);
 
       expect(canUserCancelMatch({
-        match: leagueMatch as any,
+        match: leagueMatch,
         userId: "user-owner",
         isLeagueOwner: false,
         teamSummaryMap,
@@ -138,15 +144,15 @@ describe("match-details utils", () => {
   });
 
   describe("canUserSubmitMatchScore", () => {
-    const teamSummaryMap = {
-      "team-1": { ownerUserId: "user-owner" } as any,
+    const teamSummaryMap: MatchTeamSummaryMap = {
+      "team-1": { id: "team-1", name: "Team 1", ownerUserId: "user-owner" },
     };
 
     it("returns false for invalid inputs, league matches, or unconfirmed matches", () => {
       expect(canUserSubmitMatchScore({ match: null, userId: "u1" })).toBe(false);
       expect(canUserSubmitMatchScore({ match: baseMatch, userId: null })).toBe(false);
-      expect(canUserSubmitMatchScore({ match: leagueMatch as any, userId: "u1" })).toBe(false);
-      expect(canUserSubmitMatchScore({ match: { ...baseMatch, status: "PENDING" as any }, userId: "u1" })).toBe(false);
+      expect(canUserSubmitMatchScore({ match: leagueMatch, userId: "u1" })).toBe(false);
+      expect(canUserSubmitMatchScore({ match: { ...baseMatch, status: "PENDING_TEAM_ACCEPTANCE" }, userId: "u1" })).toBe(false);
     });
 
     it("returns true if requiresReferee is true and user is the referee", () => {
@@ -231,7 +237,7 @@ describe("match-details utils", () => {
 
     it("returns null if match is cancelled or in the past", () => {
       expect(getMatchAttendanceAction({ match: { ...baseMatch, startTime: pastStartTime }, space: "team", spaceId: "team-1", role: "PLAYER", isActiveMember: true, hasResponded: false })).toBeNull();
-      expect(getMatchAttendanceAction({ match: { ...baseMatch, status: "CANCELLED" as any }, space: "team", spaceId: "team-1", role: "PLAYER", isActiveMember: true, hasResponded: false })).toBeNull();
+      expect(getMatchAttendanceAction({ match: { ...baseMatch, status: "CANCELLED" }, space: "team", spaceId: "team-1", role: "PLAYER", isActiveMember: true, hasResponded: false })).toBeNull();
     });
   });
 
@@ -312,12 +318,18 @@ describe("match-details utils", () => {
     });
 
     it("returns un-normalized scores if present", () => {
-      expect(getMatchScores({ ...baseMatch, homeScore: 3, awayScore: 1 } as any)).toEqual({ homeScore: 3, awayScore: 1 });
+      expect(getMatchScores({ ...baseMatch, homeScore: 3, awayScore: 1 })).toEqual({ homeScore: 3, awayScore: 1 });
     });
 
     it("preserves null scores while pruning undefined/invalid", () => {
-      expect(getMatchScores({ ...baseMatch, homeScore: null, awayScore: null } as any)).toEqual({ homeScore: null, awayScore: null });
-      expect(getMatchScores({ ...baseMatch, homeScore: "invalidT" as any, awayScore: undefined } as any)).toEqual({ homeScore: undefined, awayScore: undefined });
+      expect(getMatchScores({ ...baseMatch, homeScore: null, awayScore: null })).toEqual({ homeScore: null, awayScore: null });
+      expect(
+        getMatchScores({
+          ...baseMatch,
+          homeScore: "invalidT",
+          awayScore: undefined,
+        } as unknown as MatchWithUnknownScores as MatchDetailsDisplayMatch),
+      ).toEqual({ homeScore: undefined, awayScore: undefined });
     });
   });
 });
