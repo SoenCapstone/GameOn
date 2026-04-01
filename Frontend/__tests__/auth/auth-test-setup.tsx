@@ -4,6 +4,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { render } from "@testing-library/react-native";
 
 export const mockAlert = jest.fn();
+const authTestQueryClients: QueryClient[] = [];
 
 jest.mock("expo-linear-gradient", () => ({
   LinearGradient: ({ children }: { children?: React.ReactNode }) =>
@@ -163,10 +164,12 @@ jest.mock("@/components/ui/background", () => ({
 export function renderWithQueryClient(ui: React.ReactElement) {
   const queryClient = new QueryClient({
     defaultOptions: {
-      queries: { retry: false },
-      mutations: { retry: false },
+      queries: { retry: false, gcTime: Infinity },
+      mutations: { retry: false, gcTime: Infinity },
     },
   });
+
+  authTestQueryClients.push(queryClient);
 
   return render(
     <QueryClientProvider client={queryClient}>{ui}</QueryClientProvider>,
@@ -186,5 +189,10 @@ export const setupAuthTestHooks = () => {
     jest.restoreAllMocks();
     delete process.env.EXPO_PUBLIC_DEV_LOGIN_EMAIL;
     delete process.env.EXPO_PUBLIC_DEV_LOGIN_PASSWORD;
+
+    for (const queryClient of authTestQueryClients) {
+      queryClient.clear();
+    }
+    authTestQueryClients.length = 0;
   });
 };
