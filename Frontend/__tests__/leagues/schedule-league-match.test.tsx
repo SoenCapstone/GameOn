@@ -212,14 +212,6 @@ jest.mock("@/utils/logger", () => ({
   }),
 }));
 
-jest.mock("@/utils/date", () => {
-  const actual = jest.requireActual("@/utils/date");
-  return {
-    ...actual,
-    isValidTimeRange: () => true,
-  };
-});
-
 async function submitSchedule() {
   if (!capturedSubmit) {
     throw new Error("schedule submit handler not captured");
@@ -304,6 +296,11 @@ describe("ScheduleLeagueMatchScreen", () => {
         refereeUserId: "ref-1",
       }) as unknown,
     );
+    const createPayload = mockCreateLeagueMatch.mock.calls[0]?.[0];
+    expect(createPayload).toBeDefined();
+    expect(
+      new Date(createPayload.startTime).getTime() + 15 * 60 * 1000,
+    ).toBe(new Date(createPayload.endTime).getTime());
     expect(mockToast).toHaveBeenCalledWith("Match scheduled");
     expect(mockDismissTo).toHaveBeenCalledWith({
       pathname: "/leagues/league-1",

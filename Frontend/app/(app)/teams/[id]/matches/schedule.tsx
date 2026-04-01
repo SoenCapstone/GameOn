@@ -30,7 +30,6 @@ import {
 import { toast } from "@/utils/sign-up";
 import {
   buildStartEndIso,
-  isValidTimeRange,
   formatLocalDateString,
   parseDraftDate,
 } from "@/utils/date";
@@ -55,7 +54,6 @@ export default function ScheduleTeamMatchScreen() {
     draftAwayTeamId?: string;
     draftDate?: string;
     draftStartTime?: string;
-    draftEndTime?: string;
     draftVenueId?: string;
     draftRequiresReferee?: string;
     draftRefereeUserId?: string;
@@ -70,9 +68,6 @@ export default function ScheduleTeamMatchScreen() {
   const [awayTeamId, setAwayTeamId] = useState("");
   const [date, setDate] = useState(new Date());
   const [startTimeValue, setStartTimeValue] = useState(new Date());
-  const [endTimeValue, setEndTimeValue] = useState(
-    new Date(Date.now() + 60 * 60 * 1000),
-  );
   const [venueId, setVenueId] = useState("");
   const [requiresReferee, setRequiresReferee] = useState(false);
   const [refereeUserId, setRefereeUserId] = useState("");
@@ -91,8 +86,6 @@ export default function ScheduleTeamMatchScreen() {
     if (draftDate) setDate(draftDate);
     const draftStart = parseDraftDate(params.draftStartTime);
     if (draftStart) setStartTimeValue(draftStart);
-    const draftEnd = parseDraftDate(params.draftEndTime);
-    if (draftEnd) setEndTimeValue(draftEnd);
     if (params.draftVenueId && !params.newVenueId) {
       setVenueId(params.draftVenueId);
     }
@@ -105,7 +98,6 @@ export default function ScheduleTeamMatchScreen() {
   }, [
     params.draftAwayTeamId,
     params.draftDate,
-    params.draftEndTime,
     params.draftRefereeUserId,
     params.draftRequiresReferee,
     params.draftStartTime,
@@ -231,10 +223,6 @@ export default function ScheduleTeamMatchScreen() {
       Alert.alert("Match schedule failed", "Venue is required");
       return;
     }
-    if (!isValidTimeRange(date, startTimeValue, endTimeValue)) {
-      Alert.alert("Match schedule failed", "End time must be after start time");
-      return;
-    }
     if (requiresReferee && !refereeUserId) {
       Alert.alert(
         "Match schedule failed",
@@ -243,10 +231,14 @@ export default function ScheduleTeamMatchScreen() {
       return;
     }
 
-    const { startTime, endTime } = buildStartEndIso(
+    const startTime = new Date(startTimeValue);
+    const endTime = new Date(startTimeValue);
+    endTime.setMinutes(endTime.getMinutes() + 15);
+
+    const { startTime: startTimeIso, endTime: endTimeIso } = buildStartEndIso(
       date,
-      startTimeValue,
-      endTimeValue,
+      startTime,
+      endTime,
     );
     const scheduledDate = formatLocalDateString(date);
 
@@ -256,8 +248,8 @@ export default function ScheduleTeamMatchScreen() {
         awayTeamId,
         sport: team?.sport ?? undefined,
         scheduledDate,
-        startTime,
-        endTime,
+        startTime: startTimeIso,
+        endTime: endTimeIso,
         venueId,
         requiresReferee,
       });
@@ -276,8 +268,8 @@ export default function ScheduleTeamMatchScreen() {
         awayTeamId,
         sport: team?.sport ?? undefined,
         scheduledDate,
-        startTime,
-        endTime,
+        startTime: startTimeIso,
+        endTime: endTimeIso,
         venueId,
         requiresReferee,
         refereeUserId: requiresReferee ? refereeUserId : undefined,
@@ -308,7 +300,6 @@ export default function ScheduleTeamMatchScreen() {
     awayTeamId,
     date,
     startTimeValue,
-    endTimeValue,
     venueId,
     requiresReferee,
     refereeUserId,
@@ -366,12 +357,10 @@ export default function ScheduleTeamMatchScreen() {
         <MatchDetailsSection
           date={date}
           startTimeValue={startTimeValue}
-          endTimeValue={endTimeValue}
           venue={selectedVenueLabel}
           venueOptions={venueOptions.map((venue) => venue.label)}
           onDateChange={setDate}
           onStartTimeChange={setStartTimeValue}
-          onEndTimeChange={setEndTimeValue}
           onVenueChange={(label) => setVenueId(venueLabelToId[label] ?? "")}
           onAddVenue={() =>
             router.push({
@@ -384,7 +373,6 @@ export default function ScheduleTeamMatchScreen() {
                 draftAwayTeamId: awayTeamId,
                 draftDate: date.toISOString(),
                 draftStartTime: startTimeValue.toISOString(),
-                draftEndTime: endTimeValue.toISOString(),
                 draftVenueId: venueId,
                 draftRequiresReferee: String(requiresReferee),
                 draftRefereeUserId: refereeUserId,

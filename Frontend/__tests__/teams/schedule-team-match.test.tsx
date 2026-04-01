@@ -218,14 +218,6 @@ jest.mock("@/utils/logger", () => ({
   }),
 }));
 
-jest.mock("@/utils/date", () => {
-  const actual = jest.requireActual("@/utils/date");
-  return {
-    ...actual,
-    isValidTimeRange: () => true,
-  };
-});
-
 async function submitSchedule() {
   if (!capturedSubmit) {
     throw new Error("schedule submit handler not captured");
@@ -316,6 +308,11 @@ describe("ScheduleTeamMatchScreen", () => {
         requiresReferee: false,
       }) as unknown,
     );
+    const createPayload = mockCreateTeamMatch.mock.calls[0]?.[0];
+    expect(createPayload).toBeDefined();
+    expect(
+      new Date(createPayload.startTime).getTime() + 15 * 60 * 1000,
+    ).toBe(new Date(createPayload.endTime).getTime());
     expect(mockDismissTo).toHaveBeenCalledWith({
       pathname: "/teams/team-1",
       params: { tab: "matches" },
@@ -360,6 +357,11 @@ describe("ScheduleTeamMatchScreen", () => {
         refereeUserId: "ref-1",
       }) as unknown,
     );
+    const createPayload = mockCreateTeamMatch.mock.calls[0]?.[0];
+    expect(createPayload).toBeDefined();
+    expect(
+      new Date(createPayload.startTime).getTime() + 15 * 60 * 1000,
+    ).toBe(new Date(createPayload.endTime).getTime());
   });
 
   it("blocks submission when backend validation reports a schedule conflict", async () => {
