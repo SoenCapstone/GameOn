@@ -35,6 +35,7 @@ const TEAM_ROLE_OPTIONS: readonly TeamRole[] = [
   "MANAGER",
   "PLAYER",
   "COACH",
+  "REPLACEMENT",
 ] as const;
 
 function TeamSettingsToolbar() {
@@ -76,9 +77,9 @@ function getAssignableRoles(
 
   if (
     callerRole === "MANAGER" &&
-    (targetRole === "PLAYER" || targetRole === "COACH")
+    (targetRole === "PLAYER" || targetRole === "COACH" || targetRole === "REPLACEMENT")
   ) {
-    return ["PLAYER", "COACH"];
+    return ["PLAYER", "COACH", "REPLACEMENT"];
   }
 
   return [];

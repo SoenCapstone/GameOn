@@ -1,13 +1,13 @@
-jest.mock("expo-router", () => ({
-  router: { push: jest.fn() },
-}));
-
 import { act, renderHook } from "@testing-library/react-native";
 import type { SearchResult } from "@/constants/search";
 import { useSearch } from "@/hooks/search/use-search";
 import { useTeamResults } from "@/hooks/search/use-team-results";
 import { useLeagueResults } from "@/hooks/search/use-league-results";
 import { createScopedLog } from "@/utils/logger";
+
+jest.mock("expo-router", () => ({
+  router: { push: jest.fn() },
+}));
 
 jest.mock("@/hooks/search/use-team-results");
 jest.mock("@/hooks/search/use-league-results");
@@ -232,6 +232,70 @@ describe("useSearch", () => {
         resultCount: 3,
         mode: "teams",
         tookMs: 12,
+      }),
+    );
+  });
+
+  it("notifyModeChange initializes then updates pending metadata", () => {
+    const info = jest.fn();
+    (createScopedLog as jest.Mock).mockReturnValue({ info, warn: jest.fn() });
+
+    const { result } = renderHook(() => useSearch());
+
+    act(() => {
+      result.current.notifyModeChange("leagues", 4);
+      result.current.notifyModeChange("teams", 2);
+      result.current.markRendered(7);
+    });
+
+    expect(info).toHaveBeenCalledWith(
+      "search completed",
+      expect.objectContaining({
+        query: "",
+        resultCount: 2,
+        tookMs: 7,
+      }),
+    );
+  });
+
+  it("logs mode-filtered count when mode is set before query update", () => {
+    const info = jest.fn();
+    (createScopedLog as jest.Mock).mockReturnValue({ info, warn: jest.fn() });
+
+    mockUseTeamResults.mockReturnValue({
+      data: [
+        baseTeamResult({ id: "t1", name: "alpha team" }),
+        baseTeamResult({ id: "t2", name: "beta team" }),
+      ],
+      raw: null,
+      isLoading: false,
+      isFetching: false,
+      error: null,
+      refetch: teamRefetch,
+    });
+
+    mockUseLeagueResults.mockReturnValue({
+      data: [baseLeagueResult({ id: "l1", name: "alpha league" })],
+      raw: null,
+      isLoading: false,
+      isFetching: false,
+      error: null,
+      refetch: leagueRefetch,
+    });
+
+    const { result } = renderHook(() => useSearch());
+
+    act(() => {
+      result.current.notifyModeChange("teams", 99);
+      result.current.setQuery("alpha");
+    });
+
+    expect(info).toHaveBeenLastCalledWith(
+      "search completed",
+      expect.objectContaining({
+        mode: "teams",
+        query: "alpha",
+        resultCount: 1,
       }),
     );
   });

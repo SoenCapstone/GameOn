@@ -4,7 +4,7 @@ export type TeamMember = {
   id: string;
   joinedAt?: string | null;
   lastname: string;
-  role?: "OWNER" | "MANAGER" | "PLAYER" | "COACH";
+  role?: "OWNER" | "MANAGER" | "PLAYER" | "COACH" | "REPLACEMENT";
   userId?: string;
   imageUrl?: string | null;
 };

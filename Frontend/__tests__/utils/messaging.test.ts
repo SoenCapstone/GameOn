@@ -8,9 +8,12 @@ import {
   formatMessageTimestamp,
   formatDateSeparator,
   maxMessageLength,
+  lastMessageId,
+  buildChatListRows,
 } from "@/utils/messaging/utils";
 import type { InfiniteData } from "@tanstack/react-query";
 import type {
+  ChatListRow,
   ConversationResponse,
   MessageHistoryResponse,
   MessageResponse,
@@ -455,5 +458,119 @@ describe("formatDateSeparator", () => {
       year: "numeric",
     }).format(target);
     expect(formatDateSeparator(target)).toBe(expected);
+  });
+});
+
+describe("lastMessageId", () => {
+  it("returns null when there are no message rows", () => {
+    expect(
+      lastMessageId([{ type: "date", id: "date-2026-0-1", label: "Today" }]),
+    ).toBeNull();
+  });
+
+  it("returns the id of the last message row", () => {
+    const rows: ChatListRow[] = [
+      { type: "date", id: "date-2026-0-1", label: "Today" },
+      {
+        type: "message" as const,
+        message: {
+          id: "msg-1",
+          text: "one",
+          fromMe: true,
+          createdAt: "2026-01-21T10:00:00Z",
+        },
+      },
+      {
+        type: "message" as const,
+        message: {
+          id: "msg-2",
+          text: "two",
+          fromMe: false,
+          senderLabel: "Alex",
+          createdAt: "2026-01-21T11:00:00Z",
+        },
+      },
+    ];
+
+    expect(lastMessageId(rows)).toBe("msg-2");
+  });
+});
+
+describe("buildChatListRows", () => {
+  beforeEach(() => {
+    jest.useFakeTimers();
+    jest.setSystemTime(new Date(2026, 1, 21, 12, 0, 0));
+  });
+
+  afterEach(() => {
+    jest.useRealTimers();
+  });
+
+  it("groups same-day messages under one date row and sets fromMe/sender labels", () => {
+    const messages: MessageResponse[] = [
+      {
+        id: "msg-1",
+        content: "mine",
+        createdAt: "2026-02-21T09:00:00Z",
+        conversationId: "conv-1",
+        senderId: "user-1",
+      },
+      {
+        id: "msg-2",
+        content: "theirs",
+        createdAt: "2026-02-21T10:00:00Z",
+        conversationId: "conv-1",
+        senderId: "user-2",
+      },
+    ];
+
+    const rows = buildChatListRows(
+      messages,
+      "user-1",
+      (senderId) => `name-${senderId}`,
+    );
+
+    expect(rows).toHaveLength(3);
+    expect(rows[0].type).toBe("date");
+    expect(rows[1]).toMatchObject({
+      type: "message",
+      message: {
+        id: "msg-1",
+        fromMe: true,
+        senderLabel: undefined,
+      },
+    });
+    expect(rows[2]).toMatchObject({
+      type: "message",
+      message: {
+        id: "msg-2",
+        fromMe: false,
+        senderLabel: "name-user-2",
+      },
+    });
+  });
+
+  it("inserts a new date row when day changes", () => {
+    const messages: MessageResponse[] = [
+      {
+        id: "msg-1",
+        content: "older",
+        createdAt: "2026-02-20T10:00:00Z",
+        conversationId: "conv-1",
+        senderId: "user-2",
+      },
+      {
+        id: "msg-2",
+        content: "today",
+        createdAt: "2026-02-21T10:00:00Z",
+        conversationId: "conv-1",
+        senderId: "user-2",
+      },
+    ];
+
+    const rows = buildChatListRows(messages, "user-1", () => "Other");
+
+    expect(rows.filter((row) => row.type === "date")).toHaveLength(2);
+    expect(rows.filter((row) => row.type === "message")).toHaveLength(2);
   });
 });

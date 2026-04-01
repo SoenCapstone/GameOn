@@ -59,10 +59,12 @@ export function useSearch(options?: UseSearchOptions): SearchValue {
   const leagueError = leagueQuery.error ?? null;
 
   useEffect(() => {
+    const pendingMode = lastSearchRef.current?.mode;
     lastSearchRef.current = {
       id: nextId.current++,
       query,
       resultCount: results.length,
+      mode: pendingMode,
     };
 
     let displayedCount = results.length;
