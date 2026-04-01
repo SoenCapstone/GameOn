@@ -172,14 +172,17 @@ export default function ScheduleTeamMatchScreen() {
   const awayTeamOptions = awayTeams.map((candidate) => candidate.name);
   const { refereeOptions, refereeLabelToId, refereeIdToLabel } =
     useRefereeOptions(refereesQuery.data);
+  const selectedRefereeLabel = refereeUserId
+    ? (refereeIdToLabel[refereeUserId] ?? refereeUserId)
+    : undefined;
   const scheduleTeamNamesById = useMemo(
     () => ({
       ...(teamId ? { [teamId]: team?.name ?? "Home team" } : {}),
       ...(awayTeamId
         ? {
             [awayTeamId]:
-              awayTeams.find((candidate) => candidate.id === awayTeamId)?.name ??
-              "Away team",
+              awayTeams.find((candidate) => candidate.id === awayTeamId)
+                ?.name ?? "Away team",
           }
         : {}),
     }),
@@ -218,7 +221,10 @@ export default function ScheduleTeamMatchScreen() {
       return;
     }
     if (awayTeamId === teamId) {
-      Alert.alert("Match schedule failed", "Home and away teams must be different");
+      Alert.alert(
+        "Match schedule failed",
+        "Home and away teams must be different",
+      );
       return;
     }
     if (!venueId) {
@@ -405,11 +411,7 @@ export default function ScheduleTeamMatchScreen() {
             <Form.Menu
               label="Choose Referee"
               options={refereeOptions}
-              value={
-                refereeUserId ??
-                refereeIdToLabel[refereeUserId] ??
-                refereeUserId
-              }
+              value={selectedRefereeLabel}
               placeholder={
                 refereeOptions.length === 0
                   ? "No referees available"
@@ -418,12 +420,12 @@ export default function ScheduleTeamMatchScreen() {
               onValueChange={(value) =>
                 setRefereeUserId(refereeLabelToId[value] ?? value)
               }
-            disabled={
-              createMutation.isPending ||
-              validateMutation.isPending ||
-              refereesQuery.isLoading ||
-              refereeOptions.length === 0
-            }
+              disabled={
+                createMutation.isPending ||
+                validateMutation.isPending ||
+                refereesQuery.isLoading ||
+                refereeOptions.length === 0
+              }
             />
           ) : null}
         </Form.Section>

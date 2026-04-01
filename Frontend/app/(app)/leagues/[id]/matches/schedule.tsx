@@ -164,6 +164,9 @@ export default function ScheduleLeagueMatchScreen() {
   }, [awayTeamId, homeTeamId, teamOptions, teams]);
   const { refereeOptions, refereeLabelToId, refereeIdToLabel } =
     useRefereeOptions(refereesQuery.data);
+  const selectedRefereeLabel = refereeUserId
+    ? (refereeIdToLabel[refereeUserId] ?? refereeUserId)
+    : undefined;
   const scheduleTeamNamesById = useMemo(
     () => ({
       ...(homeTeamId
@@ -400,9 +403,7 @@ export default function ScheduleLeagueMatchScreen() {
           <Form.Menu
             label="Choose Referee"
             options={refereeOptions}
-            value={
-              refereeUserId ?? refereeIdToLabel[refereeUserId] ?? refereeUserId
-            }
+            value={selectedRefereeLabel}
             placeholder={
               refereeOptions.length === 0
                 ? "No referees available"
