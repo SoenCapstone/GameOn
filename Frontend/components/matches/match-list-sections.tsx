@@ -1,6 +1,8 @@
 import React from "react";
 import { Pressable, Text, View, StyleSheet } from "react-native";
-import { MatchCard, MatchSkeletonCard } from "@/components/matches/match-card";
+import { MatchCard } from "@/components/matches/match-card";
+import { Loading } from "@/components/ui/loading";
+import { Empty } from "@/components/ui/empty";
 
 type MatchItem = {
   id: string;
@@ -17,13 +19,6 @@ type MatchItem = {
   isPast: boolean;
   homeScore?: number | null;
   awayScore?: number | null;
-  canCancel?: boolean;
-  onConfirmCancel?: () => Promise<void>;
-  canSubmitScore?: boolean;
-  onSubmitScore?: () => void;
-  canOptOut?: boolean;
-  onOptOut?: () => void;
-  isReplacement?: boolean;
 };
 
 interface MatchListSectionsProps {
@@ -39,49 +34,33 @@ interface MatchListSectionsProps {
 function ListSection({
   title,
   items,
-  isLoading,
   onMatchPress,
 }: {
   readonly title: string;
   readonly items: MatchItem[];
-  readonly isLoading: boolean;
   readonly onMatchPress: (match: MatchItem) => void;
 }) {
   return (
     <View style={styles.section}>
       <Text style={styles.sectionTitle}>{title}</Text>
       <View style={styles.sectionBody}>
-        {isLoading ? (
-          <>
-            <MatchSkeletonCard />
-            <MatchSkeletonCard />
-          </>
-        ) : (
-          items.map((match) => (
-            <MatchCard
-              key={match.id}
-              homeName={match.homeName}
-              awayName={match.awayName}
-              homeLogoUrl={match.homeLogoUrl}
-              awayLogoUrl={match.awayLogoUrl}
-              sport={match.sport}
-              contextLabel={match.contextLabel}
-              status={match.status}
-              startTime={match.startTime}
-              isPast={match.isPast}
-              homeScore={match.homeScore}
-              awayScore={match.awayScore}
-              canCancel={Boolean(match.canCancel)}
-              onConfirmCancel={match.onConfirmCancel}
-              canSubmitScore={Boolean(match.canSubmitScore)}
-              onSubmitScore={match.onSubmitScore}
-              canOptOut={Boolean(match.canOptOut)}
-              onOptOut={match.onOptOut}
-              isReplacement={Boolean(match.isReplacement)}
-              onPress={() => onMatchPress(match)}
-            />
-          ))
-        )}
+        {items.map((match) => (
+          <MatchCard
+            key={match.id}
+            homeName={match.homeName}
+            awayName={match.awayName}
+            homeLogoUrl={match.homeLogoUrl}
+            awayLogoUrl={match.awayLogoUrl}
+            sport={match.sport}
+            contextLabel={match.contextLabel}
+            status={match.status}
+            startTime={match.startTime}
+            isPast={match.isPast}
+            homeScore={match.homeScore}
+            awayScore={match.awayScore}
+            onPress={() => onMatchPress(match)}
+          />
+        ))}
       </View>
     </View>
   );
@@ -96,6 +75,8 @@ export function MatchListSections({
   onRetry,
   onMatchPress,
 }: Readonly<MatchListSectionsProps>) {
+  const hasMatches = today.length > 0 || upcoming.length > 0 || past.length > 0;
+
   return (
     <>
       {errorText ? (
@@ -109,29 +90,32 @@ export function MatchListSections({
         </View>
       ) : null}
 
-      {isLoading || today.length > 0 ? (
+      {!errorText && isLoading ? <Loading /> : null}
+
+      {!errorText && !isLoading && !hasMatches ? (
+        <Empty message="No matches available" />
+      ) : null}
+
+      {!isLoading && today.length > 0 ? (
         <ListSection
           title="Today"
           items={today}
-          isLoading={isLoading}
           onMatchPress={onMatchPress}
         />
       ) : null}
 
-      {isLoading || upcoming.length > 0 ? (
+      {!isLoading && upcoming.length > 0 ? (
         <ListSection
           title="Upcoming"
           items={upcoming}
-          isLoading={isLoading}
           onMatchPress={onMatchPress}
         />
       ) : null}
 
-      {isLoading || past.length > 0 ? (
+      {!isLoading && past.length > 0 ? (
         <ListSection
           title="Past"
           items={past}
-          isLoading={isLoading}
           onMatchPress={onMatchPress}
         />
       ) : null}

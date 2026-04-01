@@ -20,8 +20,6 @@ export function isAllowedLogoMimeType(
 export function getLogoFileExtension(mimeType: string): string {
   const normalized = mimeType.toLowerCase().trim();
   return (
-    MIME_TO_EXT[normalized] ??
-    normalized.split("/")[1]?.split("+")[0] ??
-    "png"
+    MIME_TO_EXT[normalized] ?? normalized.split("/")[1]?.split("+")[0] ?? "png"
   );
 }

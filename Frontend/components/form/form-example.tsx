@@ -81,7 +81,7 @@ export function FormExample() {
         <Form.Color
           label="Accent Color"
           selection={accentColor}
-          onValueChanged={setAccentColor}
+          onSelectionChange={setAccentColor}
           onChangeText={setAccentColor}
         />
       </Form.Section>
@@ -97,9 +97,11 @@ export function FormExample() {
           image={{
             uri: "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=200",
           }}
-          options={[...roleOptions]}
-          value={teamRole}
-          onValueChange={setTeamRole}
+          menu={{
+            options: [...roleOptions],
+            value: teamRole,
+            onValueChange: setTeamRole,
+          }}
         />
         <MenuCardItem
           title="Sam Rivera"
@@ -107,9 +109,11 @@ export function FormExample() {
           image={{
             uri: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200",
           }}
-          options={[...roleOptions]}
-          value={teamRole2}
-          onValueChange={setTeamRole2}
+          menu={{
+            options: [...roleOptions],
+            value: teamRole2,
+            onValueChange: setTeamRole2,
+          }}
         />
         <MenuCardItem
           title="Jordan Lee"
@@ -117,9 +121,11 @@ export function FormExample() {
           image={{
             uri: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=200",
           }}
-          options={[...roleOptions]}
-          value={teamRole3}
-          onValueChange={setTeamRole3}
+          menu={{
+            options: [...roleOptions],
+            value: teamRole3,
+            onValueChange: setTeamRole3,
+          }}
         />
       </Form.Section>
 

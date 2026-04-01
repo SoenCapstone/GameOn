@@ -1,7 +1,7 @@
 import React from "react";
 import { render, fireEvent, waitFor, act } from "@testing-library/react-native";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import ScheduleLeagueMatchScreen from "@/app/(contexts)/leagues/[id]/matches/schedule";
+import ScheduleLeagueMatchScreen from "@/app/(app)/leagues/[id]/matches/schedule";
 const mockSetOptions = jest.fn();
 const mockReplace = jest.fn();
 const mockDismissTo = jest.fn();
@@ -27,19 +27,20 @@ jest.mock("expo-router", () => ({
 }));
 
 jest.mock("@/components/ui/content-area", () => ({
-  ContentArea: ({ children }: { children: React.ReactNode }) => children,
+  ContentArea: ({
+    children,
+    toolbar,
+  }: {
+    children: React.ReactNode;
+    toolbar?: React.ReactNode;
+  }) => (
+    <>
+      {toolbar}
+      {children}
+    </>
+  ),
 }));
 
-jest.mock("@/components/header/header", () => ({
-  Header: ({ right }: { right: React.ReactNode }) => {
-    const ReactMock = jest.requireActual("react");
-    return ReactMock.createElement(ReactMock.Fragment, null, right);
-  },
-}));
-
-jest.mock("@/components/header/page-title", () => ({
-  PageTitle: () => null,
-}));
 
 jest.mock("@/components/ui/button", () => ({
   Button: ({
@@ -62,6 +63,18 @@ jest.mock("@/components/ui/button", () => ({
       },
       ReactMock.createElement(Text, null, label),
     );
+  },
+}));
+
+jest.mock("@/components/form/form-toolbar", () => ({
+  FormToolbar: ({
+    onSubmit,
+  }: {
+    onSubmit: () => void | Promise<void>;
+  }) => {
+    capturedSubmit = onSubmit;
+    scheduleHeaderRenderCount += 1;
+    return null;
   },
 }));
 
@@ -187,7 +200,7 @@ jest.mock("@clerk/clerk-expo", () => ({
   }),
 }));
 
-jest.mock("@/components/sign-up/utils", () => ({
+jest.mock("@/utils/sign-up", () => ({
   toast: (message: string) => mockToast(message),
 }));
 
@@ -197,25 +210,6 @@ jest.mock("@/utils/logger", () => ({
     warn: jest.fn(),
     error: jest.fn(),
   }),
-}));
-
-jest.mock("@/utils/date", () => {
-  const actual = jest.requireActual("@/utils/date");
-  return {
-    ...actual,
-    isValidTimeRange: () => true,
-  };
-});
-
-jest.mock("@/hooks/use-schedule-header", () => ({
-  useScheduleHeader: ({
-    onSubmit,
-  }: {
-    onSubmit: () => void | Promise<void>;
-  }) => {
-    capturedSubmit = onSubmit;
-    scheduleHeaderRenderCount += 1;
-  },
 }));
 
 async function submitSchedule() {
@@ -302,6 +296,11 @@ describe("ScheduleLeagueMatchScreen", () => {
         refereeUserId: "ref-1",
       }) as unknown,
     );
+    const createPayload = mockCreateLeagueMatch.mock.calls[0]?.[0];
+    expect(createPayload).toBeDefined();
+    expect(
+      new Date(createPayload.startTime).getTime() + 15 * 60 * 1000,
+    ).toBe(new Date(createPayload.endTime).getTime());
     expect(mockToast).toHaveBeenCalledWith("Match scheduled");
     expect(mockDismissTo).toHaveBeenCalledWith({
       pathname: "/leagues/league-1",

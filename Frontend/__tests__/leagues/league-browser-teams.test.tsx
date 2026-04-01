@@ -6,24 +6,8 @@ jest.mock("expo-router", () => ({
   useRouter: () => ({ push: jest.fn() }),
 }));
 
-jest.mock("@/hooks/use-axios-clerk", () => ({
-  useAxiosWithClerk: () => ({}),
-}));
-
-const mockUseQueries = jest.fn();
-jest.mock("@tanstack/react-query", () => ({
-  useQueries: (args: unknown[]) => mockUseQueries(args),
-}));
-
-jest.mock("@/hooks/use-team-detail", () => ({
-  teamDetailQueryOptions: (_api: unknown, teamId: string) => ({
-    queryKey: ["team", teamId],
-    queryFn: jest.fn(),
-  }),
-}));
-
 const mockGetSportLogo = jest.fn((_sport?: string) => ({ uri: "sport-logo" }));
-jest.mock("@/components/browse/utils", () => ({
+jest.mock("@/utils/search", () => ({
   getSportLogo: (sport: string) => mockGetSportLogo(sport),
 }));
 
@@ -37,19 +21,19 @@ jest.mock("@/components/info-card", () => ({
 
 describe("LeagueBrowserTeams", () => {
   beforeEach(() => {
-    mockUseQueries.mockReset();
     mockInfoCard.mockClear();
     mockGetSportLogo.mockClear();
   });
 
   it("shows error state when leagueTeamsError exists", () => {
-    mockUseQueries.mockReturnValue([]);
     const { getByText } = render(
       <LeagueBrowserTeams
-        leagueId="l1"
         leagueTeams={[]}
         teamsFetching={false}
         leagueTeamsError={new Error("fail")}
+        teamDetailsMap={{}}
+        detailsFetching={false}
+        detailsError={null}
       />,
     );
 
@@ -59,43 +43,40 @@ describe("LeagueBrowserTeams", () => {
   });
 
   it("shows empty state when no teams and not busy", () => {
-    mockUseQueries.mockReturnValue([]);
     const { getByText } = render(
       <LeagueBrowserTeams
-        leagueId="l1"
         leagueTeams={[]}
         teamsFetching={false}
         leagueTeamsError={null}
+        teamDetailsMap={{}}
+        detailsFetching={false}
+        detailsError={null}
       />,
     );
 
-    expect(getByText("No teams in this league yet.")).toBeTruthy();
+    expect(getByText("No teams in this league")).toBeTruthy();
     expect(mockInfoCard).not.toHaveBeenCalled();
   });
 
   it("renders InfoCards with logoUrl when present and location subtitle only", () => {
-    mockUseQueries.mockReturnValue([
-      {
-        isFetching: false,
-        error: null,
-        data: {
-          id: "t1",
-          name: "Alpha FC",
-          sport: "soccer",
-          location: "Montreal",
-          logoUrl: "https://img/logo.png",
-        },
-      },
-    ]);
-
     render(
       <LeagueBrowserTeams
-        leagueId="l1"
         leagueTeams={[
           { id: "lt1", leagueId: "l1", teamId: "t1", joinedAt: "x" },
         ]}
         teamsFetching={false}
         leagueTeamsError={null}
+        teamDetailsMap={{
+          t1: {
+            id: "t1",
+            name: "Alpha FC",
+            sport: "soccer",
+            location: "Montreal",
+            logoUrl: "https://img/logo.png",
+          },
+        }}
+        detailsFetching={false}
+        detailsError={null}
       />,
     );
 
@@ -109,28 +90,24 @@ describe("LeagueBrowserTeams", () => {
   });
 
   it("uses getSportLogo fallback when logoUrl missing, and uses Unknown location if location blank", () => {
-    mockUseQueries.mockReturnValue([
-      {
-        isFetching: false,
-        error: null,
-        data: {
-          id: "t2",
-          name: "Beta",
-          sport: "hockey",
-          location: "",
-          logoUrl: null,
-        },
-      },
-    ]);
-
     render(
       <LeagueBrowserTeams
-        leagueId="l1"
         leagueTeams={[
           { id: "lt2", leagueId: "l1", teamId: "t2", joinedAt: "x" },
         ]}
         teamsFetching={false}
         leagueTeamsError={null}
+        teamDetailsMap={{
+          t2: {
+            id: "t2",
+            name: "Beta",
+            sport: "hockey",
+            location: "",
+            logoUrl: null,
+          },
+        }}
+        detailsFetching={false}
+        detailsError={null}
       />,
     );
 
@@ -143,33 +120,28 @@ describe("LeagueBrowserTeams", () => {
   });
 
   it("deduplicates teamIds and still renders per leagueTeams row", () => {
-    mockUseQueries.mockReturnValue([
-      {
-        isFetching: false,
-        error: null,
-        data: {
-          id: "t1",
-          name: "Alpha FC",
-          sport: "soccer",
-          location: "Montreal",
-          logoUrl: null,
-        },
-      },
-    ]);
-
     render(
       <LeagueBrowserTeams
-        leagueId="l1"
         leagueTeams={[
           { id: "lt1", leagueId: "l1", teamId: "t1", joinedAt: "x" },
           { id: "lt2", leagueId: "l1", teamId: "t1", joinedAt: "y" },
         ]}
         teamsFetching={false}
         leagueTeamsError={null}
+        teamDetailsMap={{
+          t1: {
+            id: "t1",
+            name: "Alpha FC",
+            sport: "soccer",
+            location: "Montreal",
+            logoUrl: null,
+          },
+        }}
+        detailsFetching={false}
+        detailsError={null}
       />,
     );
 
-    expect(mockUseQueries).toHaveBeenCalledTimes(1);
     expect(mockInfoCard).toHaveBeenCalledTimes(2);
   });
 });

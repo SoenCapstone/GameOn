@@ -19,11 +19,11 @@ import {
   TeamMatchInviteCard,
   TeamSummary,
   Venue,
-} from "@/features/matches/types";
+} from "@/types/matches";
 import {
   filterPendingTeamInvitesForOwner,
   mapTeamsById,
-} from "@/features/matches/utils";
+} from "@/utils/matches";
 import { createScopedLog } from "@/utils/logger";
 
 type TeamMatchMemberResponse = {

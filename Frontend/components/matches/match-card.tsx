@@ -1,23 +1,12 @@
-import React, { useRef } from "react";
-import {
-  Alert,
-  Pressable,
-  Text,
-  View,
-  StyleSheet,
-  findNodeHandle,
-} from "react-native";
+import { Pressable, Text, View, StyleSheet } from "react-native";
 import { Image } from "expo-image";
-import { getSportLogo } from "@/components/browse/utils";
+import { getSportLogo } from "@/utils/search";
 import {
+  formatMatchDate,
   formatMatchDateTime,
   isCancelledMatchStatus,
-} from "@/features/matches/utils";
+} from "@/utils/matches";
 import { Card } from "@/components/ui/card";
-import { useActionSheet } from "@expo/react-native-action-sheet";
-import ContextMenu from "react-native-context-menu-view";
-import { isRunningInExpoGo } from "@/utils/runtime";
-import { Button } from "@/components/ui/button";
 
 interface MatchCardProps {
   readonly homeName: string;
@@ -32,13 +21,6 @@ interface MatchCardProps {
   readonly homeScore?: number | null;
   readonly awayScore?: number | null;
   readonly onPress?: () => void;
-  readonly canCancel?: boolean;
-  readonly onConfirmCancel?: () => Promise<void>;
-  readonly canSubmitScore?: boolean;
-  readonly onSubmitScore?: () => void;
-  readonly canOptOut?: boolean;
-  readonly onOptOut?: () => void;
-  readonly isReplacement?: boolean;
 }
 
 export function MatchCard({
@@ -53,208 +35,75 @@ export function MatchCard({
   homeScore,
   awayScore,
   onPress,
-  canCancel = false,
-  onConfirmCancel,
-  canSubmitScore = false,
-  onSubmitScore,
-  canOptOut = false,
-  onOptOut,
-  isReplacement = false,
 }: Readonly<MatchCardProps>) {
-  const { showActionSheetWithOptions } = useActionSheet();
-  const anchorRef = useRef<View>(null);
-  const hasMenuActions =
-    (canCancel && Boolean(onConfirmCancel)) ||
-    (canSubmitScore && Boolean(onSubmitScore));
+  const hasScore = homeScore != null && awayScore != null;
 
-  const renderCenterValue = () => {
+  const renderMeta = () => {
     if (isCancelledMatchStatus(status)) {
       return <Text style={styles.pending}>Cancelled</Text>;
     }
 
-    const hasScore = homeScore != null && awayScore != null;
     if (hasScore) {
-      return (
-        <View style={styles.result}>
-          <Text style={styles.score}>{homeScore}</Text>
-          <Text style={styles.dash}>-</Text>
-          <Text style={styles.score}>{awayScore}</Text>
-        </View>
-      );
+      return <Text style={styles.date}>{formatMatchDate(startTime)}</Text>;
     }
 
     return <Text style={styles.date}>{formatMatchDateTime(startTime)}</Text>;
   };
 
-  const showCancelConfirm = () => {
-    if (!onConfirmCancel) return;
+  return (
+    <Pressable onPress={onPress}>
+      <Card isInteractive={Boolean(onPress)}>
+        <View style={styles.content}>
+          <View style={styles.top}>
+            <Image
+              source={homeLogoUrl ? { uri: homeLogoUrl } : getSportLogo(sport)}
+              style={styles.logo}
+              contentFit="contain"
+            />
 
-    Alert.alert("Cancel match", "Are you sure you want to cancel this match?", [
-      { text: "Keep", style: "cancel" },
-      {
-        text: "Cancel Match",
-        style: "destructive",
-        onPress: () => {
-          void onConfirmCancel();
-        },
-      },
-    ]);
-  };
-
-  const openMenu = () => {
-    if (!hasMenuActions) return;
-
-    const options = ["Cancel"];
-    const cancelOptionIndex = 0;
-    const actionByIndex = new Map<number, "cancel-match" | "match-score">();
-
-    if (canSubmitScore && onSubmitScore) {
-      options.push("Match Score");
-      actionByIndex.set(options.length - 1, "match-score");
-    }
-
-    if (canCancel && onConfirmCancel) {
-      options.push("Cancel Match");
-      actionByIndex.set(options.length - 1, "cancel-match");
-    }
-
-    const cancelMatchIndex = options.indexOf("Cancel Match");
-
-    if (isRunningInExpoGo) {
-      showActionSheetWithOptions(
-        {
-          options,
-          destructiveButtonIndex:
-            cancelMatchIndex >= 0 ? cancelMatchIndex : undefined,
-          cancelButtonIndex: cancelOptionIndex,
-          anchor: findNodeHandle(anchorRef.current) ?? undefined,
-        },
-        (buttonIndex) => {
-          const selectedAction =
-            typeof buttonIndex === "number"
-              ? actionByIndex.get(buttonIndex)
-              : undefined;
-          if (selectedAction === "cancel-match") {
-            showCancelConfirm();
-            return;
-          }
-          if (selectedAction === "match-score" && onSubmitScore) {
-            onSubmitScore();
-          }
-        },
-      );
-    } else {
-      showCancelConfirm();
-    }
-  };
-
-  const cardContent = (
-    <View>
-      <Pressable
-        ref={anchorRef}
-        onPress={onPress}
-        onLongPress={isRunningInExpoGo && hasMenuActions ? openMenu : undefined}
-      >
-        <Card isInteractive={!(hasMenuActions && !isRunningInExpoGo)}>
-          <View style={styles.content}>
-            <View style={styles.top}>
-              <Image
-                source={homeLogoUrl ? { uri: homeLogoUrl } : getSportLogo(sport)}
-                style={styles.logo}
-                contentFit="contain"
-              />
+            <View style={styles.center}>
+              {hasScore ? (
+                <Text style={[styles.score, styles.leftscore]}>
+                  {homeScore}
+                </Text>
+              ) : null}
 
               <View style={styles.middle}>
                 <Text style={styles.league} numberOfLines={1}>
                   {contextLabel}
                 </Text>
-                {renderCenterValue()}
+                {renderMeta()}
               </View>
 
-              <Image
-                source={awayLogoUrl ? { uri: awayLogoUrl } : getSportLogo(sport)}
-                style={styles.logo}
-                contentFit="contain"
-              />
+              {hasScore ? (
+                <Text style={[styles.score, styles.rightscore]}>
+                  {awayScore}
+                </Text>
+              ) : null}
             </View>
 
-            <View style={styles.names}>
-              <View style={styles.home}>
-                <Text style={styles.name} numberOfLines={1}>
-                  {homeName}
-                </Text>
-              </View>
-              <View style={styles.away}>
-                <Text style={styles.name} numberOfLines={1}>
-                  {awayName}
-                </Text>
-              </View>
+            <Image
+              source={awayLogoUrl ? { uri: awayLogoUrl } : getSportLogo(sport)}
+              style={styles.logo}
+              contentFit="contain"
+            />
+          </View>
+
+          <View style={styles.names}>
+            <View style={styles.home}>
+              <Text style={styles.name} numberOfLines={1}>
+                {homeName}
+              </Text>
+            </View>
+            <View style={styles.away}>
+              <Text style={styles.name} numberOfLines={1}>
+                {awayName}
+              </Text>
             </View>
           </View>
-        </Card>
-      </Pressable>
-      <OptOutButton canOptOut={canOptOut} onOptOut={onOptOut} isReplacement={isReplacement} />
-    </View>
-  );
-
-  if (!hasMenuActions) {
-    return cardContent;
-  }
-
-  if (isRunningInExpoGo) {
-    return cardContent;
-  }
-
-  const actions = [
-    canSubmitScore && onSubmitScore
-      ? {
-          title: "Match Score",
-          systemIcon: "rosette",
-        }
-      : null,
-    canCancel && onConfirmCancel
-      ? {
-          title: "Cancel Match",
-          systemIcon: "xmark",
-          destructive: true,
-        }
-      : null,
-  ].filter((action) => action !== null);
-
-  return (
-    <ContextMenu
-      actions={actions}
-      onPress={(e) => {
-        if (e.nativeEvent.name === "Match Score" && onSubmitScore) {
-          onSubmitScore();
-          return;
-        }
-        if (e.nativeEvent.name === "Cancel Match") {
-          openMenu();
-        }
-      }}
-      previewBackgroundColor="transparent"
-    >
-      {cardContent}
-    </ContextMenu>
-  );
-}
-
-export function OptOutButton({
-  canOptOut,
-  onOptOut,
-  isReplacement,
-}: {
-  readonly canOptOut: boolean;
-  readonly onOptOut?: () => void;
-  readonly isReplacement: boolean;
-}) {
-  if (!canOptOut || !onOptOut) return null;
-  const label = isReplacement ? "Attending" : "Not attending";
-  return (
-    <View style={styles.optOutButton}>
-      <Button type="custom" label={label} onPress={onOptOut} />
-    </View>
+        </View>
+      </Card>
+    </Pressable>
   );
 }
 
@@ -285,16 +134,26 @@ const styles = StyleSheet.create({
     width: 48,
     height: 48,
   },
+  center: {
+    flex: 1,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 8,
+  },
   middle: {
     alignItems: "center",
     justifyContent: "center",
     gap: 2,
-    maxWidth: "55%",
+    flexShrink: 1,
+    minWidth: 0,
+    maxWidth: "60%",
   },
   league: {
     color: "rgba(235,235,245,0.68)",
     fontSize: 12,
     lineHeight: 16,
+    textAlign: "center",
   },
   date: {
     color: "rgba(235,235,245,0.68)",
@@ -302,22 +161,19 @@ const styles = StyleSheet.create({
     lineHeight: 16,
     textAlign: "center",
   },
-  result: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-  },
   score: {
-    color: "rgba(235,235,245,0.68)",
+    color: "rgba(255,255,255,0.85)",
     fontSize: 24,
-    fontWeight: "500",
+    fontWeight: "600",
     fontVariant: ["tabular-nums"],
+    width: 32,
+    textAlign: "center",
   },
-  dash: {
-    color: "rgba(235,235,245,0.68)",
-    fontSize: 24,
-    fontWeight: "400",
-    marginHorizontal: 28,
+  leftscore: {
+    marginRight: 4,
+  },
+  rightscore: {
+    marginLeft: 4,
   },
   pending: {
     color: "rgba(235,235,245,0.68)",
@@ -343,12 +199,6 @@ const styles = StyleSheet.create({
     minWidth: 76,
     alignItems: "center",
   },
-  optOutButton: {
-    alignSelf: "flex-end",
-    marginTop: 6,
-    width: 160,
-  },
-
   skeleton: {
     backgroundColor: "rgba(255,255,255,0.16)",
     borderRadius: 8,

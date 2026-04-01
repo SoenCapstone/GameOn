@@ -1,5 +1,6 @@
 import { useCallback, useState } from "react";
 import { Alert } from "react-native";
+import * as Haptics from "expo-haptics";
 import { errorToString } from "@/utils/error";
 import { createScopedLog } from "@/utils/logger";
 
@@ -33,6 +34,22 @@ export function useDetailPageHandlers({
   const [refreshing, setRefreshing] = useState(false);
   const log = createScopedLog(`${entityName} Detail Page`);
 
+  const confirmDeletePost = useCallback(
+    async (postId: string) => {
+      try {
+        await deletePostMutation.mutateAsync(postId);
+        log.info("Post deleted", { postId });
+      } catch (err) {
+        log.error("Failed to delete post", {
+          postId,
+          error: errorToString(err),
+        });
+        Alert.alert("Failed to delete", errorToString(err));
+      }
+    },
+    [deletePostMutation, log],
+  );
+
   const handleDeletePost = (postId: string) => {
     Alert.alert("Delete Post", "Are you sure you want to delete this post?", [
       {
@@ -41,17 +58,8 @@ export function useDetailPageHandlers({
       },
       {
         text: "Delete",
-        onPress: async () => {
-          try {
-            await deletePostMutation.mutateAsync(postId);
-            log.info("Post deleted", { postId });
-          } catch (err) {
-            log.error("Failed to delete post", {
-              postId,
-              error: errorToString(err),
-            });
-            Alert.alert("Failed to delete", errorToString(err));
-          }
+        onPress: () => {
+          void confirmDeletePost(postId);
         },
         style: "destructive",
       },
@@ -59,6 +67,7 @@ export function useDetailPageHandlers({
   };
 
   const handleRefresh = useCallback(async () => {
+    void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     try {
       setRefreshing(true);
       await onRefresh();

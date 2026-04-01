@@ -1,9 +1,13 @@
 import React, { createContext, useContext, useMemo } from "react";
 import { useLeagueDetail } from "@/hooks/use-league-detail";
 
-type LeagueDetailContextValue = ReturnType<typeof useLeagueDetail> & { id: string };
+type LeagueDetailContextValue = ReturnType<typeof useLeagueDetail> & {
+  id: string;
+};
 
-const LeagueDetailContext = createContext<LeagueDetailContextValue | null>(null);
+const LeagueDetailContext = createContext<LeagueDetailContextValue | null>(
+  null,
+);
 
 export function LeagueDetailProvider({
   id,

@@ -1,11 +1,11 @@
 import { PropsWithChildren } from "react";
 import { renderHook, waitFor, cleanup } from "@testing-library/react-native";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { useGetTeamMembers } from "@/hooks/use-get-team-members/use-get-team-members";
+import { useGetTeamMembers } from "@/hooks/use-get-team-members";
 import { useAxiosWithClerk } from "@/hooks/use-axios-clerk";
-import { fetchTeamMembers } from "@/hooks/use-get-team-members/utils";
+import { fetchTeamMembers } from "@/utils/team-members";
 import { AxiosInstance } from "axios";
-import { TeamMember } from "@/hooks/use-get-team-members/model";
+import { TeamMember } from "@/types/team-member";
 
 jest.mock("@/hooks/use-axios-clerk", () => ({
   GO_TEAM_SERVICE_ROUTES: {
@@ -24,9 +24,7 @@ describe("fetchTeamMembers", () => {
     const api = {
       get: jest.fn().mockResolvedValue({ data: members }),
     } as unknown as AxiosInstance;
-    const { fetchTeamMembers } = jest.requireActual(
-      "@/hooks/use-get-team-members/utils",
-    );
+    const { fetchTeamMembers } = jest.requireActual("@/utils/team-members");
     const result = await fetchTeamMembers(teamId, api);
     expect(api.get).toHaveBeenCalledWith(expect.any(String));
     expect(result).toEqual([
@@ -40,9 +38,7 @@ describe("fetchTeamMembers", () => {
     const api = {
       get: jest.fn().mockResolvedValue({ data: undefined }),
     } as unknown as AxiosInstance;
-    const { fetchTeamMembers } = jest.requireActual(
-      "@/hooks/use-get-team-members/utils",
-    );
+    const { fetchTeamMembers } = jest.requireActual("@/utils/team-members");
     const result = await fetchTeamMembers(teamId, api);
     expect(result).toEqual([]);
   });
@@ -52,15 +48,13 @@ describe("fetchTeamMembers", () => {
     const api = {
       get: jest.fn().mockResolvedValue({ data: [] }),
     } as unknown as AxiosInstance;
-    const { fetchTeamMembers } = jest.requireActual(
-      "@/hooks/use-get-team-members/utils",
-    );
+    const { fetchTeamMembers } = jest.requireActual("@/utils/team-members");
     const result = await fetchTeamMembers(teamId, api);
     expect(result).toEqual([]);
   });
 });
 
-jest.mock("@/hooks/use-get-team-members/utils", () => ({
+jest.mock("@/utils/team-members", () => ({
   fetchTeamMembers: jest.fn(),
 }));
 

@@ -2,30 +2,16 @@ import {
   getSportLogo,
   fetchTeamResults,
   fetchLeagueResults,
-  useTeamResults,
-  useLeagueResults,
-} from "@/components/browse/utils";
+  onSearchResultPress,
+} from "@/utils/search";
 import { images } from "@/constants/images";
 
 import axios from "axios";
-import { useQuery } from "@tanstack/react-query";
-import { useAxiosWithClerk } from "@/hooks/use-axios-clerk";
 import { createScopedLog } from "@/utils/logger";
+import { router } from "expo-router";
 
 jest.mock("axios");
 const mockedAxios = axios as jest.Mocked<typeof axios>;
-
-jest.mock("@tanstack/react-query", () => ({
-  useQuery: jest.fn(),
-}));
-
-jest.mock("@/hooks/use-axios-clerk", () => {
-  const original = jest.requireActual("@/hooks/use-axios-clerk");
-  return {
-    ...original,
-    useAxiosWithClerk: jest.fn(() => ({})),
-  };
-});
 
 jest.mock("@/utils/logger", () => ({
   createScopedLog: jest.fn(() => ({
@@ -39,6 +25,12 @@ jest.mock("@/constants/images", () => ({
     basketballLogo: { testID: "basketball-logo" },
     volleyballLogo: { testID: "volleyball-logo" },
     defaultLogo: { testID: "default-logo" },
+  },
+}));
+
+jest.mock("expo-router", () => ({
+  router: {
+    push: jest.fn(),
   },
 }));
 
@@ -94,7 +86,7 @@ describe("fetchTeamResults", () => {
     const callArgs = mockedAxios.get.mock.calls[0];
     expect(callArgs[1]!.params).toMatchObject({ size: "50", q: "Test" });
   });
-  it("handles empty query and onlyMine params", async () => {
+  it("handles empty query and member params", async () => {
     mockedAxios.get.mockClear();
     const fakeApi = {
       get: mockedAxios.get,
@@ -166,7 +158,7 @@ describe("fetchLeagueResults", () => {
     });
   });
 
-  it("sends params for query and onlyMine", async () => {
+  it("sends params for query and member", async () => {
     const fakeApi = {
       get: mockedAxios.get,
       defaults: { headers: { common: {} } },
@@ -201,181 +193,29 @@ describe("fetchLeagueResults", () => {
   });
 });
 
-describe("useTeamResults mapping", () => {
+describe("onSearchResultPress", () => {
+  const base = {
+    name: "X",
+    subtitle: "",
+    sport: "soccer",
+    logo: images.soccerLogo,
+    location: "",
+  };
+
   beforeEach(() => {
-    (useQuery as jest.Mock).mockReset();
-    (useAxiosWithClerk as jest.Mock).mockReset();
-    (useAxiosWithClerk as jest.Mock).mockReturnValue({});
+    jest.mocked(router.push).mockClear();
   });
 
-  it("uses provided logoUrl and stringifies numeric ids", () => {
-    const data = {
-      items: [
-        {
-          id: 123,
-          name: "Numeric Team",
-          sport: "basketball",
-          leagueId: null,
-          slug: "numeric-team",
-          logoUrl: "https://logo.png",
-          privacy: "PUBLIC",
-          maxRoster: 12,
-          archived: false,
-          createdAt: "2025-01-01T00:00:00Z",
-          updatedAt: "2025-01-01T00:00:00Z",
-        },
-      ],
-      totalElements: 1,
-      page: 0,
-      size: 1,
-      hasNext: false,
-    };
+  it("pushes team and league routes", () => {
+    onSearchResultPress({ ...base, id: "t1", type: "team" });
+    expect(router.push).toHaveBeenLastCalledWith("/teams/t1");
 
-    (useQuery as jest.Mock).mockReturnValue({
-      data,
-      isLoading: false,
-      isFetching: false,
-      error: null,
-    });
-
-    const res = useTeamResults("any");
-    expect(res.data).toHaveLength(1);
-    expect(res.data[0].id).toBe("123");
-    expect(res.data[0].logo).toEqual({ uri: "https://logo.png" });
-    expect(res.data[0].subtitle).toBe("basketball");
+    onSearchResultPress({ ...base, id: "l9", type: "league" });
+    expect(router.push).toHaveBeenLastCalledWith("/leagues/l9");
   });
 
-  it("falls back to logo image and 'Team' subtitle when sport or logo missing", () => {
-    const data = {
-      items: [
-        {
-          id: "abc",
-          name: "No Sport Team",
-          sport: "",
-          leagueId: null,
-          slug: "no-sport-team",
-          logoUrl: null,
-          privacy: "PUBLIC",
-          maxRoster: null,
-          archived: false,
-          createdAt: "2025-01-01T00:00:00Z",
-          updatedAt: "2025-01-01T00:00:00Z",
-        },
-        {
-          id: "def",
-          name: "Tennis Team",
-          sport: "tennis",
-          leagueId: null,
-          slug: "tennis-team",
-          logoUrl: undefined,
-          privacy: "PUBLIC",
-          maxRoster: null,
-          archived: false,
-          createdAt: "2025-01-01T00:00:00Z",
-          updatedAt: "2025-01-01T00:00:00Z",
-        },
-      ],
-      totalElements: 2,
-      page: 0,
-      size: 2,
-      hasNext: false,
-    };
-
-    (useQuery as jest.Mock).mockReturnValue({
-      data,
-      isLoading: false,
-      isFetching: false,
-      error: null,
-    });
-
-    const res = useTeamResults("any");
-    expect(res.data).toHaveLength(2);
-
-    expect(res.data[0].subtitle).toBe("Team");
-    expect(res.data[0].logo).toBe(getSportLogo(""));
-
-    expect(res.data[1].subtitle).toBe("tennis");
-    expect(res.data[1].logo).toBe(getSportLogo("tennis"));
-  });
-});
-
-describe("useLeagueResults mapping", () => {
-  beforeEach(() => {
-    (useQuery as jest.Mock).mockReset();
-    (useAxiosWithClerk as jest.Mock).mockReset();
-    (useAxiosWithClerk as jest.Mock).mockReturnValue({});
-  });
-
-  it("maps league results with region and sport fallbacks", () => {
-    const data = {
-      items: [
-        {
-          id: 99,
-          name: "Regional League",
-          sport: "soccer",
-          slug: "regional",
-          region: "Europe",
-          level: null,
-          privacy: "PUBLIC",
-          seasonCount: 1,
-          createdAt: "2025-01-01T00:00:00Z",
-          updatedAt: "2025-01-01T00:00:00Z",
-        },
-        {
-          id: "l2",
-          name: "Sport League",
-          sport: "tennis",
-          slug: "sport-league",
-          region: null,
-          level: null,
-          privacy: null,
-          seasonCount: 0,
-          createdAt: "2025-01-01T00:00:00Z",
-          updatedAt: "2025-01-01T00:00:00Z",
-        },
-        {
-          id: "l3",
-          name: "Fallback League",
-          sport: "",
-          slug: "fallback",
-          region: null,
-          level: null,
-          privacy: null,
-          seasonCount: 0,
-          createdAt: "2025-01-01T00:00:00Z",
-          updatedAt: "2025-01-01T00:00:00Z",
-        },
-      ],
-      totalElements: 3,
-      page: 0,
-      size: 3,
-      hasNext: false,
-    };
-
-    const refetch = jest.fn();
-    (useQuery as jest.Mock).mockReturnValue({
-      data,
-      isLoading: false,
-      isFetching: false,
-      error: null,
-      refetch,
-    });
-
-    const res = useLeagueResults("any");
-    expect(res.data).toHaveLength(3);
-    expect(res.data[0].id).toBe("99");
-    expect(res.data[0].subtitle).toBe("Europe");
-    expect(res.data[0].location).toBe("Europe");
-    expect(res.data[0].logo).toBe(getSportLogo("soccer"));
-
-    expect(res.data[1].subtitle).toBe("tennis");
-    expect(res.data[1].logo).toBe(getSportLogo("tennis"));
-
-    expect(res.data[2].subtitle).toBe("League");
-    expect(res.data[2].location).toBe("");
-
-    return res.refetch().then(() => {
-      expect(refetch).toHaveBeenCalled();
-    });
+  it("does not navigate for tournament results", () => {
+    onSearchResultPress({ ...base, id: "x", type: "tournament" });
+    expect(router.push).not.toHaveBeenCalled();
   });
 });

@@ -24,10 +24,7 @@ export function DateTimeItem({
   return (
     <BlurView tint="systemUltraThinMaterialDark" style={styles.item}>
       <Text style={styles.label}>{label}</Text>
-      <DateTimePicker
-        {...pickerProps}
-        accentColor={pickerAccentColor}
-      />
+      <DateTimePicker {...pickerProps} accentColor={pickerAccentColor} />
     </BlurView>
   );
 }

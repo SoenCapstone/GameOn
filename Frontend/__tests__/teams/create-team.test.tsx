@@ -2,7 +2,7 @@ import React from "react";
 import { render, fireEvent, waitFor } from "@testing-library/react-native";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Alert } from "react-native";
-import CreateTeamScreen from "@/app/(contexts)/teams/create";
+import CreateTeamScreen from "@/app/(app)/teams/create";
 
 const mockBack = jest.fn();
 const mockSetOptions = jest.fn();
@@ -37,9 +37,41 @@ jest.mock("@/hooks/use-axios-clerk", () => ({
   },
 }));
 
-jest.mock("@/components/ui/content-area", () => ({
-  ContentArea: ({ children }: { children?: React.ReactNode }) => children,
-}));
+jest.mock("@/components/ui/content-area", () => {
+  const ReactMock = jest.requireActual("react");
+  return {
+    ContentArea: ({
+      children,
+      toolbar,
+    }: {
+      children?: React.ReactNode;
+      toolbar?: React.ReactNode;
+    }) => ReactMock.createElement(ReactMock.Fragment, null, toolbar, children),
+  };
+});
+
+jest.mock("@/components/form/form-toolbar", () => {
+  const ReactMock = jest.requireActual("react");
+  const { Pressable, Text } = jest.requireActual("react-native");
+  return {
+    FormToolbar: ({
+      label = "Save",
+      onSubmit,
+    }: {
+      label?: string;
+      onSubmit: () => void;
+    }) =>
+      ReactMock.createElement(
+        Pressable,
+        {
+          accessibilityRole: "button",
+          testID: "form-toolbar-submit",
+          onPress: onSubmit,
+        },
+        ReactMock.createElement(Text, null, label),
+      ),
+  };
+});
 
 jest.mock("@/hooks/use-team-form", () => {
   const actual = jest.requireActual("@/hooks/use-team-form");
@@ -87,14 +119,8 @@ function renderScreen() {
   );
 }
 
-function getCreateButton() {
-  const opts =
-    mockSetOptions.mock.calls[mockSetOptions.mock.calls.length - 1]?.[0];
-  const Header = opts?.headerTitle;
-  if (!Header || typeof Header !== "function")
-    throw new Error("headerTitle not set");
-  const { getByText } = render(<Header />);
-  return getByText("Create");
+function getCreateButton(screen: ReturnType<typeof renderScreen>) {
+  return screen.getByTestId("form-toolbar-submit");
 }
 
 describe("CreateTeamScreen", () => {
@@ -108,9 +134,9 @@ describe("CreateTeamScreen", () => {
 
   it("shows validation errors when required fields missing", () => {
     const alertSpy = jest.spyOn(Alert, "alert");
-    renderScreen();
+    const screen = renderScreen();
 
-    fireEvent.press(getCreateButton());
+    fireEvent.press(getCreateButton(screen));
 
     expect(alertSpy).toHaveBeenCalledWith(
       "Team creation failed",
@@ -119,10 +145,11 @@ describe("CreateTeamScreen", () => {
   });
 
   it("creates team with PRIVATE privacy by default", async () => {
-    const { getByPlaceholderText } = renderScreen();
+    const screen = renderScreen();
+    const { getByPlaceholderText } = screen;
 
     fireEvent.changeText(getByPlaceholderText("Enter team name"), "My Team");
-    fireEvent.press(getCreateButton());
+    fireEvent.press(getCreateButton(screen));
 
     await waitFor(() => expect(mockPost).toHaveBeenCalled());
 
@@ -140,10 +167,11 @@ describe("CreateTeamScreen", () => {
   });
 
   it("navigates back after successful creation", async () => {
-    const { getByPlaceholderText } = renderScreen();
+    const screen = renderScreen();
+    const { getByPlaceholderText } = screen;
 
     fireEvent.changeText(getByPlaceholderText("Enter team name"), "Nav Team");
-    fireEvent.press(getCreateButton());
+    fireEvent.press(getCreateButton(screen));
 
     await waitFor(() => expect(mockBack).toHaveBeenCalled());
   });
