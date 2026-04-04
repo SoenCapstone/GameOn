@@ -7,6 +7,7 @@ import { useAuth } from "@clerk/clerk-expo";
 import TimeAgo from "javascript-time-ago";
 import en from "javascript-time-ago/locale/en.json";
 import { Providers } from "@/contexts/providers";
+import { Toaster } from "sonner-native";
 
 TimeAgo.addDefaultLocale(en);
 void SystemUI.setBackgroundColorAsync("black");
@@ -45,6 +46,7 @@ export default function RootLayout() {
   return (
     <Providers>
       <RootStack />
+      <Toaster />
       <StatusBar style="auto" />
     </Providers>
   );
