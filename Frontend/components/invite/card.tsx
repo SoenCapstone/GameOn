@@ -3,50 +3,16 @@ import { Pressable, StyleSheet, Text, View } from "react-native";
 import { Card } from "@/components/ui/card";
 import { Image } from "expo-image";
 import { GlassView } from "expo-glass-effect";
-import {
-  RefereeMatchInviteCard,
-  TeamMatchInviteCard,
-} from "@/types/matches";
-import { LeagueInviteCard } from "@/types/leagues";
+import { NotificationItem, NotificationResponse } from "@/types/notifications";
+import { getInviteContent } from "@/utils/notifications";
 import { getSportLogo } from "@/utils/search";
 
-const denyColor = "#ff5b55";
-
-export type TeamInviteCard = {
-  kind: "team";
-  id: string;
-  teamName: string;
-  inviterName?: string;
-  teamId: string;
-  logoUrl?: string | null;
-  sport?: string | null;
-};
-
-export type InviteCardItem =
-  | TeamInviteCard
-  | LeagueInviteCard
-  | TeamMatchInviteCard
-  | RefereeMatchInviteCard;
-
 type InviteCardProps = Readonly<{
-  invite: InviteCardItem;
-  onAcceptTeam: (inviteId: string) => void;
-  onDeclineTeam: (inviteId: string) => void;
-  onAcceptLeague: (inviteId: string) => void;
-  onDeclineLeague: (inviteId: string) => void;
-  onRespondTeamMatch: (matchId: string, isAccepted: boolean) => void;
-  onRespondRefereeMatch: (matchId: string, isAccepted: boolean) => void;
+  invite: NotificationItem;
+  onRespond: (response: NotificationResponse) => void;
 }>;
 
-export function InviteCard({
-  invite,
-  onAcceptTeam,
-  onDeclineTeam,
-  onAcceptLeague,
-  onDeclineLeague,
-  onRespondTeamMatch,
-  onRespondRefereeMatch,
-}: InviteCardProps) {
+export function InviteCard({ invite, onRespond }: InviteCardProps) {
   const content = getInviteContent(invite);
 
   return (
@@ -77,61 +43,18 @@ export function InviteCard({
           <View style={styles.actions}>
             <InviteActionButton
               label="Deny"
+              onPress={() => onRespond("decline")}
               tone="danger"
-              onPress={content.onDecline}
             />
-            <InviteActionButton label="Accept" onPress={content.onAccept} />
+            <InviteActionButton
+              label="Accept"
+              onPress={() => onRespond("accept")}
+            />
           </View>
         </View>
       </View>
     </Card>
   );
-
-  function getInviteContent(item: InviteCardItem) {
-    if (item.kind === "team") {
-      return {
-        spaceName: item.teamName,
-        logoUrl: item.logoUrl,
-        sport: item.sport,
-        body: `You received an invite${
-          item.inviterName ? ` from ${item.inviterName}` : ""
-        } to join ${item.teamName}.`,
-        onAccept: () => onAcceptTeam(item.id),
-        onDecline: () => onDeclineTeam(item.id),
-      };
-    }
-
-    if (item.kind === "team-match") {
-      return {
-        spaceName: item.homeTeamName,
-        logoUrl: item.logoUrl,
-        sport: item.sport,
-        body: `${item.homeTeamName} invited ${item.awayTeamName} to a team match.`,
-        onAccept: () => onRespondTeamMatch(item.matchId, true),
-        onDecline: () => onRespondTeamMatch(item.matchId, false),
-      };
-    }
-
-    if (item.kind === "referee-match") {
-      return {
-        spaceName: item.homeTeamName,
-        logoUrl: item.logoUrl,
-        sport: item.sport,
-        body: `You received an invitation to referee ${item.homeTeamName} vs ${item.awayTeamName}.`,
-        onAccept: () => onRespondRefereeMatch(item.matchId, true),
-        onDecline: () => onRespondRefereeMatch(item.matchId, false),
-      };
-    }
-
-    return {
-      spaceName: item.leagueName,
-      logoUrl: item.logoUrl,
-      sport: item.sport,
-      body: `You received an invite to join ${item.leagueName} with ${item.teamName}.`,
-      onAccept: () => onAcceptLeague(item.id),
-      onDecline: () => onDeclineLeague(item.id),
-    };
-  }
 }
 
 type InviteActionButtonProps = Readonly<{
@@ -223,7 +146,6 @@ const styles = StyleSheet.create({
     borderRadius: 999,
     justifyContent: "center",
     paddingHorizontal: 24,
-    backgroundColor: "transparent",
   },
   actionLabel: {
     color: "rgba(255,255,255,0.95)",
@@ -232,6 +154,6 @@ const styles = StyleSheet.create({
     textAlign: "center",
   },
   actionLabelDanger: {
-    color: denyColor,
+    color: "#ff5b55",
   },
 });
