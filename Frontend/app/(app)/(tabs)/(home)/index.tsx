@@ -1,14 +1,18 @@
-import { useState } from "react";
+import { useCallback, useState } from "react";
 import { Pressable, StyleSheet } from "react-native";
-import { useUser } from "@clerk/clerk-expo";
+import { useAuth, useUser } from "@clerk/clerk-expo";
 import { Image } from "expo-image";
-import { router, Stack } from "expo-router";
+import { router, Stack, useFocusEffect } from "expo-router";
 import { Logo } from "@/components/header/logo";
 import { ContentArea } from "@/components/ui/content-area";
 import { Empty } from "@/components/ui/empty";
+import { getNotificationsQueryKey } from "@/utils/notifications";
+import { useNotificationsCount } from "@/hooks/use-notifications";
+import { useQueryClient } from "@tanstack/react-query";
 
 function HomeToolbar() {
   const { user } = useUser();
+  const { count } = useNotificationsCount();
 
   return (
     <>
@@ -21,6 +25,11 @@ function HomeToolbar() {
       <Stack.Toolbar placement="right">
         <Stack.Toolbar.Button onPress={() => router.push("/notifications")}>
           <Stack.Toolbar.Icon sf="bell.fill" />
+          {count ? (
+            <Stack.Toolbar.Badge style={styles.badge}>
+              {String(count)}
+            </Stack.Toolbar.Badge>
+          ) : null}
         </Stack.Toolbar.Button>
         {user?.hasImage ? (
           <Stack.Toolbar.View>
@@ -45,6 +54,17 @@ function HomeToolbar() {
 
 export default function Home() {
   const [tab, setTab] = useState<"feed" | "following">("feed");
+  const queryClient = useQueryClient();
+  const { userId } = useAuth();
+
+  useFocusEffect(
+    useCallback(() => {
+      void queryClient.refetchQueries({
+        queryKey: getNotificationsQueryKey(userId),
+        exact: true,
+      });
+    }, [queryClient, userId]),
+  );
 
   return (
     <ContentArea
@@ -69,5 +89,8 @@ const styles = StyleSheet.create({
     width: 36,
     height: 36,
     borderRadius: 100,
+  },
+  badge: {
+    backgroundColor: "red",
   },
 });
