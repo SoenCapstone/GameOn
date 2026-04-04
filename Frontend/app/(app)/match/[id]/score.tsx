@@ -57,7 +57,7 @@ async function invalidateQueriesAfterScoreSubmit(args: {
   const { isLeagueMatch, leagueId, matchId, queryClient, space, spaceId } =
     args;
   const tasks: Promise<unknown>[] = [
-    queryClient.invalidateQueries({ queryKey: ["user-updates"] }),
+    queryClient.invalidateQueries({ queryKey: ["user-notifications"] }),
   ];
 
   if (spaceId) {

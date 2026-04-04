@@ -278,7 +278,9 @@ export default function ScheduleTeamMatchScreen() {
       await queryClient.invalidateQueries({
         queryKey: ["team-matches", teamId],
       });
-      await queryClient.invalidateQueries({ queryKey: ["user-updates"] });
+      await queryClient.invalidateQueries({
+        queryKey: ["user-notifications"],
+      });
       if (requiresReferee && !result.refereeInviteSent) {
         toast("Match scheduled. Referee invite could not be sent.");
       } else {
