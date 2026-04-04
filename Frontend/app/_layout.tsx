@@ -7,7 +7,7 @@ import { useAuth } from "@clerk/clerk-expo";
 import TimeAgo from "javascript-time-ago";
 import en from "javascript-time-ago/locale/en.json";
 import { Providers } from "@/contexts/providers";
-import { Toaster } from "sonner-native";
+import { Toaster } from "@/components/ui/toaster";
 
 TimeAgo.addDefaultLocale(en);
 void SystemUI.setBackgroundColorAsync("black");
