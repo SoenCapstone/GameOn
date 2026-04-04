@@ -1,11 +1,12 @@
 import React from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
-import { Card } from "@/components/ui/card";
 import { Image } from "expo-image";
 import { GlassView } from "expo-glass-effect";
 import { NotificationItem, NotificationResponse } from "@/types/notifications";
 import { getInviteContent } from "@/utils/notifications";
 import { getSportLogo } from "@/utils/search";
+import { AccentColors } from "@/constants/colors";
+import { BlurView } from "expo-blur";
 
 type InviteCardProps = Readonly<{
   invite: NotificationItem;
@@ -16,57 +17,55 @@ export function InviteCard({ invite, onRespond }: InviteCardProps) {
   const content = getInviteContent(invite);
 
   return (
-    <Card isInteractive={false}>
-      <View style={styles.container}>
-        <View style={styles.content}>
-          <View style={styles.header}>
-            <View style={styles.space}>
-              <Image
-                source={
-                  content.logoUrl
-                    ? { uri: content.logoUrl }
-                    : getSportLogo(content.sport)
-                }
-                style={styles.logo}
-                contentFit="contain"
-              />
-              <Text style={styles.name}>{content.spaceName}</Text>
-            </View>
-            <Text style={styles.title}>Invitation</Text>
+    <BlurView tint="systemUltraThinMaterialDark" style={styles.container}>
+      <View style={styles.content}>
+        <View style={styles.header}>
+          <View style={styles.space}>
+            <Image
+              source={
+                content.logoUrl
+                  ? { uri: content.logoUrl }
+                  : getSportLogo(content.sport)
+              }
+              style={styles.logo}
+              contentFit="contain"
+            />
+            <Text style={styles.name}>{content.spaceName}</Text>
           </View>
-
-          <Text style={styles.body}>{content.body}</Text>
+          <Text style={styles.title}>Invitation</Text>
         </View>
 
-        <View style={styles.footer}>
-          <View />
-          <View style={styles.actions}>
-            <InviteActionButton
-              label="Deny"
-              onPress={() => onRespond("decline")}
-              tone="danger"
-            />
-            <InviteActionButton
-              label="Accept"
-              onPress={() => onRespond("accept")}
-            />
-          </View>
+        <Text style={styles.body}>{content.body}</Text>
+      </View>
+
+      <View style={styles.footer}>
+        <View />
+        <View style={styles.actions}>
+          <InviteActionButton
+            label="Decline"
+            onPress={() => onRespond("decline")}
+            destructive
+          />
+          <InviteActionButton
+            label="Accept"
+            onPress={() => onRespond("accept")}
+          />
         </View>
       </View>
-    </Card>
+    </BlurView>
   );
 }
 
 type InviteActionButtonProps = Readonly<{
   label: string;
   onPress: () => void;
-  tone?: "default" | "danger";
+  destructive?: boolean;
 }>;
 
 function InviteActionButton({
   label,
   onPress,
-  tone = "default",
+  destructive = false,
 }: InviteActionButtonProps) {
   return (
     <Pressable onPress={onPress} style={styles.actionPressable}>
@@ -75,12 +74,7 @@ function InviteActionButton({
         isInteractive={true}
         style={styles.actionGlass}
       >
-        <Text
-          style={[
-            styles.actionLabel,
-            tone === "danger" && styles.actionLabelDanger,
-          ]}
-        >
+        <Text style={[styles.actionLabel, destructive && styles.destructive]}>
           {label}
         </Text>
       </GlassView>
@@ -90,7 +84,13 @@ function InviteActionButton({
 
 const styles = StyleSheet.create({
   container: {
-    gap: 14,
+    gap: 16,
+    padding: 24,
+    borderRadius: 34,
+    overflow: "hidden",
+    borderCurve: "continuous",
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: "rgba(255,255,255,0.24)",
   },
   content: {
     gap: 12,
@@ -139,21 +139,22 @@ const styles = StyleSheet.create({
     gap: 12,
   },
   actionPressable: {
-    minWidth: 108,
+    minWidth: 100,
   },
   actionGlass: {
-    height: 44,
+    height: 40,
     borderRadius: 999,
     justifyContent: "center",
     paddingHorizontal: 24,
+    backgroundColor: "transparent",
   },
   actionLabel: {
     color: "rgba(255,255,255,0.95)",
-    fontSize: 17,
+    fontSize: 16,
     fontWeight: "500",
     textAlign: "center",
   },
-  actionLabelDanger: {
-    color: "#ff5b55",
+  destructive: {
+    color: AccentColors.red,
   },
 });
