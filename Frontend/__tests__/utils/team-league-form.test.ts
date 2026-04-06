@@ -1,4 +1,4 @@
-import { Alert } from "react-native";
+import { toast } from "@/utils/toast";
 import {
   clearLogoSelection,
   pickLogo,
@@ -11,6 +11,19 @@ import { AxiosInstance } from "axios";
 jest.mock("@/utils/pick-image", () => ({
   pickImage: jest.fn(),
 }));
+jest.mock("@/utils/toast", () => ({
+  toast: Object.assign(jest.fn(), {
+    success: jest.fn(),
+    error: jest.fn(),
+    warning: jest.fn(),
+    info: jest.fn(),
+    loading: jest.fn(),
+    promise: jest.fn(),
+    dismiss: jest.fn(),
+    wiggle: jest.fn(),
+    custom: jest.fn(),
+  }),
+}));
 
 describe("team-league-form utils", () => {
   beforeEach(() => {
@@ -18,8 +31,7 @@ describe("team-league-form utils", () => {
   });
 
   describe("pickLogo", () => {
-    it("alerts and does not set logo when mime type is unsupported", async () => {
-      const alertSpy = jest.spyOn(Alert, "alert").mockImplementation(jest.fn());
+    it("shows a warning toast and does not set logo when mime type is unsupported", async () => {
       const setPickedLogo = jest.fn();
       (pickImage as jest.Mock).mockImplementation(
         async (onPick: (logo: unknown) => void) => {
@@ -29,10 +41,10 @@ describe("team-league-form utils", () => {
 
       await pickLogo(setPickedLogo);
 
-      expect(alertSpy).toHaveBeenCalledWith(
-        "Unsupported format",
-        "Only images with transparent background are supported for logos.",
-      );
+      expect(toast.warning).toHaveBeenCalledWith("Unsupported Format", {
+        description:
+          "Only images with transparent background are supported for logos.",
+      });
       expect(setPickedLogo).not.toHaveBeenCalled();
     });
 

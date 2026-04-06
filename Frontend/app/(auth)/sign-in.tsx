@@ -11,8 +11,8 @@ import { SIGN_IN_MESSAGE } from "@/constants/sign-up";
 import { useSignIn } from "@clerk/clerk-expo";
 import { ContentArea } from "@/components/ui/content-area";
 import { runtime } from "@/utils/runtime";
+import { toast } from "@/utils/toast";
 import {
-  Alert,
   ActivityIndicator,
   Pressable,
   StyleSheet,
@@ -101,10 +101,10 @@ export default function SignInScreen() {
     const devSignInValues = getDevSignInValues();
 
     if (!devSignInValues) {
-      Alert.alert(
-        "Dev Sign In Error",
-        "Missing EXPO_PUBLIC_DEV_LOGIN_EMAIL or EXPO_PUBLIC_DEV_LOGIN_PASSWORD in your .env file.",
-      );
+      toast.error("Dev Sign In Error", {
+        description:
+          "Missing EXPO_PUBLIC_DEV_LOGIN_EMAIL or EXPO_PUBLIC_DEV_LOGIN_PASSWORD in your .env file.",
+      });
       return;
     }
 

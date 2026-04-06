@@ -1,10 +1,11 @@
 import { useState, useEffect, ReactNode } from "react";
-import { Alert, Pressable } from "react-native";
+import { Pressable } from "react-native";
 import { Stack, useLocalSearchParams, useRouter } from "expo-router";
 import { useNavigation, StackActions } from "@react-navigation/native";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useActionSheet } from "@expo/react-native-action-sheet";
 import ContextMenu from "react-native-context-menu-view";
+import { toast } from "@/utils/toast";
 import { ContentArea } from "@/components/ui/content-area";
 import { Empty } from "@/components/ui/empty";
 import { Form } from "@/components/form/form";
@@ -91,7 +92,9 @@ function LeagueSettingsContent() {
     },
     onError: (err) => {
       log.error("Update league failed", errorToString(err));
-      Alert.alert("Update failed", errorToString(err));
+      toast.error("Update Failed", {
+        description: errorToString(err),
+      });
     },
   });
 
@@ -103,7 +106,9 @@ function LeagueSettingsContent() {
     },
     onError: (err) => {
       log.error("Delete league failed", errorToString(err));
-      Alert.alert("Delete failed", errorToString(err));
+      toast.error("Delete Failed", {
+        description: errorToString(err),
+      });
     },
   });
   const removeTeamMutation = useMutation({
@@ -117,7 +122,9 @@ function LeagueSettingsContent() {
       ]);
     },
     onError: (err) => {
-      Alert.alert("Remove failed", errorToString(err));
+      toast.error("Remove Failed", {
+        description: errorToString(err),
+      });
     },
   });
 

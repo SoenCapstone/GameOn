@@ -1,7 +1,7 @@
 import React from "react";
 import { fireEvent, waitFor } from "@testing-library/react-native";
+import { toast } from "@/utils/toast";
 import {
-  mockAlert,
   renderWithQueryClient,
   setupAuthTestHooks,
 } from "@/__tests__/auth/auth-test-setup";
@@ -13,6 +13,20 @@ const mockAttemptEmailAddressVerification = jest.fn();
 const mockSetActive = jest.fn();
 const mockDeleteUser = jest.fn();
 const mockMutateAsync = jest.fn();
+
+jest.mock("@/utils/toast", () => ({
+  toast: Object.assign(jest.fn(), {
+    success: jest.fn(),
+    error: jest.fn(),
+    warning: jest.fn(),
+    info: jest.fn(),
+    loading: jest.fn(),
+    promise: jest.fn(),
+    dismiss: jest.fn(),
+    wiggle: jest.fn(),
+    custom: jest.fn(),
+  }),
+}));
 
 jest.mock("@clerk/clerk-expo", () => ({
   useSignUp: () => ({
@@ -197,10 +211,9 @@ describe("SignUpScreen", () => {
     fireEvent.press(getByText("Sign Up"));
 
     await waitFor(() => {
-      expect(mockAlert).toHaveBeenCalledWith(
-        "Sign up failed",
-        "Email already exists",
-      );
+      expect(toast.error).toHaveBeenCalledWith("Sign Up Failed", {
+        description: "Email already exists",
+      });
     });
 
     expect(queryByPlaceholderText("123456")).toBeNull();

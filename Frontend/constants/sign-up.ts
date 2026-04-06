@@ -81,6 +81,6 @@ export const signUpInputLabels = (showPassword: boolean): SignUpInputLabel[] =>
   ] as SignUpInputLabel[];
 
 export const EMAIL_VERIFICATION_STATUS = "complete";
-export const SIGN_UP_SUCCESS_MESSAGE = "Profile created successfully!";
+export const SIGN_UP_SUCCESS_MESSAGE = "Profile Created Successfully!";
 export const SIGN_UP_BACKEND_ERROR_MESSAGE =
-  "Error while creating profile! Please try again";
+  "Error While Creating Profile! Please Try Again";

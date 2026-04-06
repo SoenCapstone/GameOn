@@ -3,7 +3,6 @@ import { GlassView } from "expo-glass-effect";
 import { Toaster as SonnerToaster } from "sonner-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { IconSymbol } from "@/components/ui/icon-symbol";
-import type React from "react";
 
 export function Toaster() {
   const insets = useSafeAreaInsets();

@@ -1,7 +1,7 @@
-import { Alert, ToastAndroid, Platform } from "react-native";
 import type { FormikErrors, FormikTouched } from "formik";
 import type { ClerkAPIError, SignUpResource, SetActive } from "@clerk/types";
 import * as Yup from "yup";
+import { toast } from "@/utils/toast";
 import {
   VALIDATION_FIRST_NAME_MESSAGE_LENGTH,
   VALIDATION_FIRST_NAME_MESSAGE_REQUIRED,
@@ -75,11 +75,6 @@ export const humanizeClerkError = (err: unknown): string => {
   }
 };
 
-export const toast = (msg: string): void => {
-  if (Platform.OS === "android") ToastAndroid.show(msg, ToastAndroid.SHORT);
-  else Alert.alert(msg);
-};
-
 export const startClerkSignUp = async (
   values: User,
   isLoaded: boolean,
@@ -99,7 +94,9 @@ export const startClerkSignUp = async (
     await signUp.prepareEmailAddressVerification({ strategy: "email_code" });
     return true;
   } catch (e: unknown) {
-    Alert.alert("Sign up failed", humanizeClerkError(e));
+    toast.error("Sign Up Failed", {
+      description: humanizeClerkError(e),
+    });
     return false;
   }
 };
@@ -123,7 +120,9 @@ export const completeVerificationAndUpsert = async (
 
     if (attempt.status === EMAIL_VERIFICATION_STATUS) {
       if (!attempt.createdSessionId) {
-        Alert.alert("Verification incomplete", "Session could not be created.");
+        toast.error("Verification Incomplete", {
+          description: "Session could not be created.",
+        });
         return;
       }
 
@@ -147,13 +146,14 @@ export const completeVerificationAndUpsert = async (
         return;
       }
     } else {
-      Alert.alert(
-        "Verification incomplete",
-        "Please complete the required steps.",
-      );
+      toast.error("Verification Incomplete", {
+        description: "Please complete the required steps.",
+      });
     }
   } catch (e: unknown) {
-    Alert.alert("Verification failed", humanizeClerkError(e));
+    toast.error("Verification Failed", {
+      description: humanizeClerkError(e),
+    });
   }
 };
 

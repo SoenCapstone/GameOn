@@ -8,6 +8,7 @@ import {
 } from "react";
 import { FormToolbar } from "@/components/form/form-toolbar";
 import { Stack, useLocalSearchParams } from "expo-router";
+import { toast } from "@/utils/toast";
 import type {
   PlaymakerToolbarProps,
   Shape,
@@ -21,7 +22,6 @@ import {
   Text,
   ScrollView,
   RefreshControl,
-  Alert,
 } from "react-native";
 import {
   TeamDetailProvider,
@@ -143,10 +143,14 @@ function PlayMakerContent() {
       return api.post(route, payload);
     },
     onSuccess: () => {
-      Alert.alert("Saved", "Your play was saved successfully.");
+      toast.success("Saved", {
+        description: "Your play was saved successfully.",
+      });
     },
     onError: (err) => {
-      Alert.alert("Error while saving play:", errorToString(err));
+      toast.error("Error While Saving Play", {
+        description: errorToString(err),
+      });
     },
   });
 
@@ -232,7 +236,9 @@ function PlayMakerContent() {
   const onSave = useCallback(() => {
     const shapesToSave = latestShapesRef.current;
     if (!shapesToSave || shapesToSave.length === 0) {
-      Alert.alert("Nothing to save", "Add some shapes on the board first.");
+      toast.warning("Nothing To Save", {
+        description: "Add some shapes on the board first.",
+      });
       return;
     }
     savePlayMutation.mutate(shapesToSave);

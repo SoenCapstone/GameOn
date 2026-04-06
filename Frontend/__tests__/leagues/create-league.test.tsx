@@ -1,10 +1,24 @@
 import React from "react";
 import { render, fireEvent, waitFor } from "@testing-library/react-native";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { Alert } from "react-native";
+import { toast } from "@/utils/toast";
 import CreateLeagueScreen from "@/app/(app)/leagues/create";
 
 const mockBack = jest.fn();
+
+jest.mock("@/utils/toast", () => ({
+  toast: Object.assign(jest.fn(), {
+    success: jest.fn(),
+    error: jest.fn(),
+    warning: jest.fn(),
+    info: jest.fn(),
+    loading: jest.fn(),
+    promise: jest.fn(),
+    dismiss: jest.fn(),
+    wiggle: jest.fn(),
+    custom: jest.fn(),
+  }),
+}));
 
 jest.mock("expo-router", () => ({
   useRouter: () => ({ back: mockBack }),
@@ -134,15 +148,13 @@ describe("CreateLeagueScreen", () => {
   });
 
   it("shows validation errors when required fields missing", () => {
-    const alertSpy = jest.spyOn(Alert, "alert");
     const screen = renderScreen();
 
     fireEvent.press(getCreateButton(screen));
 
-    expect(alertSpy).toHaveBeenCalledWith(
-      "League creation failed",
-      "League name is required",
-    );
+    expect(toast.error).toHaveBeenCalledWith("League Creation Failed", {
+      description: "Fill all required fields",
+    });
   });
 
   it("creates league with PRIVATE privacy by default", async () => {

@@ -1,7 +1,7 @@
 import { useCallback, useState } from "react";
-import { Alert } from "react-native";
 import { useStripe } from "@stripe/stripe-react-native";
 import type { AxiosInstance } from "axios";
+import { toast } from "@/utils/toast";
 import { errorToString } from "@/utils/error";
 import { type PaymentEntityType, runPaymentFlow } from "@/utils/payment";
 
@@ -25,7 +25,7 @@ export function usePayment({
   amount,
   currency = "cad",
   description,
-  successTitle = "Payment successful",
+  successTitle = "Payment Successful",
   successMessage = "Your changes have been applied.",
 }: UsePaymentArgs) {
   const { initPaymentSheet, presentPaymentSheet } = useStripe();
@@ -47,9 +47,13 @@ export function usePayment({
           presentPaymentSheet,
         });
         await onPaidSuccess?.();
-        Alert.alert(successTitle, successMessage);
+        toast.success(successTitle, {
+          description: successMessage,
+        });
       } catch (e) {
-        Alert.alert("Payment failed", errorToString(e));
+        toast.error("Payment Failed", {
+          description: errorToString(e),
+        });
       } finally {
         setIsPaying(false);
       }

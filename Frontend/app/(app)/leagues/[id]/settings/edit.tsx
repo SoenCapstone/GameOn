@@ -1,6 +1,6 @@
 import { useCallback, useLayoutEffect, useState } from "react";
-import { Alert } from "react-native";
 import { useLocalSearchParams, useRouter } from "expo-router";
+import { toast } from "@/utils/toast";
 import { ContentArea } from "@/components/ui/content-area";
 import { Empty } from "@/components/ui/empty";
 import { Form } from "@/components/form/form";
@@ -76,7 +76,9 @@ function EditLeagueContent() {
     },
     onError: (err) => {
       log.error("Update league failed", errorToString(err));
-      Alert.alert("Update failed", errorToString(err));
+      toast.error("Update Failed", {
+        description: errorToString(err),
+      });
     },
   });
 
@@ -89,12 +91,10 @@ function EditLeagueContent() {
   }, []);
 
   const handleSave = useCallback(async () => {
-    if (!leagueName.trim()) {
-      Alert.alert("League update failed", "League name is required");
-      return;
-    }
-    if (!selectedSport) {
-      Alert.alert("League update failed", "Sport is required");
+    if (!leagueName.trim() || !selectedSport) {
+      toast.error("Update Failed", {
+        description: "Fill all required fields",
+      });
       return;
     }
 
@@ -120,7 +120,9 @@ function EditLeagueContent() {
         });
       } catch (err) {
         log.error("Logo upload failed", errorToString(err));
-        Alert.alert("Logo upload failed", errorToString(err));
+        toast.error("Logo Upload Failed", {
+          description: errorToString(err),
+        });
       }
     } else {
       updateLeagueMutation.mutate({

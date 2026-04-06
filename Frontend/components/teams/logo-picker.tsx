@@ -1,7 +1,8 @@
 import React, { useState } from "react";
-import { View, Text, Pressable, Alert } from "react-native";
+import { View, Text, Pressable } from "react-native";
 import { Image } from "expo-image";
 import * as ImagePicker from "expo-image-picker";
+import { toast } from "@/utils/toast";
 import { createTeamStyles as styles } from "@/components/teams/teams-styles";
 
 type Props = {
@@ -15,7 +16,9 @@ export function TeamLogoSection({ value, onChange }: Readonly<Props>) {
   const handlePickLogo = async () => {
     const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
     if (status !== "granted") {
-      Alert.alert("Permission required", "We need access to your photos.");
+      toast.error("Permission Required", {
+        description: "We need access to your photos.",
+      });
       return;
     }
 

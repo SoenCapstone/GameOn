@@ -1,5 +1,5 @@
 import { useMutation } from "@tanstack/react-query";
-import { toast } from "@/utils/sign-up";
+import { toast } from "@/utils/toast";
 import {
   GO_USER_SERVICE_ROUTES,
   useAxiosWithClerk,
