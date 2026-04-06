@@ -1,5 +1,4 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { Alert } from "react-native";
 import {
   RelativePathString,
   useLocalSearchParams,
@@ -24,7 +23,7 @@ import {
   useValidateLeagueMatchSchedule,
 } from "@/hooks/use-matches";
 import { useLeagueDetail } from "@/hooks/use-league-detail";
-import { toast } from "@/utils/sign-up";
+import { toast } from "@/utils/toast";
 import {
   buildStartEndIso,
   formatLocalDateString,
@@ -180,15 +179,21 @@ export default function ScheduleLeagueMatchScreen() {
   useEffect(() => {
     if (teamsQuery.error) {
       log.error("Failed to load league teams for schedule", teamsQuery.error);
-      Alert.alert("Load error", "Could not load teams. Please retry.");
+      toast.error("Load Error", {
+        description: "Could not load teams. Please retry.",
+      });
     }
     if (venuesQuery.error) {
       log.error("Failed to load league venues for schedule", venuesQuery.error);
-      Alert.alert("Load error", "Could not load venues. Please retry.");
+      toast.error("Load Error", {
+        description: "Could not load venues. Please retry.",
+      });
     }
     if (refereesQuery.error) {
       log.error("Failed to load referees for schedule", refereesQuery.error);
-      Alert.alert("Load error", "Could not load referees. Please retry.");
+      toast.error("Load Error", {
+        description: "Could not load referees. Please retry.",
+      });
     }
   }, [refereesQuery.error, teamsQuery.error, venuesQuery.error]);
 
@@ -201,35 +206,23 @@ export default function ScheduleLeagueMatchScreen() {
   }, [params.newVenueId, refetchVenues]);
 
   const handleSubmit = useCallback(async () => {
-    if (!homeTeamId) {
-      Alert.alert("Match schedule failed", "Home team is required");
-      return;
-    }
-    if (!awayTeamId) {
-      Alert.alert("Match schedule failed", "Away team is required");
+    if (
+      !homeTeamId ||
+      !awayTeamId ||
+      !date ||
+      !startTimeValue ||
+      !venueId ||
+      !refereeUserId
+    ) {
+      toast.error("Match Schedule Failed", {
+        description: "Fill all required fields",
+      });
       return;
     }
     if (homeTeamId && awayTeamId && homeTeamId === awayTeamId) {
-      Alert.alert(
-        "Match schedule failed",
-        "Home and away teams must be different",
-      );
-      return;
-    }
-    if (!date) {
-      Alert.alert("Match schedule failed", "Date is required");
-      return;
-    }
-    if (!startTimeValue) {
-      Alert.alert("Match schedule failed", "Start time is required");
-      return;
-    }
-    if (!venueId) {
-      Alert.alert("Match schedule failed", "Venue is required");
-      return;
-    }
-    if (!refereeUserId) {
-      Alert.alert("Match schedule failed", "Referee is required");
+      toast.error("Match Schedule Failed", {
+        description: "Home and away teams must be different",
+      });
       return;
     }
 
@@ -260,7 +253,9 @@ export default function ScheduleLeagueMatchScreen() {
         scheduleTeamNamesById,
       );
       if (validationMessage) {
-        Alert.alert("Match schedule failed", validationMessage);
+        toast.error("Match Schedule Failed", {
+          description: validationMessage,
+        });
         return;
       }
 
@@ -277,7 +272,7 @@ export default function ScheduleLeagueMatchScreen() {
       await queryClient.invalidateQueries({
         queryKey: ["league-matches", leagueId],
       });
-      toast("Match scheduled");
+      toast.success("Match Scheduled");
       router.dismissTo({
         pathname: `/leagues/${leagueId}` as RelativePathString,
         params: { tab: "matches" },

@@ -40,6 +40,7 @@
     "expo": "~55.0.11",
     "expo-auth-session": "~55.0.12",
     "expo-blur": "~55.0.12",
+    "expo-build-properties": "~55.0.11",
     "expo-constants": "~55.0.9",
     "expo-crypto": "~55.0.12",
     "expo-font": "~55.0.4",

@@ -1,5 +1,4 @@
 import { useCallback, useState } from "react";
-import { Alert } from "react-native";
 import { useAuth } from "@clerk/clerk-expo";
 import {
   useMutation,
@@ -8,6 +7,7 @@ import {
   UseQueryOptions,
 } from "@tanstack/react-query";
 import { AxiosError } from "axios";
+import { toast } from "@/utils/toast";
 import {
   leagueNotificationInvalidationKeys,
   notificationCopy,
@@ -68,7 +68,9 @@ export function useNotifications() {
   } = useNotificationsQuery();
 
   const handleInviteResponseError = useCallback((err: unknown) => {
-    Alert.alert(notificationCopy.actionFailedTitle, errorToString(err));
+    toast.error(notificationCopy.actionFailedTitle, {
+      description: errorToString(err),
+    });
   }, []);
 
   const handleTeamMatchInviteResponseError = useCallback((err: unknown) => {
@@ -79,7 +81,9 @@ export function useNotifications() {
       }>,
       "Only the invited team owner can respond to this match invite.",
     );
-    Alert.alert(notificationCopy.matchActionFailedTitle, message);
+    toast.error(notificationCopy.matchActionFailedTitle, {
+      description: message,
+    });
   }, []);
 
   const handleInvitationSuccess = useCallback(
@@ -95,12 +99,16 @@ export function useNotifications() {
         removeNotificationById(current, variables.invitationId),
       );
       await invalidateNotificationQueries(queryClient, args.invalidateKeys);
-      Alert.alert(
-        variables.isAccepted
-          ? notificationCopy.inviteAcceptedTitle
-          : notificationCopy.inviteDeclinedTitle,
-        variables.isAccepted ? args.acceptedMessage : args.declinedMessage,
-      );
+      if (variables.isAccepted) {
+        toast.success(notificationCopy.inviteAcceptedTitle, {
+          description: args.acceptedMessage,
+        });
+        return;
+      }
+
+      toast(notificationCopy.inviteDeclinedTitle, {
+        description: args.declinedMessage,
+      });
     },
     [queryClient, userId],
   );
@@ -125,12 +133,16 @@ export function useNotifications() {
         await invalidateNotificationQueries(queryClient, args.invalidateKeys);
       }
 
-      Alert.alert(
-        variables.isAccepted
-          ? (args.acceptedTitle ?? notificationCopy.inviteAcceptedTitle)
-          : (args.declinedTitle ?? notificationCopy.inviteDeclinedTitle),
-        variables.isAccepted ? args.acceptedMessage : args.declinedMessage,
-      );
+      if (variables.isAccepted) {
+        toast.success(args.acceptedTitle ?? notificationCopy.inviteAcceptedTitle, {
+          description: args.acceptedMessage,
+        });
+        return;
+      }
+
+      toast(args.declinedTitle ?? notificationCopy.inviteDeclinedTitle, {
+        description: args.declinedMessage,
+      });
     },
     [queryClient, userId],
   );

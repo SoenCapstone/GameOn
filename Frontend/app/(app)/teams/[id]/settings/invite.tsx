@@ -1,8 +1,8 @@
 import { useMemo } from "react";
-import { Alert } from "react-native";
 import { Stack, useLocalSearchParams } from "expo-router";
 import { useAuth } from "@clerk/clerk-expo";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { toast } from "@/utils/toast";
 import { ContentArea } from "@/components/ui/content-area";
 import { Empty } from "@/components/ui/empty";
 import { Form } from "@/components/form/form";
@@ -83,10 +83,14 @@ export default function InvitePlayersScreen() {
       await queryClient.invalidateQueries({
         queryKey: ["team-invites", teamId],
       });
-      Alert.alert("Invite sent", "The invitation was sent successfully.");
+      toast.success("Invite Sent", {
+        description: "The invitation was sent successfully.",
+      });
     },
     onError: (err) => {
-      Alert.alert("Invite failed", errorToString(err));
+      toast.error("Invite Failed", {
+        description: errorToString(err),
+      });
     },
   });
 

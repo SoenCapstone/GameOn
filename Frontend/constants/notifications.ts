@@ -19,12 +19,12 @@ export const teamMatchNotificationInvalidationKeys = [
 ] as const;
 
 export const notificationCopy = {
-  actionFailedTitle: "Action failed",
-  matchActionFailedTitle: "Match action failed",
-  inviteAcceptedTitle: "Invite accepted",
-  inviteDeclinedTitle: "Invite declined",
-  matchAcceptedTitle: "Match accepted",
-  matchDeclinedTitle: "Match declined",
+  actionFailedTitle: "Action Failed",
+  matchActionFailedTitle: "Match Action Failed",
+  inviteAcceptedTitle: "Invite Accepted",
+  inviteDeclinedTitle: "Invite Declined",
+  matchAcceptedTitle: "Match Accepted",
+  matchDeclinedTitle: "Match Declined",
   invitationDeclinedMessage: "The invitation was declined.",
   teamInviteAcceptedMessage: "You have joined the team.",
   leagueInviteAcceptedMessage: "The team has joined the league.",

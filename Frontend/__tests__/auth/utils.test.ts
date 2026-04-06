@@ -1,4 +1,5 @@
 import { Alert, Platform, ToastAndroid } from "react-native";
+import { toast } from "@/utils/toast";
 import type { SignUpResource } from "@clerk/types";
 import {
   autoFormatDateInput,
@@ -9,11 +10,24 @@ import {
   parseDate,
   SignUpSchema,
   startClerkSignUp,
-  toast,
 } from "@/utils/sign-up";
 import { EMAIL_VERIFICATION_STATUS } from "@/constants/sign-up";
 import type { SignUpInputLabel } from "@/types/auth";
 import { getDevSignInValues, signin } from "@/utils/sign-in";
+
+jest.mock("@/utils/toast", () => ({
+  toast: Object.assign(jest.fn(), {
+    success: jest.fn(),
+    error: jest.fn(),
+    warning: jest.fn(),
+    info: jest.fn(),
+    loading: jest.fn(),
+    promise: jest.fn(),
+    dismiss: jest.fn(),
+    wiggle: jest.fn(),
+    custom: jest.fn(),
+  }),
+}));
 
 interface MockSignUp {
   create: jest.Mock;
@@ -114,24 +128,6 @@ describe("humanizeClerkError", () => {
   });
 });
 
-describe("toast", () => {
-  it("uses Alert on iOS", () => {
-    Platform.OS = "ios";
-    toast("Hello");
-    expect(mockAlert).toHaveBeenCalledWith("Hello");
-    expect(mockToastAndroidShow).not.toHaveBeenCalled();
-  });
-
-  it("uses ToastAndroid on Android", () => {
-    Platform.OS = "android";
-    toast("Hello");
-    expect(mockToastAndroidShow).toHaveBeenCalledWith(
-      "Hello",
-      ToastAndroid.SHORT,
-    );
-  });
-});
-
 describe("startClerkSignUp", () => {
   const values = {
     firstname: "John",
@@ -181,10 +177,9 @@ describe("startClerkSignUp", () => {
       startClerkSignUp(values, true, mockSignUp as unknown as SignUpResource),
     ).resolves.toBe(false);
 
-    expect(mockAlert).toHaveBeenCalledWith(
-      "Sign up failed",
-      "Email already exists",
-    );
+    expect(toast.error).toHaveBeenCalledWith("Sign Up Failed", {
+      description: "Email already exists",
+    });
   });
 });
 
@@ -270,10 +265,9 @@ describe("completeVerificationAndUpsert", () => {
       mockDeleteUserOnError,
     );
 
-    expect(mockAlert).toHaveBeenCalledWith(
-      "Verification incomplete",
-      "Please complete the required steps.",
-    );
+    expect(toast.error).toHaveBeenCalledWith("Verification Incomplete", {
+      description: "Please complete the required steps.",
+    });
     expect(mockSetActive).not.toHaveBeenCalled();
   });
 
@@ -297,9 +291,7 @@ describe("completeVerificationAndUpsert", () => {
     );
 
     expect(mockDeleteUserOnError).toHaveBeenCalled();
-    expect(mockAlert).toHaveBeenCalledWith(
-      "Error while creating profile! Please try again",
-    );
+    expect(toast).toHaveBeenCalledWith("Error While Creating Profile! Please Try Again");
   });
 
   it("alerts when Clerk rejects the verification code", async () => {
@@ -317,10 +309,9 @@ describe("completeVerificationAndUpsert", () => {
       mockDeleteUserOnError,
     );
 
-    expect(mockAlert).toHaveBeenCalledWith(
-      "Verification failed",
-      "Invalid verification code",
-    );
+    expect(toast.error).toHaveBeenCalledWith("Verification Failed", {
+      description: "Invalid verification code",
+    });
   });
 });
 
@@ -415,6 +406,8 @@ describe("signInUser", () => {
 
     await signin(values, mockSignIn as never, mockSetActive, true);
 
-    expect(mockAlert).toHaveBeenCalledWith("Invalid email or password");
+    expect(toast.error).toHaveBeenCalledWith("Sign In Failed", {
+      description: "Invalid email or password",
+    });
   });
 });
