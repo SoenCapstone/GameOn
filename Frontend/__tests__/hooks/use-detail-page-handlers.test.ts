@@ -1,5 +1,6 @@
 import { renderHook, waitFor, act } from "@testing-library/react-native";
 import { Alert } from "react-native";
+import { toast } from "@/utils/toast";
 import { useDetailPageHandlers } from "@/hooks/use-detail-page-handlers";
 import * as logger from "@/utils/logger";
 
@@ -12,6 +13,20 @@ jest.mock("@/utils/logger", () => ({
 
 jest.mock("@/utils/error", () => ({
   errorToString: jest.fn(String),
+}));
+
+jest.mock("@/utils/toast", () => ({
+  toast: {
+    success: jest.fn(),
+    error: jest.fn(),
+    warning: jest.fn(),
+    info: jest.fn(),
+    loading: jest.fn(),
+    promise: jest.fn(),
+    dismiss: jest.fn(),
+    wiggle: jest.fn(),
+    custom: jest.fn(),
+  },
 }));
 
 jest.spyOn(Alert, "alert");
@@ -76,7 +91,7 @@ describe("useDetailPageHandlers", () => {
       );
     });
 
-    it("shows error alert when deletion fails", async () => {
+    it("shows error toast when deletion fails", async () => {
       const error = new Error("Network error");
       mockConfig.deletePostMutation.mutateAsync.mockRejectedValue(error);
 
@@ -97,9 +112,11 @@ describe("useDetailPageHandlers", () => {
       });
 
       await waitFor(() => {
-        expect(Alert.alert).toHaveBeenCalledWith(
-          "Failed to delete",
-          "Error: Network error",
+        expect(toast.error).toHaveBeenCalledWith(
+          "Failed To Delete",
+          expect.objectContaining({
+            description: "Error: Network error",
+          }),
         );
       });
     });

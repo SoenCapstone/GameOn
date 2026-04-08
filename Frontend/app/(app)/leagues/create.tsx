@@ -1,6 +1,6 @@
 import { useCallback, useState } from "react";
-import { Alert } from "react-native";
 import { useRouter } from "expo-router";
+import { toast } from "@/utils/toast";
 import { ContentArea } from "@/components/ui/content-area";
 import { Form } from "@/components/form/form";
 import { LeagueForm } from "@/components/leagues/league-form";
@@ -69,26 +69,25 @@ export default function CreateLeagueScreen() {
     },
     onSuccess: async () => {
       await queryClient.invalidateQueries({ queryKey: ["leagues"] });
-      Alert.alert(
-        "League created",
-        "Your league has been created successfully.",
-      );
+      toast.success("League Created", {
+        description: "Your league has been created successfully.",
+      });
       router.back();
     },
     onError: (err) => {
       const message = errorToString(err);
       log.error("Create league failed", message);
-      Alert.alert("League creation failed", message);
+      toast.error("League Creation Failed", {
+        description: message,
+      });
     },
   });
 
   const handleCreateLeague = useCallback(() => {
-    if (!leagueName.trim()) {
-      Alert.alert("League creation failed", "League name is required");
-      return;
-    }
-    if (!selectedSport) {
-      Alert.alert("League creation failed", "Sport is required");
+    if (!leagueName.trim() || !selectedSport) {
+      toast.error("League Creation Failed", {
+        description: "Fill all required fields",
+      });
       return;
     }
     createLeagueMutation.mutate();

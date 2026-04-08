@@ -1,10 +1,10 @@
 import { useCallback, useMemo, useState } from "react";
-import { Alert } from "react-native";
 import {
   useLocalSearchParams,
   useRouter,
 } from "expo-router";
 import { useQueryClient } from "@tanstack/react-query";
+import { toast } from "@/utils/toast";
 import { ContentArea } from "@/components/ui/content-area";
 import { Form } from "@/components/form/form";
 import { FormToolbar } from "@/components/form/form-toolbar";
@@ -57,7 +57,7 @@ async function invalidateQueriesAfterScoreSubmit(args: {
   const { isLeagueMatch, leagueId, matchId, queryClient, space, spaceId } =
     args;
   const tasks: Promise<unknown>[] = [
-    queryClient.invalidateQueries({ queryKey: ["user-updates"] }),
+    queryClient.invalidateQueries({ queryKey: ["user-notifications"] }),
   ];
 
   if (spaceId) {
@@ -147,7 +147,9 @@ export default function MatchScoreScreen() {
 
   const onSubmit = useCallback(async () => {
     if (!matchId) {
-      Alert.alert("Score submission failed", "Match was not provided.");
+      toast.error("Score Submission Failed", {
+        description: "Match was not provided.",
+      });
       return;
     }
 
@@ -155,18 +157,16 @@ export default function MatchScoreScreen() {
     const awayScore = parseScore(awayScoreText);
 
     if (homeScore == null || awayScore == null) {
-      Alert.alert(
-        "Score submission failed",
-        "Enter valid non-negative scores for both teams.",
-      );
+      toast.error("Score Submission Failed", {
+        description: "Enter valid non-negative scores for both teams.",
+      });
       return;
     }
 
     if (matchStartTime && endTimeValue.getTime() <= matchStartTime.getTime()) {
-      Alert.alert(
-        "Score submission failed",
-        "End time must be after the match start time.",
-      );
+      toast.error("Score Submission Failed", {
+        description: "End time must be after the match start time.",
+      });
       return;
     }
 
@@ -200,7 +200,9 @@ export default function MatchScoreScreen() {
 
       router.dismiss();
     } catch (err) {
-      Alert.alert("Score submission failed", errorToString(err));
+      toast.error("Score Submission Failed", {
+        description: errorToString(err),
+      });
     }
   }, [
     awayScoreText,
