@@ -2,98 +2,18 @@ import { useCallback, useEffect, useState } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import { RelativePathString, useRouter } from "expo-router";
 import { usePlayDetails } from "@/hooks/use-play-details";
-import type { Shape } from "@/types/playmaker";
+import type { ApiPlayShape, Shape } from "@/types/playmaker";
 import { Card } from "@/components/ui/card";
 import { Empty } from "@/components/ui/empty";
 import { DefaultBoard } from "@/components/play-maker/play-maker-default-board";
 import { useRenderPlayMakerShapes } from "@/hooks/use-render-play-maker-shapes";
 import { Loading } from "@/components/ui/loading";
-
-type ApiPersonShape = {
-  type: "person";
-  id: string;
-  x?: number;
-  y?: number;
-  size?: number;
-  associatedPlayerId?: string;
-};
-
-type ApiArrowShape = {
-  type: "arrow";
-  id: string;
-  from?: {
-    id?: string;
-  };
-  to?: {
-    id?: string;
-  };
-};
-
-type ApiPlayShape = ApiPersonShape | ApiArrowShape;
+import { fromBackendPayload } from "@/utils/playmaker";
 
 type PlayMakerPlayListProps = Readonly<{
   teamId: string;
   plays: string[];
 }>;
-
-function fromBackendPayload(items: ApiPlayShape[]): Shape[] {
-  const toNumber = (value: number | undefined, fallback: number) => {
-    const parsed = typeof value === "number" ? value : Number(value);
-    return Number.isFinite(parsed) ? parsed : fallback;
-  };
-
-  const people: Extract<Shape, { type: "person" }>[] = [];
-  const arrowsRaw: ApiArrowShape[] = [];
-
-  for (const item of items) {
-    if (item.type === "person") {
-      people.push({
-        type: "person",
-        id: item.id,
-        x: toNumber(item.x, 0),
-        y: toNumber(item.y, 0),
-        size: toNumber(item.size, 32),
-        ...(item.associatedPlayerId
-          ? { associatedPlayerId: item.associatedPlayerId }
-          : {}),
-      });
-      continue;
-    }
-
-    arrowsRaw.push(item);
-  }
-
-  const nodeById = new Map(people.map((person) => [person.id, person]));
-  const arrows: Extract<Shape, { type: "arrow" }>[] = [];
-
-  for (const item of arrowsRaw) {
-    const fromNode = item.from?.id ? nodeById.get(item.from.id) : undefined;
-    const toNode = item.to?.id ? nodeById.get(item.to.id) : undefined;
-
-    if (!fromNode || !toNode) {
-      continue;
-    }
-
-    arrows.push({
-      type: "arrow",
-      id: item.id,
-      from: {
-        id: fromNode.id,
-        x: fromNode.x,
-        y: fromNode.y,
-        size: fromNode.size,
-      },
-      to: {
-        id: toNode.id,
-        x: toNode.x,
-        y: toNode.y,
-        size: toNode.size,
-      },
-    });
-  }
-
-  return [...people, ...arrows];
-}
 
 export function PlayMakerPlayList({ teamId, plays }: PlayMakerPlayListProps) {
   const router = useRouter();

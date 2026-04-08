@@ -66,3 +66,25 @@ export type PlaymakerPayloadItem =
       size: number;
       associatedPlayerId?: string;
     };
+
+export type ApiPersonShape = {
+  type: "person";
+  id: string;
+  x?: number;
+  y?: number;
+  size?: number;
+  associatedPlayerId?: string;
+};
+
+export type ApiArrowShape = {
+  type: "arrow";
+  id: string;
+  from?: {
+    id?: string;
+  };
+  to?: {
+    id?: string;
+  };
+};
+
+export type ApiPlayShape = ApiPersonShape | ApiArrowShape;
