@@ -103,4 +103,9 @@ public class RefereeController {
         return ResponseEntity.noContent().build();
     }
 
+    @GetMapping("/referees/my-matches/league")
+    public ResponseEntity<List<LeagueMatchResponse>> listMyLeagueMatches() {
+        return ResponseEntity.ok(refereeService.listMyLeagueMatches());
+    }
+
 }
