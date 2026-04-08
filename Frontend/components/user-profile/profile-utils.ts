@@ -4,6 +4,7 @@ import { File } from "expo-file-system";
 import { errorToString } from "@/utils/error";
 import { UserResource } from "@clerk/types";
 import { AxiosInstance } from "axios";
+import { toast } from "@/utils/toast";
 import { GO_USER_SERVICE_ROUTES } from "@/hooks/use-axios-clerk";
 
 const log = createScopedLog("Profile");
@@ -26,25 +27,17 @@ export const handleSaveProfile = async ({
   image,
   router,
 }: HandleSaveParams) => {
-  if (!firstName?.trim()) {
-    Alert.alert(
-      "First Name must not be empty",
-      "Please enter a valid First Name",
-    );
-    return;
-  }
-
-  if (!lastName?.trim()) {
-    Alert.alert(
-      "Last Name must not be empty",
-      "Please enter a valid Last Name",
-    );
+  if (!firstName?.trim() || !lastName?.trim()) {
+    toast.error("Error", {
+      description: "Fill all required fields",
+    });
     return;
   }
 
   try {
     if (user) {
-      let imageUrl: string | null = user.imageUrl ?? null;
+      let imageUrl: string | null =
+        user.hasImage ? (user.imageUrl ?? null) : null;
 
       await user.update({
         firstName,
@@ -83,10 +76,11 @@ export const handleSaveProfile = async ({
       });
     }
 
-    Alert.alert("Success", "Profile updated");
   } catch (err) {
     log.error("Fetch error:", errorToString(err));
-    Alert.alert("Error", "Failed to update profile: " + errorToString(err));
+    toast.error("Error", {
+      description: "Failed to update profile: " + errorToString(err),
+    });
   }
 
   log.info("Updated Profile:", { firstName, lastName, email, image });

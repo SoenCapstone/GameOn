@@ -1,22 +1,19 @@
-import { useCallback, useLayoutEffect, useState } from "react";
+import { useCallback, useState } from "react";
 import * as Location from "expo-location";
-import {
-  RelativePathString,
-  useLocalSearchParams,
-  useNavigation,
-  useRouter,
-} from "expo-router";
-import { Alert } from "react-native";
 import { useQueryClient } from "@tanstack/react-query";
-import { Header } from "@/components/header/header";
-import { PageTitle } from "@/components/header/page-title";
-import { Button } from "@/components/ui/button";
+import { toast } from "@/utils/toast";
 import { ContentArea } from "@/components/ui/content-area";
 import { Form } from "@/components/form/form";
 import { AccentColors } from "@/constants/colors";
-import { PROVINCE_OPTIONS } from "@/features/matches/utils";
+import { ProvinceOptions } from "@/constants/provinces";
 import { useCreateLeagueVenue, useCreateTeamVenue } from "@/hooks/use-matches";
 import { errorToString } from "@/utils/error";
+import { FormToolbar } from "@/components/form/form-toolbar";
+import {
+  RelativePathString,
+  useLocalSearchParams,
+  useRouter,
+} from "expo-router";
 
 interface AddVenueScreenProps {
   readonly entityId: string;
@@ -52,7 +49,6 @@ export function AddVenueScreen({
     draftRequiresReferee?: string;
     draftRefereeUserId?: string;
   }>();
-  const navigation = useNavigation();
   const router = useRouter();
   const queryClient = useQueryClient();
 
@@ -63,9 +59,9 @@ export function AddVenueScreen({
   const [name, setName] = useState("");
   const [street, setStreet] = useState("");
   const [city, setCity] = useState("");
-  const [province, setProvince] = useState<(typeof PROVINCE_OPTIONS)[number]>(
-    PROVINCE_OPTIONS[0],
-  );
+  const [province, setProvince] = useState<
+    (typeof ProvinceOptions)[number] | undefined
+  >(undefined);
   const [postalCode, setPostalCode] = useState("");
 
   const country = "Canada";
@@ -74,7 +70,7 @@ export function AddVenueScreen({
     name.trim() &&
       street.trim() &&
       city.trim() &&
-      province.trim() &&
+      province?.trim() &&
       postalCode.trim(),
   );
 
@@ -115,17 +111,16 @@ export function AddVenueScreen({
 
   const handleSave = useCallback(async () => {
     if (!canSave) {
-      Alert.alert(
-        "Invalid venue",
-        "Please fill in all required venue details.",
-      );
+      toast.error("Invalid Venue", {
+        description: "Please fill in all required venue details.",
+      });
       return;
     }
 
     const payloadAddress = {
       street: street.trim(),
       city: city.trim(),
-      province: province.trim(),
+      province: province!.trim(),
       postalCode: postalCode.trim(),
       country,
     };
@@ -143,7 +138,9 @@ export function AddVenueScreen({
         err instanceof Error
           ? err.message
           : "We couldn't find this address. Please verify the venue address.";
-      Alert.alert("Address not found", message);
+      toast.error("Address Not Found", {
+        description: message,
+      });
       return;
     }
 
@@ -188,7 +185,9 @@ export function AddVenueScreen({
       const message =
         String(errorToString(err) ?? "Could not create venue.") ||
         "Could not create venue.";
-      Alert.alert("Add venue failed", message);
+      toast.error("Add Venue Failed", {
+        description: message,
+      });
     }
   }, [
     canSave,
@@ -218,32 +217,17 @@ export function AddVenueScreen({
     street,
   ]);
 
-  const renderAddVenueHeader = useCallback(() => {
-    return (
-      <Header
-        left={<Button type="back" />}
-        center={<PageTitle title="Add a Venue" />}
-        right={
-          <Button
-            isInteractive
-            type="custom"
-            label="Add"
-            onPress={handleSave}
-            loading={isSaving}
-          />
-        }
-      />
-    );
-  }, [handleSave, isSaving]);
-
-  useLayoutEffect(() => {
-    navigation.setOptions({
-      headerTitle: renderAddVenueHeader,
-    });
-  }, [navigation, renderAddVenueHeader]);
-
   return (
-    <ContentArea scrollable backgroundProps={{ preset: "red", mode: "form" }}>
+    <ContentArea
+      background={{ preset: "red", mode: "form" }}
+      toolbar={
+        <FormToolbar
+          title="Add a Venue"
+          onSubmit={handleSave}
+          loading={isSaving}
+        />
+      }
+    >
       <Form accentColor={AccentColors.red}>
         <Form.Section>
           <Form.Input
@@ -269,10 +253,11 @@ export function AddVenueScreen({
           />
           <Form.Menu
             label="Province"
-            options={[...PROVINCE_OPTIONS]}
+            placeholder="Select province"
+            options={[...ProvinceOptions]}
             value={province}
             onValueChange={(value) =>
-              setProvince(value as (typeof PROVINCE_OPTIONS)[number])
+              setProvince(value as (typeof ProvinceOptions)[number])
             }
           />
           <Form.Input

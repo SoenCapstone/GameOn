@@ -1,0 +1,424 @@
+import { useCallback, useEffect, useMemo, useState } from "react";
+import {
+  RelativePathString,
+  useLocalSearchParams,
+  useRouter,
+} from "expo-router";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { ContentArea } from "@/components/ui/content-area";
+import { FormToolbar } from "@/components/form/form-toolbar";
+import { Form } from "@/components/form/form";
+import { AccentColors } from "@/constants/colors";
+import { useTeamDetail } from "@/hooks/use-team-detail";
+import {
+  GO_TEAM_SERVICE_ROUTES,
+  useAxiosWithClerk,
+} from "@/hooks/use-axios-clerk";
+import {
+  useCreateTeamMatch,
+  useReferees,
+  useValidateTeamMatchSchedule,
+  useTeamVenues,
+} from "@/hooks/use-matches";
+import {
+  buildVenueOptionMaps,
+  buildVenueOptions,
+  getBlockedScheduleValidationMessage,
+  resolveSelectedVenueLabel,
+} from "@/utils/schedule";
+import { toast } from "@/utils/toast";
+import {
+  buildStartEndIso,
+  formatLocalDateString,
+  parseDraftDate,
+} from "@/utils/date";
+import { createScopedLog } from "@/utils/logger";
+import { showScheduleSubmitError } from "@/utils/schedule-errors";
+import { useRefereeOptions } from "@/hooks/use-referee-options";
+import { MatchDetailsSection } from "@/components/matches/match-details-section";
+
+const log = createScopedLog("Schedule Team Match");
+
+type TeamSummary = {
+  id: string;
+  name: string;
+  sport?: string | null;
+};
+
+export default function ScheduleTeamMatchScreen() {
+  const params = useLocalSearchParams<{
+    id?: string;
+    newVenueId?: string;
+    newVenueName?: string;
+    draftAwayTeamId?: string;
+    draftDate?: string;
+    draftStartTime?: string;
+    draftVenueId?: string;
+    draftRequiresReferee?: string;
+    draftRefereeUserId?: string;
+  }>();
+  const teamId = params.id ?? "";
+  const router = useRouter();
+  const queryClient = useQueryClient();
+  const api = useAxiosWithClerk();
+
+  const { team } = useTeamDetail(teamId);
+
+  const [awayTeamId, setAwayTeamId] = useState("");
+  const [date, setDate] = useState(new Date());
+  const [startTimeValue, setStartTimeValue] = useState(new Date());
+  const [venueId, setVenueId] = useState("");
+  const [requiresReferee, setRequiresReferee] = useState(false);
+  const [refereeUserId, setRefereeUserId] = useState("");
+
+  useEffect(() => {
+    if (params.newVenueId) {
+      setVenueId(params.newVenueId);
+    }
+  }, [params.newVenueId]);
+
+  useEffect(() => {
+    if (params.draftAwayTeamId) {
+      setAwayTeamId(params.draftAwayTeamId);
+    }
+    const draftDate = parseDraftDate(params.draftDate);
+    if (draftDate) setDate(draftDate);
+    const draftStart = parseDraftDate(params.draftStartTime);
+    if (draftStart) setStartTimeValue(draftStart);
+    if (params.draftVenueId && !params.newVenueId) {
+      setVenueId(params.draftVenueId);
+    }
+    if (params.draftRequiresReferee) {
+      setRequiresReferee(params.draftRequiresReferee === "true");
+    }
+    if (params.draftRefereeUserId) {
+      setRefereeUserId(params.draftRefereeUserId);
+    }
+  }, [
+    params.draftAwayTeamId,
+    params.draftDate,
+    params.draftRefereeUserId,
+    params.draftRequiresReferee,
+    params.draftStartTime,
+    params.draftVenueId,
+    params.newVenueId,
+  ]);
+
+  const teamSearch = useQuery<{ items: TeamSummary[] }>({
+    queryKey: ["teams", "", false, team?.sport ?? ""],
+    queryFn: async () => {
+      const resp = await api.get(GO_TEAM_SERVICE_ROUTES.ALL, {
+        params: { size: 80, sport: team?.sport ?? undefined },
+      });
+      return resp.data;
+    },
+    enabled: Boolean(team?.sport),
+    retry: false,
+  });
+
+  const awayTeams = useMemo(
+    () =>
+      (teamSearch.data?.items ?? []).filter(
+        (candidate) => candidate.id !== teamId,
+      ),
+    [teamId, teamSearch.data?.items],
+  );
+
+  const venuesQuery = useTeamVenues({
+    homeTeamId: teamId,
+    awayTeamId: awayTeamId || undefined,
+    enabled: Boolean(teamId),
+  });
+  const refetchVenues = venuesQuery.refetch;
+
+  const venueOptions = useMemo(
+    () => buildVenueOptions(venuesQuery.data),
+    [venuesQuery.data],
+  );
+  const { venueLabelToId, venueIdToLabel } = useMemo(
+    () => buildVenueOptionMaps(venueOptions),
+    [venueOptions],
+  );
+  const selectedVenueLabel = resolveSelectedVenueLabel(
+    venueId,
+    venueIdToLabel,
+    params.newVenueName,
+  );
+
+  const refereesQuery = useReferees({
+    active: true,
+    sport: team?.sport ?? undefined,
+  });
+
+  const createMutation = useCreateTeamMatch(teamId);
+  const validateMutation = useValidateTeamMatchSchedule(teamId);
+
+  const teamNameToId = useMemo(
+    () =>
+      Object.fromEntries(
+        awayTeams.map((candidate) => [candidate.name, candidate.id]),
+      ),
+    [awayTeams],
+  );
+  const awayTeamOptions = awayTeams.map((candidate) => candidate.name);
+  const { refereeOptions, refereeLabelToId, refereeIdToLabel } =
+    useRefereeOptions(refereesQuery.data);
+  const selectedRefereeLabel = refereeUserId
+    ? (refereeIdToLabel[refereeUserId] ?? refereeUserId)
+    : undefined;
+  const scheduleTeamNamesById = useMemo(
+    () => ({
+      ...(teamId ? { [teamId]: team?.name ?? "Home team" } : {}),
+      ...(awayTeamId
+        ? {
+            [awayTeamId]:
+              awayTeams.find((candidate) => candidate.id === awayTeamId)
+                ?.name ?? "Away team",
+          }
+        : {}),
+    }),
+    [awayTeamId, awayTeams, team?.name, teamId],
+  );
+
+  useEffect(() => {
+    if (teamSearch.error) {
+      log.error("Failed to load away teams for schedule", teamSearch.error);
+      toast.error("Load Error", {
+        description: "Could not load teams. Please retry.",
+      });
+    }
+    if (venuesQuery.error) {
+      log.error("Failed to load venues for team schedule", venuesQuery.error);
+      toast.error("Load Error", {
+        description: "Could not load venues. Please retry.",
+      });
+    }
+    if (refereesQuery.error) {
+      log.error(
+        "Failed to load referees for team schedule",
+        refereesQuery.error,
+      );
+      toast.error("Load Error", {
+        description: "Could not load referees. Please retry.",
+      });
+    }
+  }, [refereesQuery.error, teamSearch.error, venuesQuery.error]);
+
+  useEffect(() => {
+    if (params.newVenueId) {
+      refetchVenues().catch((err) => {
+        log.error("Failed to refresh venues after venue creation", err);
+      });
+    }
+  }, [params.newVenueId, refetchVenues]);
+
+  const handleSubmit = useCallback(async () => {
+    if (!awayTeamId || !venueId || (requiresReferee && !refereeUserId)) {
+      toast.error("Match Schedule Failed", {
+        description: "Fill all required fields",
+      });
+      return;
+    }
+    if (awayTeamId === teamId) {
+      toast.error("Match Schedule Failed", {
+        description: "Home and away teams must be different",
+      });
+      return;
+    }
+
+    const startTime = new Date(startTimeValue);
+    const endTime = new Date(startTimeValue);
+    endTime.setMinutes(endTime.getMinutes() + 15);
+
+    const { startTime: startTimeIso, endTime: endTimeIso } = buildStartEndIso(
+      date,
+      startTime,
+      endTime,
+    );
+    const scheduledDate = formatLocalDateString(date);
+
+    try {
+      const validation = await validateMutation.mutateAsync({
+        homeTeamId: teamId,
+        awayTeamId,
+        sport: team?.sport ?? undefined,
+        scheduledDate,
+        startTime: startTimeIso,
+        endTime: endTimeIso,
+        venueId,
+        requiresReferee,
+      });
+
+      const validationMessage = getBlockedScheduleValidationMessage(
+        validation,
+        scheduleTeamNamesById,
+      );
+      if (validationMessage) {
+        toast.error("Match Schedule Failed", {
+          description: validationMessage,
+        });
+        return;
+      }
+
+      const result = await createMutation.mutateAsync({
+        homeTeamId: teamId,
+        awayTeamId,
+        sport: team?.sport ?? undefined,
+        scheduledDate,
+        startTime: startTimeIso,
+        endTime: endTimeIso,
+        venueId,
+        requiresReferee,
+        refereeUserId: requiresReferee ? refereeUserId : undefined,
+      });
+
+      await queryClient.invalidateQueries({
+        queryKey: ["team-matches", teamId],
+      });
+      await queryClient.invalidateQueries({
+        queryKey: ["user-notifications"],
+      });
+      if (requiresReferee && !result.refereeInviteSent) {
+        toast.success("Match Scheduled", {
+          description: "The referee invite could not be sent.",
+        });
+      } else {
+        toast.success("Match Scheduled");
+      }
+      router.dismissTo({
+        pathname: `/teams/${teamId}` as RelativePathString,
+        params: { tab: "matches" },
+      });
+    } catch (err) {
+      showScheduleSubmitError(
+        err,
+        "Only team owner can schedule matches",
+        handleSubmit,
+        scheduleTeamNamesById,
+      );
+    }
+  }, [
+    awayTeamId,
+    date,
+    startTimeValue,
+    venueId,
+    requiresReferee,
+    refereeUserId,
+    createMutation,
+    validateMutation,
+    teamId,
+    team?.sport,
+    scheduleTeamNamesById,
+    queryClient,
+    router,
+  ]);
+
+  return (
+    <ContentArea
+      background={{ preset: "red", mode: "form" }}
+      toolbar={
+        <FormToolbar
+          title="Schedule a Match"
+          icon="calendar.badge.plus"
+          onSubmit={handleSubmit}
+          loading={createMutation.isPending || validateMutation.isPending}
+        />
+      }
+    >
+      <Form accentColor={AccentColors.red}>
+        <Form.Section header="Teams">
+          <Form.Menu
+            label="Home Team"
+            options={[team?.name ?? "My Team"]}
+            value={team?.name ?? "My Team"}
+            onValueChange={() => {}}
+            disabled={true}
+          />
+          <Form.Menu
+            label="Away Team"
+            options={awayTeamOptions}
+            value={
+              awayTeams.find((candidate) => candidate.id === awayTeamId)?.name
+            }
+            placeholder={
+              awayTeamOptions.length === 0
+                ? "No teams available"
+                : "Select team"
+            }
+            onValueChange={(value) => setAwayTeamId(teamNameToId[value])}
+            disabled={
+              createMutation.isPending ||
+              validateMutation.isPending ||
+              teamSearch.isLoading ||
+              awayTeamOptions.length === 0
+            }
+          />
+        </Form.Section>
+
+        <MatchDetailsSection
+          date={date}
+          startTimeValue={startTimeValue}
+          venue={selectedVenueLabel}
+          venueOptions={venueOptions.map((venue) => venue.label)}
+          onDateChange={setDate}
+          onStartTimeChange={setStartTimeValue}
+          onVenueChange={(label) => setVenueId(venueLabelToId[label] ?? "")}
+          onAddVenue={() =>
+            router.push({
+              pathname:
+                `/teams/${teamId}/matches/add-venue` as RelativePathString,
+              params: {
+                id: teamId,
+                homeTeamId: teamId,
+                awayTeamId,
+                draftAwayTeamId: awayTeamId,
+                draftDate: date.toISOString(),
+                draftStartTime: startTimeValue.toISOString(),
+                draftVenueId: venueId,
+                draftRequiresReferee: String(requiresReferee),
+                draftRefereeUserId: refereeUserId,
+              },
+            })
+          }
+        />
+
+        <Form.Section
+          header="Referee"
+          footer={
+            requiresReferee
+              ? undefined
+              : "An official match requires a referee."
+          }
+        >
+          <Form.Switch
+            label="Official Match"
+            value={requiresReferee}
+            onValueChange={setRequiresReferee}
+          />
+
+          {requiresReferee ? (
+            <Form.Menu
+              label="Choose Referee"
+              options={refereeOptions}
+              value={selectedRefereeLabel}
+              placeholder={
+                refereeOptions.length === 0
+                  ? "No referees available"
+                  : "Select referee"
+              }
+              onValueChange={(value) =>
+                setRefereeUserId(refereeLabelToId[value] ?? value)
+              }
+              disabled={
+                createMutation.isPending ||
+                validateMutation.isPending ||
+                refereesQuery.isLoading ||
+                refereeOptions.length === 0
+              }
+            />
+          ) : null}
+        </Form.Section>
+      </Form>
+    </ContentArea>
+  );
+}

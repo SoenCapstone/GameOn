@@ -1,4 +1,5 @@
-import { useState, useCallback } from "react";
+import { useState } from "react";
+import { useMutation } from "@tanstack/react-query";
 
 interface UseRefereeSelectionParams {
   initialItems: string[];
@@ -10,18 +11,21 @@ export function useRefereeSelection({
   onSave,
 }: UseRefereeSelectionParams) {
   const [selectedItems, setSelectedItems] = useState<string[]>(initialItems);
-  const [saving, setSaving] = useState(false);
+  const saveMutation = useMutation({
+    mutationFn: async () => {
+      await onSave(selectedItems);
+    },
+  });
 
   const canSave = selectedItems.length > 0;
 
-  const saveItems = useCallback(async () => {
-    setSaving(true);
-    try {
-      await onSave(selectedItems);
-    } finally {
-      setSaving(false);
-    }
-  }, [onSave, selectedItems]);
+  const saveItems = () => saveMutation.mutateAsync();
 
-  return { selectedItems, setSelectedItems, saveItems, saving, canSave };
+  return {
+    selectedItems,
+    setSelectedItems,
+    saveItems,
+    saving: saveMutation.isPending,
+    canSave,
+  };
 }

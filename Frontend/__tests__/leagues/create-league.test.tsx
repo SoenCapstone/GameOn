@@ -1,18 +1,27 @@
 import React from "react";
 import { render, fireEvent, waitFor } from "@testing-library/react-native";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { Alert } from "react-native";
-import CreateLeagueScreen from "@/app/(contexts)/leagues/create";
+import { toast } from "@/utils/toast";
+import CreateLeagueScreen from "@/app/(app)/leagues/create";
 
 const mockBack = jest.fn();
-const mockSetOptions = jest.fn();
+
+jest.mock("@/utils/toast", () => ({
+  toast: Object.assign(jest.fn(), {
+    success: jest.fn(),
+    error: jest.fn(),
+    warning: jest.fn(),
+    info: jest.fn(),
+    loading: jest.fn(),
+    promise: jest.fn(),
+    dismiss: jest.fn(),
+    wiggle: jest.fn(),
+    custom: jest.fn(),
+  }),
+}));
 
 jest.mock("expo-router", () => ({
   useRouter: () => ({ back: mockBack }),
-}));
-
-jest.mock("@react-navigation/native", () => ({
-  useNavigation: () => ({ setOptions: mockSetOptions }),
 }));
 
 const mockPost: jest.Mock<
@@ -38,9 +47,41 @@ jest.mock("@/hooks/use-axios-clerk", () => ({
   },
 }));
 
-jest.mock("@/components/ui/content-area", () => ({
-  ContentArea: ({ children }: { children?: React.ReactNode }) => children,
-}));
+jest.mock("@/components/ui/content-area", () => {
+  const ReactMock = jest.requireActual("react");
+  return {
+    ContentArea: ({
+      children,
+      toolbar,
+    }: {
+      children?: React.ReactNode;
+      toolbar?: React.ReactNode;
+    }) => ReactMock.createElement(ReactMock.Fragment, null, toolbar, children),
+  };
+});
+
+jest.mock("@/components/form/form-toolbar", () => {
+  const ReactMock = jest.requireActual("react");
+  const { Pressable, Text } = jest.requireActual("react-native");
+  return {
+    FormToolbar: ({
+      label = "Save",
+      onSubmit,
+    }: {
+      label?: string;
+      onSubmit: () => void;
+    }) =>
+      ReactMock.createElement(
+        Pressable,
+        {
+          accessibilityRole: "button",
+          testID: "form-toolbar-submit",
+          onPress: onSubmit,
+        },
+        ReactMock.createElement(Text, null, label),
+      ),
+  };
+});
 
 const mockSetLeagueName = jest.fn();
 const mockSetSelectedSport = jest.fn();
@@ -89,14 +130,8 @@ function renderScreen() {
   );
 }
 
-function getCreateButton() {
-  const opts =
-    mockSetOptions.mock.calls[mockSetOptions.mock.calls.length - 1]?.[0];
-  const Header = opts?.headerTitle;
-  if (!Header || typeof Header !== "function")
-    throw new Error("headerTitle not set");
-  const { getByText } = render(<Header />);
-  return getByText("Create");
+function getCreateButton(screen: ReturnType<typeof renderScreen>) {
+  return screen.getByTestId("form-toolbar-submit");
 }
 
 describe("CreateLeagueScreen", () => {
@@ -113,15 +148,13 @@ describe("CreateLeagueScreen", () => {
   });
 
   it("shows validation errors when required fields missing", () => {
-    const alertSpy = jest.spyOn(Alert, "alert");
-    renderScreen();
+    const screen = renderScreen();
 
-    fireEvent.press(getCreateButton());
+    fireEvent.press(getCreateButton(screen));
 
-    expect(alertSpy).toHaveBeenCalledWith(
-      "League creation failed",
-      "League name is required",
-    );
+    expect(toast.error).toHaveBeenCalledWith("League Creation Failed", {
+      description: "Fill all required fields",
+    });
   });
 
   it("creates league with PRIVATE privacy by default", async () => {
@@ -132,8 +165,8 @@ describe("CreateLeagueScreen", () => {
       selectedSport: { id: "soccer", label: "Soccer" },
     });
 
-    renderScreen();
-    fireEvent.press(getCreateButton());
+    const screen = renderScreen();
+    fireEvent.press(getCreateButton(screen));
 
     await waitFor(() => expect(mockPost).toHaveBeenCalled());
 
@@ -156,8 +189,8 @@ describe("CreateLeagueScreen", () => {
       selectedSport: { id: "soccer", label: "Soccer" },
     });
 
-    renderScreen();
-    fireEvent.press(getCreateButton());
+    const screen = renderScreen();
+    fireEvent.press(getCreateButton(screen));
 
     await waitFor(() => expect(mockBack).toHaveBeenCalled());
   });

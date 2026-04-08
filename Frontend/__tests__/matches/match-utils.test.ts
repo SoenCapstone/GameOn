@@ -3,17 +3,18 @@ import {
   toBadgeStatus,
   sortUpcomingFirst,
   sortPastLatestFirst,
+  formatMatchDate,
   formatMatchDateTime,
   mapTeamsById,
   filterPendingTeamInvitesForOwner,
   buildMatchCards,
   splitMatchSections,
-} from "@/features/matches/utils";
+} from "@/utils/matches";
 import type {
   TeamSummary,
   TeamMatch,
   LeagueMatch,
-} from "@/features/matches/types";
+} from "@/types/matches";
 
 describe("getMatchSection", () => {
   it("returns 'today' when start date is today", () => {
@@ -90,6 +91,13 @@ describe("formatMatchDateTime", () => {
   it("formats date string", () => {
     const date = "2023-01-01T12:34:00Z";
     expect(typeof formatMatchDateTime(date)).toBe("string");
+  });
+});
+
+describe("formatMatchDate", () => {
+  it("formats date without time", () => {
+    const date = "2023-01-01T12:34:00Z";
+    expect(typeof formatMatchDate(date)).toBe("string");
   });
 });
 

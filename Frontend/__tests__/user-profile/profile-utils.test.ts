@@ -1,5 +1,6 @@
 import { Alert } from "react-native";
 import * as ImagePicker from "expo-image-picker";
+import { toast } from "@/utils/toast";
 import { File } from "expo-file-system";
 import {
   handleSaveProfile,
@@ -55,6 +56,20 @@ jest.mock("@/hooks/use-axios-clerk", () => ({
   },
 }));
 
+jest.mock("@/utils/toast", () => ({
+  toast: Object.assign(jest.fn(), {
+    success: jest.fn(),
+    error: jest.fn(),
+    warning: jest.fn(),
+    info: jest.fn(),
+    loading: jest.fn(),
+    promise: jest.fn(),
+    dismiss: jest.fn(),
+    wiggle: jest.fn(),
+    custom: jest.fn(),
+  }),
+}));
+
 const mockFile = File as jest.MockedClass<typeof File>;
 
 describe("handleSaveProfile", () => {
@@ -92,7 +107,7 @@ describe("handleSaveProfile", () => {
     mockAlert.mockRestore();
   });
 
-  it("validates firstName and lastName, showing appropriate alerts", async () => {
+  it("validates firstName and lastName, showing an error toast", async () => {
     await handleSaveProfile({
       api: mockApi as AxiosInstance,
       user: mockUser as unknown as UserResource,
@@ -103,13 +118,12 @@ describe("handleSaveProfile", () => {
       router: mockRouter,
     });
 
-    expect(mockAlert).toHaveBeenCalledWith(
-      "First Name must not be empty",
-      "Please enter a valid First Name",
-    );
+    expect(toast.error).toHaveBeenCalledWith("Error", {
+      description: "Fill all required fields",
+    });
     expect(mockUser.update).not.toHaveBeenCalled();
 
-    mockAlert.mockClear();
+    (toast.error as jest.Mock).mockClear();
 
     await handleSaveProfile({
       api: mockApi as AxiosInstance,
@@ -121,13 +135,12 @@ describe("handleSaveProfile", () => {
       router: mockRouter,
     });
 
-    expect(mockAlert).toHaveBeenCalledWith(
-      "First Name must not be empty",
-      "Please enter a valid First Name",
-    );
+    expect(toast.error).toHaveBeenCalledWith("Error", {
+      description: "Fill all required fields",
+    });
     expect(mockUser.update).not.toHaveBeenCalled();
 
-    mockAlert.mockClear();
+    (toast.error as jest.Mock).mockClear();
 
     await handleSaveProfile({
       api: mockApi as AxiosInstance,
@@ -139,13 +152,12 @@ describe("handleSaveProfile", () => {
       router: mockRouter,
     });
 
-    expect(mockAlert).toHaveBeenCalledWith(
-      "Last Name must not be empty",
-      "Please enter a valid Last Name",
-    );
+    expect(toast.error).toHaveBeenCalledWith("Error", {
+      description: "Fill all required fields",
+    });
     expect(mockUser.update).not.toHaveBeenCalled();
 
-    mockAlert.mockClear();
+    (toast.error as jest.Mock).mockClear();
 
     await handleSaveProfile({
       api: mockApi as AxiosInstance,
@@ -157,10 +169,9 @@ describe("handleSaveProfile", () => {
       router: mockRouter,
     });
 
-    expect(mockAlert).toHaveBeenCalledWith(
-      "Last Name must not be empty",
-      "Please enter a valid Last Name",
-    );
+    expect(toast.error).toHaveBeenCalledWith("Error", {
+      description: "Fill all required fields",
+    });
     expect(mockUser.update).not.toHaveBeenCalled();
   });
 
@@ -184,9 +195,9 @@ describe("handleSaveProfile", () => {
       firstname: "John",
       lastname: "Doe",
       email: "john@example.com",
-      imageUrl: "https://clerk.test/original.jpg",
+      imageUrl: null,
     });
-    expect(mockAlert).toHaveBeenCalledWith("Success", "Profile updated");
+    expect(toast.success).not.toHaveBeenCalled();
     expect(mockRouter.back).toHaveBeenCalled();
 
     jest.clearAllMocks();
@@ -210,7 +221,7 @@ describe("handleSaveProfile", () => {
       email: "john@example.com",
       imageUrl: null,
     });
-    expect(mockAlert).toHaveBeenCalledWith("Success", "Profile updated");
+    expect(toast.success).not.toHaveBeenCalled();
 
     jest.clearAllMocks();
 
@@ -226,7 +237,7 @@ describe("handleSaveProfile", () => {
     });
 
     expect(mockUser.setProfileImage).not.toHaveBeenCalled();
-    expect(mockAlert).toHaveBeenCalledWith("Success", "Profile updated");
+    expect(toast.success).not.toHaveBeenCalled();
   });
 
   it("handles profile image upload with various formats and file types", async () => {
@@ -255,7 +266,7 @@ describe("handleSaveProfile", () => {
     expect(mockUser.setProfileImage).toHaveBeenCalledWith({
       file: "data:image/jpeg;base64,base64string",
     });
-    expect(mockAlert).toHaveBeenCalledWith("Success", "Profile updated");
+    expect(toast.success).not.toHaveBeenCalled();
 
     jest.clearAllMocks();
     mockFile.mockImplementation(() => mockFileInstance as unknown as File);
@@ -306,7 +317,7 @@ describe("handleSaveProfile", () => {
     });
 
     expect(mockUser.setProfileImage).not.toHaveBeenCalled();
-    expect(mockAlert).toHaveBeenCalledWith("Success", "Profile updated");
+    expect(toast.success).not.toHaveBeenCalled();
 
     jest.clearAllMocks();
 
@@ -321,7 +332,7 @@ describe("handleSaveProfile", () => {
     });
 
     expect(mockUser.setProfileImage).not.toHaveBeenCalled();
-    expect(mockAlert).toHaveBeenCalledWith("Success", "Profile updated");
+    expect(toast.success).not.toHaveBeenCalled();
   });
 
   it("handles errors during profile or image update", async () => {
@@ -338,10 +349,9 @@ describe("handleSaveProfile", () => {
       router: mockRouter,
     });
 
-    expect(mockAlert).toHaveBeenCalledWith(
-      "Error",
-      "Failed to update profile: Network error",
-    );
+    expect(toast.error).toHaveBeenCalledWith("Error", {
+      description: "Failed to update profile: Network error",
+    });
     expect(mockRouter.back).toHaveBeenCalled();
 
     jest.clearAllMocks();
@@ -364,10 +374,9 @@ describe("handleSaveProfile", () => {
       router: mockRouter,
     });
 
-    expect(mockAlert).toHaveBeenCalledWith(
-      "Error",
-      "Failed to update profile: Image upload failed",
-    );
+    expect(toast.error).toHaveBeenCalledWith("Error", {
+      description: "Failed to update profile: Image upload failed",
+    });
     expect(mockRouter.back).toHaveBeenCalled();
   });
 });
@@ -396,10 +405,9 @@ describe("pickImage", () => {
     await pickImage(mockSetImage);
 
     expect(ImagePicker.requestMediaLibraryPermissionsAsync).toHaveBeenCalled();
-    expect(mockAlert).toHaveBeenCalledWith(
-      "Permission denied",
-      "You need to allow access to your media library.",
-    );
+    expect(toast.error).toHaveBeenCalledWith("Permission Denied", {
+      description: "You need to allow access to your media library.",
+    });
     expect(mockSetImage).not.toHaveBeenCalled();
 
     jest.clearAllMocks();
@@ -560,10 +568,9 @@ describe("pickImage", () => {
 
     await pickImage(mockSetImage);
 
-    expect(mockAlert).toHaveBeenCalledWith(
-      "Error",
-      "Failed to pick image: Permission error",
-    );
+    expect(toast.error).toHaveBeenCalledWith("Error", {
+      description: "Failed to pick image: Permission error",
+    });
     expect(mockSetImage).not.toHaveBeenCalled();
 
     (
@@ -578,10 +585,9 @@ describe("pickImage", () => {
 
     await pickImage(mockSetImage);
 
-    expect(mockAlert).toHaveBeenCalledWith(
-      "Error",
-      "Failed to pick image: Picker crashed",
-    );
+    expect(toast.error).toHaveBeenCalledWith("Error", {
+      description: "Failed to pick image: Picker crashed",
+    });
     expect(mockSetImage).not.toHaveBeenCalled();
   });
 });

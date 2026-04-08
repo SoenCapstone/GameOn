@@ -1,0 +1,31 @@
+import {
+  EMPTY_STRING,
+  EMAIL_LABEL,
+  EMAIL_PLACEHOLDER,
+  EMAIL_FIELD,
+  EMAIL_AUTO_CAPITALIZE,
+  EMAIL_KEYBOARD_TYPE,
+  passwordInput,
+} from "@/constants/sign-up";
+import { SignUpInputLabel } from "@/types/auth";
+
+export const initialSignInValue = {
+  emailAddress: EMPTY_STRING,
+  password: EMPTY_STRING,
+};
+
+export const FORGOT_PASSWORD_TEXT = "Forgot Password?";
+export const SIGN_UP_TEXT = "Don't have an account?";
+
+export const signInInputLabels = (
+  showPassword: boolean,
+): SignUpInputLabel[] => [
+  {
+    label: EMAIL_LABEL,
+    placeholder: EMAIL_PLACEHOLDER,
+    field: EMAIL_FIELD,
+    autoCapitalize: EMAIL_AUTO_CAPITALIZE,
+    keyboardType: EMAIL_KEYBOARD_TYPE,
+  },
+  passwordInput(showPassword),
+];

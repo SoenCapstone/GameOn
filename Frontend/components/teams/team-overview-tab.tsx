@@ -137,7 +137,6 @@ export function TeamOverviewTab({
 
 const styles = StyleSheet.create({
   overviewWrap: {
-    marginTop: 12,
     gap: 12,
   },
 

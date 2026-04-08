@@ -14,7 +14,7 @@ public class SoccerStandingStrategy implements StandingStrategy {
 
         for (TeamSummaryResponse team : teams) {
             UUID teamId = team.id();
-            standings.put(teamId, new StandingScore(teamId, team.name()));
+            standings.put(teamId, new StandingScore(teamId, team.name(), team.logoUrl()));
         }
 
         for (LeagueMatch match : leagueMatches) {

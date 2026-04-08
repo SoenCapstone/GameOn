@@ -1,7 +1,8 @@
 import React from "react";
 import { render, fireEvent, waitFor, act } from "@testing-library/react-native";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import ScheduleTeamMatchScreen from "@/app/(contexts)/teams/[id]/matches/schedule";
+import { toast } from "@/utils/toast";
+import ScheduleTeamMatchScreen from "@/app/(app)/teams/[id]/matches/schedule";
 const mockSetOptions = jest.fn();
 const mockReplace = jest.fn();
 const mockDismissTo = jest.fn();
@@ -10,10 +11,22 @@ const mockBack = jest.fn();
 const mockCreateTeamMatch = jest.fn();
 const mockValidateTeamMatchSchedule = jest.fn();
 const mockApiGet = jest.fn();
-const mockToast = jest.fn();
-const mockAlert = jest.fn();
 let capturedSubmit: (() => void | Promise<void>) | undefined;
 let scheduleHeaderRenderCount = 0;
+
+jest.mock("@/utils/toast", () => ({
+  toast: Object.assign(jest.fn(), {
+    success: jest.fn(),
+    error: jest.fn(),
+    warning: jest.fn(),
+    info: jest.fn(),
+    loading: jest.fn(),
+    promise: jest.fn(),
+    dismiss: jest.fn(),
+    wiggle: jest.fn(),
+    custom: jest.fn(),
+  }),
+}));
 
 jest.mock("expo-router", () => ({
   useLocalSearchParams: () => ({ id: "team-1", tab: "matches" }),
@@ -27,19 +40,20 @@ jest.mock("expo-router", () => ({
 }));
 
 jest.mock("@/components/ui/content-area", () => ({
-  ContentArea: ({ children }: { children: React.ReactNode }) => children,
+  ContentArea: ({
+    children,
+    toolbar,
+  }: {
+    children: React.ReactNode;
+    toolbar?: React.ReactNode;
+  }) => (
+    <>
+      {toolbar}
+      {children}
+    </>
+  ),
 }));
 
-jest.mock("@/components/header/header", () => ({
-  Header: ({ right }: { right: React.ReactNode }) => {
-    const ReactMock = jest.requireActual("react");
-    return ReactMock.createElement(ReactMock.Fragment, null, right);
-  },
-}));
-
-jest.mock("@/components/header/page-title", () => ({
-  PageTitle: () => null,
-}));
 
 jest.mock("@/components/ui/button", () => ({
   Button: ({
@@ -62,6 +76,18 @@ jest.mock("@/components/ui/button", () => ({
       },
       ReactMock.createElement(Text, null, label),
     );
+  },
+}));
+
+jest.mock("@/components/form/form-toolbar", () => ({
+  FormToolbar: ({
+    onSubmit,
+  }: {
+    onSubmit: () => void | Promise<void>;
+  }) => {
+    capturedSubmit = onSubmit;
+    scheduleHeaderRenderCount += 1;
+    return null;
   },
 }));
 
@@ -193,35 +219,12 @@ jest.mock("@/hooks/use-axios-clerk", () => ({
   },
 }));
 
-jest.mock("@/components/sign-up/utils", () => ({
-  toast: (message: string) => mockToast(message),
-}));
-
 jest.mock("@/utils/logger", () => ({
   createScopedLog: () => ({
     info: jest.fn(),
     warn: jest.fn(),
     error: jest.fn(),
   }),
-}));
-
-jest.mock("@/utils/date", () => {
-  const actual = jest.requireActual("@/utils/date");
-  return {
-    ...actual,
-    isValidTimeRange: () => true,
-  };
-});
-
-jest.mock("@/hooks/use-schedule-header", () => ({
-  useScheduleHeader: ({
-    onSubmit,
-  }: {
-    onSubmit: () => void | Promise<void>;
-  }) => {
-    capturedSubmit = onSubmit;
-    scheduleHeaderRenderCount += 1;
-  },
 }));
 
 async function submitSchedule() {
@@ -247,9 +250,6 @@ describe("ScheduleTeamMatchScreen", () => {
     jest.clearAllMocks();
     capturedSubmit = undefined;
     scheduleHeaderRenderCount = 0;
-
-    const { Alert } = jest.requireActual("react-native");
-    jest.spyOn(Alert, "alert").mockImplementation(mockAlert);
 
     mockCreateTeamMatch.mockResolvedValue({
       match: { id: "m1" },
@@ -314,11 +314,16 @@ describe("ScheduleTeamMatchScreen", () => {
         requiresReferee: false,
       }) as unknown,
     );
+    const createPayload = mockCreateTeamMatch.mock.calls[0]?.[0];
+    expect(createPayload).toBeDefined();
+    expect(
+      new Date(createPayload.startTime).getTime() + 15 * 60 * 1000,
+    ).toBe(new Date(createPayload.endTime).getTime());
     expect(mockDismissTo).toHaveBeenCalledWith({
       pathname: "/teams/team-1",
       params: { tab: "matches" },
     });
-    expect(mockToast).toHaveBeenCalledWith("Match scheduled");
+    expect(toast.success).toHaveBeenCalledWith("Match Scheduled");
   });
 
   it("creates an official team match and includes selected referee", async () => {
@@ -358,6 +363,11 @@ describe("ScheduleTeamMatchScreen", () => {
         refereeUserId: "ref-1",
       }) as unknown,
     );
+    const createPayload = mockCreateTeamMatch.mock.calls[0]?.[0];
+    expect(createPayload).toBeDefined();
+    expect(
+      new Date(createPayload.startTime).getTime() + 15 * 60 * 1000,
+    ).toBe(new Date(createPayload.endTime).getTime());
   });
 
   it("blocks submission when backend validation reports a schedule conflict", async () => {
@@ -382,9 +392,9 @@ describe("ScheduleTeamMatchScreen", () => {
 
     expect(mockValidateTeamMatchSchedule).toHaveBeenCalledTimes(1);
     expect(mockCreateTeamMatch).not.toHaveBeenCalled();
-    expect(mockAlert).toHaveBeenCalledWith(
-      "Match schedule failed",
-      "Rivals already has a confirmed match that overlaps this time or falls within the required 60-minute buffer.",
-    );
+    expect(toast.error).toHaveBeenCalledWith("Match Schedule Failed", {
+      description:
+        "Rivals already has a confirmed match that overlaps this time or falls within the required 60-minute buffer.",
+    });
   });
 });

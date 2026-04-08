@@ -3,6 +3,10 @@ import { StyleSheet, View } from "react-native";
 import { render, fireEvent } from "@testing-library/react-native";
 import { Tabs } from "@/components/ui/tabs";
 
+jest.mock("@/hooks/use-header-height", () => ({
+  useHeaderHeight: jest.fn(() => 0),
+}));
+
 jest.mock("expo-glass-effect", () => {
   const React = jest.requireActual("react");
   const { View } = jest.requireActual("react-native");
@@ -12,7 +16,7 @@ jest.mock("expo-glass-effect", () => {
       ...props
     }: {
       children: React.ReactNode;
-      [key: string]: unknown;
+      [_key: string]: unknown;
     }) => React.createElement(View, props, children),
   };
 });

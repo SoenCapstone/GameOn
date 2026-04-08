@@ -7,7 +7,7 @@ export function Logo() {
     <GlassView style={styles.glass}>
       <Image
         source={require("@/assets/images/logo.png")}
-        style={StyleSheet.absoluteFillObject}
+        style={StyleSheet.absoluteFill}
         contentFit="contain"
       />
     </GlassView>
@@ -19,5 +19,6 @@ const styles = StyleSheet.create({
     width: 44,
     height: 44,
     borderRadius: 14,
+    left: -4,
   },
 });

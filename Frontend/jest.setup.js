@@ -2,8 +2,26 @@
 import "@testing-library/jest-native/extend-expect";
 
 jest.mock("@react-native-async-storage/async-storage", () =>
-  require("@react-native-async-storage/async-storage/jest/async-storage-mock")
+  require("@react-native-async-storage/async-storage/jest/async-storage-mock"),
 );
+
+jest.mock("expo-haptics", () => ({
+  selectionAsync: jest.fn(() => Promise.resolve()),
+  notificationAsync: jest.fn(() => Promise.resolve()),
+  impactAsync: jest.fn(() => Promise.resolve()),
+  ImpactFeedbackStyle: {
+    Light: "light",
+    Medium: "medium",
+    Heavy: "heavy",
+    Rigid: "rigid",
+    Soft: "soft",
+  },
+  NotificationFeedbackType: {
+    Success: "success",
+    Warning: "warning",
+    Error: "error",
+  },
+}));
 
 // expo-linear-gradient mock MUST be a jest.fn so tests can call .mockClear()
 jest.mock("expo-linear-gradient", () => {
@@ -27,4 +45,31 @@ jest.mock("expo-linear-gradient", () => {
   });
 
   return { LinearGradient };
+});
+
+jest.mock("sonner-native", () => {
+  const React = require("react");
+  const { View } = require("react-native");
+
+  const toast = Object.assign(jest.fn(), {
+    success: jest.fn(),
+    error: jest.fn(),
+    warning: jest.fn(),
+    info: jest.fn(),
+    loading: jest.fn(),
+    promise: jest.fn(),
+    dismiss: jest.fn(),
+    wiggle: jest.fn(),
+    custom: jest.fn(),
+  });
+
+  const Toaster = jest.fn((props) =>
+    React.createElement(View, props, props.children),
+  );
+
+  return {
+    __esModule: true,
+    toast,
+    Toaster,
+  };
 });

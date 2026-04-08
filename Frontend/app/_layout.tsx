@@ -1,93 +1,53 @@
-import {
-  DarkTheme,
-  DefaultTheme,
-  ThemeProvider,
-} from "@react-navigation/native";
+import { useEffect } from "react";
 import { Stack } from "expo-router";
 import { StatusBar } from "expo-status-bar";
-import "react-native-reanimated";
 import * as SystemUI from "expo-system-ui";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { ClerkProvider, ClerkLoaded } from "@clerk/clerk-expo";
-import { tokenCache } from "@clerk/clerk-expo/token-cache";
-import { useColorScheme } from "@/hooks/use-color-scheme";
-import { SearchProvider } from "@/contexts/search-context";
-import { FeatureFlagsProvider } from "@/components/feature-flags/feature-flags-context";
-import { KeyboardProvider } from "react-native-keyboard-controller";
-import { ActionSheetProvider } from "@expo/react-native-action-sheet";
+import * as SplashScreen from "expo-splash-screen";
+import { useAuth } from "@clerk/clerk-expo";
 import TimeAgo from "javascript-time-ago";
 import en from "javascript-time-ago/locale/en.json";
-import { StripeProvider } from "@stripe/stripe-react-native";
-import { RefereeProvider } from "@/contexts/referee-context";
+import { Providers } from "@/contexts/providers";
+import { Toaster } from "@/components/ui/toaster";
 
 TimeAgo.addDefaultLocale(en);
+void SystemUI.setBackgroundColorAsync("black");
 
-const queryClient = new QueryClient();
+void SplashScreen.preventAutoHideAsync();
+SplashScreen.setOptions({
+  fade: true,
+});
 
-export default function RootLayout() {
-  const colorScheme = useColorScheme();
-  SystemUI.setBackgroundColorAsync("black");
+function RootStack() {
+  const { isLoaded, isSignedIn } = useAuth();
 
-  const stripeKey = process.env.EXPO_PUBLIC_STRIPE_PUBLISHABLE_KEY;
+  useEffect(() => {
+    if (isLoaded) {
+      SplashScreen.hide();
+    }
+  }, [isLoaded]);
 
-  if (!stripeKey) {
-    throw new Error("Missing EXPO_PUBLIC_STRIPE_PUBLISHABLE_KEY");
+  if (!isLoaded) {
+    return null;
   }
 
   return (
-    <StripeProvider
-      publishableKey={stripeKey}
-      merchantIdentifier="merchant.com.gameon"
-      urlScheme="gameon"
-    >
-      <KeyboardProvider>
-        <ClerkProvider
-          tokenCache={tokenCache}
-          publishableKey={process.env.EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY!}
-        >
-          <QueryClientProvider client={queryClient}>
-            <FeatureFlagsProvider>
-              <ThemeProvider
-                value={colorScheme === "dark" ? DarkTheme : DefaultTheme}
-              >
-                <ActionSheetProvider>
-                  <SearchProvider>
-                    <RefereeProvider>
-                      <ClerkLoaded>
-                        <Stack>
-                          <Stack.Screen
-                            name="(auth)"
-                            options={{ headerShown: false }}
-                          />
-                          <Stack.Screen
-                            name="(tabs)"
-                            options={{ headerShown: false }}
-                          />
-                          <Stack.Screen
-                            name="(contexts)"
-                            options={{ headerShown: false }}
-                          />
-                          <Stack.Screen
-                            name="(sheets)"
-                            options={{
-                              presentation: "formSheet",
-                              sheetAllowedDetents: "fitToContents",
-                              sheetCornerRadius: 58,
-                              contentStyle: { backgroundColor: "transparent" },
-                              headerShown: false,
-                            }}
-                          />
-                        </Stack>
-                        <StatusBar style="auto" />
-                      </ClerkLoaded>
-                    </RefereeProvider>
-                  </SearchProvider>
-                </ActionSheetProvider>
-              </ThemeProvider>
-            </FeatureFlagsProvider>
-          </QueryClientProvider>
-        </ClerkProvider>
-      </KeyboardProvider>
-    </StripeProvider>
+    <Stack screenOptions={{ headerShown: false }}>
+      <Stack.Protected guard={!isSignedIn}>
+        <Stack.Screen name="(auth)" />
+      </Stack.Protected>
+      <Stack.Protected guard={Boolean(isSignedIn)}>
+        <Stack.Screen name="(app)" />
+      </Stack.Protected>
+    </Stack>
+  );
+}
+
+export default function RootLayout() {
+  return (
+    <Providers>
+      <RootStack />
+      <Toaster />
+      <StatusBar style="auto" />
+    </Providers>
   );
 }

@@ -1,12 +1,11 @@
-import React, { ComponentRef } from "react";
-import { View, Text, ActivityIndicator, StyleSheet } from "react-native";
+import React from "react";
+import { StyleSheet } from "react-native";
 import { BoardPost } from "@/components/board/board-types";
 import { Post } from "@/components/board/post";
-import { LegendList } from "@legendapp/list";
-import { createScopedLog } from "@/utils/logger";
+import { LegendList } from "@legendapp/list/react-native";
 import { ImageSource } from "expo-image";
-
-const log = createScopedLog("BoardList");
+import { Empty } from "@/components/ui/empty";
+import { Loading } from "@/components/ui/loading";
 
 interface BoardListProps {
   posts: BoardPost[];
@@ -25,17 +24,8 @@ export function BoardList({
   onDeletePost,
   canDelete = false,
 }: Readonly<BoardListProps>) {
-  const listRef = React.useRef<ComponentRef<typeof LegendList>>(null);
-
-  const handleContentSizeChange = React.useCallback(() => {
-    listRef.current?.scrollToIndex({ index: 0, animated: true });
-    log.info("Scrolled to top, number of posts displayed:", {
-      postCount: posts.length,
-    });
-  }, [posts.length]);
-
   const renderItem = React.useCallback(
-    ({ item }: { item: BoardPost }) => {
+    ({ item }: Readonly<{ item: BoardPost }>) => {
       return (
         <Post
           post={item}
@@ -50,44 +40,24 @@ export function BoardList({
   );
 
   if (isLoading) {
-    return (
-      <View style={styles.container}>
-        <ActivityIndicator size="large" color="#fff" />
-      </View>
-    );
+    return <Loading />;
   }
 
   return (
     <LegendList
-      ref={listRef}
       data={posts}
       keyExtractor={(item) => item?.id}
       style={styles.legendList}
       contentContainerStyle={styles.list}
       renderItem={renderItem}
-      ListEmptyComponent={
-        <View style={styles.container}>
-          <Text style={styles.emptyText}>No posts available</Text>
-        </View>
-      }
+      ListEmptyComponent={<Empty message="No posts available" />}
       recycleItems={true}
       keyboardShouldPersistTaps="handled"
-      onContentSizeChange={handleContentSizeChange}
     />
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    minHeight: 200,
-  },
-  emptyText: {
-    color: "rgba(255,255,255,0.6)",
-    fontSize: 16,
-  },
   legendList: { overflow: "visible" },
   list: {
     gap: 12,
