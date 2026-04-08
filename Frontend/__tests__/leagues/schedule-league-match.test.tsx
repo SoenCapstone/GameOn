@@ -1,6 +1,7 @@
 import React from "react";
 import { render, fireEvent, waitFor, act } from "@testing-library/react-native";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { toast } from "@/utils/toast";
 import ScheduleLeagueMatchScreen from "@/app/(app)/leagues/[id]/matches/schedule";
 const mockSetOptions = jest.fn();
 const mockReplace = jest.fn();
@@ -10,10 +11,22 @@ const mockBack = jest.fn();
 const mockCreateLeagueMatch = jest.fn();
 const mockValidateLeagueMatchSchedule = jest.fn();
 const mockApiGet = jest.fn();
-const mockToast = jest.fn();
-const mockAlert = jest.fn();
 let capturedSubmit: (() => void | Promise<void>) | undefined;
 let scheduleHeaderRenderCount = 0;
+
+jest.mock("@/utils/toast", () => ({
+  toast: Object.assign(jest.fn(), {
+    success: jest.fn(),
+    error: jest.fn(),
+    warning: jest.fn(),
+    info: jest.fn(),
+    loading: jest.fn(),
+    promise: jest.fn(),
+    dismiss: jest.fn(),
+    wiggle: jest.fn(),
+    custom: jest.fn(),
+  }),
+}));
 
 jest.mock("expo-router", () => ({
   useLocalSearchParams: () => ({ id: "league-1", tab: "matches" }),
@@ -200,10 +213,6 @@ jest.mock("@clerk/clerk-expo", () => ({
   }),
 }));
 
-jest.mock("@/utils/sign-up", () => ({
-  toast: (message: string) => mockToast(message),
-}));
-
 jest.mock("@/utils/logger", () => ({
   createScopedLog: () => ({
     info: jest.fn(),
@@ -235,9 +244,6 @@ describe("ScheduleLeagueMatchScreen", () => {
     jest.clearAllMocks();
     capturedSubmit = undefined;
     scheduleHeaderRenderCount = 0;
-
-    const { Alert } = jest.requireActual("react-native");
-    jest.spyOn(Alert, "alert").mockImplementation(mockAlert);
 
     mockCreateLeagueMatch.mockResolvedValue({ id: "m1" });
     mockValidateLeagueMatchSchedule.mockResolvedValue({ allowed: true });
@@ -301,7 +307,7 @@ describe("ScheduleLeagueMatchScreen", () => {
     expect(
       new Date(createPayload.startTime).getTime() + 15 * 60 * 1000,
     ).toBe(new Date(createPayload.endTime).getTime());
-    expect(mockToast).toHaveBeenCalledWith("Match scheduled");
+    expect(toast.success).toHaveBeenCalledWith("Match Scheduled");
     expect(mockDismissTo).toHaveBeenCalledWith({
       pathname: "/leagues/league-1",
       params: { tab: "matches" },
@@ -335,9 +341,9 @@ describe("ScheduleLeagueMatchScreen", () => {
 
     expect(mockValidateLeagueMatchSchedule).toHaveBeenCalledTimes(1);
     expect(mockCreateLeagueMatch).not.toHaveBeenCalled();
-    expect(mockAlert).toHaveBeenCalledWith(
-      "Match schedule failed",
-      "Beta FC already has a confirmed match on this day. League teams are limited to one match per day.",
-    );
+    expect(toast.error).toHaveBeenCalledWith("Match Schedule Failed", {
+      description:
+        "Beta FC already has a confirmed match on this day. League teams are limited to one match per day.",
+    });
   });
 });

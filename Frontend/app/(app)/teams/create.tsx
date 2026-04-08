@@ -1,6 +1,6 @@
 import { useCallback, useState } from "react";
-import { Alert } from "react-native";
 import { useRouter } from "expo-router";
+import { toast } from "@/utils/toast";
 import { ContentArea } from "@/components/ui/content-area";
 import { Form } from "@/components/form/form";
 import { TeamForm } from "@/components/teams/team-form";
@@ -70,27 +70,25 @@ export default function CreateTeamScreen() {
     },
     onSuccess: async () => {
       await queryClient.invalidateQueries({ queryKey: ["teams"] });
-      Alert.alert("Team created", "Your team has been created.");
+      toast.success("Team Created", {
+        description: "Your team has been created.",
+      });
       router.back();
     },
     onError: (err) => {
       const message = errorToString(err);
       log.error("Create team failed", message);
-      Alert.alert("Team creation failed", message);
+      toast.error("Team Creation Failed", {
+        description: message,
+      });
     },
   });
 
   const handleCreateTeam = useCallback(() => {
-    if (!teamName.trim()) {
-      Alert.alert("Team creation failed", "Team name is required");
-      return;
-    }
-    if (!selectedSport) {
-      Alert.alert("Team creation failed", "Sport is required");
-      return;
-    }
-    if (!selectedCity) {
-      Alert.alert("Team creation failed", "City is required");
+    if (!teamName.trim() || !selectedSport || !selectedCity) {
+      toast.error("Team Creation Failed", {
+        description: "Fill all required fields",
+      });
       return;
     }
     if (selectedAllowedRegions.length === 0) {

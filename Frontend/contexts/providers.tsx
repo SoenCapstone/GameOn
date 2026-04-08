@@ -9,6 +9,7 @@ import { ActionSheetProvider } from "@expo/react-native-action-sheet";
 import { RefereeProvider } from "@/contexts/referee-context";
 import { DarkTheme, ThemeProvider } from "@react-navigation/native";
 import { MessagingProvider } from "@/contexts/messaging";
+import { GestureHandlerRootView } from "react-native-gesture-handler";
 
 interface ProvidersProps {
   readonly children: ReactNode;
@@ -41,7 +42,9 @@ export function Providers({ children }: Readonly<ProvidersProps>) {
               <FeatureFlagsProvider>
                 <ActionSheetProvider>
                   <RefereeProvider>
-                    <MessagingProvider>{children}</MessagingProvider>
+                    <GestureHandlerRootView>
+                      <MessagingProvider>{children}</MessagingProvider>
+                    </GestureHandlerRootView>
                   </RefereeProvider>
                 </ActionSheetProvider>
               </FeatureFlagsProvider>

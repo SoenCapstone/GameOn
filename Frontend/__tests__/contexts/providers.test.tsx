@@ -2,14 +2,9 @@ import React from "react";
 import { render } from "@testing-library/react-native";
 import { Text } from "react-native";
 import { Providers } from "@/contexts/providers";
-import { useColorScheme } from "@/hooks/use-color-scheme";
 import { DarkTheme, ThemeProvider } from "@react-navigation/native";
 import { StripeProvider } from "@stripe/stripe-react-native";
 import { ClerkProvider } from "@clerk/clerk-expo";
-
-jest.mock("@/hooks/use-color-scheme", () => ({
-  useColorScheme: jest.fn(),
-}));
 
 jest.mock("@react-navigation/native", () => {
   const ReactModule = jest.requireActual<typeof import("react")>("react");
@@ -93,7 +88,15 @@ jest.mock("@/contexts/messaging", () => {
   };
 });
 
-const mockedUseColorScheme = jest.mocked(useColorScheme);
+jest.mock("react-native-gesture-handler", () => {
+  const ReactModule = jest.requireActual<typeof import("react")>("react");
+
+  return {
+    GestureHandlerRootView: ({ children }: { children: React.ReactNode }) =>
+      ReactModule.createElement(ReactModule.Fragment, null, children),
+  };
+});
+
 const mockedThemeProvider = jest.mocked(ThemeProvider);
 const mockedStripeProvider = jest.mocked(StripeProvider);
 const mockedClerkProvider = jest.mocked(ClerkProvider);
@@ -106,7 +109,6 @@ describe("providers", () => {
     jest.clearAllMocks();
     process.env.EXPO_PUBLIC_STRIPE_PUBLISHABLE_KEY = "pk_test_123";
     process.env.EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY = "clerk_test_123";
-    mockedUseColorScheme.mockReturnValue("light");
   });
 
   afterAll(() => {
@@ -147,21 +149,6 @@ describe("providers", () => {
       expect.objectContaining({
         publishableKey: "clerk_test_123",
       }),
-      undefined,
-    );
-  });
-
-  it("uses the dark navigation theme", () => {
-    mockedUseColorScheme.mockReturnValue("dark");
-
-    render(
-      <Providers>
-        <Text>dark child</Text>
-      </Providers>,
-    );
-
-    expect(mockedThemeProvider).toHaveBeenCalledWith(
-      expect.objectContaining({ value: DarkTheme }),
       undefined,
     );
   });
