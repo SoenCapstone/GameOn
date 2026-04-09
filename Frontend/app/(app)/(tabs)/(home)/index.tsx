@@ -83,8 +83,10 @@ export default function Home() {
   }, []);
 
   const handleRefresh = useCallback(() => {
-    void refetchFeed();
-  }, [refetchFeed]);
+    if (tab === "feed") {
+      void refetchFeed();
+    }
+  }, [refetchFeed, tab]);
 
   useFocusEffect(
     useCallback(() => {
@@ -108,12 +110,7 @@ export default function Home() {
       toolbar={<HomeToolbar />}
       background={{ preset: "blue" }}
       refreshControl={
-        tab === "feed" ? (
-          <RefreshControl
-            refreshing={feedRefetching}
-            onRefresh={handleRefresh}
-          />
-        ) : undefined
+        <RefreshControl refreshing={feedRefetching} onRefresh={handleRefresh} />
       }
     >
       {tab === "feed" ? (
