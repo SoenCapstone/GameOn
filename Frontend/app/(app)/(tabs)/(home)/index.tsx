@@ -2,7 +2,7 @@ import { useCallback, useState } from "react";
 import { Pressable, RefreshControl, StyleSheet } from "react-native";
 import { useAuth, useUser } from "@clerk/clerk-expo";
 import { Image } from "expo-image";
-import { router, Stack, useFocusEffect } from "expo-router";
+import { RelativePathString, router, Stack, useFocusEffect } from "expo-router";
 import { Logo } from "@/components/header/logo";
 import { ContentArea } from "@/components/ui/content-area";
 import { Empty } from "@/components/ui/empty";
@@ -70,9 +70,8 @@ export default function Home() {
 
   const handleMatchPress = useCallback((item: HomeFeedMatchItem) => {
     router.push({
-      pathname: "/match/[id]",
+      pathname: `/match/${item.id}` as RelativePathString,
       params: {
-        id: item.id,
         space: item.space.kind,
         spaceId: item.space.id,
         homeName: item.homeName,
@@ -93,8 +92,7 @@ export default function Home() {
         queryKey: getNotificationsQueryKey(userId),
         exact: true,
       });
-      void refetchFeed();
-    }, [queryClient, refetchFeed, userId]),
+    }, [queryClient, userId]),
   );
 
   return (
