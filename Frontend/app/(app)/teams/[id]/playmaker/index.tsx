@@ -206,7 +206,9 @@ function PlayMakerContent() {
   }, [playsData]);
 
   const isEditing = Boolean(currentPlayId);
-  const toolbarTitle = isEditing ? `Play ${plays.indexOf(currentPlayId!) + 1}` : "New Play";
+  const currentPlayIndex = currentPlayId ? plays.indexOf(currentPlayId) : -1;
+  const toolbarTitle =
+    currentPlayIndex >= 0 ? `Play ${currentPlayIndex + 1}` : "New Play";
 
   const savePlayMutation = useMutation({
     mutationFn: async (shapesToSave: Shape[]) => {
