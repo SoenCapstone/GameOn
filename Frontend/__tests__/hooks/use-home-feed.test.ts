@@ -19,9 +19,7 @@ const mockedUseAuth = useAuth as MockedFunction<typeof useAuth>;
 const mockedUseAxiosWithClerk = useAxiosWithClerk as MockedFunction<
   typeof useAxiosWithClerk
 >;
-const mockedFetchMyTeams = fetchMyTeams as MockedFunction<
-  typeof fetchMyTeams
->;
+const mockedFetchMyTeams = fetchMyTeams as MockedFunction<typeof fetchMyTeams>;
 const mockedFetchUserNameMap = fetchUserNameMap as MockedFunction<
   typeof fetchUserNameMap
 >;
@@ -143,7 +141,10 @@ describe("useHomeFeed", () => {
     ]);
 
     mockGet.mockImplementation(
-      async (url: string, config?: { params?: Record<string, string | number | boolean> }) => {
+      async (
+        url: string,
+        config?: { params?: Record<string, string | number | boolean> },
+      ) => {
         if (url === "/api/v1/leagues" && config?.params?.my === true) {
           return { data: { items: [{ id: "league-2" }] } };
         }
@@ -276,8 +277,12 @@ describe("useHomeFeed", () => {
 
     const result = await options.queryFn();
 
-    const teamMatch = result.find((item) => item.kind === "match" && item.id === "match-team-1");
-    const leagueMatch = result.find((item) => item.kind === "match" && item.id === "match-league-1");
+    const teamMatch = result.find(
+      (item) => item.kind === "match" && item.id === "match-team-1",
+    );
+    const leagueMatch = result.find(
+      (item) => item.kind === "match" && item.id === "match-league-1",
+    );
 
     expect(teamMatch).toEqual(
       expect.objectContaining({
@@ -291,8 +296,12 @@ describe("useHomeFeed", () => {
         contextLabel: "Spring League",
       }),
     );
-    expect(result.some((item) => item.kind === "post" && item.id === "post-1")).toBe(true);
-    expect(result.some((item) => item.kind === "post" && item.id === "post-2")).toBe(true);
+    expect(
+      result.some((item) => item.kind === "post" && item.id === "post-1"),
+    ).toBe(true);
+    expect(
+      result.some((item) => item.kind === "post" && item.id === "post-2"),
+    ).toBe(true);
   });
 
   it("falls back when team and league summary lookups fail", async () => {
@@ -310,7 +319,10 @@ describe("useHomeFeed", () => {
     ]);
 
     mockGet.mockImplementation(
-      async (url: string, config?: { params?: Record<string, string | number | boolean> }) => {
+      async (
+        url: string,
+        config?: { params?: Record<string, string | number | boolean> },
+      ) => {
         if (url === "/api/v1/leagues" && config?.params?.my === true) {
           return { data: { items: [] } };
         }
@@ -410,12 +422,14 @@ describe("useHomeFeed", () => {
 
     const result = await options.queryFn();
 
-    expect(result).toEqual(expect.arrayContaining([
-      expect.objectContaining({ kind: "post", id: "post-1" }),
-      expect.objectContaining({ kind: "post", id: "post-2" }),
-      expect.objectContaining({ kind: "match", id: "match-team-1" }),
-      expect.objectContaining({ kind: "match", id: "match-league-1" }),
-    ]));
+    expect(result).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ kind: "post", id: "post-1" }),
+        expect.objectContaining({ kind: "post", id: "post-2" }),
+        expect.objectContaining({ kind: "match", id: "match-team-1" }),
+        expect.objectContaining({ kind: "match", id: "match-league-1" }),
+      ]),
+    );
   });
 
   it("logs when feed bucket requests are rejected", async () => {
@@ -433,7 +447,10 @@ describe("useHomeFeed", () => {
     ]);
 
     mockGet.mockImplementation(
-      async (url: string, config?: { params?: Record<string, string | number | boolean> }) => {
+      async (
+        url: string,
+        config?: { params?: Record<string, string | number | boolean> },
+      ) => {
         if (url === "/api/v1/leagues" && config?.params?.my === true) {
           return { data: { items: [] } };
         }
@@ -487,7 +504,10 @@ describe("useHomeFeed", () => {
     ]);
 
     mockGet.mockImplementation(
-      async (url: string, config?: { params?: Record<string, string | number | boolean> }) => {
+      async (
+        url: string,
+        config?: { params?: Record<string, string | number | boolean> },
+      ) => {
         if (url === "/api/v1/leagues" && config?.params?.my === true) {
           return { data: { items: [] } };
         }

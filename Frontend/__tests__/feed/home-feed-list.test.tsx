@@ -6,21 +6,19 @@ import type { HomeFeedItem, HomeFeedMatchItem } from "@/types/feed";
 
 const mockReact = jest.requireActual("react") as typeof import("react");
 
-const mockPost = jest.fn(
-  ({ spaceName }: { spaceName: string }) =>
-    React.createElement("Text", { testID: `post-${spaceName}` }, spaceName),
+const mockPost = jest.fn(({ spaceName }: { spaceName: string }) =>
+  React.createElement("Text", { testID: `post-${spaceName}` }, spaceName),
 );
 
-const mockMatchCard = jest.fn(
-  ({ onPress }: { onPress?: () => void }) =>
-    React.createElement(
-      "Pressable",
-      {
-        testID: "match-card",
-        onPress,
-      },
-      null,
-    ),
+const mockMatchCard = jest.fn(({ onPress }: { onPress?: () => void }) =>
+  React.createElement(
+    "Pressable",
+    {
+      testID: "match-card",
+      onPress,
+    },
+    null,
+  ),
 );
 
 jest.mock("@/components/board/post", () => ({
