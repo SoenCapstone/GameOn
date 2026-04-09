@@ -1,5 +1,6 @@
 package com.game.on.go_league_service.league.controller;
 
+import com.game.on.go_league_service.client.dto.TeamMatchDetailResponse;
 import com.game.on.go_league_service.league.dto.*;
 import com.game.on.go_league_service.league.model.RefereeProfile;
 import com.game.on.go_league_service.league.service.RefereeService;
@@ -106,6 +107,11 @@ public class RefereeController {
     @GetMapping("/referees/my-matches/league")
     public ResponseEntity<List<LeagueMatchResponse>> listMyLeagueMatches() {
         return ResponseEntity.ok(refereeService.listMyLeagueMatches());
+    }
+
+    @GetMapping("/referees/my-matches/team")
+    public ResponseEntity<List<TeamMatchDetailResponse>> listMyTeamMatches() {
+        return ResponseEntity.ok(refereeService.listMyTeamMatches());
     }
 
 }

@@ -433,6 +433,11 @@ public class RefereeService {
                 .toList();
     }
 
+    @Transactional(readOnly = true)
+    public List<TeamMatchDetailResponse> listMyTeamMatches() {
+        return teamClient.getMyRefereeMatches();
+    }
+
     private LeagueMatchResponse toMatchResponse(LeagueMatch match, LeagueMatchScore score) {
         return new LeagueMatchResponse(
                 match.getId(),
