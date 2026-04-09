@@ -206,9 +206,6 @@ function PlayMakerContent() {
   }, [playsData]);
 
   const isEditing = Boolean(currentPlayId);
-  const currentPlayIndex = currentPlayId ? plays.indexOf(currentPlayId) : -1;
-  const toolbarTitle =
-    currentPlayIndex >= 0 ? `Play ${currentPlayIndex + 1}` : "New Play";
 
   const savePlayMutation = useMutation({
     mutationFn: async (shapesToSave: Shape[]) => {
@@ -368,7 +365,7 @@ function PlayMakerContent() {
     <>
       <Background preset="red" />
       <PlaymakerToolbar
-        title={toolbarTitle}
+        title="Playmaker"
         onSubmit={onSave}
         onUndo={onUndo}
         loading={savePlayMutation.isPending}
