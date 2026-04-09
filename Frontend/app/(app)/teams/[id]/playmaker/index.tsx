@@ -67,15 +67,7 @@ function PlaymakerToolbar({
   onPlaySelect,
   onNewPlay,
   plays,
-  playsLoading,
-}: PlaymakerToolbarProps & {
-  title: string;
-  currentPlayId: string | null;
-  onPlaySelect: (playId: string) => void;
-  onNewPlay: () => void;
-  plays: string[];
-  playsLoading: boolean;
-}) {
+}: PlaymakerToolbarProps) {
   return (
     <>
       <FormToolbar
@@ -183,7 +175,7 @@ function PlayMakerContent() {
   const { bottom: bottomInset } = useSafeAreaInsets();
   const { data: teamMembers, isLoading: isTeamMembersLoading } =
     useGetTeamMembers(teamId);
-  const { data: playsData, isLoading: playsLoading } = useTeamPlays(teamId);
+  const { data: playsData } = useTeamPlays(teamId);
   const headerHeight = useHeaderHeight();
 
   const [currentPlayId, setCurrentPlayId] = useState<string | null>(null);
@@ -378,7 +370,6 @@ function PlayMakerContent() {
         onPlaySelect={handlePlaySelect}
         onNewPlay={handleNewPlay}
         plays={plays}
-        playsLoading={playsLoading}
       />
       <View
         style={[
