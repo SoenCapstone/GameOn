@@ -1,4 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useAuth } from "@clerk/clerk-expo";
 import { createScopedLog } from "@/utils/logger";
 import {
   BoardPost,
@@ -83,6 +84,7 @@ export function useTeamBoardPosts(teamId: string) {
 export function useCreateBoardPost(teamId: string) {
   const api = useAxiosWithClerk();
   const queryClient = useQueryClient();
+  const { userId } = useAuth();
 
   return useMutation({
     mutationFn: async (payload: CreateBoardPostRequest) => {
@@ -112,6 +114,9 @@ export function useCreateBoardPost(teamId: string) {
       await queryClient.invalidateQueries({
         queryKey: BOARD_QUERY_KEY(teamId),
       });
+      await queryClient.invalidateQueries({
+        queryKey: ["home-feed", userId],
+      });
     },
     onError: (err) => {
       log.error("Failed to create board post:", err);
@@ -122,6 +127,7 @@ export function useCreateBoardPost(teamId: string) {
 export function useDeleteBoardPost(teamId: string) {
   const api = useAxiosWithClerk();
   const queryClient = useQueryClient();
+  const { userId } = useAuth();
 
   return useMutation({
     mutationFn: async (postId: string) => {
@@ -132,6 +138,9 @@ export function useDeleteBoardPost(teamId: string) {
     onSuccess: async () => {
       await queryClient.invalidateQueries({
         queryKey: BOARD_QUERY_KEY(teamId),
+      });
+      await queryClient.invalidateQueries({
+        queryKey: ["home-feed", userId],
       });
     },
     onError: (err, postId) => {

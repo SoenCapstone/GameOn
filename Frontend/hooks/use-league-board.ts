@@ -1,4 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useAuth } from "@clerk/clerk-expo";
 import { createScopedLog } from "@/utils/logger";
 import {
   BoardPost,
@@ -82,6 +83,7 @@ export function useLeagueBoardPosts(leagueId: string) {
 export function useCreateLeagueBoardPost(leagueId: string) {
   const api = useAxiosWithClerk();
   const queryClient = useQueryClient();
+  const { userId } = useAuth();
 
   return useMutation({
     mutationFn: async (payload: CreateBoardPostRequest) => {
@@ -111,6 +113,9 @@ export function useCreateLeagueBoardPost(leagueId: string) {
       await queryClient.invalidateQueries({
         queryKey: LEAGUE_BOARD_QUERY_KEY(leagueId),
       });
+      await queryClient.invalidateQueries({
+        queryKey: ["home-feed", userId],
+      });
     },
     onError: (err) => {
       log.error("Failed to create board post:", err);
@@ -121,6 +126,7 @@ export function useCreateLeagueBoardPost(leagueId: string) {
 export function useDeleteLeagueBoardPost(leagueId: string) {
   const api = useAxiosWithClerk();
   const queryClient = useQueryClient();
+  const { userId } = useAuth();
 
   return useMutation({
     mutationFn: async (postId: string) => {
@@ -130,6 +136,9 @@ export function useDeleteLeagueBoardPost(leagueId: string) {
     onSuccess: async () => {
       await queryClient.invalidateQueries({
         queryKey: LEAGUE_BOARD_QUERY_KEY(leagueId),
+      });
+      await queryClient.invalidateQueries({
+        queryKey: ["home-feed", userId],
       });
     },
     onError: (err, postId) => {

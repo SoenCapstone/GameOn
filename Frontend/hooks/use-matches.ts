@@ -1,6 +1,7 @@
 import { useMemo } from "react";
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { AxiosInstance } from "axios";
+import { useAuth } from "@clerk/clerk-expo";
 import {
   GO_LEAGUE_SERVICE_ROUTES,
   GO_MATCH_ROUTES,
@@ -300,6 +301,8 @@ export function useValidateLeagueMatchSchedule(leagueId: string) {
 
 export function useCreateLeagueMatch(leagueId: string) {
   const api = useAxiosWithClerk();
+  const queryClient = useQueryClient();
+  const { userId } = useAuth();
 
   return useMutation({
     mutationFn: async (payload: {
@@ -328,6 +331,11 @@ export function useCreateLeagueMatch(leagueId: string) {
       );
 
       return createResp.data as LeagueMatch;
+    },
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({
+        queryKey: ["home-feed", userId],
+      });
     },
   });
 }
@@ -371,6 +379,8 @@ export function useValidateTeamMatchSchedule(teamId: string) {
 
 export function useCreateTeamMatch(teamId: string) {
   const api = useAxiosWithClerk();
+  const queryClient = useQueryClient();
+  const { userId } = useAuth();
 
   return useMutation({
     mutationFn: async (payload: {
@@ -418,6 +428,11 @@ export function useCreateTeamMatch(teamId: string) {
       }
 
       return { match: created, refereeInviteSent };
+    },
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({
+        queryKey: ["home-feed", userId],
+      });
     },
   });
 }
