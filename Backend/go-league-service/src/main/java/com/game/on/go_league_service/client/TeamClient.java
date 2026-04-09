@@ -44,4 +44,7 @@ public interface TeamClient {
 
     @GetMapping("/api/v1/teams/{teamId}/matches")
     List<TeamMatchDetailResponse> getAllTeamMatch(@PathVariable UUID teamId);
+
+    @GetMapping("/api/v1/matches/referee")
+    List<TeamMatchDetailResponse> getMyRefereeMatches();
 }
