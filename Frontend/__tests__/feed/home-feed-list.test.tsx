@@ -189,4 +189,25 @@ describe("HomeFeedList", () => {
       }),
     );
   });
+
+  it("wires post press callback with the tapped post item", () => {
+    const onPostPress = jest.fn();
+
+    render(
+      <HomeFeedList
+        items={[postItem]}
+        isLoading={false}
+        errorText={null}
+        onPostPress={onPostPress}
+      />,
+    );
+
+    const firstCall = mockPost.mock.calls[0]?.[0] as
+      | { onPress?: () => void }
+      | undefined;
+
+    expect(firstCall?.onPress).toEqual(expect.any(Function));
+    firstCall?.onPress?.();
+    expect(onPostPress).toHaveBeenCalledWith(postItem);
+  });
 });

@@ -122,8 +122,11 @@ export default function Team() {
 }
 
 function TeamContent() {
-  const params = useLocalSearchParams<{ tab?: string }>();
+  const params = useLocalSearchParams<{ tab?: string; postId?: string | string[] }>();
   const initialTab: TeamTab = parseTeamTab(params.tab);
+  const targetPostId = Array.isArray(params.postId)
+    ? params.postId[0]
+    : params.postId;
   const [tab, setTab] = useState<TeamTab>(initialTab);
   const router = useRouter();
   const log = createScopedLog("Team Page");
@@ -303,6 +306,7 @@ function TeamContent() {
                 }
                 onDeletePost={handleDeletePost}
                 canDelete={canManage}
+                targetPostId={targetPostId}
               />
             )}
             {tab === "matches" && (

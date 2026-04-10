@@ -12,7 +12,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { HomeFeedList } from "@/components/feed/home-feed-list";
 import { useHomeFeed } from "@/hooks/use-home-feed";
 import { errorToString } from "@/utils/error";
-import type { HomeFeedMatchItem } from "@/types/feed";
+import type { HomeFeedMatchItem, HomeFeedPostItem } from "@/types/feed";
 
 function HomeToolbar() {
   const { user } = useUser();
@@ -82,6 +82,21 @@ export default function Home() {
     });
   }, []);
 
+  const handlePostPress = useCallback((item: HomeFeedPostItem) => {
+    const pathname =
+      item.space.kind === "team"
+        ? (`/teams/${item.space.id}` as RelativePathString)
+        : (`/leagues/${item.space.id}` as RelativePathString);
+
+    router.push({
+      pathname,
+      params: {
+        tab: "board",
+        postId: item.id,
+      },
+    });
+  }, []);
+
   const handleRefresh = useCallback(() => {
     if (tab === "feed") {
       void refetchFeed();
@@ -119,6 +134,7 @@ export default function Home() {
           isLoading={feedLoading}
           errorText={feedError ? errorToString(feedError) : null}
           onMatchPress={handleMatchPress}
+          onPostPress={handlePostPress}
         />
       ) : (
         <Empty message="Following feed coming soon" />

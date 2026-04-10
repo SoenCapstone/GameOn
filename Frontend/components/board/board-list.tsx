@@ -1,5 +1,5 @@
-import React from "react";
-import { StyleSheet } from "react-native";
+import React, { ComponentRef, useEffect, useMemo, useRef } from "react";
+import { StyleSheet, useWindowDimensions } from "react-native";
 import { BoardPost } from "@/components/board/board-types";
 import { Post } from "@/components/board/post";
 import { LegendList } from "@legendapp/list/react-native";
@@ -14,6 +14,7 @@ interface BoardListProps {
   spaceLogo: ImageSource;
   onDeletePost?: (postId: string) => void;
   canDelete?: boolean;
+  targetPostId?: string;
 }
 
 export function BoardList({
@@ -23,7 +24,82 @@ export function BoardList({
   spaceLogo,
   onDeletePost,
   canDelete = false,
+  targetPostId,
 }: Readonly<BoardListProps>) {
+  const { height: windowHeight } = useWindowDimensions();
+  const listHeight = Math.max(320, Math.floor(windowHeight * 0.65));
+  const listRef = useRef<ComponentRef<typeof LegendList>>(null);
+  const lastScrolledPostIdRef = useRef<string | null>(null);
+  const pendingTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const pendingIdleRef = useRef<number | null>(null);
+
+  const targetIndex = useMemo(() => {
+    if (!targetPostId) {
+      return -1;
+    }
+
+    return posts.findIndex((post) => post.id === targetPostId);
+  }, [posts, targetPostId]);
+
+  const scrollToTarget = React.useCallback(() => {
+    if (!targetPostId || targetIndex < 0) {
+      return;
+    }
+
+    if (lastScrolledPostIdRef.current === targetPostId) {
+      return;
+    }
+
+    if (pendingTimerRef.current) {
+      clearTimeout(pendingTimerRef.current);
+      pendingTimerRef.current = null;
+    }
+
+    if (
+      pendingIdleRef.current !== null &&
+      typeof globalThis.cancelIdleCallback === "function"
+    ) {
+      globalThis.cancelIdleCallback(pendingIdleRef.current);
+      pendingIdleRef.current = null;
+    }
+
+    const runScroll = () => {
+      pendingTimerRef.current = setTimeout(() => {
+        requestAnimationFrame(() => {
+          listRef.current?.scrollToIndex({ index: targetIndex, animated: true });
+          lastScrolledPostIdRef.current = targetPostId;
+        });
+      }, 60);
+    };
+
+    if (typeof globalThis.requestIdleCallback === "function") {
+      pendingIdleRef.current = globalThis.requestIdleCallback(() => {
+        pendingIdleRef.current = null;
+        runScroll();
+      });
+      return;
+    }
+
+    runScroll();
+  }, [targetIndex, targetPostId]);
+
+  useEffect(() => {
+    scrollToTarget();
+
+    return () => {
+      if (pendingTimerRef.current) {
+        clearTimeout(pendingTimerRef.current);
+      }
+
+      if (
+        pendingIdleRef.current !== null &&
+        typeof globalThis.cancelIdleCallback === "function"
+      ) {
+        globalThis.cancelIdleCallback(pendingIdleRef.current);
+      }
+    };
+  }, [scrollToTarget]);
+
   const renderItem = React.useCallback(
     ({ item }: Readonly<{ item: BoardPost }>) => {
       return (
@@ -45,11 +121,13 @@ export function BoardList({
 
   return (
     <LegendList
+      ref={listRef}
       data={posts}
       keyExtractor={(item) => item?.id}
-      style={styles.legendList}
+      style={[styles.legendList, { minHeight: listHeight, height: listHeight }]}
       contentContainerStyle={styles.list}
       renderItem={renderItem}
+      onContentSizeChange={scrollToTarget}
       ListEmptyComponent={<Empty message="No posts available" />}
       recycleItems={true}
       keyboardShouldPersistTaps="handled"

@@ -1,11 +1,15 @@
 import React, { useCallback } from "react";
-import { StyleSheet, Text, View } from "react-native";
+import { StyleSheet, Text, View, useWindowDimensions } from "react-native";
 import { LegendList } from "@legendapp/list/react-native";
 import { MatchCard } from "@/components/matches/match-card";
 import { Post } from "@/components/board/post";
 import { Empty } from "@/components/ui/empty";
 import { Loading } from "@/components/ui/loading";
-import type { HomeFeedItem, HomeFeedMatchItem } from "@/types/feed";
+import type {
+  HomeFeedItem,
+  HomeFeedMatchItem,
+  HomeFeedPostItem,
+} from "@/types/feed";
 import { getSportLogo } from "@/utils/search";
 
 interface HomeFeedListProps {
@@ -13,6 +17,7 @@ interface HomeFeedListProps {
   readonly isLoading: boolean;
   readonly errorText?: string | null;
   readonly onMatchPress?: (item: HomeFeedMatchItem) => void;
+  readonly onPostPress?: (item: HomeFeedPostItem) => void;
 }
 
 export function HomeFeedList({
@@ -20,7 +25,10 @@ export function HomeFeedList({
   isLoading,
   errorText,
   onMatchPress,
+  onPostPress,
 }: Readonly<HomeFeedListProps>) {
+  const { height: windowHeight } = useWindowDimensions();
+  const listHeight = Math.max(320, Math.floor(windowHeight * 0.65));
   const renderItem = useCallback(
     function renderFeedItem({ item }: Readonly<{ item: HomeFeedItem }>) {
       if (item.kind === "post") {
@@ -32,6 +40,13 @@ export function HomeFeedList({
               item.space.logoUrl
                 ? { uri: item.space.logoUrl }
                 : getSportLogo(item.space.sport)
+            }
+            onPress={
+              onPostPress
+                ? () => {
+                    onPostPress(item);
+                  }
+                : undefined
             }
           />
         );
@@ -60,7 +75,7 @@ export function HomeFeedList({
         />
       );
     },
-    [onMatchPress],
+    [onMatchPress, onPostPress],
   );
 
   if (isLoading) {
@@ -87,7 +102,7 @@ export function HomeFeedList({
           ? `match:${item.id}`
           : `post:${item.space.kind}:${item.space.id}:${item.id}`
       }
-      style={styles.legendList}
+      style={[styles.legendList, { minHeight: listHeight, height: listHeight }]}
       contentContainerStyle={styles.list}
       renderItem={renderItem}
       recycleItems={true}

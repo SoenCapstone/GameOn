@@ -21,6 +21,7 @@ interface PostProps {
   spaceLogo: ImageSource;
   onDelete?: (postId: string) => void;
   canDelete?: boolean;
+  onPress?: () => void;
 }
 
 export function Post({
@@ -29,6 +30,7 @@ export function Post({
   spaceLogo,
   onDelete,
   canDelete = false,
+  onPress,
 }: Readonly<PostProps>) {
   const { showActionSheetWithOptions } = useActionSheet();
   const anchorRef = useRef<View>(null);
@@ -99,12 +101,12 @@ export function Post({
   );
 
   if (!canDelete || !onDelete) {
-    return cardContent;
+    return onPress ? <Pressable onPress={onPress}>{cardContent}</Pressable> : cardContent;
   }
 
   if (isRunningInExpoGo) {
     return (
-      <Pressable ref={anchorRef} onLongPress={handleDelete}>
+      <Pressable ref={anchorRef} onLongPress={handleDelete} onPress={onPress}>
         {cardContent}
       </Pressable>
     );
@@ -126,7 +128,7 @@ export function Post({
       }}
       previewBackgroundColor="transparent"
     >
-      {cardContent}
+      <Pressable onPress={onPress}>{cardContent}</Pressable>
     </ContextMenu>
   );
 }
