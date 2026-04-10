@@ -1,4 +1,4 @@
-package com.game.on.go_user_service.model;
+package com.game.on.go_messaging_service.exception;
 
 import java.time.OffsetDateTime;
 import java.util.Map;
