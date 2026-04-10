@@ -37,6 +37,15 @@ type TeamMatchMemberResponse = {
 
 const log = createScopedLog("Matches");
 
+async function invalidateHomeFeed(
+  queryClient: ReturnType<typeof useQueryClient>,
+  userId: string | null | undefined,
+) {
+  await queryClient.invalidateQueries({
+    queryKey: ["home-feed", userId],
+  });
+}
+
 export function useLeagueTeams(leagueId: string) {
   const api = useAxiosWithClerk();
   return useQuery<LeagueTeamMembership[]>({
@@ -637,6 +646,8 @@ export function useMatchMembersByTeam(matchId: string, teamId: string) {
 
 export function useSubmitLeagueScore(leagueId: string) {
   const api = useAxiosWithClerk();
+  const queryClient = useQueryClient();
+  const { userId } = useAuth();
 
   return useMutation({
     mutationFn: async ({
@@ -656,11 +667,16 @@ export function useSubmitLeagueScore(leagueId: string) {
         endTime,
       });
     },
+    onSuccess: async () => {
+      await invalidateHomeFeed(queryClient, userId);
+    },
   });
 }
 
 export function useSubmitTeamScore() {
   const api = useAxiosWithClerk();
+  const queryClient = useQueryClient();
+  const { userId } = useAuth();
 
   return useMutation({
     mutationFn: async ({
@@ -679,6 +695,9 @@ export function useSubmitTeamScore() {
         awayScore,
         endTime,
       });
+    },
+    onSuccess: async () => {
+      await invalidateHomeFeed(queryClient, userId);
     },
   });
 }
