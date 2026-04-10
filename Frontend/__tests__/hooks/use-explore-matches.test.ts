@@ -1,7 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { renderHook } from "@testing-library/react-native";
 import { useExploreMatches } from "@/hooks/use-explore-matches";
-import { exploreMatchesQueryKey } from "@/utils/explore";
+import { buildExploreMatchesQueryKey } from "@/utils/explore";
 import {
   GO_EXPLORE_ROUTES,
   useAxiosWithClerk,
@@ -129,7 +129,7 @@ describe("useExploreMatches", () => {
     expect(useQuery).toHaveBeenLastCalledWith(
       expect.objectContaining({
         enabled: true,
-        queryKey: exploreMatchesQueryKey(
+        queryKey: buildExploreMatchesQueryKey(
           {
             latitude: 43,
             longitude: -79,
@@ -209,7 +209,7 @@ describe("useExploreMatches", () => {
 
     expect(useQuery).toHaveBeenLastCalledWith(
       expect.objectContaining({
-        queryKey: exploreMatchesQueryKey(
+        queryKey: buildExploreMatchesQueryKey(
           { latitude: 43, longitude: -79, rangeKm: 10 },
           "league",
         ),
@@ -266,7 +266,7 @@ describe("useExploreMatches", () => {
 
     expect(useQuery).toHaveBeenLastCalledWith(
       expect.objectContaining({
-        queryKey: exploreMatchesQueryKey(
+        queryKey: buildExploreMatchesQueryKey(
           { latitude: 43, longitude: -79, rangeKm: 10 },
           "team",
         ),

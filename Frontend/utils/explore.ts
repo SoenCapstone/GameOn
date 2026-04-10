@@ -1,4 +1,5 @@
 import type { LeagueMatch, TeamMatch } from "@/types/matches";
+import { exploreMatchesQueryKey } from "@/constants/explore";
 import type {
   ExploreMatchesFilter,
   ExploreMatchesParams,
@@ -30,12 +31,12 @@ export function buildExploreMatchesBody(
   };
 }
 
-export function exploreMatchesQueryKey(
+export function buildExploreMatchesQueryKey(
   body: ExploreMatchesResolvedParams,
   filter: ExploreMatchesFilter = "all",
 ) {
   return [
-    "explore-matches",
+    ...exploreMatchesQueryKey,
     filter,
     body.sport ?? "all",
     body.latitude,

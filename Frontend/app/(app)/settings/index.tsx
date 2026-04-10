@@ -12,6 +12,12 @@ import { images } from "@/constants/images";
 import { Alert } from "react-native";
 import { toast } from "@/utils/toast";
 import { useReferee } from "@/contexts/referee-context";
+import { useExplorePreferences } from "@/hooks/use-explore-preferences";
+import {
+  exploreSportOptions,
+  exploreLocationOptions,
+  exploreRangeOptions,
+} from "@/constants/explore";
 
 function SettingToolbar() {
   return <Stack.Screen.Title>Settings</Stack.Screen.Title>;
@@ -21,6 +27,7 @@ export default function Settings() {
   const { signOut } = useAuth();
   const { isLoaded, isSignedIn, user } = useUser();
   const { flags, toggleFlag } = useFeatureFlags();
+
   const {
     isReferee,
     isActive,
@@ -30,6 +37,13 @@ export default function Settings() {
     toggleRefereeStatus,
     refresh,
   } = useReferee();
+
+  const {
+    preferences: explorePreferences,
+    setSport: setExploreSport,
+    setLocation: setExploreLocation,
+    setRangeKm: setExploreRange,
+  } = useExplorePreferences();
 
   const isDev = (user?.publicMetadata as { isDev?: boolean })?.isDev === true;
 
@@ -112,6 +126,39 @@ export default function Settings() {
             }
             onPress={() => {
               router.push("/settings/profile/edit");
+            }}
+          />
+        </Form.Section>
+        <Form.Section
+          header="Explore Preferences"
+          footer="Range determines the maximum distance to a game shown in the explore tab from the set location."
+        >
+          <Form.Menu
+            label="Sport"
+            placeholder="Select sport"
+            options={exploreSportOptions}
+            value={explorePreferences.sport}
+            onValueChange={setExploreSport}
+          />
+          <Form.Menu
+            label="Location"
+            placeholder="Select location"
+            options={exploreLocationOptions}
+            value={explorePreferences.location}
+            onValueChange={setExploreLocation}
+          />
+          <Form.Menu
+            label="Range"
+            placeholder="Select range"
+            options={exploreRangeOptions.map((o) => o.label)}
+            value={
+              exploreRangeOptions.find(
+                (o) => o.value === explorePreferences.rangeKm,
+              )?.label
+            }
+            onValueChange={(label) => {
+              const option = exploreRangeOptions.find((o) => o.label === label);
+              if (option) setExploreRange(option.value);
             }}
           />
         </Form.Section>

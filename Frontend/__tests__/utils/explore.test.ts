@@ -1,9 +1,9 @@
-import { exploreMatchesQueryKey } from "@/utils/explore";
+import { buildExploreMatchesQueryKey } from "@/utils/explore";
 
-describe("exploreMatchesQueryKey", () => {
+describe("buildExploreMatchesQueryKey", () => {
   it("includes filter, sport or all placeholder, and coordinates", () => {
     expect(
-      exploreMatchesQueryKey(
+      buildExploreMatchesQueryKey(
         {
           latitude: 43.65,
           longitude: -79.38,
@@ -15,7 +15,7 @@ describe("exploreMatchesQueryKey", () => {
     ).toEqual(["explore-matches", "all", "soccer", 43.65, -79.38, 10]);
 
     expect(
-      exploreMatchesQueryKey({
+      buildExploreMatchesQueryKey({
         latitude: 1,
         longitude: 2,
         rangeKm: 5,
@@ -23,7 +23,7 @@ describe("exploreMatchesQueryKey", () => {
     ).toEqual(["explore-matches", "all", "all", 1, 2, 5]);
 
     expect(
-      exploreMatchesQueryKey(
+      buildExploreMatchesQueryKey(
         {
           latitude: 1,
           longitude: 2,
