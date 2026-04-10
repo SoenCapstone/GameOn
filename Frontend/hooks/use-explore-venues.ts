@@ -11,28 +11,33 @@ import {
 export function useExploreVenues(matches: ExploreMatchItem[]) {
   const api = useAxiosWithClerk();
 
-  const queries = useMemo(
-    () =>
-      matches
-        .filter((m) => m.match.venueId)
-        .map((m) => ({
+  const queries = useMemo(() => {
+    const seen = new Set<string>();
+    return matches
+      .filter((m) => {
+        if (!m.match.venueId || seen.has(m.match.venueId)) return false;
+        seen.add(m.match.venueId);
+        return true;
+      })
+      .map((m) => {
+        const venueId = m.match.venueId as string;
+        return {
           queryKey: [
             m.kind === "league" ? "league-venue" : "team-venue",
-            m.match.venueId!,
+            venueId,
           ],
           queryFn: async () => {
             const route =
               m.kind === "league"
-                ? GO_LEAGUE_SERVICE_ROUTES.VENUE(m.match.venueId!)
-                : GO_TEAM_SERVICE_ROUTES.VENUE(m.match.venueId!);
+                ? GO_LEAGUE_SERVICE_ROUTES.VENUE(venueId)
+                : GO_TEAM_SERVICE_ROUTES.VENUE(venueId);
             const resp = await api.get<Venue>(route);
             return resp.data;
           },
-          enabled: Boolean(m.match.venueId),
           retry: false as const,
-        })),
-    [matches, api],
-  );
+        };
+      });
+  }, [matches, api]);
 
   const results = useQueries({ queries });
 
