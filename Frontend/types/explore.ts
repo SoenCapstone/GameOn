@@ -28,3 +28,9 @@ export type ExploreTeamMatchItem = {
 };
 
 export type ExploreMatchItem = ExploreLeagueMatchItem | ExploreTeamMatchItem;
+
+export type ExplorePreferences = {
+  sport: string | undefined;
+  location: string | undefined;
+  rangeKm: number | undefined;
+};

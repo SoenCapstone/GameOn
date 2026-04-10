@@ -1,5 +1,6 @@
 import { useCallback, useState } from "react";
 import { useQuery, type UseQueryOptions } from "@tanstack/react-query";
+import { exploreMatchesQueryKey } from "@/constants/explore";
 import type { LeagueMatch, TeamMatch } from "@/types/matches";
 import type { ExploreMatchItem, ExploreMatchesParams } from "@/types/explore";
 import {
@@ -8,7 +9,7 @@ import {
 } from "@/hooks/use-axios-clerk";
 import {
   buildExploreMatchesBody,
-  exploreMatchesQueryKey,
+  buildExploreMatchesQueryKey,
   mergeExploreMatchesResults,
 } from "@/utils/explore";
 
@@ -25,8 +26,8 @@ function useExploreMatchesQuery<TData = ExploreMatchItem[]>(
 
   return useQuery<ExploreMatchItem[], Error, TData>({
     queryKey: body
-      ? exploreMatchesQueryKey(body, filter)
-      : ["explore-matches", "disabled"],
+      ? buildExploreMatchesQueryKey(body, filter)
+      : [...exploreMatchesQueryKey, "disabled"],
     queryFn: async () => {
       if (!body) {
         return [];
