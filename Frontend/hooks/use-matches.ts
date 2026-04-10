@@ -574,6 +574,8 @@ export function useCreateLeagueVenue() {
 
 export function useCancelLeagueMatch(leagueId: string) {
   const api = useAxiosWithClerk();
+  const queryClient = useQueryClient();
+  const { userId } = useAuth();
 
   return useMutation({
     mutationFn: async ({
@@ -589,11 +591,16 @@ export function useCancelLeagueMatch(leagueId: string) {
       );
       return resp.data as LeagueMatch;
     },
+    onSuccess: async () => {
+      await invalidateHomeFeed(queryClient, userId);
+    },
   });
 }
 
 export function useCancelTeamMatch() {
   const api = useAxiosWithClerk();
+  const queryClient = useQueryClient();
+  const { userId } = useAuth();
 
   return useMutation({
     mutationFn: async ({
@@ -608,6 +615,9 @@ export function useCancelTeamMatch() {
         reason ? { reason } : {},
       );
       return resp.data as TeamMatch;
+    },
+    onSuccess: async () => {
+      await invalidateHomeFeed(queryClient, userId);
     },
   });
 }
