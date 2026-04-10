@@ -653,16 +653,28 @@ export function useSubmitTeamScore() {
       homeScore,
       awayScore,
       endTime,
+      homeShotsOnTarget,
+      awayShotsOnTarget,
+      homeFouls,
+      awayFouls,
     }: {
       matchId: string;
       homeScore: number;
       awayScore: number;
       endTime: string;
+      homeShotsOnTarget?: number;
+      awayShotsOnTarget?: number;
+      homeFouls?: number;
+      awayFouls?: number;
     }) => {
       await api.post(GO_MATCH_ROUTES.SCORE(matchId), {
         homeScore,
         awayScore,
         endTime,
+        homeShotsOnTarget,
+        awayShotsOnTarget,
+        homeFouls,
+        awayFouls,
       });
     },
   });
