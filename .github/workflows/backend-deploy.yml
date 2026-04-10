@@ -9,6 +9,8 @@ on:
       - "docker-compose.yml"
       - ".github/workflows/backend-deploy.yml"
 
+permissions: {}
+
 jobs:
   deploy:
     runs-on: ubuntu-latest
