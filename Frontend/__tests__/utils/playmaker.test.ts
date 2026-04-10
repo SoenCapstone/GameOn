@@ -1,4 +1,4 @@
-import type { Shape } from "@/types/playmaker";
+import type { ApiPlayShape, Shape } from "@/types/playmaker";
 import * as Crypto from "expo-crypto";
 import {
   scanBoard,
@@ -7,6 +7,7 @@ import {
   addArrowBetweenShapes,
   assignPlayerToShape,
   isArrowSelectedOnBoard,
+  fromBackendPayload,
 } from "@/utils/playmaker";
 
 jest.mock("expo-crypto", () => ({
@@ -285,6 +286,223 @@ describe("play-maker utils", () => {
 
       expect(getState()).toHaveLength(3);
       expect(setSelected).toHaveBeenCalledWith("p2");
+    });
+  });
+
+  describe("fromBackendPayload", () => {
+    it("transforms person shapes with explicit coordinates", () => {
+      const payload: ApiPlayShape[] = [
+        {
+          type: "person",
+          id: "p1",
+          x: 50,
+          y: 75,
+          size: 28,
+        },
+      ];
+
+      const shapes = fromBackendPayload(payload);
+
+      expect(shapes).toHaveLength(1);
+      expect(shapes[0]).toEqual({
+        type: "person",
+        id: "p1",
+        x: 50,
+        y: 75,
+        size: 28,
+      });
+    });
+
+    it("uses fallback values for missing coordinates", () => {
+      const payload: ApiPlayShape[] = [
+        {
+          type: "person",
+          id: "p1",
+        },
+      ];
+
+      const shapes = fromBackendPayload(payload);
+
+      expect(shapes[0]).toEqual({
+        type: "person",
+        id: "p1",
+        x: 0,
+        y: 0,
+        size: 32,
+      });
+    });
+
+    it("preserves associatedPlayerId when present", () => {
+      const payload: ApiPlayShape[] = [
+        {
+          type: "person",
+          id: "p1",
+          x: 10,
+          y: 20,
+          associatedPlayerId: "player-123",
+        },
+      ];
+
+      const shapes = fromBackendPayload(payload);
+
+      expect(shapes[0]).toMatchObject({
+        type: "person",
+        id: "p1",
+        associatedPlayerId: "player-123",
+      });
+    });
+
+    it("skips associatedPlayerId when undefined", () => {
+      const payload: ApiPlayShape[] = [
+        {
+          type: "person",
+          id: "p1",
+          x: 10,
+          y: 20,
+        },
+      ];
+
+      const shapes = fromBackendPayload(payload);
+
+      expect(shapes[0]).not.toHaveProperty("associatedPlayerId");
+    });
+
+    it("resolves arrows with proper person node lookups", () => {
+      const payload: ApiPlayShape[] = [
+        {
+          type: "person",
+          id: "p1",
+          x: 10,
+          y: 20,
+          size: 28,
+        },
+        {
+          type: "person",
+          id: "p2",
+          x: 100,
+          y: 120,
+          size: 30,
+        },
+        {
+          type: "arrow",
+          id: "a1",
+          from: { id: "p1" },
+          to: { id: "p2" },
+        },
+      ];
+
+      const shapes = fromBackendPayload(payload);
+
+      expect(shapes).toHaveLength(3);
+      const arrow = shapes[2];
+      expect(arrow.type).toBe("arrow");
+      expect(arrow.from).toEqual({
+        id: "p1",
+        x: 10,
+        y: 20,
+        size: 28,
+      });
+      expect(arrow.to).toEqual({
+        id: "p2",
+        x: 100,
+        y: 120,
+        size: 30,
+      });
+    });
+
+    it("skips arrows with missing from/to node references", () => {
+      const payload: ApiPlayShape[] = [
+        {
+          type: "person",
+          id: "p1",
+          x: 10,
+          y: 20,
+        },
+        {
+          type: "arrow",
+          id: "a1",
+          from: { id: "p1" },
+          to: { id: "missing-node" },
+        },
+      ];
+
+      const shapes = fromBackendPayload(payload);
+
+      expect(shapes).toHaveLength(1);
+      expect(shapes[0].type).toBe("person");
+    });
+
+    it("handles mixed payload with people and valid arrows", () => {
+      const payload: ApiPlayShape[] = [
+        { type: "person", id: "p1", x: 10, y: 20, size: 28 },
+        { type: "person", id: "p2", x: 100, y: 120, size: 30 },
+        {
+          type: "arrow",
+          id: "a1",
+          from: { id: "p1" },
+          to: { id: "p2" },
+        },
+        {
+          type: "arrow",
+          id: "a2",
+          from: { id: "p2" },
+          to: { id: "missing" },
+        },
+      ];
+
+      const shapes = fromBackendPayload(payload);
+
+      expect(shapes).toHaveLength(3);
+      expect(shapes.filter((s) => s.type === "person")).toHaveLength(2);
+      expect(shapes.filter((s) => s.type === "arrow")).toHaveLength(1);
+    });
+
+    it("converts string coordinates to numbers", () => {
+      const payload: ApiPlayShape[] = [
+        {
+          type: "person",
+          id: "p1",
+          x: "50" as any,
+          y: "75" as any,
+          size: "28" as any,
+        },
+      ];
+
+      const shapes = fromBackendPayload(payload);
+
+      expect(shapes[0]).toEqual({
+        type: "person",
+        id: "p1",
+        x: 50,
+        y: 75,
+        size: 28,
+      });
+    });
+
+    it("uses fallback for NaN string values", () => {
+      const payload: ApiPlayShape[] = [
+        {
+          type: "person",
+          id: "p1",
+          x: "invalid" as any,
+          y: "also-invalid" as any,
+        },
+      ];
+
+      const shapes = fromBackendPayload(payload);
+
+      expect(shapes[0]).toEqual({
+        type: "person",
+        id: "p1",
+        x: 0,
+        y: 0,
+        size: 32,
+      });
+    });
+
+    it("returns empty array for empty payload", () => {
+      const shapes = fromBackendPayload([]);
+      expect(shapes).toEqual([]);
     });
   });
 });

@@ -97,8 +97,21 @@ export const GO_TEAM_SERVICE_ROUTES = {
   CREATE_PLAY: (teamId: string) =>
     buildRoute(VERSIONING.v1, SERVICE.TEAMS, `${teamId}/play-maker`),
 
+  UPDATE_PLAY: (teamId: string, playId: string) =>
+    buildRoute(VERSIONING.v1, SERVICE.TEAMS, `${teamId}/plays/${playId}`),
+
+  GET_PLAYS: (teamId: string) =>
+    buildRoute(VERSIONING.v1, SERVICE.TEAMS, `${teamId}/plays`),
+
+  GET_PLAY: (teamId: string, playId: string) =>
+    buildRoute(VERSIONING.v1, SERVICE.TEAMS, `${teamId}/plays/${playId}`),
+
   UPDATE_MEMBER_ROLE: (teamId: string, userId: string) =>
-    buildRoute(VERSIONING.v1, SERVICE.TEAMS, `${teamId}/members/${userId}/role`),
+    buildRoute(
+      VERSIONING.v1,
+      SERVICE.TEAMS,
+      `${teamId}/members/${userId}/role`,
+    ),
 };
 
 export const GO_LEAGUE_SERVICE_ROUTES = {
@@ -196,8 +209,8 @@ export const GO_MATCH_ROUTES = {
     `${matchesBase}/${matchId}/ref-invite/decline`,
   ATTENDANCE: (matchId: string) =>
     `${matchesBase}/${matchId}/members/attendance`,
-    MATCH_MEMBERS_BY_TEAM: (matchId: string, teamId: string) =>
-      `${matchesBase}/${matchId}/teams/${teamId}/members`,
+  MATCH_MEMBERS_BY_TEAM: (matchId: string, teamId: string) =>
+    `${matchesBase}/${matchId}/teams/${teamId}/members`,
 };
 
 export const GO_REFEREE_ROUTES = {

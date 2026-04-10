@@ -1,6 +1,8 @@
 import type { Dispatch, SetStateAction } from "react";
 import * as Crypto from "expo-crypto";
 import type {
+  ApiArrowShape,
+  ApiPlayShape,
   EndpointShape,
   PlaymakerPayloadItem,
   Shape,
@@ -153,7 +155,7 @@ export const assignPlayerToShape = (
       }
 
       return shape;
-    })
+    }),
   );
 };
 
@@ -185,9 +187,67 @@ export function toPlaymakerPayload(shapes: Shape[]): PlaymakerPayloadItem[] {
     });
 }
 
-
 const isEndpointShape = (shape: Shape): shape is EndpointShape =>
   shape.type !== "arrow";
 
 const getEndpointSize = (shape: EndpointShape): number | undefined =>
   shape.type === "person" ? shape.size : undefined;
+
+export function fromBackendPayload(items: ApiPlayShape[]): Shape[] {
+  const toNumber = (value: number | undefined, fallback: number) => {
+    const parsed = typeof value === "number" ? value : Number(value);
+    return Number.isFinite(parsed) ? parsed : fallback;
+  };
+
+  const people: Extract<Shape, { type: "person" }>[] = [];
+  const arrowsRaw: ApiArrowShape[] = [];
+
+  for (const item of items) {
+    if (item.type === "person") {
+      people.push({
+        type: "person",
+        id: item.id,
+        x: toNumber(item.x, 0),
+        y: toNumber(item.y, 0),
+        size: toNumber(item.size, 32),
+        ...(item.associatedPlayerId
+          ? { associatedPlayerId: item.associatedPlayerId }
+          : {}),
+      });
+      continue;
+    }
+
+    arrowsRaw.push(item);
+  }
+
+  const nodeById = new Map(people.map((person) => [person.id, person]));
+  const arrows: Extract<Shape, { type: "arrow" }>[] = [];
+
+  for (const item of arrowsRaw) {
+    const fromNode = item.from?.id ? nodeById.get(item.from.id) : undefined;
+    const toNode = item.to?.id ? nodeById.get(item.to.id) : undefined;
+
+    if (!fromNode || !toNode) {
+      continue;
+    }
+
+    arrows.push({
+      type: "arrow",
+      id: item.id,
+      from: {
+        id: fromNode.id,
+        x: fromNode.x,
+        y: fromNode.y,
+        size: fromNode.size,
+      },
+      to: {
+        id: toNode.id,
+        x: toNode.x,
+        y: toNode.y,
+        size: toNode.size,
+      },
+    });
+  }
+
+  return [...people, ...arrows];
+}
