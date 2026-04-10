@@ -86,7 +86,7 @@ export const startClerkSignUp = async (
   signUp: SignUpResource | undefined,
 ): Promise<boolean> => {
   if (!isLoaded || !signUp) {
-    Alert.alert("Sign up unavailable", "Please wait a moment and try again.");
+    toast("Sign up unavailable. Please wait a moment and try again.");
     return false;
   }
 
@@ -115,7 +115,7 @@ export const completeVerificationAndUpsert = async (
   deleteUserOnError: () => Promise<void>,
 ): Promise<void> => {
   if (!isLoaded || !signUp) {
-    Alert.alert("Verification unavailable", "Please wait a moment and try again.");
+    toast("Verification unavailable. Please wait a moment and try again.");
     return;
   }
   try {
