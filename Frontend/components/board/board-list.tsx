@@ -41,6 +41,22 @@ export function BoardList({
     return posts.findIndex((post) => post.id === targetPostId);
   }, [posts, targetPostId]);
 
+  const executeScroll = React.useCallback(() => {
+    listRef.current?.scrollToIndex({ index: targetIndex, animated: true });
+    lastScrolledPostIdRef.current = targetPostId ?? null;
+  }, [targetIndex, targetPostId]);
+
+  const scheduleWithTimer = React.useCallback(() => {
+    pendingTimerRef.current = setTimeout(() => {
+      requestAnimationFrame(executeScroll);
+    }, 60);
+  }, [executeScroll]);
+
+  const handleIdle = React.useCallback(() => {
+    pendingIdleRef.current = null;
+    scheduleWithTimer();
+  }, [scheduleWithTimer]);
+
   const scrollToTarget = React.useCallback(() => {
     if (!targetPostId || targetIndex < 0) {
       return;
@@ -63,25 +79,13 @@ export function BoardList({
       pendingIdleRef.current = null;
     }
 
-    const runScroll = () => {
-      pendingTimerRef.current = setTimeout(() => {
-        requestAnimationFrame(() => {
-          listRef.current?.scrollToIndex({ index: targetIndex, animated: true });
-          lastScrolledPostIdRef.current = targetPostId;
-        });
-      }, 60);
-    };
-
     if (typeof globalThis.requestIdleCallback === "function") {
-      pendingIdleRef.current = globalThis.requestIdleCallback(() => {
-        pendingIdleRef.current = null;
-        runScroll();
-      });
+      pendingIdleRef.current = globalThis.requestIdleCallback(handleIdle);
       return;
     }
 
-    runScroll();
-  }, [targetIndex, targetPostId]);
+    scheduleWithTimer();
+  }, [handleIdle, scheduleWithTimer, targetIndex, targetPostId]);
 
   useEffect(() => {
     scrollToTarget();

@@ -101,7 +101,11 @@ export function Post({
   );
 
   if (!canDelete || !onDelete) {
-    return onPress ? <Pressable onPress={onPress}>{cardContent}</Pressable> : cardContent;
+    return onPress ? (
+      <Pressable onPress={onPress}>{cardContent}</Pressable>
+    ) : (
+      cardContent
+    );
   }
 
   if (isRunningInExpoGo) {

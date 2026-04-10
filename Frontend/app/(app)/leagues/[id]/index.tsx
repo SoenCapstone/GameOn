@@ -119,7 +119,10 @@ export default function LeagueScreen() {
 }
 
 function LeagueContent() {
-  const params = useLocalSearchParams<{ tab?: string; postId?: string | string[] }>();
+  const params = useLocalSearchParams<{
+    tab?: string;
+    postId?: string | string[];
+  }>();
   const initialTab: LeagueTab = resolveLeagueTab(params.tab);
   const targetPostId = Array.isArray(params.postId)
     ? params.postId[0]
