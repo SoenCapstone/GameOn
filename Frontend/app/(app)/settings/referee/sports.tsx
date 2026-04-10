@@ -6,8 +6,7 @@ import { useReferee } from "@/contexts/referee-context";
 import { ContentArea } from "@/components/ui/content-area";
 import { createScopedLog } from "@/utils/logger";
 import { FormToolbar } from "@/components/form/form-toolbar";
-
-const SPORTS = ["Soccer", "Basketball", "Volleyball"];
+import { sportOptions } from "@/constants/form-constants";
 const log = createScopedLog("Referee Sports Preferences");
 
 export default function Sports() {
@@ -49,7 +48,7 @@ export default function Sports() {
         <Form accentColor={AccentColors.blue}>
           <Form.Section>
             <Form.Multiselect
-              options={SPORTS}
+              options={sportOptions}
               selected={selectedItems}
               onSelected={setSelectedItems}
             />
