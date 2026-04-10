@@ -151,6 +151,9 @@ describe("startClerkSignUp", () => {
       startClerkSignUp(values, false, mockSignUp as unknown as SignUpResource),
     ).resolves.toBe(false);
     expect(mockSignUp.create).not.toHaveBeenCalled();
+    expect(mockAlert).toHaveBeenCalledWith(
+      "Sign up unavailable. Please wait a moment and try again.",
+    );
   });
 
   it("creates the sign-up and prepares email verification", async () => {
@@ -221,6 +224,9 @@ describe("completeVerificationAndUpsert", () => {
     );
 
     expect(mockSignUp.attemptEmailAddressVerification).not.toHaveBeenCalled();
+    expect(mockAlert).toHaveBeenCalledWith(
+      "Verification unavailable. Please wait a moment and try again.",
+    );
   });
 
   it("activates the session and upserts the user after successful verification", async () => {
