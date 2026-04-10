@@ -147,6 +147,7 @@ describe("startClerkSignUp", () => {
   };
 
   it("returns false when Clerk is not ready", async () => {
+    Platform.OS = "ios";
     await expect(
       startClerkSignUp(values, false, mockSignUp as unknown as SignUpResource),
     ).resolves.toBe(false);
@@ -213,6 +214,7 @@ describe("completeVerificationAndUpsert", () => {
   };
 
   it("does nothing when Clerk is not ready", async () => {
+    Platform.OS = "ios";
     await completeVerificationAndUpsert(
       values,
       false,
