@@ -86,7 +86,7 @@ const renderers: RendererMap = {
               <IconSymbol
                 name="person.fill"
                 size={iconSize}
-                color={isSelected ? Color.ios.systemYellow : "white"}
+                color={isSelected ? "#FFCC00" : "white"}
               />
             )}
           </View>
