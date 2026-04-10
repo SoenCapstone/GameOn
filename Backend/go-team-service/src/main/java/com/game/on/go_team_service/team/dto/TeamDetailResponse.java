@@ -23,6 +23,8 @@ public record TeamDetailResponse(
         Integer totalMatches,
         Integer winStreak,
         Integer minutesPlayed,
+        Integer totalShotsOnTarget,
+        Integer totalFouls,
         boolean archived,
         OffsetDateTime createdAt,
         OffsetDateTime updatedAt

@@ -30,11 +30,10 @@ export function TeamOverviewTab({
       ) : null}
 
       <Card>
-        <View style={styles.cardFill}>
-          <View style={styles.glassInner}>
-            <View style={styles.seasonHeader}>
+      <View style={styles.glassInner}>
+          <View style={styles.seasonHeader}>
               <Text style={styles.seasonTitle}>
-                {overview?.seasonLabel ?? "Season 2026"}
+                {overview?.seasonLabel ?? `Season ${new Date().getFullYear()}`}
               </Text>
 
               {overview?.record ? (
@@ -48,24 +47,24 @@ export function TeamOverviewTab({
               {tiles.map((tile) => (
                 <View key={tile.key} style={styles.statTile}>
                   <View style={styles.statTileBox}>
-                    {tile.value === undefined ? (
-                      <View style={styles.skelNum} />
-                    ) : (
-                      <Text style={styles.statValue}>{String(tile.value)}</Text>
-                    )}
-
-                    <Text style={styles.statLabel}>{tile.label}</Text>
+                    <Text style={styles.tileEmoji}>{tile.label.split(" ")[0]}</Text>
+                    <View>
+                      {tile.value === undefined ? (
+                        <View style={styles.skelNum} />
+                      ) : (
+                        <Text style={styles.statValue}>{String(tile.value)}</Text>
+                      )}
+                      <Text style={styles.statLabel}>{tile.label.split(" ")[1]}</Text>
+                    </View>
                   </View>
                 </View>
               ))}
             </View>
-          </View>
-        </View>
+      </View>
       </Card>
 
       <Card>
-        <View style={styles.cardFill}>
-          <View style={styles.rosterCard}>
+      <View style={styles.rosterCard}>
             <View style={styles.rosterHeader}>
               <Text style={styles.rosterTitle}>Roster</Text>
               <View style={styles.rosterTotalWrap}>
@@ -126,8 +125,7 @@ export function TeamOverviewTab({
                 )}
               </View>
             </View>
-          </View>
-        </View>
+      </View>
       </Card>
 
       <TeamPerformanceCardPlaceholder performance={overview?.performance} />
@@ -145,16 +143,9 @@ const styles = StyleSheet.create({
     marginTop: 6,
   },
 
-  cardFill: {
-    margin: -24,
-  },
-
   glassInner: {
-    borderRadius: 26,
+    margin: -24,
     padding: 14,
-    backgroundColor: "rgba(255,255,255,0.06)",
-    borderWidth: 1,
-    borderColor: "rgba(255,255,255,0.14)",
   },
 
   seasonHeader: {
@@ -185,7 +176,7 @@ const styles = StyleSheet.create({
 
   statTile: {
     width: "50%",
-    paddingHorizontal: 6,
+    paddingHorizontal: 12,
     paddingVertical: 6,
   },
 
@@ -196,6 +187,13 @@ const styles = StyleSheet.create({
     backgroundColor: "rgba(255,255,255,0.06)",
     borderWidth: 1,
     borderColor: "rgba(255,255,255,0.10)",
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 10,
+  },
+
+  tileEmoji: {
+    fontSize: 34,
   },
 
   statValue: {
@@ -206,16 +204,12 @@ const styles = StyleSheet.create({
 
   statLabel: {
     color: "rgba(255,255,255,0.75)",
-    marginTop: 6,
+    marginTop: 2,
     fontSize: 12,
   },
 
   rosterCard: {
-    borderRadius: 26,
-    padding: 14,
-    backgroundColor: "rgba(255,255,255,0.06)",
-    borderWidth: 1,
-    borderColor: "rgba(255,255,255,0.14)",
+    padding: 10,
   },
 
   rosterHeader: {
@@ -249,12 +243,12 @@ const styles = StyleSheet.create({
   rosterDivider: {
     height: 1,
     backgroundColor: "rgba(255,255,255,0.12)",
-    marginTop: 12,
-    marginBottom: 12,
+    marginTop: 8,
+    marginBottom: 8,
   },
 
   rosterList: {
-    gap: 10,
+    gap: 6,
   },
 
   rosterItem: {
