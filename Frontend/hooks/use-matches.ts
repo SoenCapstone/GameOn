@@ -37,15 +37,6 @@ type TeamMatchMemberResponse = {
 
 const log = createScopedLog("Matches");
 
-async function invalidateHomeFeed(
-  queryClient: ReturnType<typeof useQueryClient>,
-  userId: string | null | undefined,
-) {
-  await queryClient.invalidateQueries({
-    queryKey: ["home-feed", userId],
-  });
-}
-
 export function useLeagueTeams(leagueId: string) {
   const api = useAxiosWithClerk();
   return useQuery<LeagueTeamMembership[]>({
@@ -592,7 +583,9 @@ export function useCancelLeagueMatch(leagueId: string) {
       return resp.data as LeagueMatch;
     },
     onSuccess: async () => {
-      await invalidateHomeFeed(queryClient, userId);
+      await queryClient.invalidateQueries({
+        queryKey: ["home-feed", userId],
+      });
     },
   });
 }
@@ -617,7 +610,9 @@ export function useCancelTeamMatch() {
       return resp.data as TeamMatch;
     },
     onSuccess: async () => {
-      await invalidateHomeFeed(queryClient, userId);
+      await queryClient.invalidateQueries({
+        queryKey: ["home-feed", userId],
+      });
     },
   });
 }
@@ -678,7 +673,9 @@ export function useSubmitLeagueScore(leagueId: string) {
       });
     },
     onSuccess: async () => {
-      await invalidateHomeFeed(queryClient, userId);
+      await queryClient.invalidateQueries({
+        queryKey: ["home-feed", userId],
+      });
     },
   });
 }
@@ -707,7 +704,9 @@ export function useSubmitTeamScore() {
       });
     },
     onSuccess: async () => {
-      await invalidateHomeFeed(queryClient, userId);
+      await queryClient.invalidateQueries({
+        queryKey: ["home-feed", userId],
+      });
     },
   });
 }
