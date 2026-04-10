@@ -15,6 +15,7 @@ import {
   SignUpSchema,
   startClerkSignUp,
   displayFormikError,
+  toast,
 } from "@/utils/sign-up";
 import {
   signUpInputLabels,
@@ -82,6 +83,7 @@ export default function SignUpScreen() {
     },
     onSuccess: ({ started, values }) => {
       if (!started) {
+        toast("Sign up could not be started. Please try again.");
         return;
       }
 
