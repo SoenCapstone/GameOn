@@ -107,6 +107,9 @@
     "testMatch": [
       "**/__tests__/**/*.test.ts?(x)"
     ],
+    "moduleNameMapper": {
+      "^expo-modules-core(.*)$": "<rootDir>/node_modules/expo/node_modules/expo-modules-core$1"
+    },
     "transformIgnorePatterns": [
       "node_modules/(?!(jest-)?react-native|@react-native|expo(nent)?|@expo(nent)?/.*|expo-router)"
     ]
