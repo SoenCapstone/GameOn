@@ -8,7 +8,9 @@ import type {
   ExploreMatchesFilter,
   ExploreMatchesParams,
   ExploreMatchesResolvedParams,
+  ExplorePreferences,
 } from "@/types/explore";
+import { toast } from "@/utils/toast";
 
 export function buildExploreMatchesBody(
   params: ExploreMatchesParams,
@@ -134,4 +136,21 @@ export function trackMarker(refs: MarkerRefMap, id: string, marker: unknown) {
 
 export function hideMarkerCallouts(refs: MarkerRefMap) {
   refs.current.forEach((m) => m.hideCallout?.());
+}
+
+export function showExplorePreferenceErrorToast(
+  preferences: ExplorePreferences,
+) {
+  const missing: string[] = [];
+  if (!preferences.sport) missing.push("Sport");
+  if (!preferences.location) missing.push("Location");
+  if (!preferences.rangeKm) missing.push("Range");
+
+  if (missing.length === 0) return;
+
+  const verb = missing.length > 1 ? "are" : "is";
+  toast.error(`${missing.join(", ")} ${verb} Not Set`, {
+    id: "explore-preferences",
+    description: "Update your Explore Preferences in Settings.",
+  });
 }

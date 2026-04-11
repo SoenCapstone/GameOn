@@ -57,11 +57,11 @@ export function useExplorePreferences() {
       .finally(() => setIsLoaded(true));
   }, []);
 
-  const load = useCallback(() => {
-    getPreferences().then((prefs) => {
-      setPreferences(prefs);
-      getCoordinates(prefs.location).then(setCoordinates);
-    });
+  const load = useCallback(async () => {
+    const prefs = await getPreferences();
+    setPreferences(prefs);
+    getCoordinates(prefs.location).then(setCoordinates);
+    return prefs;
   }, []);
 
   const save = useCallback((prefs: ExplorePreferences) => {
