@@ -16,6 +16,7 @@ export const filterOptions: readonly {
 export const exploreLocationOptions = [...cityOptions, "My Location"];
 
 export const exploreRangeOptions = [
+  { value: 5, label: "5km", delta: 0.05 },
   { value: 10, label: "10km", delta: 0.1 },
   { value: 25, label: "25km", delta: 0.25 },
   { value: 50, label: "50km", delta: 0.5 },
