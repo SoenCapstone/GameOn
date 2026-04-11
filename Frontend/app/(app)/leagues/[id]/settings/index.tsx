@@ -1,8 +1,8 @@
 import { useState, useEffect, ReactNode } from "react";
-import { Pressable } from "react-native";
+import { Alert, Pressable } from "react-native";
 import { Stack, useLocalSearchParams, useRouter } from "expo-router";
 import { useNavigation, StackActions } from "@react-navigation/native";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useActionSheet } from "@expo/react-native-action-sheet";
 import ContextMenu from "react-native-context-menu-view";
 import { toast } from "@/utils/toast";
@@ -10,6 +10,7 @@ import { ContentArea } from "@/components/ui/content-area";
 import { Empty } from "@/components/ui/empty";
 import { Form } from "@/components/form/form";
 import { AccentColors } from "@/constants/colors";
+import { images } from "@/constants/images";
 import { createScopedLog } from "@/utils/logger";
 import { errorToString } from "@/utils/error";
 import { usePayment, type PaymentEntityType } from "@/hooks/use-payment";
@@ -38,6 +39,7 @@ import {
   useLeagueDetailContext,
 } from "@/contexts/league-detail-context";
 import { Loading } from "@/components/ui/loading";
+import { fetchUserDirectory } from "@/hooks/messages/api";
 
 const log = createScopedLog("League Settings");
 
@@ -67,6 +69,7 @@ function LeagueSettingsContent() {
     league,
     isLoading: leagueLoading,
     isOwner,
+    isOrganizer,
     leagueTeams,
   } = useLeagueDetailContext();
 
@@ -111,6 +114,7 @@ function LeagueSettingsContent() {
       });
     },
   });
+
   const removeTeamMutation = useMutation({
     mutationFn: async (teamId: string) => {
       await api.delete(GO_LEAGUE_SERVICE_ROUTES.REMOVE_TEAM(id, teamId));
@@ -128,7 +132,53 @@ function LeagueSettingsContent() {
     },
   });
 
-  if (!isOwner) {
+  // ── Organizers ──────────────────────────────────────────────
+  const organizersQuery = useQuery<
+    { id: string; userId: string; joinedAt: string }[]
+  >({
+    queryKey: ["league-organizers", id],
+    queryFn: async () => {
+      const resp = await api.get(GO_LEAGUE_SERVICE_ROUTES.ORGANIZERS(id));
+      return resp.data ?? [];
+    },
+    enabled: Boolean(id),
+  });
+
+  const { data: userDirectory = [] } = useQuery({
+    queryKey: ["user-directory"],
+    queryFn: async () => fetchUserDirectory(api),
+    enabled: Boolean(id && (isOwner || isOrganizer)),
+    staleTime: 5 * 60 * 1000,
+  });
+
+  const removeOrganizerMutation = useMutation({
+    mutationFn: async (organizerUserId: string) => {
+      await api.delete(
+        GO_LEAGUE_SERVICE_ROUTES.REMOVE_ORGANIZER(id, organizerUserId),
+      );
+    },
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({
+        queryKey: ["league-organizers", id],
+      });
+    },
+    onError: (err) => {
+      toast.error("Remove Failed", { description: errorToString(err) });
+    },
+  });
+
+  const handleRemoveOrganizer = (organizerUserId: string, name: string) => {
+    Alert.alert("Remove Organizer", `Remove ${name} from league organizers?`, [
+      { text: "Cancel", style: "cancel" },
+      {
+        text: "Remove",
+        style: "destructive",
+        onPress: () => removeOrganizerMutation.mutate(organizerUserId),
+      },
+    ]);
+  };
+
+  if (!isOwner && !isOrganizer) {
     return (
       <ContentArea background={{ preset: "red" }}>
         <Empty message="You don't have permission to edit this league" />
@@ -205,6 +255,41 @@ function LeagueSettingsContent() {
           <Form.Button
             button="Invite Teams"
             onPress={() => router.push(`/leagues/${id}/settings/invite`)}
+          />
+        </Form.Section>
+
+        <Form.Section header="Organizers">
+          {(organizersQuery.data ?? []).map((organizer) => {
+            const user = userDirectory.find((u) => u.id === organizer.userId);
+            const name = user
+              ? `${user.firstname ?? ""} ${user.lastname ?? ""}`.trim() ||
+                user.email
+              : organizer.userId;
+            return (
+              <OrganizerMenu
+                key={organizer.id}
+                canRemove={isOwner && !removeOrganizerMutation.isPending}
+                onRemove={() =>
+                  handleRemoveOrganizer(organizer.userId, name)
+                }
+              >
+                <MenuCardItem
+                  title={name}
+                  subtitle={formatMemberSince(organizer.joinedAt)}
+                  image={
+                    user?.imageUrl
+                      ? { uri: user.imageUrl }
+                      : images.defaultProfile
+                  }
+                />
+              </OrganizerMenu>
+            );
+          })}
+          <Form.Button
+            button="Invite Organizers"
+            onPress={() =>
+              router.push(`/leagues/${id}/settings/invite-organizers`)
+            }
           />
         </Form.Section>
 
@@ -301,6 +386,36 @@ function LeagueTeamMenu({
         if (event.nativeEvent.name === "Remove Team") {
           onDelete();
         }
+      }}
+      previewBackgroundColor="transparent"
+    >
+      {children}
+    </ContextMenu>
+  );
+}
+
+function OrganizerMenu({
+  onRemove,
+  canRemove,
+  children,
+}: Readonly<{
+  onRemove: () => void;
+  canRemove: boolean;
+  children: ReactNode;
+}>) {
+  if (!canRemove) return children;
+
+  if (isRunningInExpoGo) {
+    return <Pressable onLongPress={onRemove}>{children}</Pressable>;
+  }
+
+  return (
+    <ContextMenu
+      actions={[
+        { title: "Remove Organizer", systemIcon: "trash", destructive: true },
+      ]}
+      onPress={(event) => {
+        if (event.nativeEvent.name === "Remove Organizer") onRemove();
       }}
       previewBackgroundColor="transparent"
     >
