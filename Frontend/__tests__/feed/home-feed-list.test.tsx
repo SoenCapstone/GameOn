@@ -3,6 +3,7 @@ import { beforeEach, describe, expect, it, jest } from "@jest/globals";
 import { fireEvent, render } from "@testing-library/react-native";
 import { HomeFeedList } from "@/components/feed/home-feed-list";
 import type { HomeFeedItem, HomeFeedMatchItem } from "@/types/feed";
+import { toast } from "@/utils/toast";
 
 const mockReact = jest.requireActual("react") as typeof import("react");
 
@@ -45,6 +46,12 @@ jest.mock("@/components/ui/empty", () => ({
 
 jest.mock("@/utils/search", () => ({
   getSportLogo: jest.fn(() => ({ uri: "sport://logo" })),
+}));
+
+jest.mock("@/utils/toast", () => ({
+  toast: {
+    error: jest.fn(() => null),
+  },
 }));
 
 jest.mock("@legendapp/list/react-native", () => {
@@ -141,11 +148,13 @@ describe("HomeFeedList", () => {
   });
 
   it("renders error state", () => {
-    const { getByText } = render(
+    render(
       <HomeFeedList items={[]} isLoading={false} errorText="boom" />,
     );
 
-    expect(getByText("Failed to load feed: boom")).toBeTruthy();
+    expect(toast.error).toHaveBeenCalledWith("Failed to load feed", {
+      description: "boom",
+    });
   });
 
   it("renders empty state", () => {

@@ -8,11 +8,18 @@ import {
   GO_TEAM_SERVICE_ROUTES,
   useAxiosWithClerk,
 } from "@/hooks/use-axios-clerk";
+import type {
+  LeaguePostListResponse,
+  LeaguePostResponse,
+  TeamPostListResponse,
+  TeamPostResponse
+} from "@/types/board";
 import {
   fetchUserNameMap,
   mapToFrontendPost,
-} from "@/components/board/board-utils";
+} from "@/utils/board";
 import type { TeamSummaryResponse } from "@/types/teams";
+import type { LeagueListResponse, LeagueSummaryResponse } from "@/types/leagues";
 import type { LeagueMatch, TeamMatch } from "@/types/matches";
 import type {
   HomeFeedItem,
@@ -27,58 +34,6 @@ import {
 } from "@/utils/feed";
 
 const log = createScopedLog("HomeFeed");
-
-type TeamPostResponse = {
-  id: string;
-  teamId: string;
-  authorUserId: string;
-  authorRole: string;
-  title: string;
-  body: string;
-  scope: "Members" | "Everyone";
-  createdAt: string;
-};
-
-type TeamPostListResponse = {
-  posts: TeamPostResponse[];
-  totalElements: number;
-  pageNumber: number;
-  pageSize: number;
-  hasNext: boolean;
-};
-
-type LeaguePostResponse = {
-  id: string;
-  leagueId: string;
-  authorUserId: string;
-  title: string;
-  body: string;
-  scope: "Members" | "Everyone";
-  createdAt: string;
-};
-
-type LeaguePostListResponse = {
-  items: LeaguePostResponse[];
-  total: number;
-  page: number;
-  size: number;
-  hasNext: boolean;
-};
-
-type LeagueSummaryResponse = {
-  id: string;
-  name: string;
-  logoUrl?: string | null;
-  sport?: string | null;
-};
-
-type LeagueListItem = {
-  id: string;
-};
-
-type LeagueListResponse = {
-  items?: LeagueListItem[];
-};
 
 function normalizeTeamSpace(team: TeamSummaryResponse): HomeFeedSpace {
   return {

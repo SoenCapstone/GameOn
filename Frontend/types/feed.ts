@@ -1,4 +1,4 @@
-import type { BoardPost } from "@/components/board/board-types";
+import type { BoardPost } from "@/types/board";
 import type { LeagueMatch, TeamMatch } from "@/types/matches";
 
 export type HomeFeedSpaceType = "team" | "league";

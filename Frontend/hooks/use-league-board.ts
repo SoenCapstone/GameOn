@@ -1,10 +1,12 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "@clerk/clerk-expo";
 import { createScopedLog } from "@/utils/logger";
-import {
+import type {
   BoardPost,
   CreateBoardPostRequest,
-} from "@/components/board/board-types";
+  LeaguePostListResponse,
+  LeaguePostResponse,
+} from "@/types/board";
 import {
   useAxiosWithClerk,
   GO_LEAGUE_SERVICE_ROUTES,
@@ -12,29 +14,11 @@ import {
 import {
   fetchUserNameMap,
   mapToFrontendPost,
-} from "@/components/board/board-utils";
+} from "@/utils/board";
 
 const log = createScopedLog("League Board");
 
 const LEAGUE_BOARD_QUERY_KEY = (leagueId: string) => ["league-board", leagueId];
-
-type LeaguePostResponse = {
-  id: string;
-  leagueId: string;
-  authorUserId: string;
-  title: string;
-  body: string;
-  scope: "Members" | "Everyone";
-  createdAt: string;
-};
-
-type LeaguePostListResponse = {
-  items: LeaguePostResponse[];
-  total: number;
-  page: number;
-  size: number;
-  hasNext: boolean;
-};
 
 export function useLeagueBoardPosts(leagueId: string) {
   const api = useAxiosWithClerk();

@@ -9,7 +9,7 @@ import { fetchMyTeams } from "@/hooks/messages/api";
 import {
   fetchUserNameMap,
   mapToFrontendPost,
-} from "@/components/board/board-utils";
+} from "@/utils/board";
 import type { HomeFeedItem } from "@/types/feed";
 
 declare const jest: typeof import("@jest/globals").jest;
@@ -67,7 +67,7 @@ jest.mock("@/hooks/use-axios-clerk", () => ({
   },
 }));
 
-jest.mock("@/components/board/board-utils", () => ({
+jest.mock("@/utils/board", () => ({
   // eslint-disable-next-line @typescript-eslint/no-require-imports
   fetchUserNameMap: require("@jest/globals").jest.fn(),
   // eslint-disable-next-line @typescript-eslint/no-require-imports

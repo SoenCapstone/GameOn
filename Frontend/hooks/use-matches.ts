@@ -422,7 +422,6 @@ export function useCreateTeamMatch(teamId: string) {
           });
           refereeInviteSent = true;
         } catch (err) {
-          // Keep match creation successful even if referee invite fails.
           log.warn("Referee invite failed after team match creation", err);
         }
       }
@@ -799,7 +798,6 @@ export async function fetchIncomingRefereeInvites(
     );
     invites = (resp.data ?? []).filter((invite) => invite.status === "PENDING");
   } catch (err) {
-    // Endpoint may be unavailable on older backend builds; don't fail Home updates.
     log.warn("Failed to fetch referee invites", err);
     return [];
   }

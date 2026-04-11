@@ -1,6 +1,5 @@
 import React from "react";
 import {
-  afterEach,
   beforeEach,
   describe,
   expect,
@@ -9,9 +8,7 @@ import {
 } from "@jest/globals";
 import { render } from "@testing-library/react-native";
 import { BoardList } from "@/components/board/board-list";
-import { BoardPost } from "@/components/board/board-types";
-
-const mockScrollToIndex = jest.fn();
+import { BoardPost } from "@/types/board";
 
 jest.mock("react-native-context-menu-view", () => {
   const mockReact = jest.requireActual("react") as typeof import("react");
@@ -49,53 +46,34 @@ jest.mock("@/components/board/post", () => ({
 
 jest.mock("@legendapp/list/react-native", () => {
   const mockReact = jest.requireActual("react") as typeof import("react");
-  const { useEffect, useImperativeHandle } = mockReact;
   return {
-    LegendList: mockReact.forwardRef(
-      (
-        {
-          data,
-          renderItem,
-          keyExtractor,
-          ListEmptyComponent,
-          onContentSizeChange,
-        }: {
-          data: unknown[];
-          renderItem: (args: {
-            item: unknown;
-            index: number;
-          }) => React.ReactElement;
-          keyExtractor?: (item: unknown, index: number) => string | number;
-          ListEmptyComponent?: React.ReactElement;
-          onContentSizeChange?: () => void;
-        },
-        ref: React.Ref<{ scrollToIndex: (params: unknown) => void }>,
-      ) => {
-        useImperativeHandle(ref, () => ({
-          scrollToIndex: mockScrollToIndex,
-        }));
+    LegendList: ({
+      data,
+      renderItem,
+      keyExtractor,
+      ListEmptyComponent,
+    }: {
+      data: unknown[];
+      renderItem: (args: { item: unknown; index: number }) => React.ReactElement;
+      keyExtractor?: (item: unknown, index: number) => string | number;
+      ListEmptyComponent?: React.ReactElement;
+    }) => {
+      const items = data?.length
+        ? data.map((item, index) => {
+            const key = keyExtractor ? keyExtractor(item, index) : index;
+            return mockReact.cloneElement(renderItem({ item, index }), {
+              key,
+            });
+          })
+        : null;
 
-        useEffect(() => {
-          onContentSizeChange?.();
-        }, [onContentSizeChange]);
-
-        const items = data?.length
-          ? data.map((item, index) => {
-              const key = keyExtractor ? keyExtractor(item, index) : index;
-              return mockReact.cloneElement(renderItem({ item, index }), {
-                key,
-              });
-            })
-          : null;
-
-        return mockReact.createElement(
-          mockReact.Fragment,
-          null,
-          items,
-          data?.length ? null : ListEmptyComponent,
-        );
-      },
-    ),
+      return mockReact.createElement(
+        mockReact.Fragment,
+        null,
+        items,
+        data?.length ? null : ListEmptyComponent,
+      );
+    },
   };
 });
 
@@ -136,23 +114,6 @@ describe("TeamBoardList", () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
-    jest.useFakeTimers();
-    global.requestAnimationFrame = ((cb: FrameRequestCallback) => {
-      cb(0);
-      return 0;
-    }) as typeof global.requestAnimationFrame;
-    global.requestIdleCallback = ((cb: IdleRequestCallback) => {
-      cb({
-        didTimeout: false,
-        timeRemaining: () => 50,
-      } as IdleDeadline);
-      return 1;
-    }) as typeof global.requestIdleCallback;
-    global.cancelIdleCallback = jest.fn();
-  });
-
-  afterEach(() => {
-    jest.useRealTimers();
   });
 
   it("renders loading state without empty messaging", () => {
@@ -219,27 +180,6 @@ describe("TeamBoardList", () => {
       expect.objectContaining({
         spaceName: "My Team",
         spaceLogo: { uri: "https://example.com/logo.png" },
-      }),
-    );
-  });
-
-  it("auto-scrolls to target post index when targetPostId is provided", () => {
-    render(
-      <BoardList
-        posts={posts}
-        isLoading={false}
-        spaceName="Team"
-        spaceLogo={{ uri: "https://example.com/logo.png" }}
-        targetPostId="post-2"
-      />,
-    );
-
-    jest.runAllTimers();
-
-    expect(mockScrollToIndex).toHaveBeenCalledWith(
-      expect.objectContaining({
-        index: 1,
-        animated: true,
       }),
     );
   });

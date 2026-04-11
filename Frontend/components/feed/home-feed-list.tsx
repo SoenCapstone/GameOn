@@ -1,5 +1,5 @@
-import React, { useCallback } from "react";
-import { StyleSheet, Text, View, useWindowDimensions } from "react-native";
+import React, { useCallback, useEffect, useRef } from "react";
+import { StyleSheet } from "react-native";
 import { LegendList } from "@legendapp/list/react-native";
 import { MatchCard } from "@/components/matches/match-card";
 import { Post } from "@/components/board/post";
@@ -11,6 +11,7 @@ import type {
   HomeFeedPostItem,
 } from "@/types/feed";
 import { getSportLogo } from "@/utils/search";
+import { toast } from "@/utils/toast";
 
 interface HomeFeedListProps {
   readonly items: HomeFeedItem[];
@@ -27,13 +28,28 @@ export function HomeFeedList({
   onMatchPress,
   onPostPress,
 }: Readonly<HomeFeedListProps>) {
-  const { height: windowHeight } = useWindowDimensions();
-  const listHeight = Math.max(320, Math.floor(windowHeight * 0.65));
+  const lastErrorTextRef = useRef<string | null>(null);
+
+  useEffect(() => {
+    if (!errorText) {
+      lastErrorTextRef.current = null;
+      return;
+    }
+
+    if (lastErrorTextRef.current === errorText) {
+      return;
+    }
+
+    lastErrorTextRef.current = errorText;
+    toast.error("Failed to load feed", { description: errorText });
+  }, [errorText]);
+
   const renderItem = useCallback(
     function renderFeedItem({ item }: Readonly<{ item: HomeFeedItem }>) {
       if (item.kind === "post") {
         return (
           <Post
+            isInteractive
             post={item.post}
             spaceName={item.space.name}
             spaceLogo={
@@ -83,11 +99,7 @@ export function HomeFeedList({
   }
 
   if (errorText) {
-    return (
-      <View style={styles.errorContainer}>
-        <Text style={styles.errorText}>Failed to load feed: {errorText}</Text>
-      </View>
-    );
+    return <Empty message="Failed to load feed" />;
   }
 
   if (items.length === 0) {
@@ -102,7 +114,7 @@ export function HomeFeedList({
           ? `match:${item.id}`
           : `post:${item.space.kind}:${item.space.id}:${item.id}`
       }
-      style={[styles.legendList, { minHeight: listHeight, height: listHeight }]}
+      style={styles.legendList}
       contentContainerStyle={styles.list}
       renderItem={renderItem}
       recycleItems={true}
@@ -114,13 +126,6 @@ export function HomeFeedList({
 const styles = StyleSheet.create({
   legendList: { overflow: "visible" },
   list: {
-    gap: 12,
+    gap: 14,
   },
-  errorContainer: {
-    backgroundColor: "#661313",
-    padding: 8,
-    marginVertical: 6,
-    borderRadius: 8,
-  },
-  errorText: { color: "#fff" },
 });

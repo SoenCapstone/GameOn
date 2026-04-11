@@ -27,15 +27,8 @@ type FeatureFlagsContextType = {
   toggleFlag: (key: keyof Flags) => void;
 };
 
-// Future enhancement: sync feature flags with backend for global propagation
 const syncWithServer = async (updatedFlags: Record<string, boolean>) => {
   try {
-    // Example placeholder for future API sync
-    // await fetch(`${API_URL}/feature-flags`, {
-    //   method: "POST",
-    //   headers: { "Content-Type": "application/json" },
-    //   body: JSON.stringify(updatedFlags),
-    // });
     log.info("Feature flags would sync globally here:", updatedFlags);
   } catch (error) {
     log.error("Failed to sync flags globally:", error);
@@ -75,7 +68,7 @@ export const FeatureFlagsProvider: React.FC<{ children: React.ReactNode }> = ({
         const json = JSON.stringify(flags);
         if (Platform.OS === "web") localStorage.setItem("featureFlags", json);
         else await AsyncStorage.setItem("featureFlags", json);
-        await syncWithServer(flags); // Placeholder global sync
+        await syncWithServer(flags);
       } catch (error) {
         log.warn("Error saving feature flags:", error);
       }
@@ -86,7 +79,6 @@ export const FeatureFlagsProvider: React.FC<{ children: React.ReactNode }> = ({
     setFlags((prev) => ({ ...prev, [key]: !prev[key] }));
   };
 
-  // useMemo prevents Sonar warning: “object changes every render”
   const value = useMemo(() => ({ flags, toggleFlag }), [flags]);
 
   return (

@@ -6,12 +6,12 @@ import {
   useCreateLeagueBoardPost,
   useDeleteLeagueBoardPost,
 } from "@/hooks/use-league-board";
-import { CreateBoardPostRequest } from "@/components/board/board-types";
+import { CreateBoardPostRequest } from "@/types/board";
 import { useAxiosWithClerk } from "@/hooks/use-axios-clerk";
 import {
   fetchUserNameMap,
   mapToFrontendPost,
-} from "@/components/board/board-utils";
+} from "@/utils/board";
 import { AxiosInstance } from "axios";
 import { useAuth } from "@clerk/clerk-expo";
 
@@ -24,7 +24,7 @@ jest.mock("@/hooks/use-axios-clerk", () => ({
   },
 }));
 
-jest.mock("@/components/board/board-utils", () => ({
+jest.mock("@/utils/board", () => ({
   fetchUserNameMap: jest.fn(),
   mapToFrontendPost: jest.fn(),
 }));

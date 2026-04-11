@@ -1,7 +1,7 @@
 import {
   fetchUserNameMap,
   mapToFrontendPost,
-} from "@/components/board/board-utils";
+} from "@/utils/board";
 import { AxiosInstance } from "axios";
 
 jest.mock("@/hooks/use-axios-clerk", () => ({
