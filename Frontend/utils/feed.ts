@@ -25,14 +25,10 @@ export function getHomeFeedItemSortBucket(item: HomeFeedItem) {
   const dayOffset = getHomeFeedItemDayOffset(item);
 
   if (item.kind === "match") {
-    return dayOffset >= 0 ? dayOffset * 2 : 10_000 + Math.abs(dayOffset) * 2;
+    return dayOffset * 2;
   }
 
-  if (dayOffset <= 0) {
-    return Math.abs(dayOffset) * 2 + 1;
-  }
-
-  return 20_000 + dayOffset * 2 + 1;
+  return Math.abs(dayOffset) * 2 + 1;
 }
 
 export function compareHomeFeedItems(left: HomeFeedItem, right: HomeFeedItem) {
