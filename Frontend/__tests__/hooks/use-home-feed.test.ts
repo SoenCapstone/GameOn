@@ -6,6 +6,7 @@ import type { MockedFunction } from "jest-mock";
 import { useHomeFeed } from "@/hooks/use-home-feed";
 import { useAxiosWithClerk } from "@/hooks/use-axios-clerk";
 import { fetchMyTeams } from "@/hooks/messages/api";
+import { toast } from "@/utils/toast";
 import {
   fetchUserNameMap,
   mapToFrontendPost,
@@ -26,6 +27,7 @@ const mockedFetchUserNameMap = fetchUserNameMap as MockedFunction<
 const mockedMapToFrontendPost = mapToFrontendPost as MockedFunction<
   typeof mapToFrontendPost
 >;
+const mockedToastError = toast.error as MockedFunction<typeof toast.error>;
 
 type MockGet = MockedFunction<
   (
@@ -74,6 +76,13 @@ jest.mock("@/utils/board", () => ({
   mapToFrontendPost: require("@jest/globals").jest.fn(),
 }));
 
+jest.mock("@/utils/toast", () => ({
+  toast: {
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    error: require("@jest/globals").jest.fn(),
+  },
+}));
+
 describe("useHomeFeed", () => {
   const mockApi = {
     get: mockGet,
@@ -102,6 +111,7 @@ describe("useHomeFeed", () => {
         authorName: "Author",
       }),
     );
+    mockedToastError.mockClear();
   });
 
   it("configures query with user-scoped key and enabled flag", () => {
@@ -635,6 +645,9 @@ describe("useHomeFeed", () => {
     };
 
     await expect(options.queryFn()).rejects.toThrow("boom");
+    expect(mockedToastError).toHaveBeenCalledWith("Failed to load feed", {
+      description: "boom",
+    });
   });
 
   it("continues when my league ids lookup fails", async () => {

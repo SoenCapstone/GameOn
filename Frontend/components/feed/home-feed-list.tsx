@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef } from "react";
+import { useCallback } from "react";
 import { StyleSheet } from "react-native";
 import { LegendList } from "@legendapp/list/react-native";
 import { MatchCard } from "@/components/matches/match-card";
@@ -11,7 +11,6 @@ import type {
   HomeFeedPostItem,
 } from "@/types/feed";
 import { getSportLogo } from "@/utils/search";
-import { toast } from "@/utils/toast";
 
 interface HomeFeedListProps {
   readonly items: HomeFeedItem[];
@@ -28,22 +27,6 @@ export function HomeFeedList({
   onMatchPress,
   onPostPress,
 }: Readonly<HomeFeedListProps>) {
-  const lastErrorTextRef = useRef<string | null>(null);
-
-  useEffect(() => {
-    if (!errorText) {
-      lastErrorTextRef.current = null;
-      return;
-    }
-
-    if (lastErrorTextRef.current === errorText) {
-      return;
-    }
-
-    lastErrorTextRef.current = errorText;
-    toast.error("Failed to load feed", { description: errorText });
-  }, [errorText]);
-
   const renderItem = useCallback(
     function renderFeedItem({ item }: Readonly<{ item: HomeFeedItem }>) {
       if (item.kind === "post") {
@@ -99,7 +82,7 @@ export function HomeFeedList({
   }
 
   if (errorText) {
-    return <Empty message="Failed to load feed" />;
+    return null;
   }
 
   if (items.length === 0) {

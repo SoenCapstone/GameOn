@@ -32,6 +32,8 @@ import {
   isUpcomingFeedMatch,
   sortHomeFeedItems,
 } from "@/utils/feed";
+import { toast } from "@/utils/toast";
+import { errorToString } from "@/utils/error";
 
 const log = createScopedLog("HomeFeed");
 
@@ -416,6 +418,9 @@ export function useHomeFeed() {
         return feed;
       } catch (error) {
         log.error("Failed to fetch home feed", { userId, error });
+        toast.error("Failed to load feed", {
+          description: errorToString(error),
+        });
         throw error;
       }
     },
