@@ -56,7 +56,7 @@ export default function InviteTeamsScreen() {
       const resp = await fetchTeamResults(api, "", false, league?.sport);
       return resp.items ?? [];
     },
-    enabled: Boolean(leagueId && isOwner && league?.sport),
+    enabled: Boolean(leagueId && league?.sport),
   });
 
   const pendingInvitesQuery = useQuery<LeagueInviteResponse[]>({

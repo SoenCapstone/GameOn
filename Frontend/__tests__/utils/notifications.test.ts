@@ -8,7 +8,10 @@ import {
 } from "@/hooks/use-axios-clerk";
 import { NotificationItem, TeamInviteCard } from "@/types/notifications";
 import * as notificationsUtils from "@/utils/notifications";
-import { fetchLeagueInvitesWithDetails } from "@/utils/leagues";
+import {
+  fetchLeagueInvitesWithDetails,
+  fetchOrganizerInvitesWithDetails,
+} from "@/utils/leagues";
 import {
   fetchIncomingRefereeInvites,
   fetchIncomingTeamMatchInvites,
@@ -17,6 +20,10 @@ import {
 const mockFetchLeagueInvitesWithDetails =
   fetchLeagueInvitesWithDetails as jest.MockedFunction<
     typeof fetchLeagueInvitesWithDetails
+  >;
+const mockFetchOrganizerInvitesWithDetails =
+  fetchOrganizerInvitesWithDetails as jest.MockedFunction<
+    typeof fetchOrganizerInvitesWithDetails
   >;
 const mockFetchIncomingTeamMatchInvites =
   fetchIncomingTeamMatchInvites as jest.MockedFunction<
@@ -35,6 +42,7 @@ function asAxiosInstance(api: {
 
 jest.mock("@/utils/leagues", () => ({
   fetchLeagueInvitesWithDetails: jest.fn(),
+  fetchOrganizerInvitesWithDetails: jest.fn(),
 }));
 
 jest.mock("@/hooks/use-matches", () => ({
@@ -289,6 +297,7 @@ describe("notification utilities", () => {
         leaguePrivacy: LeaguePrivacy.PRIVATE,
       },
     ]);
+    mockFetchOrganizerInvitesWithDetails.mockResolvedValue([]);
     mockFetchIncomingTeamMatchInvites.mockResolvedValue([
       {
         kind: "team-match",
@@ -338,6 +347,7 @@ describe("notification utilities", () => {
       new Error("team source unavailable"),
     );
     mockFetchLeagueInvitesWithDetails.mockResolvedValue([]);
+    mockFetchOrganizerInvitesWithDetails.mockResolvedValue([]);
     mockFetchIncomingTeamMatchInvites.mockResolvedValue([]);
     mockFetchIncomingRefereeInvites.mockResolvedValue([
       {
@@ -372,6 +382,7 @@ describe("notification utilities", () => {
     });
 
     mockFetchLeagueInvitesWithDetails.mockResolvedValue([]);
+    mockFetchOrganizerInvitesWithDetails.mockResolvedValue([]);
     mockFetchIncomingTeamMatchInvites.mockRejectedValue(
       new Error("team matches unavailable"),
     );
@@ -416,6 +427,7 @@ describe("notification utilities", () => {
     mockFetchLeagueInvitesWithDetails.mockRejectedValue(
       new Error("league source unavailable"),
     );
+    mockFetchOrganizerInvitesWithDetails.mockResolvedValue([]);
     mockFetchIncomingTeamMatchInvites.mockResolvedValue([]);
     mockFetchIncomingRefereeInvites.mockRejectedValue(
       new Error("referee source unavailable"),
