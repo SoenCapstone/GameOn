@@ -1,6 +1,7 @@
-import { cityOptions } from "@/constants/form-constants";
+import { cityOptions, sportOptions } from "@/constants/form-constants";
 import type { ExploreMatchesFilter } from "@/types/explore";
-export { sportOptions as exploreSportOptions } from "@/constants/form-constants";
+
+export const exploreSportOptions = ["All", ...sportOptions];
 
 export const exploreMatchesQueryKey = ["explore-matches"] as const;
 

@@ -31,7 +31,7 @@ export function buildExploreMatchesBody(
     latitude,
     longitude,
     rangeKm,
-    ...(trimmed ? { sport: trimmed } : {}),
+    ...(trimmed && trimmed !== "All" ? { sport: trimmed } : {}),
   };
 }
 
