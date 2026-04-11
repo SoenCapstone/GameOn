@@ -7,6 +7,7 @@ import {
 } from "@/hooks/use-axios-clerk";
 import { createScopedLog } from "@/utils/logger";
 
+
 const log = createScopedLog("League Detail");
 
 export function useLeagueDetail(id: string) {
@@ -73,6 +74,21 @@ export function useLeagueDetail(id: string) {
     refetchOnWindowFocus: false,
   });
 
+  const { data: organizersData = [] } = useQuery<{ userId: string }[]>({
+    queryKey: ["league-organizers", id],
+    queryFn: async () => {
+      try {
+        const resp = await api.get(GO_LEAGUE_SERVICE_ROUTES.ORGANIZERS(id));
+        return resp.data ?? [];
+      } catch {
+        return [];
+      }
+    },
+    enabled: Boolean(id) && Boolean(userId),
+    retry: false,
+    refetchOnWindowFocus: false,
+  });
+
   const leagueTeams = Array.isArray(leagueTeamsData) ? leagueTeamsData : [];
 
   const onRefresh = useCallback(async () => {
@@ -91,6 +107,9 @@ export function useLeagueDetail(id: string) {
 
   const title = league?.name ?? (id ? `League ${id}` : "League");
   const isOwner = Boolean(userId && league?.ownerUserId === userId);
+  const isOrganizer = Boolean(
+    userId && organizersData.some((o) => o.userId === userId),
+  );
   const isMember = myLeagueTeams.length > 0;
 
   return {
@@ -107,5 +126,6 @@ export function useLeagueDetail(id: string) {
     isLeagueTeamsLoading,
     leagueTeamsError,
     refetchLeagueTeams,
+    isOrganizer,
   };
 }
