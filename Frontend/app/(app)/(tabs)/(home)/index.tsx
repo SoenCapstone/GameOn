@@ -92,7 +92,6 @@ export default function Home() {
       pathname,
       params: {
         tab: "board",
-        postId: item.id,
       },
     });
   }, []);
