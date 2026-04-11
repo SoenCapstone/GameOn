@@ -162,6 +162,14 @@ export const GO_LEAGUE_SERVICE_ROUTES = {
     buildRoute(VERSIONING.v1, SERVICE.LEAGUES, `${leagueId}/posts`),
   LEAGUE_POST: (leagueId: string, postId: string) =>
     buildRoute(VERSIONING.v1, SERVICE.LEAGUES, `${leagueId}/posts/${postId}`),
+  ORGANIZERS: (leagueId: string) =>
+  buildRoute(VERSIONING.v1, SERVICE.LEAGUES, `${leagueId}/organizers`),
+  REMOVE_ORGANIZER: (leagueId: string, organizerUserId: string) =>
+    buildRoute(VERSIONING.v1, SERVICE.LEAGUES, `${leagueId}/organizers/${organizerUserId}`),
+  ORGANIZER_INVITES: (leagueId: string) =>
+    buildRoute(VERSIONING.v1, SERVICE.LEAGUES, `${leagueId}/organizer-invites`),
+  ORGANIZER_PENDING_IDS: (leagueId: string) =>
+    buildRoute(VERSIONING.v1, SERVICE.LEAGUES, `${leagueId}/organizer-invites/pending-ids`),
 };
 
 const leagueInvitesBase = buildRoute(VERSIONING.v1, "league-invites");
