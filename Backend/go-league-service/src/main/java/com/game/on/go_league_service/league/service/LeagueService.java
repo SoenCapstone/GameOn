@@ -15,6 +15,7 @@ import com.game.on.go_league_service.league.mapper.LeagueTeamMapper;
 import com.game.on.go_league_service.league.repository.*;
 import com.game.on.go_league_service.league.repository.LeagueSeasonRepository.LeagueSeasonCountProjection;
 import com.game.on.go_league_service.league.util.SlugGenerator;
+import com.game.on.go_league_service.league.repository.LeagueOrganizerRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.PageRequest;
@@ -42,6 +43,7 @@ import static com.game.on.go_league_service.league.service.LeagueSpecifications.
 @RequiredArgsConstructor
 public class LeagueService {
 
+    private final LeagueOrganizerRepository organizerRepository;
     private final LeagueRepository leagueRepository;
     private final LeagueSeasonRepository leagueSeasonRepository;
     private final LeagueMapper leagueMapper;
@@ -385,14 +387,16 @@ public class LeagueService {
     }
 
     private void ensureOwner(League league, String callerId) {
-        if (!league.getOwnerUserId().equals(callerId)) {
+        if (!league.getOwnerUserId().equals(callerId)
+                && !organizerRepository.existsByLeague_IdAndUserId(league.getId(), callerId)) {
             throw new ForbiddenException("Only the owner can perform this action");
         }
     }
 
     public void ensureCanView(League league, String callerId) {
         if (league.getPrivacy() == LeaguePrivacy.PRIVATE
-                && !league.getOwnerUserId().equals(callerId)) {
+                && !league.getOwnerUserId().equals(callerId)
+                && !organizerRepository.existsByLeague_IdAndUserId(league.getId(), callerId)) {
             throw new NotFoundException("League not found");
         }
     }
