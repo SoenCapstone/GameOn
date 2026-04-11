@@ -14,4 +14,6 @@ public interface LeagueOrganizerRepository extends JpaRepository<LeagueOrganizer
     Optional<LeagueOrganizer> findByLeague_IdAndUserId(UUID leagueId, String userId);
 
     boolean existsByLeague_IdAndUserId(UUID leagueId, String userId);
+
+    List<LeagueOrganizer> findByUserId(String userId);
 }
