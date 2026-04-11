@@ -22,3 +22,12 @@ export type LeagueInviteCard = {
   sport?: string | null;
 };
 
+export type LeagueOrganizerInviteCard = {
+  kind: "league-organizer";
+  id: string;
+  leagueId: string;
+  leagueName: string;
+  inviterName?: string;
+  logoUrl?: string | null;
+  sport?: string | null;
+};

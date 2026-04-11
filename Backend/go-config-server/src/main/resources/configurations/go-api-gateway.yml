@@ -26,7 +26,7 @@ spring:
             - id: go-league-invite-service
               uri: lb://go-league-service
               predicates:
-                - Path=/api/v1/teams/*/league-invites,/api/v1/league-invites/**
+                - Path=/api/v1/teams/*/league-invites,/api/v1/league-invites/**,/api/v1/league-organizer-invites/**
             - id: go-team-service
               uri: lb://go-team-service
               predicates:

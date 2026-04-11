@@ -8,6 +8,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import com.game.on.go_league_service.league.dto.LeagueOrganizerInviteResponse;
+
 
 import java.util.List;
 import java.util.UUID;
@@ -53,5 +55,10 @@ public class LeagueOrganizerController {
     public ResponseEntity<Void> decline(@PathVariable UUID inviteId) {
         organizerService.declineInvite(inviteId);
         return ResponseEntity.noContent().build();
+    }
+
+    @GetMapping("/league-organizer-invites/mine")
+    public ResponseEntity<List<LeagueOrganizerInviteResponse>> myInvites() {
+        return ResponseEntity.ok(organizerService.listMyPendingInvites());
     }
 }

@@ -18,4 +18,7 @@ public interface LeagueOrganizerInviteRepository extends JpaRepository<LeagueOrg
 
     Optional<LeagueOrganizerInvite> findByIdAndStatus(
             UUID id, LeagueOrganizerInviteStatus status);
+
+    List<LeagueOrganizerInvite> findByInviteeUserIdAndStatusOrderByCreatedAtDesc(
+            String inviteeUserId, LeagueOrganizerInviteStatus status);
 }

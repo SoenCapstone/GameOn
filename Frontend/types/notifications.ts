@@ -1,4 +1,4 @@
-import { LeagueInviteCard } from "@/types/leagues";
+import { LeagueInviteCard, LeagueOrganizerInviteCard } from "@/types/leagues";
 import { RefereeMatchInviteCard, TeamMatchInviteCard } from "@/types/matches";
 
 export type TeamInviteResponse = {
@@ -27,6 +27,7 @@ export type TeamInviteCard = {
 export type NotificationItem =
   | TeamInviteCard
   | LeagueInviteCard
+  | LeagueOrganizerInviteCard
   | TeamMatchInviteCard
   | RefereeMatchInviteCard;
 

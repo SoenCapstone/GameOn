@@ -5,6 +5,7 @@ import com.game.on.go_league_service.exception.ConflictException;
 import com.game.on.go_league_service.exception.ForbiddenException;
 import com.game.on.go_league_service.exception.NotFoundException;
 import com.game.on.go_league_service.league.dto.LeagueOrganizerInviteCreateRequest;
+import com.game.on.go_league_service.league.dto.LeagueOrganizerInviteResponse;
 import com.game.on.go_league_service.league.dto.LeagueOrganizerResponse;
 import com.game.on.go_league_service.league.model.*;
 import com.game.on.go_league_service.league.repository.LeagueOrganizerInviteRepository;
@@ -160,6 +161,22 @@ public class LeagueOrganizerService {
         if (!isOwnerOrOrganizer(league, userId)) {
             throw new ForbiddenException("Only the league owner or organizers can perform this action");
         }
+    }
+
+    @Transactional(readOnly = true)
+    public List<LeagueOrganizerInviteResponse> listMyPendingInvites() {
+        String userId = userProvider.clerkUserId();
+        return inviteRepository.findByInviteeUserIdAndStatusOrderByCreatedAtDesc(userId, LeagueOrganizerInviteStatus.PENDING)
+                .stream()
+                .map(i -> new LeagueOrganizerInviteResponse(
+                        i.getId(),
+                        i.getLeague().getId(),
+                        i.getInviteeUserId(),
+                        i.getInvitedByUserId(),
+                        i.getStatus().name(),
+                        i.getCreatedAt(),
+                        i.getRespondedAt()))
+                .toList();
     }
 
     private League requireActiveLeague(UUID leagueId) {
