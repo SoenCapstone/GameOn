@@ -37,11 +37,9 @@ export function buildExploreMatchesBody(
 
 export function buildExploreMatchesQueryKey(
   body: ExploreMatchesResolvedParams,
-  filter: ExploreMatchesFilter = "all",
 ) {
   return [
     ...exploreMatchesQueryKey,
-    filter,
     body.sport ?? "all",
     body.latitude,
     body.longitude,
@@ -67,12 +65,21 @@ export function getExploreMatches(rows: ExploreMatchItem[]): Match[] {
   return rows.map((row) => row.match);
 }
 
-export function filterExploreMatchesByVenue(
-  matches: Match[],
+export function filterExploreMatches(
+  items: ExploreMatchItem[],
+  filter: ExploreMatchesFilter,
   focusedVenue: string | null,
-): Match[] {
-  if (!focusedVenue) return matches;
-  return matches.filter((m) => m.venueId === focusedVenue);
+): ExploreMatchItem[] {
+  let matches = items;
+  if (filter === "league") {
+    matches = matches.filter((m) => m.kind === "league");
+  } else if (filter === "team") {
+    matches = matches.filter((m) => m.kind === "team");
+  }
+  if (focusedVenue) {
+    matches = matches.filter((m) => m.match.venueId === focusedVenue);
+  }
+  return matches;
 }
 
 export function exploreTeamIds(matches: Match[]) {

@@ -23,7 +23,7 @@ import {
   exploreMapRegion,
   exploreMatchContextLabel,
   exploreTeamIds,
-  filterExploreMatchesByVenue,
+  filterExploreMatches,
   getExploreMatches,
   hideMarkerCallouts,
   trackMarker,
@@ -115,15 +115,12 @@ export default function Explore() {
       longitude: coordinates?.longitude,
       rangeKm: preferences.rangeKm,
       sport: preferences.sport,
-      filter,
     });
 
   const venues = useExploreVenues(matches);
 
-  const allMatches = getExploreMatches(matches);
-  const displayedMatches = filterExploreMatchesByVenue(
-    allMatches,
-    focusedVenue,
+  const displayedMatches = getExploreMatches(
+    filterExploreMatches(matches, filter, focusedVenue),
   );
   const teamIds = exploreTeamIds(displayedMatches);
   const leagueIds = exploreLeagueIds(displayedMatches);

@@ -7,7 +7,6 @@ export type ExploreMatchesParams = {
   latitude?: number | null;
   longitude?: number | null;
   rangeKm?: number | null;
-  filter?: ExploreMatchesFilter;
 };
 
 export type ExploreMatchesResolvedParams = {
