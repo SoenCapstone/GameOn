@@ -73,6 +73,8 @@ function LeagueSettingsContent() {
     leagueTeams,
   } = useLeagueDetailContext();
 
+  const canAccess = isOwner || isOrganizer;
+
   const [isPublic, setIsPublic] = useState(false);
   const leagueTeamsQuery = useTeamsByIds(
     leagueTeams.map((team) => team.teamId),
@@ -147,7 +149,7 @@ function LeagueSettingsContent() {
   const { data: userDirectory = [] } = useQuery({
     queryKey: ["user-directory"],
     queryFn: async () => fetchUserDirectory(api),
-    enabled: Boolean(id && (isOwner || isOrganizer)),
+    enabled: Boolean(id && canAccess),
     staleTime: 5 * 60 * 1000,
   });
 
@@ -178,7 +180,7 @@ function LeagueSettingsContent() {
     ]);
   };
 
-  if (!isOwner && !isOrganizer) {
+  if (!canAccess) {
     return (
       <ContentArea background={{ preset: "red" }}>
         <Empty message="You don't have permission to edit this league" />
@@ -215,7 +217,7 @@ function LeagueSettingsContent() {
                 ? { uri: league.logoUrl }
                 : getSportLogo(league.sport)
             }
-            onPress={() => router.push(`/leagues/${id}/settings/edit`)}
+            onPress={isOwner ? () => router.push(`/leagues/${id}/settings/edit`) : undefined}
             logo
           />
         </Form.Section>
@@ -227,7 +229,7 @@ function LeagueSettingsContent() {
             return (
               <LeagueTeamMenu
                 key={teamMembership.id}
-                canDelete={isOwner && !removeTeamMutation.isPending}
+                canDelete={canAccess && !removeTeamMutation.isPending}
                 onDelete={() =>
                   handleLeagueTeamRemove({
                     teamId: teamMembership.teamId,
@@ -285,72 +287,78 @@ function LeagueSettingsContent() {
               </OrganizerMenu>
             );
           })}
-          <Form.Button
-            button="Invite Organizers"
-            onPress={() =>
-              router.push(`/leagues/${id}/settings/invite-organizers`)
-            }
-          />
-        </Form.Section>
-
-        <Form.Section
-          header="Visibility"
-          footer={
-            isPublic
-              ? "Private leagues are not discoverable, cannot be followed by other users, and only members can see posts."
-              : "Public leagues are discoverable, can be followed by other users, and can make public posts."
-          }
-        >
-          {isPublic ? (
+          {isOwner && (
             <Form.Button
-              button="Switch to a Private League"
-              color={AccentColors.red}
+              button="Invite Organizers"
               onPress={() =>
-                handleLeagueSetPrivate({
-                  league,
-                  onConfirm: (payload) => {
-                    updateLeagueMutation.mutate(payload);
-                    setIsPublic(false);
-                  },
-                })
+                router.push(`/leagues/${id}/settings/invite-organizers`)
               }
-              disabled={updateLeagueMutation.isPending}
-            />
-          ) : (
-            <Form.Button
-              button={isPaying ? "Processing…" : "Switch to a Public League"}
-              color={AccentColors.red}
-              onPress={() =>
-                handleLeagueRequestPurchase({
-                  league,
-                  amountCents: 1500,
-                  formatAmount,
-                  runPayment,
-                  onConfirm: (payload) => {
-                    updateLeagueMutation.mutate(payload);
-                    setIsPublic(true);
-                  },
-                })
-              }
-              disabled={isPaying}
             />
           )}
         </Form.Section>
 
-        <Form.Section>
-          <Form.Button
-            button={
-              deleteLeagueMutation.isPending ? "Deleting..." : "Delete League"
+        {isOwner && (
+          <Form.Section
+            header="Visibility"
+            footer={
+              isPublic
+                ? "Private leagues are not discoverable, cannot be followed by other users, and only members can see posts."
+                : "Public leagues are discoverable, can be followed by other users, and can make public posts."
             }
-            color={AccentColors.red}
-            onPress={() =>
-              handleLeagueDelete({
-                onConfirm: () => deleteLeagueMutation.mutate(),
-              })
-            }
-            disabled={deleteLeagueMutation.isPending}
-          />
-        </Form.Section>
+          >
+            {isPublic ? (
+              <Form.Button
+                button="Switch to a Private League"
+                color={AccentColors.red}
+                onPress={() =>
+                  handleLeagueSetPrivate({
+                    league,
+                    onConfirm: (payload) => {
+                      updateLeagueMutation.mutate(payload);
+                      setIsPublic(false);
+                    },
+                  })
+                }
+                disabled={updateLeagueMutation.isPending}
+              />
+            ) : (
+              <Form.Button
+                button={isPaying ? "Processing…" : "Switch to a Public League"}
+                color={AccentColors.red}
+                onPress={() =>
+                  handleLeagueRequestPurchase({
+                    league,
+                    amountCents: 1500,
+                    formatAmount,
+                    runPayment,
+                    onConfirm: (payload) => {
+                      updateLeagueMutation.mutate(payload);
+                      setIsPublic(true);
+                    },
+                  })
+                }
+                disabled={isPaying}
+              />
+            )}
+          </Form.Section>
+        )}
+
+        {isOwner && (
+          <Form.Section>
+            <Form.Button
+              button={
+                deleteLeagueMutation.isPending ? "Deleting..." : "Delete League"
+              }
+              color={AccentColors.red}
+              onPress={() =>
+                handleLeagueDelete({
+                  onConfirm: () => deleteLeagueMutation.mutate(),
+                })
+              }
+              disabled={deleteLeagueMutation.isPending}
+            />
+          </Form.Section>
+        )}
       </Form>
     </ContentArea>
   );

@@ -160,7 +160,13 @@ public class LeagueService {
             var leagueIds = teamIds.isEmpty()
                     ? List.<UUID>of()
                     : leagueTeamRepository.findLeagueIdsByTeamIdIn(teamIds);
-            var mineSpec = ownerIs(userId).or(idIn(leagueIds));
+            var organizerLeagueIds = organizerRepository.findByUserId(userId)
+                    .stream()
+                    .map(o -> o.getLeague().getId())
+                    .toList();
+            var allLeagueIds = new java.util.ArrayList<>(leagueIds);
+            allLeagueIds.addAll(organizerLeagueIds);
+            var mineSpec = ownerIs(userId).or(idIn(allLeagueIds));
             spec = and(spec, mineSpec);
         } else {
             spec = and(spec, visibleTo(userId));
