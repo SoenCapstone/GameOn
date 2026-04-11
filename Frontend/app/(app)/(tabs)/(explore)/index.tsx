@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { RefreshControl, StyleSheet } from "react-native";
 import * as Haptics from "expo-haptics";
@@ -19,6 +19,7 @@ import { GlassView } from "expo-glass-effect";
 import type { ExploreMatchesFilter } from "@/types/explore";
 import { errorToString } from "@/utils/error";
 import { buildMatchCards, splitMatchSections } from "@/utils/matches";
+import { toast } from "@/utils/toast";
 import {
   exploreLeagueIds,
   exploreMapRegion,
@@ -161,6 +162,14 @@ export default function Explore() {
     }, [load, queryClient, mapRegion]),
   );
 
+  useEffect(() => {
+    if (!isError) return;
+    toast.error("Could Not Load Matches", {
+      id: "explore-matches-error",
+      description: errorToString(error),
+    });
+  }, [error, isError]);
+
   const onRefresh = useCallback(async () => {
     void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     await refresh();
@@ -228,8 +237,6 @@ export default function Explore() {
           isLoading={
             isLoading || teamsQuery.isLoading || leaguesQuery.isLoading
           }
-          errorText={isError ? errorToString(error) : null}
-          onRetry={refresh}
           onMatchPress={(match) => {
             const source = matchItems.find((m) => m.id === match.id);
             const space = source?.leagueId ? "league" : "team";
