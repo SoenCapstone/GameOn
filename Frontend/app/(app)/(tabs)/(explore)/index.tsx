@@ -18,6 +18,7 @@ import { Callout } from "@/components/maps/callout";
 import { GlassView } from "expo-glass-effect";
 import type { ExploreMatchesFilter } from "@/types/explore";
 import { errorToString } from "@/utils/error";
+import { buildMatchCards, splitMatchSections } from "@/utils/matches";
 import {
   exploreLeagueIds,
   exploreMapRegion,
@@ -26,10 +27,10 @@ import {
   filterExploreMatches,
   getExploreMatches,
   hideMarkerCallouts,
+  showExplorePreferenceErrorToast,
   trackMarker,
   type MarkerHandle,
 } from "@/utils/explore";
-import { buildMatchCards, splitMatchSections } from "@/utils/matches";
 import {
   RelativePathString,
   Stack,
@@ -153,7 +154,7 @@ export default function Explore() {
 
   useFocusEffect(
     useCallback(() => {
-      load();
+      load().then(showExplorePreferenceErrorToast);
       void queryClient.refetchQueries({ queryKey: exploreMatchesQueryKey });
       hideMarkerCallouts(markerRefs);
       mapRef.current?.setRegion(mapRegion);
