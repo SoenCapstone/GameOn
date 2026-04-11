@@ -22,35 +22,14 @@ function useExploreMatchesQuery<TData = ExploreMatchItem[]>(
 ) {
   const api = useAxiosWithClerk();
   const body = buildExploreMatchesBody(params);
-  const filter = params.filter ?? "all";
 
   return useQuery<ExploreMatchItem[], Error, TData>({
     queryKey: body
-      ? buildExploreMatchesQueryKey(body, filter)
+      ? buildExploreMatchesQueryKey(body)
       : [...exploreMatchesQueryKey, "disabled"],
     queryFn: async () => {
       if (!body) {
         return [];
-      }
-      if (filter === "league") {
-        const resp = await api.post<LeagueMatch[]>(
-          GO_EXPLORE_ROUTES.LEAGUE_MATCHES,
-          body,
-        );
-        return (resp.data ?? []).map((match) => ({
-          kind: "league" as const,
-          match,
-        }));
-      }
-      if (filter === "team") {
-        const resp = await api.post<TeamMatch[]>(
-          GO_EXPLORE_ROUTES.TEAM_MATCHES,
-          body,
-        );
-        return (resp.data ?? []).map((match) => ({
-          kind: "team" as const,
-          match,
-        }));
       }
       const [leagueResp, teamResp] = await Promise.all([
         api.post<LeagueMatch[]>(GO_EXPLORE_ROUTES.LEAGUE_MATCHES, body),
