@@ -1,7 +1,25 @@
 import {
+  buildExploreMatchesBody,
   buildExploreMatchesQueryKey,
+  exploreLeagueIds,
+  exploreMapRegion,
+  exploreMatchContextLabel,
+  exploreTeamIds,
   filterExploreMatches,
+  getExploreMatches,
+  hideMarkerCallouts,
+  mergeExploreMatchesResults,
+  showExplorePreferenceErrorToast,
+  trackMarker,
 } from "@/utils/explore";
+import { defaultExplorePreferences } from "@/constants/explore";
+import { toast } from "@/utils/toast";
+
+jest.mock("@/utils/toast", () => ({
+  toast: {
+    error: jest.fn(),
+  },
+}));
 
 describe("buildExploreMatchesQueryKey", () => {
   it("includes sport or all placeholder and coordinates", () => {
@@ -21,6 +39,54 @@ describe("buildExploreMatchesQueryKey", () => {
         rangeKm: 5,
       }),
     ).toEqual(["explore-matches", "all", 1, 2, 5]);
+  });
+});
+
+describe("buildExploreMatchesBody", () => {
+  it("returns null when coordinates or range are invalid", () => {
+    expect(
+      buildExploreMatchesBody({
+        latitude: undefined,
+        longitude: -79.38,
+        rangeKm: 10,
+      }),
+    ).toBeNull();
+    expect(
+      buildExploreMatchesBody({
+        latitude: 43.65,
+        longitude: -79.38,
+        rangeKm: 0,
+      }),
+    ).toBeNull();
+  });
+
+  it("trims sport and omits the All option", () => {
+    expect(
+      buildExploreMatchesBody({
+        latitude: 43.65,
+        longitude: -79.38,
+        rangeKm: 10,
+        sport: " soccer ",
+      }),
+    ).toEqual({
+      latitude: 43.65,
+      longitude: -79.38,
+      rangeKm: 10,
+      sport: "soccer",
+    });
+
+    expect(
+      buildExploreMatchesBody({
+        latitude: 43.65,
+        longitude: -79.38,
+        rangeKm: 10,
+        sport: " All ",
+      }),
+    ).toEqual({
+      latitude: 43.65,
+      longitude: -79.38,
+      rangeKm: 10,
+    });
   });
 });
 
@@ -79,5 +145,148 @@ describe("filterExploreMatches", () => {
   it("combines kind and venue filters", () => {
     expect(filterExploreMatches(items, "team", "v1")).toEqual([]);
     expect(filterExploreMatches(items, "team", "v2")).toEqual([team]);
+  });
+});
+
+describe("explore helpers", () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  it("merges and sorts team and league matches by start time", () => {
+    const leagueMatch = {
+      id: "lm-1",
+      startTime: "2026-04-11T18:00:00Z",
+    };
+    const teamMatch = {
+      id: "tm-1",
+      startTime: "2026-04-10T18:00:00Z",
+    };
+
+    expect(
+      mergeExploreMatchesResults([leagueMatch] as never, [teamMatch] as never),
+    ).toEqual([
+      { kind: "team", match: teamMatch },
+      { kind: "league", match: leagueMatch },
+    ]);
+  });
+
+  it("extracts plain matches and unique team and league ids", () => {
+    const matches = getExploreMatches([
+      {
+        kind: "league",
+        match: {
+          id: "lm-1",
+          leagueId: "league-1",
+          homeTeamId: "team-1",
+          awayTeamId: "team-2",
+        },
+      },
+      {
+        kind: "team",
+        match: {
+          id: "tm-1",
+          homeTeamId: "team-1",
+          awayTeamId: "team-3",
+        },
+      },
+    ] as never);
+
+    expect(matches).toEqual([
+      {
+        id: "lm-1",
+        leagueId: "league-1",
+        homeTeamId: "team-1",
+        awayTeamId: "team-2",
+      },
+      {
+        id: "tm-1",
+        homeTeamId: "team-1",
+        awayTeamId: "team-3",
+      },
+    ]);
+    expect(exploreTeamIds(matches as never)).toEqual([
+      "team-1",
+      "team-2",
+      "team-3",
+    ]);
+    expect(exploreLeagueIds(matches as never)).toEqual(["league-1"]);
+  });
+
+  it("builds league and team context labels", () => {
+    expect(
+      exploreMatchContextLabel(
+        { leagueId: "league-1" } as never,
+        { "league-1": { name: "Weekend League" } },
+      ),
+    ).toBe("Weekend League");
+    expect(
+      exploreMatchContextLabel({ leagueId: "league-2" } as never, undefined),
+    ).toBe("League Match");
+    expect(exploreMatchContextLabel({} as never, undefined)).toBe("Team Match");
+  });
+
+  it("builds a map region and falls back to the default coordinates", () => {
+    expect(exploreMapRegion(43.65, -79.38, 0.25)).toEqual({
+      latitude: 43.65,
+      longitude: -79.38,
+      latitudeDelta: 0.25,
+      longitudeDelta: 0.25,
+    });
+
+    expect(exploreMapRegion(undefined, undefined, 0.1)).toEqual({
+      latitude: defaultExplorePreferences.coordinates.latitude,
+      longitude: defaultExplorePreferences.coordinates.longitude,
+      latitudeDelta: 0.1,
+      longitudeDelta: 0.1,
+    });
+  });
+
+  it("tracks markers and hides their callouts", () => {
+    const refs = { current: new Map<string, { hideCallout?: () => void }>() };
+    const marker = { hideCallout: jest.fn() };
+
+    trackMarker(refs, "venue-1", marker);
+    hideMarkerCallouts(refs);
+    trackMarker(refs, "venue-1", null);
+
+    expect(marker.hideCallout).toHaveBeenCalledTimes(1);
+    expect(refs.current.size).toBe(0);
+  });
+
+  it("shows a toast when required preferences are missing", () => {
+    showExplorePreferenceErrorToast({
+      sport: undefined,
+      location: "Toronto",
+      rangeKm: undefined,
+    });
+
+    expect(toast.error).toHaveBeenCalledWith("Sport, Range are Not Set", {
+      id: "explore-preferences",
+      description: "Update your Explore Preferences in Settings.",
+    });
+  });
+
+  it("does not show a toast when all preferences are set", () => {
+    showExplorePreferenceErrorToast({
+      sport: "Soccer",
+      location: "Toronto",
+      rangeKm: 10,
+    });
+
+    expect(toast.error).not.toHaveBeenCalled();
+  });
+
+  it("uses singular grammar when exactly one preference is missing", () => {
+    showExplorePreferenceErrorToast({
+      sport: "Soccer",
+      location: undefined,
+      rangeKm: 10,
+    });
+
+    expect(toast.error).toHaveBeenCalledWith("Location is Not Set", {
+      id: "explore-preferences",
+      description: "Update your Explore Preferences in Settings.",
+    });
   });
 });

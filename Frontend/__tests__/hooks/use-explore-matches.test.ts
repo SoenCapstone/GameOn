@@ -1,7 +1,10 @@
+import { act, renderHook, waitFor } from "@testing-library/react-native";
 import { useQuery } from "@tanstack/react-query";
-import { renderHook } from "@testing-library/react-native";
 import { useExploreMatches } from "@/hooks/use-explore-matches";
-import { buildExploreMatchesQueryKey } from "@/utils/explore";
+import {
+  buildExploreMatchesBody,
+  buildExploreMatchesQueryKey,
+} from "@/utils/explore";
 import {
   GO_EXPLORE_ROUTES,
   useAxiosWithClerk,
@@ -63,6 +66,55 @@ describe("useExploreMatches", () => {
         enabled: false,
       }),
     );
+  });
+
+  it("omits the sport field when the preference is set to All", () => {
+    renderHook(() =>
+      useExploreMatches({
+        latitude: 43,
+        longitude: -79,
+        rangeKm: 25,
+        sport: " All ",
+      }),
+    );
+
+    expect(useQuery).toHaveBeenLastCalledWith(
+      expect.objectContaining({
+        enabled: true,
+        queryKey: buildExploreMatchesQueryKey({
+          latitude: 43,
+          longitude: -79,
+          rangeKm: 25,
+        }),
+      }),
+    );
+  });
+
+  it("returns an empty array from the query function when the request body is invalid", async () => {
+    let capturedQueryFn: (() => Promise<unknown>) | undefined;
+    (useQuery as jest.Mock).mockImplementation((options) => {
+      capturedQueryFn = options.queryFn;
+      return {
+        data: undefined,
+        isLoading: false,
+        isError: false,
+        error: null,
+        refetch: jest.fn().mockResolvedValue({}),
+      };
+    });
+
+    renderHook(() =>
+      useExploreMatches({
+        latitude: undefined,
+        longitude: -79,
+        rangeKm: 25,
+        sport: "soccer",
+      }),
+    );
+
+    expect(buildExploreMatchesBody({ longitude: -79, rangeKm: 25 })).toBeNull();
+    await expect(capturedQueryFn?.()).resolves.toEqual([]);
+    expect(mockApi.post).not.toHaveBeenCalled();
   });
 
   it("posts both explore endpoints with the same body and merges results", async () => {
@@ -165,4 +217,111 @@ describe("useExploreMatches", () => {
     ]);
   });
 
+  it("falls back to empty endpoint payloads when responses are missing data", async () => {
+    let capturedQueryFn: (() => Promise<unknown>) | undefined;
+    (useQuery as jest.Mock).mockImplementation((options) => {
+      capturedQueryFn = options.queryFn;
+      return {
+        data: undefined,
+        isLoading: false,
+        isError: false,
+        error: null,
+        refetch: jest.fn().mockResolvedValue({}),
+      };
+    });
+
+    mockApi.post.mockResolvedValue({ data: undefined });
+
+    renderHook(() =>
+      useExploreMatches({
+        latitude: 43,
+        longitude: -79,
+        rangeKm: 25,
+      }),
+    );
+
+    await expect(capturedQueryFn?.()).resolves.toEqual([]);
+    expect(mockApi.post).toHaveBeenCalledTimes(2);
+  });
+
+  it("returns an empty matches array by default", () => {
+    const { result } = renderHook(() =>
+      useExploreMatches({
+        latitude: 43,
+        longitude: -79,
+        rangeKm: 25,
+      }),
+    );
+
+    expect(result.current.matches).toEqual([]);
+    expect(result.current.isRefreshing).toBe(false);
+  });
+
+  it("toggles isRefreshing around a successful refresh", async () => {
+    let resolveRefetch!: () => void;
+    const refetch = jest.fn(
+      () =>
+        new Promise((resolve) => {
+          resolveRefetch = () => resolve({});
+        }),
+    );
+    (useQuery as jest.Mock).mockReturnValue({
+      data: undefined,
+      isLoading: false,
+      isError: false,
+      error: null,
+      refetch,
+    });
+
+    const { result } = renderHook(() =>
+      useExploreMatches({
+        latitude: 43,
+        longitude: -79,
+        rangeKm: 25,
+      }),
+    );
+
+    let refreshPromise!: Promise<void>;
+    act(() => {
+      refreshPromise = result.current.refresh();
+    });
+
+    await waitFor(() => {
+      expect(result.current.isRefreshing).toBe(true);
+    });
+
+    await act(async () => {
+      resolveRefetch();
+      await refreshPromise;
+    });
+
+    expect(refetch).toHaveBeenCalledTimes(1);
+    expect(result.current.isRefreshing).toBe(false);
+  });
+
+  it("resets isRefreshing when refresh fails", async () => {
+    const refetch = jest.fn().mockRejectedValue(new Error("refresh failed"));
+    (useQuery as jest.Mock).mockReturnValue({
+      data: undefined,
+      isLoading: false,
+      isError: false,
+      error: null,
+      refetch,
+    });
+
+    const { result } = renderHook(() =>
+      useExploreMatches({
+        latitude: 43,
+        longitude: -79,
+        rangeKm: 25,
+      }),
+    );
+
+    await act(async () => {
+      await expect(result.current.refresh()).rejects.toThrow("refresh failed");
+    });
+
+    expect(refetch).toHaveBeenCalledTimes(1);
+    expect(result.current.isRefreshing).toBe(false);
+  });
 });
