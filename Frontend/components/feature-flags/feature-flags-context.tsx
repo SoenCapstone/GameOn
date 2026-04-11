@@ -1,11 +1,7 @@
-/**
- * Current version: Local-only feature flag persistence using AsyncStorage or localStorage.
- * Next phase: Integrate with backend or remote config service to allow
- * global propagation of flag states across all devices.
- */
-
-import React, {
+import {
   createContext,
+  type FC,
+  type ReactNode,
   useContext,
   useEffect,
   useMemo,
@@ -37,7 +33,7 @@ const syncWithServer = async (updatedFlags: Record<string, boolean>) => {
 
 const FeatureFlagsContext = createContext<FeatureFlagsContextType | null>(null);
 
-export const FeatureFlagsProvider: React.FC<{ children: React.ReactNode }> = ({
+export const FeatureFlagsProvider: FC<{ children: ReactNode }> = ({
   children,
 }) => {
   const [flags, setFlags] = useState<Flags>({

@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useRef } from "react";
+import { useCallback, useEffect, useRef } from "react";
 import { StyleSheet } from "react-native";
 import { LegendList } from "@legendapp/list/react-native";
 import { MatchCard } from "@/components/matches/match-card";
