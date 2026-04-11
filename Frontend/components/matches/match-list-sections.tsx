@@ -1,5 +1,5 @@
 import React from "react";
-import { Pressable, Text, View, StyleSheet } from "react-native";
+import { Text, View, StyleSheet } from "react-native";
 import { MatchCard } from "@/components/matches/match-card";
 import { Loading } from "@/components/ui/loading";
 import { Empty } from "@/components/ui/empty";
@@ -26,8 +26,6 @@ interface MatchListSectionsProps {
   readonly upcoming: MatchItem[];
   readonly past: MatchItem[];
   readonly isLoading: boolean;
-  readonly errorText?: string | null;
-  readonly onRetry?: () => void;
   readonly onMatchPress: (match: MatchItem) => void;
 }
 
@@ -71,32 +69,21 @@ export function MatchListSections({
   upcoming,
   past,
   isLoading,
-  errorText,
-  onRetry,
   onMatchPress,
 }: Readonly<MatchListSectionsProps>) {
   const hasMatches = today.length > 0 || upcoming.length > 0 || past.length > 0;
 
+  if (isLoading) {
+    return <Loading />;
+  }
+
+  if (!hasMatches) {
+    return <Empty message="No matches available" />;
+  }
+
   return (
     <>
-      {errorText ? (
-        <View style={styles.section}>
-          <Text style={styles.emptyText}>{errorText}</Text>
-          {onRetry ? (
-            <Pressable onPress={onRetry} style={styles.retryButton}>
-              <Text style={styles.retryText}>Retry</Text>
-            </Pressable>
-          ) : null}
-        </View>
-      ) : null}
-
-      {!errorText && isLoading ? <Loading /> : null}
-
-      {!errorText && !isLoading && !hasMatches ? (
-        <Empty message="No matches available" />
-      ) : null}
-
-      {!isLoading && today.length > 0 ? (
+      {today.length > 0 ? (
         <ListSection
           title="Today"
           items={today}
@@ -104,7 +91,7 @@ export function MatchListSections({
         />
       ) : null}
 
-      {!isLoading && upcoming.length > 0 ? (
+      {upcoming.length > 0 ? (
         <ListSection
           title="Upcoming"
           items={upcoming}
@@ -112,12 +99,8 @@ export function MatchListSections({
         />
       ) : null}
 
-      {!isLoading && past.length > 0 ? (
-        <ListSection
-          title="Past"
-          items={past}
-          onMatchPress={onMatchPress}
-        />
+      {past.length > 0 ? (
+        <ListSection title="Past" items={past} onMatchPress={onMatchPress} />
       ) : null}
     </>
   );
@@ -138,21 +121,5 @@ const styles = StyleSheet.create({
   },
   sectionBody: {
     gap: 14,
-  },
-  emptyText: {
-    color: "rgba(255,255,255,0.72)",
-    fontSize: 14,
-  },
-  retryButton: {
-    borderRadius: 999,
-    backgroundColor: "rgba(255,255,255,0.2)",
-    paddingHorizontal: 14,
-    paddingVertical: 8,
-    alignSelf: "flex-start",
-  },
-  retryText: {
-    color: "#fff",
-    fontSize: 13,
-    fontWeight: "600",
   },
 });

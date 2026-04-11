@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { View, RefreshControl } from "react-native";
 import {
   RelativePathString,
@@ -28,6 +28,7 @@ import { useLeagueStandings } from "@/hooks/use-league-standings";
 import { LeagueStandings } from "@/components/leagues/league-standings";
 import { Loading } from "@/components/ui/loading";
 import { Empty } from "@/components/ui/empty";
+import { toast } from "@/utils/toast";
 
 type LeagueTab = "board" | "matches" | "standings" | "teams";
 
@@ -203,6 +204,14 @@ function LeagueContent() {
     [matchItems],
   );
 
+  useEffect(() => {
+    if (!matchesError) return;
+    toast.error("Could Not Load Matches", {
+      id: `league-matches-error-${id}`,
+      description: "Could not load matches.",
+    });
+  }, [id, matchesError]);
+
   const handleMatchesRefresh = useMemo(
     () => async () => {
       await Promise.all([refetchMatches(), teamsQuery.refetch()]);
@@ -282,8 +291,6 @@ function LeagueContent() {
                 upcoming={upcoming}
                 past={past}
                 isLoading={matchesLoading || teamsQuery.isLoading}
-                errorText={matchesError ? "Could not load matches." : null}
-                onRetry={handleMatchesRefresh}
                 onMatchPress={(match) =>
                   router.push({
                     pathname: `/match/${match.id}` as RelativePathString,
