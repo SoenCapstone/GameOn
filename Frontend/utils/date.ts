@@ -73,3 +73,7 @@ export function isValidTimeRange(date: Date, startTime: Date, endTime: Date) {
   end.setHours(endTime.getHours(), endTime.getMinutes(), 0, 0);
   return end.getTime() > start.getTime();
 }
+
+export function startOfLocalDay(value: Date) {
+  return new Date(value.getFullYear(), value.getMonth(), value.getDate());
+}
