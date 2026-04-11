@@ -121,7 +121,9 @@ export default function LeagueScreen() {
 }
 
 function LeagueContent() {
-  const params = useLocalSearchParams<{ tab?: string }>();
+  const params = useLocalSearchParams<{
+    tab?: string;
+  }>();
   const initialTab: LeagueTab = resolveLeagueTab(params.tab);
   const [tab, setTab] = useState<LeagueTab>(initialTab);
   const router = useRouter();

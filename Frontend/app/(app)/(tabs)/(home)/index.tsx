@@ -1,14 +1,18 @@
 import { useCallback, useState } from "react";
-import { Pressable, StyleSheet } from "react-native";
+import { Pressable, RefreshControl, StyleSheet } from "react-native";
 import { useAuth, useUser } from "@clerk/clerk-expo";
 import { Image } from "expo-image";
-import { router, Stack, useFocusEffect } from "expo-router";
+import { RelativePathString, router, Stack, useFocusEffect } from "expo-router";
 import { Logo } from "@/components/header/logo";
 import { ContentArea } from "@/components/ui/content-area";
 import { Empty } from "@/components/ui/empty";
 import { getNotificationsQueryKey } from "@/utils/notifications";
 import { useNotificationsCount } from "@/hooks/use-notifications";
 import { useQueryClient } from "@tanstack/react-query";
+import { HomeFeedList } from "@/components/feed/home-feed-list";
+import { useHomeFeed } from "@/hooks/use-home-feed";
+import { errorToString } from "@/utils/error";
+import type { HomeFeedMatchItem, HomeFeedPostItem } from "@/types/feed";
 
 function HomeToolbar() {
   const { user } = useUser();
@@ -56,6 +60,47 @@ export default function Home() {
   const [tab, setTab] = useState<"feed" | "following">("feed");
   const queryClient = useQueryClient();
   const { userId } = useAuth();
+  const {
+    data: feedItems = [],
+    error: feedError,
+    isLoading: feedLoading,
+    isRefetching: feedRefetching,
+    refetch: refetchFeed,
+  } = useHomeFeed();
+
+  const handleMatchPress = useCallback((item: HomeFeedMatchItem) => {
+    router.push({
+      pathname: `/match/${item.id}` as RelativePathString,
+      params: {
+        space: item.space.kind,
+        spaceId: item.space.id,
+        homeName: item.homeName,
+        awayName: item.awayName,
+        homeLogoUrl: item.homeLogoUrl ?? undefined,
+        awayLogoUrl: item.awayLogoUrl ?? undefined,
+      },
+    });
+  }, []);
+
+  const handlePostPress = useCallback((item: HomeFeedPostItem) => {
+    const pathname =
+      item.space.kind === "team"
+        ? (`/teams/${item.space.id}` as RelativePathString)
+        : (`/leagues/${item.space.id}` as RelativePathString);
+
+    router.push({
+      pathname,
+      params: {
+        tab: "board",
+      },
+    });
+  }, []);
+
+  const handleRefresh = useCallback(() => {
+    if (tab === "feed") {
+      void refetchFeed();
+    }
+  }, [refetchFeed, tab]);
 
   useFocusEffect(
     useCallback(() => {
@@ -78,8 +123,21 @@ export default function Home() {
       }}
       toolbar={<HomeToolbar />}
       background={{ preset: "blue" }}
+      refreshControl={
+        <RefreshControl refreshing={feedRefetching} onRefresh={handleRefresh} />
+      }
     >
-      <Empty message="No updates available" />
+      {tab === "feed" ? (
+        <HomeFeedList
+          items={feedItems}
+          isLoading={feedLoading}
+          errorText={feedError ? errorToString(feedError) : null}
+          onMatchPress={handleMatchPress}
+          onPostPress={handlePostPress}
+        />
+      ) : (
+        <Empty message="Following feed coming soon" />
+      )}
     </ContentArea>
   );
 }
