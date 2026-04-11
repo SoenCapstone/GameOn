@@ -1,4 +1,4 @@
-import { describe, expect, it } from "@jest/globals";
+import { afterEach, beforeEach, describe, expect, it, jest } from "@jest/globals";
 import {
   dedupeHomeFeedItems,
   getHomeFeedItemTimestamp,
@@ -63,6 +63,15 @@ describe("feed utils", () => {
     isPast: false,
   };
 
+  beforeEach(() => {
+    jest.useFakeTimers();
+    jest.setSystemTime(new Date(2026, 3, 4, 12, 0, 0));
+  });
+
+  afterEach(() => {
+    jest.useRealTimers();
+  });
+
   it("uses startTime for match timestamps and createdAt for posts", () => {
     expect(getHomeFeedItemTimestamp(matchItem)).toBe(
       new Date("2099-05-01T10:00:00.000Z").getTime(),
@@ -72,29 +81,81 @@ describe("feed utils", () => {
     );
   });
 
-  it("sorts home feed items newest first by computed timestamp", () => {
-    const sorted = sortHomeFeedItems([postItem, matchItem]);
-    expect(sorted.map((item) => item.id)).toEqual(["match-1", "post-1"]);
+  it("sorts home feed items by day group with matches before posts", () => {
+    const sorted = sortHomeFeedItems([
+      {
+        ...postItem,
+        id: "post-2",
+        createdAt: "2026-04-03T18:00:00.000Z",
+      },
+      {
+        ...matchItem,
+        id: "match-today",
+        startTime: "2026-04-04T08:00:00.000Z",
+      },
+      {
+        ...postItem,
+        id: "post-today",
+        createdAt: "2026-04-04T13:00:00.000Z",
+      },
+      {
+        ...matchItem,
+        id: "match-tomorrow",
+        startTime: "2026-04-05T08:00:00.000Z",
+      },
+      {
+        ...postItem,
+        id: "post-yesterday",
+        createdAt: "2026-04-03T10:00:00.000Z",
+      },
+      {
+        ...matchItem,
+        id: "match-2-days-later",
+        startTime: "2026-04-06T08:00:00.000Z",
+      },
+      {
+        ...postItem,
+        id: "post-2-days-ago",
+        createdAt: "2026-04-02T10:00:00.000Z",
+      },
+    ]);
+
+    expect(sorted.map((item) => item.id)).toEqual([
+      "match-today",
+      "post-today",
+      "match-tomorrow",
+      "post-2",
+      "post-yesterday",
+      "match-2-days-later",
+      "post-2-days-ago",
+    ]);
   });
 
-  it("detects upcoming match eligibility", () => {
+  it("detects current and future match eligibility", () => {
     expect(
       isUpcomingFeedMatch({
-        startTime: "2099-04-01T10:00:00.000Z",
+        startTime: "2026-04-04T01:00:00",
         status: "CONFIRMED",
       }),
     ).toBe(true);
 
     expect(
       isUpcomingFeedMatch({
-        startTime: "2000-04-01T10:00:00.000Z",
+        startTime: "2026-04-05T10:00:00",
+        status: "CONFIRMED",
+      }),
+    ).toBe(true);
+
+    expect(
+      isUpcomingFeedMatch({
+        startTime: "2026-04-03T10:00:00",
         status: "CONFIRMED",
       }),
     ).toBe(false);
 
     expect(
       isUpcomingFeedMatch({
-        startTime: "2099-04-01T10:00:00.000Z",
+        startTime: "2026-04-05T10:00:00",
         status: "CANCELLED",
       }),
     ).toBe(false);

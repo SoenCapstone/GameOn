@@ -219,6 +219,7 @@ export function useHomeFeed() {
     enabled: Boolean(userId),
     refetchOnMount: false,
     refetchOnWindowFocus: false,
+    retry: false,
     queryFn: async () => {
       try {
         log.info("Fetching home feed", { userId });
