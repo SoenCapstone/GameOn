@@ -55,10 +55,10 @@ describe("TeamOverviewTab", () => {
       seasonLabel: "Season Alpha",
       record: "14-2-1",
       tiles: [
-        { key: "points", label: "Points", value: 42 },
-        { key: "matches", label: "Matches", value: 18 },
-        { key: "streak", label: "Streak", value: "W4" },
-        { key: "minutes", label: "Minutes", value: 960 },
+        { key: "points", label: "🏆 Points", value: 42 },
+        { key: "matches", label: "📅 Matches", value: 18 },
+        { key: "streak", label: "🔥 Streak", value: "W4" },
+        { key: "minutes", label: "⏱ Minutes", value: 960 },
       ],
       rosterCounts: {
         total: 16,
@@ -119,10 +119,10 @@ describe("TeamOverviewTab", () => {
   it("renders loading, error, and fallback states when overview values are missing", () => {
     const overviewError = new Error("network failed");
     const tiles: TeamOverviewResponse["tiles"] = [
-      { key: "points", label: "Points", value: undefined },
-      { key: "matches", label: "Matches", value: undefined },
-      { key: "streak", label: "Streak", value: undefined },
-      { key: "minutes", label: "Minutes", value: undefined },
+      { key: "points", label: "🏆 Points", value: undefined },
+      { key: "matches", label: "📅 Matches", value: undefined },
+      { key: "streak", label: "🔥 Streak", value: undefined },
+      { key: "minutes", label: "⏱ Minutes", value: undefined },
     ];
 
     const { getByTestId, getByText, queryByText, UNSAFE_getByType } = render(
@@ -137,7 +137,7 @@ describe("TeamOverviewTab", () => {
     expect(UNSAFE_getByType(ActivityIndicator)).toBeTruthy();
     expect(mockedErrorToString).toHaveBeenCalledWith(overviewError);
     expect(getByText("formatted error")).toBeTruthy();
-    expect(getByText("Season 2026")).toBeTruthy();
+    expect(getByText(`Season ${new Date().getFullYear()}`)).toBeTruthy();
     expect(getByText("Points")).toBeTruthy();
     expect(getByText("Matches")).toBeTruthy();
     expect(getByText("Streak")).toBeTruthy();
