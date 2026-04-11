@@ -298,69 +298,99 @@ function LeagueSettingsContent() {
         </Form.Section>
 
         {isOwner && (
-          <Form.Section
-            header="Visibility"
-            footer={
-              isPublic
-                ? "Private leagues are not discoverable, cannot be followed by other users, and only members can see posts."
-                : "Public leagues are discoverable, can be followed by other users, and can make public posts."
-            }
-          >
-            {isPublic ? (
-              <Form.Button
-                button="Switch to a Private League"
-                color={AccentColors.red}
-                onPress={() =>
-                  handleLeagueSetPrivate({
-                    league,
-                    onConfirm: (payload) => {
-                      updateLeagueMutation.mutate(payload);
-                      setIsPublic(false);
-                    },
-                  })
-                }
-                disabled={updateLeagueMutation.isPending}
-              />
-            ) : (
-              <Form.Button
-                button={isPaying ? "Processing…" : "Switch to a Public League"}
-                color={AccentColors.red}
-                onPress={() =>
-                  handleLeagueRequestPurchase({
-                    league,
-                    amountCents: 1500,
-                    formatAmount,
-                    runPayment,
-                    onConfirm: (payload) => {
-                      updateLeagueMutation.mutate(payload);
-                      setIsPublic(true);
-                    },
-                  })
-                }
-                disabled={isPaying}
-              />
-            )}
-          </Form.Section>
-        )}
-
-        {isOwner && (
-          <Form.Section>
-            <Form.Button
-              button={
-                deleteLeagueMutation.isPending ? "Deleting..." : "Delete League"
-              }
-              color={AccentColors.red}
-              onPress={() =>
-                handleLeagueDelete({
-                  onConfirm: () => deleteLeagueMutation.mutate(),
-                })
-              }
-              disabled={deleteLeagueMutation.isPending}
-            />
-          </Form.Section>
+          <OwnerOnlySections
+            league={league}
+            isPublic={isPublic}
+            setIsPublic={setIsPublic}
+            isPaying={isPaying}
+            updateLeagueMutation={updateLeagueMutation}
+            deleteLeagueMutation={deleteLeagueMutation}
+            runPayment={runPayment}
+          />
         )}
       </Form>
     </ContentArea>
+  );
+}
+
+function OwnerOnlySections({
+  league,
+  isPublic,
+  setIsPublic,
+  isPaying,
+  updateLeagueMutation,
+  deleteLeagueMutation,
+  runPayment,
+}: Readonly<{
+  league: { name?: string | null; sport?: string | null; level?: string | null; region?: string | null; location?: string | null; logoUrl?: string | null; privacy?: string | null } | null;
+  isPublic: boolean;
+  setIsPublic: (value: boolean) => void;
+  isPaying: boolean;
+  updateLeagueMutation: ReturnType<typeof useUpdateLeague>;
+  deleteLeagueMutation: ReturnType<typeof useDeleteLeague>;
+  runPayment: (onPaid: () => Promise<void> | void) => void;
+}>) {
+  return (
+    <>
+      <Form.Section
+        header="Visibility"
+        footer={
+          isPublic
+            ? "Private leagues are not discoverable, cannot be followed by other users, and only members can see posts."
+            : "Public leagues are discoverable, can be followed by other users, and can make public posts."
+        }
+      >
+        {isPublic ? (
+          <Form.Button
+            button="Switch to a Private League"
+            color={AccentColors.red}
+            onPress={() =>
+              handleLeagueSetPrivate({
+                league,
+                onConfirm: (payload) => {
+                  updateLeagueMutation.mutate(payload);
+                  setIsPublic(false);
+                },
+              })
+            }
+            disabled={updateLeagueMutation.isPending}
+          />
+        ) : (
+          <Form.Button
+            button={isPaying ? "Processing…" : "Switch to a Public League"}
+            color={AccentColors.red}
+            onPress={() =>
+              handleLeagueRequestPurchase({
+                league,
+                amountCents: 1500,
+                formatAmount,
+                runPayment,
+                onConfirm: (payload) => {
+                  updateLeagueMutation.mutate(payload);
+                  setIsPublic(true);
+                },
+              })
+            }
+            disabled={isPaying}
+          />
+        )}
+      </Form.Section>
+
+      <Form.Section>
+        <Form.Button
+          button={
+            deleteLeagueMutation.isPending ? "Deleting..." : "Delete League"
+          }
+          color={AccentColors.red}
+          onPress={() =>
+            handleLeagueDelete({
+              onConfirm: () => deleteLeagueMutation.mutate(),
+            })
+          }
+          disabled={deleteLeagueMutation.isPending}
+        />
+      </Form.Section>
+    </>
   );
 }
 
