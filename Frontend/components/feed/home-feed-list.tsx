@@ -82,7 +82,7 @@ export function HomeFeedList({
   }
 
   if (errorText) {
-    return <Empty message="Failed to load feed" />;;
+    return <Empty message="Failed to load feed" />;
   }
 
   if (items.length === 0) {
