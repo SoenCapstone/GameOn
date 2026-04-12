@@ -13,6 +13,10 @@ public record TeamMatchScoreRequest(
         @Min(value = 0, message = "awayScore must be >= 0")
         Integer awayScore,
         @NotNull(message = "endTime is required")
-        OffsetDateTime endTime
+        OffsetDateTime endTime,
+        Integer homeShotsOnTarget,
+        Integer awayShotsOnTarget,
+        Integer homeFouls,
+        Integer awayFouls
 ) {
 }

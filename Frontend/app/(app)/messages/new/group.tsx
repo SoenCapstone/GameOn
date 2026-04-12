@@ -1,12 +1,12 @@
 import { useCallback, useState } from "react";
 import { ContentArea } from "@/components/ui/content-area";
-import { Alert } from "react-native";
 import { Form } from "@/components/form/form";
 import { AccentColors } from "@/constants/colors";
 import { useRouter } from "expo-router";
 import { useMessagingContext } from "@/contexts/messaging";
 import { useMyTeams } from "@/hooks/messages/use-my-teams";
 import { errorToString } from "@/utils/error";
+import { toast } from "@/utils/toast";
 import { FormToolbar } from "@/components/form/form-toolbar";
 import { Loading } from "@/components/ui/loading";
 
@@ -23,13 +23,11 @@ export default function NewGroup() {
   const hasTeams = (teams ?? []).length > 0;
 
   const submitTeamChat = useCallback(async () => {
-    if (!selectedTeam) {
-      Alert.alert("Select a team");
-      return;
-    }
     const trimmed = chatName.trim();
-    if (!trimmed) {
-      Alert.alert("Chat name required");
+    if (!selectedTeam || !trimmed) {
+      toast.error("Unable To Create Chat", {
+        description: "Fill all required fields",
+      });
       return;
     }
     try {
@@ -40,7 +38,9 @@ export default function NewGroup() {
       });
       router.replace(`/messages/${conversation.id}`);
     } catch (err) {
-      Alert.alert("Unable to create chat", errorToString(err));
+      toast.error("Unable To Create Chat", {
+        description: errorToString(err),
+      });
     } finally {
       setCreating(false);
     }

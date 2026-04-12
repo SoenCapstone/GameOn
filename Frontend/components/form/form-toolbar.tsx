@@ -1,3 +1,4 @@
+import type { ReactNode } from "react";
 import { ActivityIndicator, ImageSourcePropType } from "react-native";
 import { Stack } from "expo-router";
 import { SFSymbols7_0 } from "sf-symbols-typescript";
@@ -9,6 +10,7 @@ type FormToolbarProps = {
   readonly icon?: SFSymbols7_0 | ImageSourcePropType;
   readonly label?: string;
   readonly disabled?: boolean;
+  readonly menu?: ReactNode;
 };
 
 export function FormToolbar({
@@ -18,11 +20,13 @@ export function FormToolbar({
   icon,
   label = "Save",
   disabled = false,
+  menu,
 }: Readonly<FormToolbarProps>) {
   return (
     <>
       <Stack.Screen.Title>{title}</Stack.Screen.Title>
       <Stack.Toolbar placement="right">
+        {menu}
         {loading ? (
           <Stack.Toolbar.View>
             <ActivityIndicator color="white" size="small" />

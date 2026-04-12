@@ -9,6 +9,7 @@ import {
   GO_TEAM_SERVICE_ROUTES,
   GO_LEAGUE_SERVICE_ROUTES,
 } from "@/hooks/use-axios-clerk";
+import type { LeagueListResponse } from "@/types/leagues";
 
 const log = createScopedLog("Search");
 
@@ -25,28 +26,6 @@ export function getSportLogo(sport?: string | null): ImageSource {
       return images.defaultLogo;
   }
 }
-
-type LeagueSummaryResponse = {
-  id: string;
-  name: string;
-  sport: string;
-  slug: string;
-  logoUrl?: string | null;
-  region?: string | null;
-  level?: string | null;
-  privacy?: string | null;
-  seasonCount?: number | null;
-  createdAt: string;
-  updatedAt: string;
-};
-
-type LeagueListResponse = {
-  items: LeagueSummaryResponse[];
-  totalElements: number;
-  page: number;
-  size: number;
-  hasNext: boolean;
-};
 
 async function fetchTeamResults(
   api: AxiosInstance,
