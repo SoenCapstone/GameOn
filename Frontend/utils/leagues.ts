@@ -15,7 +15,7 @@ import {
   LeagueOrganizerInviteCard,
   LeaguePrivacy,
 } from "@/types/leagues";
-import { fetchUserNameMap } from "@/utils/notifications";
+import { fetchUserNameMap } from "@/utils/users";
 
 type ShowActionSheet = ReturnType<
   typeof useActionSheet
