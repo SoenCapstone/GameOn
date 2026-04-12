@@ -645,7 +645,7 @@ describe("useHomeFeed", () => {
     };
 
     await expect(options.queryFn()).rejects.toThrow("boom");
-    expect(mockedToastError).toHaveBeenCalledWith("Failed to load feed", {
+    expect(mockedToastError).toHaveBeenCalledWith("Failed to Load Feed", {
       description: "boom",
     });
   });
