@@ -11,7 +11,7 @@ import { useActionSheet } from "@expo/react-native-action-sheet";
 import ContextMenu from "react-native-context-menu-view";
 import { Card } from "@/components/ui/card";
 import { IconSymbol } from "@/components/ui/icon-symbol";
-import { BoardPost } from "@/components/board/board-types";
+import { BoardPost } from "@/types/board";
 import { isRunningInExpoGo } from "@/utils/runtime";
 import TimeAgo from "javascript-time-ago";
 
@@ -21,6 +21,8 @@ interface PostProps {
   spaceLogo: ImageSource;
   onDelete?: (postId: string) => void;
   canDelete?: boolean;
+  isInteractive?: boolean;
+  onPress?: () => void;
 }
 
 export function Post({
@@ -29,6 +31,8 @@ export function Post({
   spaceLogo,
   onDelete,
   canDelete = false,
+  isInteractive = false,
+  onPress,
 }: Readonly<PostProps>) {
   const { showActionSheetWithOptions } = useActionSheet();
   const anchorRef = useRef<View>(null);
@@ -61,7 +65,7 @@ export function Post({
   };
 
   const cardContent = (
-    <Card isInteractive={isRunningInExpoGo}>
+    <Card isInteractive={isInteractive || isRunningInExpoGo}>
       <View style={styles.container}>
         <View style={styles.content}>
           <View style={styles.header}>
@@ -99,12 +103,16 @@ export function Post({
   );
 
   if (!canDelete || !onDelete) {
-    return cardContent;
+    return onPress ? (
+      <Pressable onPress={onPress}>{cardContent}</Pressable>
+    ) : (
+      cardContent
+    );
   }
 
   if (isRunningInExpoGo) {
     return (
-      <Pressable ref={anchorRef} onLongPress={handleDelete}>
+      <Pressable ref={anchorRef} onLongPress={handleDelete} onPress={onPress}>
         {cardContent}
       </Pressable>
     );
@@ -126,7 +134,7 @@ export function Post({
       }}
       previewBackgroundColor="transparent"
     >
-      {cardContent}
+      <Pressable onPress={onPress}>{cardContent}</Pressable>
     </ContextMenu>
   );
 }

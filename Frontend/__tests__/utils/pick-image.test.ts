@@ -1,7 +1,21 @@
 import * as ImagePicker from "expo-image-picker";
+import { toast } from "@/utils/toast";
 import { pickImage } from "@/utils/pick-image";
 
 jest.mock("expo-image-picker");
+jest.mock("@/utils/toast", () => ({
+  toast: Object.assign(jest.fn(), {
+    success: jest.fn(),
+    error: jest.fn(),
+    warning: jest.fn(),
+    info: jest.fn(),
+    loading: jest.fn(),
+    promise: jest.fn(),
+    dismiss: jest.fn(),
+    wiggle: jest.fn(),
+    custom: jest.fn(),
+  }),
+}));
 
 describe("pickImage", () => {
   it("calls setImage with image data when image is picked", async () => {
@@ -32,17 +46,12 @@ describe("pickImage", () => {
     (
       ImagePicker.requestMediaLibraryPermissionsAsync as jest.Mock
     ).mockResolvedValue({ granted: false });
-    const alertSpy = jest
-      .spyOn(jest.requireActual("react-native").Alert, "alert")
-      .mockImplementation(() => {});
     const setImage = jest.fn();
     await pickImage(setImage);
-    expect(alertSpy).toHaveBeenCalledWith(
-      "Permission denied",
-      "You need to allow access to your media library.",
-    );
+    expect(toast.error).toHaveBeenCalledWith("Permission Denied", {
+      description: "You need to allow access to your media library.",
+    });
     expect(setImage).not.toHaveBeenCalled();
-    alertSpy.mockRestore();
   });
 
   it("does not call setImage if picker is canceled", async () => {
@@ -103,15 +112,10 @@ describe("pickImage", () => {
     (
       ImagePicker.requestMediaLibraryPermissionsAsync as jest.Mock
     ).mockRejectedValue(new Error("fail"));
-    const alertSpy = jest
-      .spyOn(jest.requireActual("react-native").Alert, "alert")
-      .mockImplementation(() => {});
     const setImage = jest.fn();
     await pickImage(setImage);
-    expect(alertSpy).toHaveBeenCalledWith(
-      "Error",
-      expect.stringContaining("Failed to pick image: fail"),
-    );
-    alertSpy.mockRestore();
+    expect(toast.error).toHaveBeenCalledWith("Error", {
+      description: expect.stringContaining("Failed to pick image: fail"),
+    });
   });
 });

@@ -5,6 +5,7 @@ import { useNavigation, StackActions } from "@react-navigation/native";
 import { useAuth } from "@clerk/clerk-expo";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import ContextMenu from "react-native-context-menu-view";
+import { toast } from "@/utils/toast";
 import { ContentArea } from "@/components/ui/content-area";
 import { Empty } from "@/components/ui/empty";
 import { Loading } from "@/components/ui/loading";
@@ -114,7 +115,9 @@ function TeamSettingsContent() {
     },
     onError: (err) => {
       log.error("Update team failed", errorToString(err));
-      Alert.alert("Update failed", errorToString(err));
+      toast.error("Update Failed", {
+        description: errorToString(err),
+      });
     },
   });
 
@@ -140,7 +143,9 @@ function TeamSettingsContent() {
       ]);
     },
     onError: (err) => {
-      Alert.alert("Role change failed", errorToString(err));
+      toast.error("Role Change Failed", {
+        description: errorToString(err),
+      });
     },
   });
 
@@ -155,7 +160,9 @@ function TeamSettingsContent() {
       ]);
     },
     onError: (err) => {
-      Alert.alert("Remove failed", errorToString(err));
+      toast.error("Remove Failed", {
+        description: errorToString(err),
+      });
     },
   });
 
@@ -167,7 +174,9 @@ function TeamSettingsContent() {
     },
     onError: (err) => {
       log.error("Delete team failed", errorToString(err));
-      Alert.alert("Delete failed", errorToString(err));
+      toast.error("Delete Failed", {
+        description: errorToString(err),
+      });
     },
   });
 

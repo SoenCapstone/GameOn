@@ -2,6 +2,7 @@ import { useMemo, useState } from "react";
 import { Alert } from "react-native";
 import { Stack, useLocalSearchParams } from "expo-router";
 import { useMutation, useQuery } from "@tanstack/react-query";
+import { toast } from "@/utils/toast";
 import { ContentArea } from "@/components/ui/content-area";
 import { Empty } from "@/components/ui/empty";
 import { Form } from "@/components/form/form";
@@ -55,7 +56,7 @@ export default function InviteTeamsScreen() {
       const resp = await fetchTeamResults(api, "", false, league?.sport);
       return resp.items ?? [];
     },
-    enabled: Boolean(leagueId && isOwner && league?.sport),
+    enabled: Boolean(leagueId && league?.sport),
   });
 
   const pendingInvitesQuery = useQuery<LeagueInviteResponse[]>({
@@ -70,10 +71,14 @@ export default function InviteTeamsScreen() {
     },
     onSuccess: async (_data, teamId) => {
       setInvitedTeamIds((prev) => new Set(prev).add(teamId));
-      Alert.alert("Invite sent", "The invitation was sent successfully.");
+      toast.success("Invite Sent", {
+        description: "The invitation was sent successfully.",
+      });
     },
     onError: (err) => {
-      Alert.alert("Invite failed", errorToString(err));
+      toast.error("Invite Failed", {
+        description: errorToString(err),
+      });
     },
   });
 

@@ -32,9 +32,10 @@ import {
   useState,
   type ComponentRef,
 } from "react";
-import { Alert, Pressable, StyleSheet, TextInput, View } from "react-native";
+import { Pressable, StyleSheet, TextInput, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Image } from "expo-image";
+import { toast } from "@/utils/toast";
 import { Loading } from "@/components/ui/loading";
 import { Empty } from "@/components/ui/empty";
 
@@ -221,7 +222,9 @@ export default function ChatScreen() {
       await sendMessage(id, text);
       setText("");
     } catch (err) {
-      Alert.alert("Unable to send", errorToString(err));
+      toast.error("Unable To Send", {
+        description: errorToString(err),
+      });
     } finally {
       setSending(false);
     }

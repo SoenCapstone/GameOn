@@ -1,9 +1,12 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useAuth } from "@clerk/clerk-expo";
 import { createScopedLog } from "@/utils/logger";
-import {
+import type {
   BoardPost,
   CreateBoardPostRequest,
-} from "@/components/board/board-types";
+  TeamPostListResponse,
+  TeamPostResponse,
+} from "@/types/board";
 import {
   useAxiosWithClerk,
   GO_TEAM_SERVICE_ROUTES,
@@ -11,30 +14,11 @@ import {
 import {
   fetchUserNameMap,
   mapToFrontendPost,
-} from "@/components/board/board-utils";
+} from "@/utils/board";
 
 const log = createScopedLog("Team Board");
 
 const BOARD_QUERY_KEY = (teamId: string) => ["team-board", teamId];
-
-type TeamPostResponse = {
-  id: string;
-  teamId: string;
-  authorUserId: string;
-  authorRole: string;
-  title: string;
-  body: string;
-  scope: "Members" | "Everyone";
-  createdAt: string;
-};
-
-type TeamPostListResponse = {
-  posts: TeamPostResponse[];
-  totalElements: number;
-  pageNumber: number;
-  pageSize: number;
-  hasNext: boolean;
-};
 
 export function useTeamBoardPosts(teamId: string) {
   const api = useAxiosWithClerk();
@@ -83,6 +67,7 @@ export function useTeamBoardPosts(teamId: string) {
 export function useCreateBoardPost(teamId: string) {
   const api = useAxiosWithClerk();
   const queryClient = useQueryClient();
+  const { userId } = useAuth();
 
   return useMutation({
     mutationFn: async (payload: CreateBoardPostRequest) => {
@@ -112,6 +97,9 @@ export function useCreateBoardPost(teamId: string) {
       await queryClient.invalidateQueries({
         queryKey: BOARD_QUERY_KEY(teamId),
       });
+      await queryClient.invalidateQueries({
+        queryKey: ["home-feed", userId],
+      });
     },
     onError: (err) => {
       log.error("Failed to create board post:", err);
@@ -122,6 +110,7 @@ export function useCreateBoardPost(teamId: string) {
 export function useDeleteBoardPost(teamId: string) {
   const api = useAxiosWithClerk();
   const queryClient = useQueryClient();
+  const { userId } = useAuth();
 
   return useMutation({
     mutationFn: async (postId: string) => {
@@ -132,6 +121,9 @@ export function useDeleteBoardPost(teamId: string) {
     onSuccess: async () => {
       await queryClient.invalidateQueries({
         queryKey: BOARD_QUERY_KEY(teamId),
+      });
+      await queryClient.invalidateQueries({
+        queryKey: ["home-feed", userId],
       });
     },
     onError: (err, postId) => {

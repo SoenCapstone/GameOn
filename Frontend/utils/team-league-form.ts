@@ -1,5 +1,5 @@
 import { AxiosInstance } from "axios";
-import { Alert } from "react-native";
+import { toast } from "@/utils/toast";
 import {
   getLogoFileExtension,
   isAllowedLogoMimeType,
@@ -11,7 +11,7 @@ export type PickedLogo = {
   mimeType: string;
 };
 
-const UNSUPPORTED_FORMAT_TITLE = "Unsupported format";
+const UNSUPPORTED_FORMAT_TITLE = "Unsupported Format";
 const UNSUPPORTED_FORMAT_MESSAGE =
   "Only images with transparent background are supported for logos.";
 const DEFAULT_LOGO_MIME_TYPE = "image/png";
@@ -34,7 +34,9 @@ export const pickLogo = async (
 ): Promise<void> => {
   await pickImage((img) => {
     if (!isAllowedLogoMimeType(img.mimeType)) {
-      Alert.alert(UNSUPPORTED_FORMAT_TITLE, UNSUPPORTED_FORMAT_MESSAGE);
+      toast.warning(UNSUPPORTED_FORMAT_TITLE, {
+        description: UNSUPPORTED_FORMAT_MESSAGE,
+      });
       return;
     }
 

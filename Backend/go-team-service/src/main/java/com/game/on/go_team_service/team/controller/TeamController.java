@@ -129,4 +129,13 @@ public class TeamController {
     public List<PlayItemDTO> getPlay(@PathVariable UUID teamId, @PathVariable UUID playId) {
         return teamService.getPlayItems(teamId, playId);
     }
+
+    @PutMapping("/{teamId}/plays/{playId}")
+    public ResponseEntity<UUID> updatePlay(
+            @PathVariable UUID teamId,
+            @PathVariable UUID playId,
+            @RequestBody List<PlayItemDTO> items
+    ) {
+        return ResponseEntity.ok(teamService.updatePlay(items, teamId, playId));
+    }
 }

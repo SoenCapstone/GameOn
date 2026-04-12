@@ -8,8 +8,9 @@ import {
   VALIDATION_PASSWORD_MESSAGE_REQUIRED,
   EMAIL_VERIFICATION_STATUS,
 } from "@/constants/sign-up";
+import { toast } from "@/utils/toast";
 import { UserSignIn } from "@/types/auth";
-import { humanizeClerkError, toast } from "@/utils/sign-up";
+import { humanizeClerkError } from "@/utils/sign-up";
 import { createScopedLog } from "@/utils/logger";
 
 const log = createScopedLog("Sign In Utils");
@@ -64,6 +65,8 @@ export const signin = async (
       log.info("Additional verification required:", result);
     }
   } catch (err: unknown) {
-    toast(humanizeClerkError(err));
+    toast.error("Sign In Failed", {
+      description: humanizeClerkError(err),
+    });
   }
 };

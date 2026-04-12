@@ -4,6 +4,7 @@ import com.game.on.go_league_service.config.CurrentUserProvider;
 import com.game.on.go_league_service.exception.ForbiddenException;
 import com.game.on.go_league_service.exception.NotFoundException;
 import com.game.on.go_league_service.league.model.League;
+import com.game.on.go_league_service.league.repository.LeagueOrganizerRepository;
 import com.game.on.go_league_service.league.repository.LeagueTeamRepository;
 import com.game.on.go_league_service.league.service.LeagueService;
 import com.game.on.go_league_service.league_post.dto.*;
@@ -26,6 +27,7 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class LeaguePostService {
 
+    private final LeagueOrganizerRepository organizerRepository;
     private final LeaguePostRepository postRepository;
     private final LeagueService leagueService;
     private final LeagueTeamRepository leagueTeamRepository;
@@ -115,8 +117,9 @@ public class LeaguePostService {
     }
 
     private void ensureOwner(League league, String userId) {
-        if (!league.getOwnerUserId().equals(userId)) {
-            throw new ForbiddenException("Only the owner can perform this action");
+        if (!league.getOwnerUserId().equals(userId)
+                && !organizerRepository.existsByLeague_IdAndUserId(league.getId(), userId)) {
+            throw new ForbiddenException("Only the league owner can perform this action");
         }
     }
 

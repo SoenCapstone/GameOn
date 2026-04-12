@@ -14,11 +14,7 @@ import com.game.on.go_league_service.league.model.LeagueMatchScore;
 import com.game.on.go_league_service.league.model.LeagueMatchStatus;
 import com.game.on.go_league_service.league.model.RefereeProfile;
 import com.game.on.go_league_service.league.model.Venue;
-import com.game.on.go_league_service.league.repository.LeagueMatchRepository;
-import com.game.on.go_league_service.league.repository.LeagueMatchScoreRepository;
-import com.game.on.go_league_service.league.repository.LeagueRepository;
-import com.game.on.go_league_service.league.repository.LeagueTeamRepository;
-import com.game.on.go_league_service.league.repository.RefereeProfileRepository;
+import com.game.on.go_league_service.league.repository.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -39,6 +35,8 @@ public class LeagueMatchService {
     private static final String LEAGUE_TEAM_SAME_DAY_CONFLICT_CODE = "LEAGUE_TEAM_SAME_DAY_CONFLICT";
     private static final String LEAGUE_TEAM_SAME_DAY_CONFLICT_MESSAGE =
             "One of these teams already has a confirmed match on this day. League teams are limited to one match per day.";
+
+    private final LeagueOrganizerRepository organizerRepository;
 
     private final LeagueRepository leagueRepository;
     private final LeagueTeamRepository leagueTeamRepository;
@@ -359,7 +357,8 @@ public class LeagueMatchService {
     }
 
     private void ensureLeagueOwner(League league, String userId) {
-        if (!league.getOwnerUserId().equals(userId)) {
+        if (!league.getOwnerUserId().equals(userId)
+                && !organizerRepository.existsByLeague_IdAndUserId(league.getId(), userId)) {
             throw new ForbiddenException("Only the league owner can perform this action");
         }
     }
