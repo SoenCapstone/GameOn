@@ -4,6 +4,7 @@ import com.game.on.go_league_service.client.dto.TeamListResponse;
 import com.game.on.go_league_service.client.dto.TeamMatchDetailResponse;
 import com.game.on.go_league_service.client.dto.TeamMembershipResponse;
 import com.game.on.go_league_service.client.dto.TeamSummaryResponse;
+import com.game.on.go_league_service.client.dto.TeamMemberProfileResponse;
 import com.game.on.go_league_service.client.dto.VenueResponse;
 import com.game.on.go_league_service.config.FeignAuthForwardingConfig;
 import org.springframework.cloud.openfeign.FeignClient;
@@ -44,4 +45,7 @@ public interface TeamClient {
 
     @GetMapping("/api/v1/teams/{teamId}/matches")
     List<TeamMatchDetailResponse> getAllTeamMatch(@PathVariable UUID teamId);
+
+    @GetMapping("/api/v1/teams/{teamId}/members")
+    List<TeamMemberProfileResponse> getTeamMembers(@PathVariable UUID teamId);
 }

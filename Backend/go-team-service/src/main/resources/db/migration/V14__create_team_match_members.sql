@@ -11,6 +11,6 @@ CREATE TABLE IF NOT EXISTS team_match_members (
     CONSTRAINT fk_team_member FOREIGN KEY(team_member_id) REFERENCES team_members(id)
 );
 
-CREATE INDEX idx_team_match ON team_match_members(match_id);
-CREATE INDEX idx_team_team_match ON team_match_members(match_id, team_id);
-CREATE INDEX idx_attending_status ON team_match_members(attending);
+CREATE INDEX IF NOT EXISTS idx_team_match ON team_match_members(match_id);
+CREATE INDEX IF NOT EXISTS idx_team_team_match ON team_match_members(match_id, team_id);
+CREATE INDEX IF NOT EXISTS idx_attending_status ON team_match_members(attending);
