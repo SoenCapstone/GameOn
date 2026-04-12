@@ -1,7 +1,7 @@
 import React from "react";
 import { render, fireEvent } from "@testing-library/react-native";
 import { Post } from "@/components/board/post";
-import { BoardPost } from "@/components/board/board-types";
+import { BoardPost } from "@/types/board";
 import * as runtime from "@/utils/runtime";
 
 const runtimeAny = runtime as typeof runtime & {

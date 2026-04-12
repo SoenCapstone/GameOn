@@ -1,9 +1,24 @@
 import { Alert } from "react-native";
+import { toast } from "@/utils/toast";
 import type { AxiosError } from "axios";
 import {
   getScheduleApiErrorMessage,
   showScheduleSubmitError,
 } from "@/utils/schedule-errors";
+
+jest.mock("@/utils/toast", () => ({
+  toast: Object.assign(jest.fn(), {
+    success: jest.fn(),
+    error: jest.fn(),
+    warning: jest.fn(),
+    info: jest.fn(),
+    loading: jest.fn(),
+    promise: jest.fn(),
+    dismiss: jest.fn(),
+    wiggle: jest.fn(),
+    custom: jest.fn(),
+  }),
+}));
 
 describe("schedule-errors", () => {
   describe("getScheduleApiErrorMessage", () => {
@@ -75,7 +90,6 @@ describe("schedule-errors", () => {
     });
 
     it("shows schedule failed alert for API response errors", () => {
-      const alertSpy = jest.spyOn(Alert, "alert");
       const onRetry = jest.fn();
       const err = {
         response: { status: 500, data: { message: "fail" } },
@@ -83,7 +97,9 @@ describe("schedule-errors", () => {
 
       showScheduleSubmitError(err, "Unauthorized", onRetry);
 
-      expect(alertSpy).toHaveBeenCalledWith("Schedule failed", "fail");
+      expect(toast.error).toHaveBeenCalledWith("Schedule Failed", {
+        description: "fail",
+      });
       expect(onRetry).not.toHaveBeenCalled();
     });
   });

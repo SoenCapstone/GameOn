@@ -1,11 +1,25 @@
 import React from "react";
 import { render, fireEvent, waitFor } from "@testing-library/react-native";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { Alert } from "react-native";
+import { toast } from "@/utils/toast";
 import CreateTeamScreen from "@/app/(app)/teams/create";
 
 const mockBack = jest.fn();
 const mockSetOptions = jest.fn();
+
+jest.mock("@/utils/toast", () => ({
+  toast: Object.assign(jest.fn(), {
+    success: jest.fn(),
+    error: jest.fn(),
+    warning: jest.fn(),
+    info: jest.fn(),
+    loading: jest.fn(),
+    promise: jest.fn(),
+    dismiss: jest.fn(),
+    wiggle: jest.fn(),
+    custom: jest.fn(),
+  }),
+}));
 
 jest.mock("expo-router", () => ({
   useRouter: () => ({ back: mockBack }),
@@ -133,15 +147,13 @@ describe("CreateTeamScreen", () => {
   });
 
   it("shows validation errors when required fields missing", () => {
-    const alertSpy = jest.spyOn(Alert, "alert");
     const screen = renderScreen();
 
     fireEvent.press(getCreateButton(screen));
 
-    expect(alertSpy).toHaveBeenCalledWith(
-      "Team creation failed",
-      "Team name is required",
-    );
+    expect(toast.error).toHaveBeenCalledWith("Team Creation Failed", {
+      description: "Fill all required fields",
+    });
   });
 
   it("creates team with PRIVATE privacy by default", async () => {

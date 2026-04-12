@@ -1,7 +1,7 @@
 import React from "react";
 import { fireEvent, waitFor } from "@testing-library/react-native";
+import { toast } from "@/utils/toast";
 import {
-  mockAlert,
   renderWithQueryClient,
   setupAuthTestHooks,
 } from "@/__tests__/auth/auth-test-setup";
@@ -9,6 +9,20 @@ import SignInScreen from "@/app/(auth)/sign-in";
 
 const mockCreate = jest.fn();
 const mockSetActive = jest.fn();
+
+jest.mock("@/utils/toast", () => ({
+  toast: Object.assign(jest.fn(), {
+    success: jest.fn(),
+    error: jest.fn(),
+    warning: jest.fn(),
+    info: jest.fn(),
+    loading: jest.fn(),
+    promise: jest.fn(),
+    dismiss: jest.fn(),
+    wiggle: jest.fn(),
+    custom: jest.fn(),
+  }),
+}));
 
 jest.mock("@clerk/clerk-expo", () => ({
   useSignIn: () => ({
@@ -98,10 +112,10 @@ describe("SignInScreen", () => {
     fireEvent.press(getByText("Developer Account"));
 
     await waitFor(() => {
-      expect(mockAlert).toHaveBeenCalledWith(
-        "Dev Sign In Error",
-        "Missing EXPO_PUBLIC_DEV_LOGIN_EMAIL or EXPO_PUBLIC_DEV_LOGIN_PASSWORD in your .env file.",
-      );
+      expect(toast.error).toHaveBeenCalledWith("Dev Sign In Error", {
+        description:
+          "Missing EXPO_PUBLIC_DEV_LOGIN_EMAIL or EXPO_PUBLIC_DEV_LOGIN_PASSWORD in your .env file.",
+      });
     });
 
     expect(mockCreate).not.toHaveBeenCalled();
@@ -159,7 +173,9 @@ describe("SignInScreen", () => {
     fireEvent.press(getByText("Sign In"));
 
     await waitFor(() => {
-      expect(mockAlert).toHaveBeenCalledWith("Invalid email or password");
+      expect(toast.error).toHaveBeenCalledWith("Sign In Failed", {
+        description: "Invalid email or password",
+      });
     });
 
     expect(mockSetActive).not.toHaveBeenCalled();
