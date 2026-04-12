@@ -419,7 +419,7 @@ export function useHomeFeed() {
         return feed;
       } catch (error) {
         log.error("Failed to fetch home feed", { userId, error });
-        toast.error("Failed to load feed", {
+        toast.error("Failed to Load Feed", {
           description: errorToString(error),
         });
         throw error;

@@ -141,12 +141,12 @@ describe("HomeFeedList", () => {
   });
 
   it("renders error state", () => {
-    const { queryByText, queryByTestId } = render(
+    const { getByTestId, getByText, queryByTestId } = render(
       <HomeFeedList items={[]} isLoading={false} errorText="boom" />,
     );
 
-    expect(queryByText("Failed to load feed")).toBeNull();
-    expect(queryByTestId("empty")).toBeNull();
+    expect(getByTestId("empty")).toBeTruthy();
+    expect(getByText("Failed to load feed")).toBeTruthy();
     expect(queryByTestId("loading")).toBeNull();
   });
 
