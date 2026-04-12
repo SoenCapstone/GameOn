@@ -97,8 +97,21 @@ export const GO_TEAM_SERVICE_ROUTES = {
   CREATE_PLAY: (teamId: string) =>
     buildRoute(VERSIONING.v1, SERVICE.TEAMS, `${teamId}/play-maker`),
 
+  UPDATE_PLAY: (teamId: string, playId: string) =>
+    buildRoute(VERSIONING.v1, SERVICE.TEAMS, `${teamId}/plays/${playId}`),
+
+  GET_PLAYS: (teamId: string) =>
+    buildRoute(VERSIONING.v1, SERVICE.TEAMS, `${teamId}/plays`),
+
+  GET_PLAY: (teamId: string, playId: string) =>
+    buildRoute(VERSIONING.v1, SERVICE.TEAMS, `${teamId}/plays/${playId}`),
+
   UPDATE_MEMBER_ROLE: (teamId: string, userId: string) =>
-    buildRoute(VERSIONING.v1, SERVICE.TEAMS, `${teamId}/members/${userId}/role`),
+    buildRoute(
+      VERSIONING.v1,
+      SERVICE.TEAMS,
+      `${teamId}/members/${userId}/role`,
+    ),
 };
 
 export const GO_LEAGUE_SERVICE_ROUTES = {
@@ -149,6 +162,14 @@ export const GO_LEAGUE_SERVICE_ROUTES = {
     buildRoute(VERSIONING.v1, SERVICE.LEAGUES, `${leagueId}/posts`),
   LEAGUE_POST: (leagueId: string, postId: string) =>
     buildRoute(VERSIONING.v1, SERVICE.LEAGUES, `${leagueId}/posts/${postId}`),
+  ORGANIZERS: (leagueId: string) =>
+    buildRoute(VERSIONING.v1, SERVICE.LEAGUES, `${leagueId}/organizers`),
+  REMOVE_ORGANIZER: (leagueId: string, organizerUserId: string) =>
+    buildRoute(VERSIONING.v1, SERVICE.LEAGUES, `${leagueId}/organizers/${organizerUserId}`),
+  ORGANIZER_INVITES: (leagueId: string) =>
+    buildRoute(VERSIONING.v1, SERVICE.LEAGUES, `${leagueId}/organizer-invites`),
+  ORGANIZER_PENDING_IDS: (leagueId: string) =>
+    buildRoute(VERSIONING.v1, SERVICE.LEAGUES, `${leagueId}/organizer-invites/pending-ids`),
 };
 
 const leagueInvitesBase = buildRoute(VERSIONING.v1, "league-invites");
@@ -158,6 +179,14 @@ export const GO_LEAGUE_INVITE_ROUTES = {
     buildRoute(VERSIONING.v1, "teams", `${teamId}/league-invites`),
   ACCEPT: (inviteId: string) => `${leagueInvitesBase}/${inviteId}/accept`,
   DECLINE: (inviteId: string) => `${leagueInvitesBase}/${inviteId}/decline`,
+};
+
+const leagueOrganizerInvitesBase = buildRoute(VERSIONING.v1, "league-organizer-invites");
+
+export const GO_LEAGUE_ORGANIZER_INVITE_ROUTES = {
+  MINE: `${leagueOrganizerInvitesBase}/mine`,
+  ACCEPT: (inviteId: string) => `${leagueOrganizerInvitesBase}/${inviteId}/accept`,
+  DECLINE: (inviteId: string) => `${leagueOrganizerInvitesBase}/${inviteId}/decline`,
 };
 
 const messagingBase = buildRoute(VERSIONING.v1, SERVICE.MESSAGING);
@@ -196,8 +225,8 @@ export const GO_MATCH_ROUTES = {
     `${matchesBase}/${matchId}/ref-invite/decline`,
   ATTENDANCE: (matchId: string) =>
     `${matchesBase}/${matchId}/members/attendance`,
-    MATCH_MEMBERS_BY_TEAM: (matchId: string, teamId: string) =>
-      `${matchesBase}/${matchId}/teams/${teamId}/members`,
+  MATCH_MEMBERS_BY_TEAM: (matchId: string, teamId: string) =>
+    `${matchesBase}/${matchId}/teams/${teamId}/members`,
 };
 
 export const GO_REFEREE_ROUTES = {

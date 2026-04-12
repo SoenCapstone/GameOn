@@ -1,5 +1,5 @@
 import { useCallback, useMemo, useState } from "react";
-import { Alert, StyleSheet, Text, View } from "react-native";
+import { StyleSheet, Text, View } from "react-native";
 import {
   RelativePathString,
   Color,
@@ -9,6 +9,7 @@ import {
 } from "expo-router";
 import { Image } from "expo-image";
 import MapView, { Marker } from "react-native-maps";
+import { toast } from "@/utils/toast";
 import { useAuth } from "@clerk/clerk-expo";
 import { useQueryClient } from "@tanstack/react-query";
 import { IconSymbol } from "@/components/ui/icon-symbol";
@@ -472,7 +473,9 @@ export default function MatchScreen() {
         spaceId,
       });
     } catch (err) {
-      Alert.alert("Cancel failed", errorToString(err));
+      toast.error("Cancel Failed", {
+        description: errorToString(err),
+      });
     }
   }, [
     canCancel,
@@ -495,7 +498,9 @@ export default function MatchScreen() {
         updateAttendance: attendanceMutation.mutateAsync,
       });
     } catch (err) {
-      Alert.alert("Attendance update failed", errorToString(err));
+      toast.error("Attendance Update Failed", {
+        description: errorToString(err),
+      });
     }
   }, [
     attendanceAction,

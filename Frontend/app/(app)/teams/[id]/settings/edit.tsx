@@ -1,6 +1,6 @@
 import { useCallback, useState } from "react";
-import { Alert } from "react-native";
 import { useLocalSearchParams, useRouter } from "expo-router";
+import { toast } from "@/utils/toast";
 import { ContentArea } from "@/components/ui/content-area";
 import { Empty } from "@/components/ui/empty";
 import { Form } from "@/components/form/form";
@@ -72,7 +72,9 @@ function EditTeamContent() {
     },
     onError: (err) => {
       log.error("Update team failed", errorToString(err));
-      Alert.alert("Update failed", errorToString(err));
+      toast.error("Update Failed", {
+        description: errorToString(err),
+      });
     },
   });
 
@@ -85,16 +87,10 @@ function EditTeamContent() {
   }, [setLogoUri]);
 
   const handleSave = useCallback(async () => {
-    if (!teamName.trim()) {
-      Alert.alert("Team update failed", "Team name is required");
-      return;
-    }
-    if (!selectedSport) {
-      Alert.alert("Team update failed", "Sport is required");
-      return;
-    }
-    if (!selectedCity) {
-      Alert.alert("Team update failed", "City is required");
+    if (!teamName.trim() || !selectedSport || !selectedCity) {
+      toast.error("Update Failed", {
+        description: "Fill all required fields",
+      });
       return;
     }
     if (selectedAllowedRegions.length === 0) {
@@ -124,7 +120,9 @@ function EditTeamContent() {
         });
       } catch (err) {
         log.error("Logo upload failed", errorToString(err));
-        Alert.alert("Logo upload failed", errorToString(err));
+        toast.error("Logo Upload Failed", {
+          description: errorToString(err),
+        });
       }
     } else {
       updateTeamMutation.mutate({

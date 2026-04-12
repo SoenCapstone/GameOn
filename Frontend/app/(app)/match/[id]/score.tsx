@@ -1,10 +1,10 @@
 import { useCallback, useMemo, useState } from "react";
-import { Alert } from "react-native";
 import {
   useLocalSearchParams,
   useRouter,
 } from "expo-router";
 import { useQueryClient } from "@tanstack/react-query";
+import { toast } from "@/utils/toast";
 import { ContentArea } from "@/components/ui/content-area";
 import { Form } from "@/components/form/form";
 import { FormToolbar } from "@/components/form/form-toolbar";
@@ -57,7 +57,7 @@ async function invalidateQueriesAfterScoreSubmit(args: {
   const { isLeagueMatch, leagueId, matchId, queryClient, space, spaceId } =
     args;
   const tasks: Promise<unknown>[] = [
-    queryClient.invalidateQueries({ queryKey: ["user-updates"] }),
+    queryClient.invalidateQueries({ queryKey: ["user-notifications"] }),
   ];
 
   if (spaceId) {
@@ -82,6 +82,12 @@ async function invalidateQueriesAfterScoreSubmit(args: {
       queryClient.invalidateQueries({
         queryKey: ["team-match", matchId],
       }),
+      queryClient.invalidateQueries({
+        queryKey: ["team", spaceId],
+      }),
+      queryClient.invalidateQueries({
+        queryKey: ["team-overview", spaceId],
+      }),
     );
   }
 
@@ -104,6 +110,10 @@ export default function MatchScoreScreen() {
   const [homeScoreText, setHomeScoreText] = useState("");
   const [awayScoreText, setAwayScoreText] = useState("");
   const [endTimeValue, setEndTimeValue] = useState(new Date());
+  const [homeShotsText, setHomeShotsText] = useState("");
+  const [awayShotsText, setAwayShotsText] = useState("");
+  const [homeFoulsText, setHomeFoulsText] = useState("");
+  const [awayFoulsText, setAwayFoulsText] = useState("");
 
   const teamMatchQuery = useTeamMatch(matchId, !isLeagueMatch);
   const leagueMatchQuery = useLeagueMatch(leagueId, matchId, isLeagueMatch);
@@ -147,26 +157,30 @@ export default function MatchScoreScreen() {
 
   const onSubmit = useCallback(async () => {
     if (!matchId) {
-      Alert.alert("Score submission failed", "Match was not provided.");
+      toast.error("Score Submission Failed", {
+        description: "Match was not provided.",
+      });
       return;
     }
 
     const homeScore = parseScore(homeScoreText);
     const awayScore = parseScore(awayScoreText);
+    const homeShotsOnTarget = parseScore(homeShotsText) ?? undefined;
+    const awayShotsOnTarget = parseScore(awayShotsText) ?? undefined;
+    const homeFouls = parseScore(homeFoulsText) ?? undefined;
+    const awayFouls = parseScore(awayFoulsText) ?? undefined;
 
     if (homeScore == null || awayScore == null) {
-      Alert.alert(
-        "Score submission failed",
-        "Enter valid non-negative scores for both teams.",
-      );
+      toast.error("Score Submission Failed", {
+        description: "Enter valid non-negative scores for both teams.",
+      });
       return;
     }
 
     if (matchStartTime && endTimeValue.getTime() <= matchStartTime.getTime()) {
-      Alert.alert(
-        "Score submission failed",
-        "End time must be after the match start time.",
-      );
+      toast.error("Score Submission Failed", {
+        description: "End time must be after the match start time.",
+      });
       return;
     }
 
@@ -186,6 +200,10 @@ export default function MatchScoreScreen() {
           homeScore,
           awayScore,
           endTime,
+          homeShotsOnTarget,
+          awayShotsOnTarget,
+          homeFouls,
+          awayFouls,
         });
       }
 
@@ -200,12 +218,18 @@ export default function MatchScoreScreen() {
 
       router.dismiss();
     } catch (err) {
-      Alert.alert("Score submission failed", errorToString(err));
+      toast.error("Score Submission Failed", {
+        description: errorToString(err),
+      });
     }
   }, [
     awayScoreText,
+    awayShotsText,
+    awayFoulsText,
     endTimeValue,
     homeScoreText,
+    homeShotsText,
+    homeFoulsText,
     isLeagueMatch,
     leagueId,
     matchId,
@@ -270,6 +294,42 @@ export default function MatchScoreScreen() {
               }
             }}
           />
+          {!isLeagueMatch && (
+            <>
+              <Form.Input
+                label={`${homeTeamName} Shots`}
+                value={homeShotsText}
+                onChangeText={setHomeShotsText}
+                keyboardType="number-pad"
+                placeholder="Optional"
+                editable={!isSubmitting}
+              />
+              <Form.Input
+                label={`${awayTeamName} Shots`}
+                value={awayShotsText}
+                onChangeText={setAwayShotsText}
+                keyboardType="number-pad"
+                placeholder="Optional"
+                editable={!isSubmitting}
+              />
+              <Form.Input
+                label={`${homeTeamName} Fouls`}
+                value={homeFoulsText}
+                onChangeText={setHomeFoulsText}
+                keyboardType="number-pad"
+                placeholder="Optional"
+                editable={!isSubmitting}
+              />
+              <Form.Input
+                label={`${awayTeamName} Fouls`}
+                value={awayFoulsText}
+                onChangeText={setAwayFoulsText}
+                keyboardType="number-pad"
+                placeholder="Optional"
+                editable={!isSubmitting}
+              />
+            </>
+          )}
         </Form.Section>
       </Form>
     </ContentArea>

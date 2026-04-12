@@ -25,12 +25,27 @@ import {
   showCancelMatchConfirm,
 } from "@/utils/match-details";
 import { MATCH_ATTENDANCE_ACTIONS } from "@/constants/match-details";
+import { toast } from "@/utils/toast";
 import type {
   MatchDetailsDisplayMatch,
   MatchTeamSummaryMap,
 } from "@/types/match-details";
 import type { TeamMatch, Venue } from "@/types/matches";
 import { Alert, Linking } from "react-native";
+
+jest.mock("@/utils/toast", () => ({
+  toast: Object.assign(jest.fn(), {
+    success: jest.fn(),
+    error: jest.fn(),
+    warning: jest.fn(),
+    info: jest.fn(),
+    loading: jest.fn(),
+    promise: jest.fn(),
+    dismiss: jest.fn(),
+    wiggle: jest.fn(),
+    custom: jest.fn(),
+  }),
+}));
 
 const futureStartTime = new Date(
   Date.now() + 24 * 60 * 60 * 1000,
@@ -791,9 +806,6 @@ describe("match-details utils", () => {
       const openURLSpy = jest
         .spyOn(Linking, "openURL")
         .mockResolvedValue(undefined);
-      const alertSpy = jest
-        .spyOn(Alert, "alert")
-        .mockImplementation(() => undefined);
 
       canOpenURLSpy.mockResolvedValueOnce(true);
       await openMatchVenueDirections({
@@ -823,10 +835,9 @@ describe("match-details utils", () => {
         hasCoordinates: false,
         matchLocation: "Community Park",
       });
-      expect(alertSpy).toHaveBeenCalledWith(
-        "Maps unavailable",
-        "Could not open Apple Maps for directions on this device.",
-      );
+      expect(toast.warning).toHaveBeenCalledWith("Maps Unavailable", {
+        description: "Could not open Apple Maps for directions on this device.",
+      });
     });
 
     it("shows attendance and cancel confirmation prompts", () => {

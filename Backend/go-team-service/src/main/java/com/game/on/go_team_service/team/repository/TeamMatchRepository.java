@@ -10,7 +10,6 @@ import java.util.UUID;
 
 public interface TeamMatchRepository extends JpaRepository<TeamMatch, UUID> {
     List<TeamMatch> findByHomeTeamIdOrAwayTeamIdOrderByStartTimeDesc(UUID homeTeamId, UUID awayTeamId);
-
     List<TeamMatch> findByRefereeUserIdOrderByStartTimeDesc(String refereeUserId);
 
     @Query(value = """

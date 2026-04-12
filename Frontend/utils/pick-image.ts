@@ -1,6 +1,6 @@
-import { Alert } from "react-native";
 import * as ImagePicker from "expo-image-picker";
 import * as ImageManipulator from "expo-image-manipulator";
+import { toast } from "@/utils/toast";
 import { createScopedLog } from "@/utils/logger";
 
 const log = createScopedLog("Image Picker");
@@ -11,10 +11,9 @@ export const pickImage = async (
   try {
     const { granted } = await ImagePicker.requestMediaLibraryPermissionsAsync();
     if (!granted) {
-      Alert.alert(
-        "Permission denied",
-        "You need to allow access to your media library.",
-      );
+      toast.error("Permission Denied", {
+        description: "You need to allow access to your media library.",
+      });
       return;
     }
 
@@ -58,6 +57,8 @@ export const pickImage = async (
   } catch (err: unknown) {
     const message = err instanceof Error ? err.message : "Unknown error";
     log.error("Image picker error:", message);
-    Alert.alert("Error", "Failed to pick image: " + message);
+    toast.error("Error", {
+      description: "Failed to pick image: " + message,
+    });
   }
 };

@@ -1,9 +1,5 @@
 import { useCallback, useMemo, useState } from "react";
-import {
-  RefreshControl,
-  StyleSheet,
-  View,
-} from "react-native";
+import { RefreshControl, StyleSheet, View } from "react-native";
 import {
   RelativePathString,
   router,
@@ -122,7 +118,9 @@ export default function Team() {
 }
 
 function TeamContent() {
-  const params = useLocalSearchParams<{ tab?: string }>();
+  const params = useLocalSearchParams<{
+    tab?: string;
+  }>();
   const initialTab: TeamTab = parseTeamTab(params.tab);
   const [tab, setTab] = useState<TeamTab>(initialTab);
   const router = useRouter();
