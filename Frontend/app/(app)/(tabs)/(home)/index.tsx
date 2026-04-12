@@ -12,7 +12,13 @@ import { useQueryClient } from "@tanstack/react-query";
 import { HomeFeedList } from "@/components/feed/home-feed-list";
 import { useHomeFeed } from "@/hooks/use-home-feed";
 import { errorToString } from "@/utils/error";
-import type { HomeFeedMatchItem, HomeFeedPostItem } from "@/types/feed";
+import type { HomeFeedPostItem } from "@/types/feed";
+import { useRefereeMatches } from "@/hooks/use-referee-matches";
+import { useReferee } from "@/contexts/referee-context";
+import {
+  MatchListSections,
+  type MatchItem,
+} from "@/components/matches/match-list-sections";
 
 function HomeToolbar() {
   const { user } = useUser();
@@ -57,9 +63,10 @@ function HomeToolbar() {
 }
 
 export default function Home() {
-  const [tab, setTab] = useState<"feed" | "following">("feed");
+  const [tab, setTab] = useState<"feed" | "following" | "refereeing">("feed");
   const queryClient = useQueryClient();
   const { userId } = useAuth();
+  const { isReferee } = useReferee();
   const {
     data: feedItems = [],
     error: feedError,
@@ -67,13 +74,25 @@ export default function Home() {
     isRefetching: feedRefetching,
     refetch: refetchFeed,
   } = useHomeFeed();
+  const {
+    today,
+    upcoming,
+    past,
+    isLoading: refereeLoading,
+    isRefetching: refereeRefetching,
+    refetch: refetchReferee,
+  } = useRefereeMatches();
 
-  const handleMatchPress = useCallback((item: HomeFeedMatchItem) => {
+  const tabs = isReferee
+    ? ["Feed", "Following", "Refereeing"]
+    : ["Feed", "Following"];
+
+  const handleMatchPress = useCallback((item: MatchItem) => {
     router.push({
       pathname: `/match/${item.id}` as RelativePathString,
       params: {
-        space: item.space.kind,
-        spaceId: item.space.id,
+        space: item.space,
+        spaceId: item.spaceId,
         homeName: item.homeName,
         awayName: item.awayName,
         homeLogoUrl: item.homeLogoUrl ?? undefined,
@@ -97,10 +116,11 @@ export default function Home() {
   }, []);
 
   const handleRefresh = useCallback(() => {
-    if (tab === "feed") {
-      void refetchFeed();
-    }
-  }, [refetchFeed, tab]);
+    void refetchFeed();
+    void refetchReferee();
+  }, [refetchFeed, refetchReferee]);
+
+  const isRefreshing = feedRefetching || refereeRefetching;
 
   useFocusEffect(
     useCallback(() => {
@@ -114,17 +134,18 @@ export default function Home() {
   return (
     <ContentArea
       tabs={{
-        values: ["Feed", "Following"],
-        selectedIndex: tab === "feed" ? 0 : 1,
+        values: tabs,
+        selectedIndex: tab === "feed" ? 0 : tab === "following" ? 1 : 2,
         onValueChange: (value) => {
           if (value === "Feed") setTab("feed");
           if (value === "Following") setTab("following");
+          if (value === "Refereeing") setTab("refereeing");
         },
       }}
       toolbar={<HomeToolbar />}
       background={{ preset: "blue" }}
       refreshControl={
-        <RefreshControl refreshing={feedRefetching} onRefresh={handleRefresh} />
+        <RefreshControl refreshing={isRefreshing} onRefresh={handleRefresh} />
       }
     >
       {tab === "feed" ? (
@@ -132,11 +153,25 @@ export default function Home() {
           items={feedItems}
           isLoading={feedLoading}
           errorText={feedError ? errorToString(feedError) : null}
-          onMatchPress={handleMatchPress}
+          onMatchPress={(item) =>
+            handleMatchPress({
+              ...item,
+              space: item.space.kind,
+              spaceId: item.space.id,
+            })
+          }
           onPostPress={handlePostPress}
         />
+      ) : tab === "refereeing" ? (
+        <MatchListSections
+          today={today}
+          upcoming={upcoming}
+          past={past}
+          isLoading={refereeLoading}
+          onMatchPress={handleMatchPress}
+        />
       ) : (
-        <Empty message="Following feed coming soon" />
+        <Empty message="No updates available" />
       )}
     </ContentArea>
   );

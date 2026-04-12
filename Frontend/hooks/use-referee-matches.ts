@@ -76,7 +76,11 @@ export function useRefereeMatches() {
       teamMatches ?? [],
       teamsQuery.data,
       "Team Match",
-    );
+    ).map((match) => ({
+      ...match,
+      space: "team" as const,
+      spaceId: match.homeTeamId,
+    }));
 
     return splitMatchSections([...leagueItems, ...teamItems]);
   }, [leagueMatches, teamMatches, leaguesQuery.data, teamsQuery.data]);
