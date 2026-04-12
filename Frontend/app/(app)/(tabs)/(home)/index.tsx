@@ -11,7 +11,6 @@ import { useNotificationsCount } from "@/hooks/use-notifications";
 import { useQueryClient } from "@tanstack/react-query";
 import { HomeFeedList } from "@/components/feed/home-feed-list";
 import { useHomeFeed } from "@/hooks/use-home-feed";
-import { errorToString } from "@/utils/error";
 import type { HomeFeedMatchItem, HomeFeedPostItem } from "@/types/feed";
 
 function HomeToolbar() {
@@ -62,7 +61,6 @@ export default function Home() {
   const { userId } = useAuth();
   const {
     data: feedItems = [],
-    error: feedError,
     isLoading: feedLoading,
     isRefetching: feedRefetching,
     refetch: refetchFeed,
@@ -131,7 +129,6 @@ export default function Home() {
         <HomeFeedList
           items={feedItems}
           isLoading={feedLoading}
-          errorText={feedError ? errorToString(feedError) : null}
           onMatchPress={handleMatchPress}
           onPostPress={handlePostPress}
         />
