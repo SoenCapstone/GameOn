@@ -15,7 +15,8 @@ import {
   VALIDATION_DOB_MESSAGE_PAST,
   EMAIL_VERIFICATION_STATUS,
   VALIDATION_PASSWORD_LENGTH,
-  SIGN_UP_BACKEND_ERROR_MESSAGE,
+  SIGN_UP_BACKEND_ERROR_DESCRIPTION,
+  SIGN_UP_BACKEND_ERROR_TITLE,
 } from "@/constants/sign-up";
 import {
   SignUpInputLabel,
@@ -81,7 +82,9 @@ export const startClerkSignUp = async (
   signUp: SignUpResource | undefined,
 ): Promise<boolean> => {
   if (!isLoaded || !signUp) {
-    toast("Sign up unavailable. Please wait a moment and try again.");
+    toast.error("Sign Up Unavailable", {
+      description: "Please wait a moment and try again.",
+    });
     return false;
   }
 
@@ -112,7 +115,9 @@ export const completeVerificationAndUpsert = async (
   deleteUserOnError: () => Promise<void>,
 ): Promise<void> => {
   if (!isLoaded || !signUp) {
-    toast("Verification unavailable. Please wait a moment and try again.");
+    toast.error("Verification Unavailable", {
+      description: "Please wait a moment and try again.",
+    });
     return;
   }
   try {
@@ -144,7 +149,9 @@ export const completeVerificationAndUpsert = async (
         });
       } catch {
         await deleteUserOnError();
-        toast(SIGN_UP_BACKEND_ERROR_MESSAGE);
+        toast.error(SIGN_UP_BACKEND_ERROR_TITLE, {
+          description: SIGN_UP_BACKEND_ERROR_DESCRIPTION,
+        });
         return;
       }
     } else {
