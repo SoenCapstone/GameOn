@@ -10,6 +10,7 @@ import { log } from "@/utils/logger";
 import { openPolicy } from "@/components/privacy-disclaimer/utils";
 import { images } from "@/constants/images";
 import { Alert } from "react-native";
+import { toast } from "@/utils/toast";
 import { useReferee } from "@/contexts/referee-context";
 
 function SettingToolbar() {
@@ -61,7 +62,9 @@ export default function Settings() {
             try {
               await toggleRefereeStatus();
             } catch {
-              Alert.alert("Error", "Could not update referee status.");
+              toast.error("Error", {
+                description: "Could not update referee status.",
+              });
             }
           },
         },
@@ -80,9 +83,13 @@ export default function Settings() {
           onPress: async () => {
             try {
               await registerAsReferee();
-              Alert.alert("Success", "You are now a referee!");
+              toast.success("Success", {
+                description: "You are now a referee!",
+              });
             } catch {
-              Alert.alert("Error", "Could not register as referee.");
+              toast.error("Error", {
+                description: "Could not register as referee.",
+              });
             }
           },
         },

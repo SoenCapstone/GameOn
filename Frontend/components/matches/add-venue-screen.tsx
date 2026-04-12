@@ -1,7 +1,7 @@
 import { useCallback, useState } from "react";
 import * as Location from "expo-location";
-import { Alert } from "react-native";
 import { useQueryClient } from "@tanstack/react-query";
+import { toast } from "@/utils/toast";
 import { ContentArea } from "@/components/ui/content-area";
 import { Form } from "@/components/form/form";
 import { AccentColors } from "@/constants/colors";
@@ -111,10 +111,9 @@ export function AddVenueScreen({
 
   const handleSave = useCallback(async () => {
     if (!canSave) {
-      Alert.alert(
-        "Invalid venue",
-        "Please fill in all required venue details.",
-      );
+      toast.error("Invalid Venue", {
+        description: "Please fill in all required venue details.",
+      });
       return;
     }
 
@@ -139,7 +138,9 @@ export function AddVenueScreen({
         err instanceof Error
           ? err.message
           : "We couldn't find this address. Please verify the venue address.";
-      Alert.alert("Address not found", message);
+      toast.error("Address Not Found", {
+        description: message,
+      });
       return;
     }
 
@@ -184,7 +185,9 @@ export function AddVenueScreen({
       const message =
         String(errorToString(err) ?? "Could not create venue.") ||
         "Could not create venue.";
-      Alert.alert("Add venue failed", message);
+      toast.error("Add Venue Failed", {
+        description: message,
+      });
     }
   }, [
     canSave,

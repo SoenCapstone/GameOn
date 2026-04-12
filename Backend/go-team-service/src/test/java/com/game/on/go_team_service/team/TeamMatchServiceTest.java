@@ -287,7 +287,8 @@ class TeamMatchServiceTest {
         TeamMatchScoreRequest request = new TeamMatchScoreRequest(
                 1,
                 2,
-                OffsetDateTime.now().minusHours(1)
+                OffsetDateTime.now().minusHours(1),
+                null, null, null, null
         );
 
         assertThrows(ForbiddenException.class, () -> teamMatchService.submitScore(match.getId(), request));
@@ -314,7 +315,8 @@ class TeamMatchServiceTest {
         TeamMatchScoreRequest request = new TeamMatchScoreRequest(
                 2,
                 1,
-                OffsetDateTime.now().minusHours(1)
+                OffsetDateTime.now().minusHours(1),
+                null, null, null, null
         );
 
         assertThrows(ForbiddenException.class, () -> teamMatchService.submitScore(match.getId(), request));
@@ -341,7 +343,7 @@ class TeamMatchServiceTest {
         when(teamMatchRepository.findById(match.getId())).thenReturn(Optional.of(match));
         when(teamMatchScoreRepository.findByMatch_Id(match.getId())).thenReturn(Optional.empty());
 
-        TeamMatchScoreRequest request = new TeamMatchScoreRequest(3, 1, end);
+        TeamMatchScoreRequest request = new TeamMatchScoreRequest(3, 1, end, null, null, null, null);
 
         teamMatchService.submitScore(match.getId(), request);
 

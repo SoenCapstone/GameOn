@@ -1,6 +1,7 @@
 import { useCallback, useState } from "react";
 import { Alert } from "react-native";
 import * as Haptics from "expo-haptics";
+import { toast } from "@/utils/toast";
 import { errorToString } from "@/utils/error";
 import { createScopedLog } from "@/utils/logger";
 
@@ -44,7 +45,9 @@ export function useDetailPageHandlers({
           postId,
           error: errorToString(err),
         });
-        Alert.alert("Failed to delete", errorToString(err));
+        toast.error("Failed To Delete", {
+          description: errorToString(err),
+        });
       }
     },
     [deletePostMutation, log],

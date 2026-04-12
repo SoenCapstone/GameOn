@@ -50,6 +50,7 @@ function LeagueToolbar({
   id,
   isMember,
   isOwner,
+  isOrganizer,
   onFollow,
   openPost,
   openSchedule,
@@ -58,6 +59,7 @@ function LeagueToolbar({
   id: string;
   isMember: boolean;
   isOwner: boolean;
+  isOrganizer: boolean;
   onFollow: () => void;
   openPost?: () => void;
   openSchedule?: () => void;
@@ -67,7 +69,7 @@ function LeagueToolbar({
   return (
     <>
       <Stack.Screen.Title>{title}</Stack.Screen.Title>
-      {isMember || isOwner ? (
+      {isMember || isOwner || isOrganizer ? (
         <Stack.Toolbar placement="right">
           <Stack.Toolbar.Button
             icon="gear"
@@ -119,7 +121,9 @@ export default function LeagueScreen() {
 }
 
 function LeagueContent() {
-  const params = useLocalSearchParams<{ tab?: string }>();
+  const params = useLocalSearchParams<{
+    tab?: string;
+  }>();
   const initialTab: LeagueTab = resolveLeagueTab(params.tab);
   const [tab, setTab] = useState<LeagueTab>(initialTab);
   const router = useRouter();
@@ -132,11 +136,15 @@ function LeagueContent() {
     title,
     isMember,
     isOwner,
+    isOrganizer,
     league,
     leagueTeams,
     isLeagueTeamsLoading,
     leagueTeamsError,
   } = useLeagueDetailContext();
+
+  const canManage = isOwner || isOrganizer;
+
   const {
     data: standings = [],
     isLoading: standingsLoading,
@@ -245,9 +253,10 @@ function LeagueContent() {
             id={id}
             isMember={isMember}
             isOwner={isOwner}
+            isOrganizer={isOrganizer}
             onFollow={handleFollow}
-            openPost={isOwner ? openPost : undefined}
-            openSchedule={isOwner ? openSchedule : undefined}
+            openPost={canManage ? openPost : undefined}
+            openSchedule={canManage ? openSchedule : undefined}
           />
         }
         background={{ preset: "red" }}
@@ -272,7 +281,7 @@ function LeagueContent() {
                     : getSportLogo(league?.sport)
                 }
                 onDeletePost={handleDeletePost}
-                canDelete={isOwner}
+                canDelete={canManage}
               />
             )}
 

@@ -19,6 +19,12 @@ export type TeamDetailResponse = Readonly<{
   scope: string | null;
   privacy: "PRIVATE" | "PUBLIC";
   ownerUserId: string | null;
+  totalMatches: number | null;
+  minutesPlayed: number | null;
+  totalPoints: number | null;
+  winStreak: number | null;
+  totalShotsOnTarget: number | null;
+  totalFouls: number | null;
 }>;
 
 export function teamDetailQueryOptions(

@@ -1,12 +1,13 @@
 import { useMemo, useState } from "react";
 import { ContentArea } from "@/components/ui/content-area";
-import { Alert, StyleSheet } from "react-native";
+import { StyleSheet } from "react-native";
 import { LegendList } from "@legendapp/list/react-native";
 import { Stack, useRouter } from "expo-router";
 import { useAuth } from "@clerk/clerk-expo";
 import { useMessagingContext } from "@/contexts/messaging";
 import { useUserDirectory } from "@/hooks/messages/use-user-directory";
 import { errorToString } from "@/utils/error";
+import { toast } from "@/utils/toast";
 import { Form } from "@/components/form/form";
 import { Loading } from "@/components/ui/loading";
 import { Empty } from "@/components/ui/empty";
@@ -51,7 +52,7 @@ export default function NewMessage() {
 
   const startDirect = async (targetUserId: string) => {
     if (targetUserId === userId) {
-      Alert.alert("Can't message yourself");
+      toast.error("Can't Message Yourself");
       return;
     }
     try {
@@ -59,7 +60,9 @@ export default function NewMessage() {
       const conversation = await startDirectConversation({ targetUserId });
       router.replace(`/messages/${conversation.id}`);
     } catch (err) {
-      Alert.alert("Unable to start chat", errorToString(err));
+      toast.error("Unable To Start Chat", {
+        description: errorToString(err),
+      });
     } finally {
       setCreating(false);
     }

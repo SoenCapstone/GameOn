@@ -1,9 +1,9 @@
 import { useState, useCallback } from "react";
-import { Alert } from "react-native";
 import { useLocalSearchParams, useRouter } from "expo-router";
+import { toast } from "@/utils/toast";
 import { ContentArea } from "@/components/ui/content-area";
 import { Form } from "@/components/form/form";
-import { BoardPostScope } from "@/components/board/board-types";
+import { BoardPostScope } from "@/types/board";
 import { AccentColors } from "@/constants/colors";
 import { useCreateBoardPost } from "@/hooks/use-team-board";
 import { useCreateLeagueBoardPost } from "@/hooks/use-league-board";
@@ -38,18 +38,10 @@ export default function Post() {
       : createTeamPostMutation;
 
   const handleSubmit = useCallback(async () => {
-    if (!title.trim()) {
-      Alert.alert("Failed to Post", "Please enter title");
-      return;
-    }
-
-    if (!body.trim()) {
-      Alert.alert("Failed to Post", "Please enter body");
-      return;
-    }
-
-    if (!scope) {
-      Alert.alert("Failed to Post", "Please select a scope");
+    if (!title.trim() || !body.trim() || !scope) {
+      toast.error("Failed To Post", {
+        description: "Fill all required fields",
+      });
       return;
     }
 
@@ -62,7 +54,9 @@ export default function Post() {
       });
       router.back();
     } catch (err) {
-      Alert.alert("Failed to post", errorToString(err));
+      toast.error("Failed To Post", {
+        description: errorToString(err),
+      });
     }
   }, [body, createPostMutation, id, router, scope, title]);
 

@@ -1,5 +1,6 @@
 import { Alert } from "react-native";
 import type { AxiosError } from "axios";
+import { toast } from "@/utils/toast";
 import { getScheduleConflictMessage } from "@/utils/schedule";
 import { ScheduleConflictCode } from "@/types/matches";
 
@@ -51,5 +52,7 @@ export function showScheduleSubmitError(
     ]);
     return;
   }
-  Alert.alert("Schedule failed", message);
+  toast.error("Schedule Failed", {
+    description: message,
+  });
 }
