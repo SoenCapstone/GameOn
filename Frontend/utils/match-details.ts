@@ -1,5 +1,6 @@
 import { Alert, Linking } from "react-native";
 import { QueryClient } from "@tanstack/react-query";
+import { toast } from "@/utils/toast";
 import {
   MATCH_ATTENDANCE_ACTIONS,
   MATCH_DETAILS_DEFAULTS,
@@ -504,10 +505,9 @@ export async function openMatchVenueDirections(args: {
     return;
   }
 
-  Alert.alert(
-    "Maps unavailable",
-    "Could not open Apple Maps for directions on this device.",
-  );
+  toast.warning("Maps Unavailable", {
+    description: "Could not open Apple Maps for directions on this device.",
+  });
 }
 
 export function showMatchVenueDirectionsPrompt(args: {

@@ -1,5 +1,5 @@
 import { AxiosInstance } from "axios";
-import { BoardPost } from "@/components/board/board-types";
+import { BoardPost } from "@/types/board";
 import { GO_USER_SERVICE_ROUTES } from "@/hooks/use-axios-clerk";
 
 type LogShape = {

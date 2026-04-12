@@ -4,6 +4,7 @@ import com.game.on.go_league_service.config.CurrentUserProvider;
 import com.game.on.go_league_service.exception.ForbiddenException;
 import com.game.on.go_league_service.exception.NotFoundException;
 import com.game.on.go_league_service.league.model.League;
+import com.game.on.go_league_service.league.repository.LeagueOrganizerRepository;
 import com.game.on.go_league_service.league.repository.LeagueTeamRepository;
 import com.game.on.go_league_service.league.service.LeagueService;
 import com.game.on.go_league_service.league_post.dto.LeaguePostCreateRequest;
@@ -41,6 +42,7 @@ class LeaguePostServiceTest {
     @Mock private LeaguePostRepository postRepository;
     @Mock private LeagueService leagueService;
     @Mock private LeagueTeamRepository leagueTeamRepository;
+    @Mock private LeagueOrganizerRepository organizerRepository;
     @Mock private CurrentUserProvider userProvider;
     @Mock private LeaguePostMapper mapper;
 

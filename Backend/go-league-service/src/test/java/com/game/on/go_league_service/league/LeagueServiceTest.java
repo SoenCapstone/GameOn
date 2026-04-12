@@ -73,12 +73,16 @@ class LeagueServiceTest {
     @Mock
     private LeagueMatchScoreRepository leagueMatchScoreRepository;
 
+    @Mock
+    private LeagueOrganizerRepository organizerRepository;
+
     private LeagueService leagueService;
 
     @BeforeEach
     void setUp() {
         LeagueMapper mapper = new LeagueMapper(slugGenerator);
         leagueService = new LeagueService(
+                organizerRepository,
                 leagueRepository,
                 leagueSeasonRepository,
                 mapper,

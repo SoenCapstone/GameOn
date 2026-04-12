@@ -1,5 +1,4 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { Alert } from "react-native";
 import {
   RelativePathString,
   useLocalSearchParams,
@@ -27,7 +26,7 @@ import {
   getBlockedScheduleValidationMessage,
   resolveSelectedVenueLabel,
 } from "@/utils/schedule";
-import { toast } from "@/utils/sign-up";
+import { toast } from "@/utils/toast";
 import {
   buildStartEndIso,
   formatLocalDateString,
@@ -184,18 +183,24 @@ export default function ScheduleTeamMatchScreen() {
   useEffect(() => {
     if (teamSearch.error) {
       log.error("Failed to load away teams for schedule", teamSearch.error);
-      Alert.alert("Load error", "Could not load teams. Please retry.");
+      toast.error("Load Error", {
+        description: "Could not load teams. Please retry.",
+      });
     }
     if (venuesQuery.error) {
       log.error("Failed to load venues for team schedule", venuesQuery.error);
-      Alert.alert("Load error", "Could not load venues. Please retry.");
+      toast.error("Load Error", {
+        description: "Could not load venues. Please retry.",
+      });
     }
     if (refereesQuery.error) {
       log.error(
         "Failed to load referees for team schedule",
         refereesQuery.error,
       );
-      Alert.alert("Load error", "Could not load referees. Please retry.");
+      toast.error("Load Error", {
+        description: "Could not load referees. Please retry.",
+      });
     }
   }, [refereesQuery.error, teamSearch.error, venuesQuery.error]);
 
@@ -208,26 +213,16 @@ export default function ScheduleTeamMatchScreen() {
   }, [params.newVenueId, refetchVenues]);
 
   const handleSubmit = useCallback(async () => {
-    if (!awayTeamId) {
-      Alert.alert("Match schedule failed", "Away team is required");
+    if (!awayTeamId || !venueId || (requiresReferee && !refereeUserId)) {
+      toast.error("Match Schedule Failed", {
+        description: "Fill all required fields",
+      });
       return;
     }
     if (awayTeamId === teamId) {
-      Alert.alert(
-        "Match schedule failed",
-        "Home and away teams must be different",
-      );
-      return;
-    }
-    if (!venueId) {
-      Alert.alert("Match schedule failed", "Venue is required");
-      return;
-    }
-    if (requiresReferee && !refereeUserId) {
-      Alert.alert(
-        "Match schedule failed",
-        "Referee is required for official match",
-      );
+      toast.error("Match Schedule Failed", {
+        description: "Home and away teams must be different",
+      });
       return;
     }
 
@@ -259,7 +254,9 @@ export default function ScheduleTeamMatchScreen() {
         scheduleTeamNamesById,
       );
       if (validationMessage) {
-        Alert.alert("Match schedule failed", validationMessage);
+        toast.error("Match Schedule Failed", {
+          description: validationMessage,
+        });
         return;
       }
 
@@ -278,11 +275,15 @@ export default function ScheduleTeamMatchScreen() {
       await queryClient.invalidateQueries({
         queryKey: ["team-matches", teamId],
       });
-      await queryClient.invalidateQueries({ queryKey: ["user-updates"] });
+      await queryClient.invalidateQueries({
+        queryKey: ["user-notifications"],
+      });
       if (requiresReferee && !result.refereeInviteSent) {
-        toast("Match scheduled. Referee invite could not be sent.");
+        toast.success("Match Scheduled", {
+          description: "The referee invite could not be sent.",
+        });
       } else {
-        toast("Match scheduled");
+        toast.success("Match Scheduled");
       }
       router.dismissTo({
         pathname: `/teams/${teamId}` as RelativePathString,
@@ -367,7 +368,6 @@ export default function ScheduleTeamMatchScreen() {
               pathname:
                 `/teams/${teamId}/matches/add-venue` as RelativePathString,
               params: {
-                id: teamId,
                 homeTeamId: teamId,
                 awayTeamId,
                 draftAwayTeamId: awayTeamId,
