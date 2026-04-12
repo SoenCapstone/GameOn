@@ -9,6 +9,7 @@ import { useReferee } from "@/contexts/referee-context";
 import { useAxiosWithClerk } from "@/hooks/use-axios-clerk";
 import { useLeaguesByIds, useTeamsByIds } from "@/hooks/use-matches";
 import { useRefereeMatches } from "@/hooks/use-referee-matches";
+import { toast } from "@/utils/toast";
 import type { LeagueMatch, TeamMatch, TeamSummary } from "@/types/matches";
 
 jest.mock("@tanstack/react-query", () => ({
@@ -34,6 +35,12 @@ jest.mock("@/hooks/use-axios-clerk", () => ({
 jest.mock("@/hooks/use-matches", () => ({
   useTeamsByIds: jest.fn(),
   useLeaguesByIds: jest.fn(),
+}));
+
+jest.mock("@/utils/toast", () => ({
+  toast: {
+    error: jest.fn(),
+  },
 }));
 
 type RefereeMatchesData = {
@@ -88,6 +95,7 @@ const mockUseTeamsByIds = useTeamsByIds as MockedFunction<typeof useTeamsByIds>;
 const mockUseLeaguesByIds = useLeaguesByIds as MockedFunction<
   typeof useLeaguesByIds
 >;
+const mockedToastError = toast.error as MockedFunction<typeof toast.error>;
 
 function createRefereeContextValue(
   overrides: Partial<RefereeContextValue> = {},
@@ -468,5 +476,19 @@ describe("useRefereeMatches", () => {
       expect.arrayContaining(["h1", "a1", "a2"]),
     );
     expect(mockUseLeaguesByIds).toHaveBeenCalledWith(["lg1"]);
+  });
+
+  it("shows a toast and re-throws when the query fails", async () => {
+    renderHook(() => useRefereeMatches());
+
+    const queryFn = getRefereeMatchesQueryFn();
+
+    mockGet.mockRejectedValue(new Error("network error"));
+
+    await expect(queryFn()).rejects.toThrow("network error");
+    expect(mockedToastError).toHaveBeenCalledWith(
+      "Failed to Load Referee Matches",
+      { description: "network error" },
+    );
   });
 });

@@ -9,6 +9,8 @@ import {
 import { useLeaguesByIds, useTeamsByIds } from "@/hooks/use-matches";
 import type { LeagueMatch, TeamMatch } from "@/types/matches";
 import { buildMatchCards, splitMatchSections } from "@/utils/matches";
+import { toast } from "@/utils/toast";
+import { errorToString } from "@/utils/error";
 
 type RefereeMatchesData = {
   leagueMatches: LeagueMatch[];
@@ -23,15 +25,22 @@ export function useRefereeMatches() {
   const query = useQuery<RefereeMatchesData, Error>({
     queryKey: ["referee-matches", userId],
     queryFn: async () => {
-      const [leagueResp, teamResp] = await Promise.all([
-        api.get<LeagueMatch[]>(GO_REFEREE_SERVICE_ROUTES.MY_LEAGUE_MATCHES),
-        api.get<TeamMatch[]>(GO_REFEREE_SERVICE_ROUTES.MY_TEAM_MATCHES),
-      ]);
+      try {
+        const [leagueResp, teamResp] = await Promise.all([
+          api.get<LeagueMatch[]>(GO_REFEREE_SERVICE_ROUTES.MY_LEAGUE_MATCHES),
+          api.get<TeamMatch[]>(GO_REFEREE_SERVICE_ROUTES.MY_TEAM_MATCHES),
+        ]);
 
-      return {
-        leagueMatches: leagueResp.data ?? [],
-        teamMatches: teamResp.data ?? [],
-      };
+        return {
+          leagueMatches: leagueResp.data ?? [],
+          teamMatches: teamResp.data ?? [],
+        };
+      } catch (error) {
+        toast.error("Failed to Load Referee Matches", {
+          description: errorToString(error),
+        });
+        throw error;
+      }
     },
     enabled: Boolean(userId && isReferee),
     retry: false,
