@@ -15,7 +15,6 @@ import { getSportLogo } from "@/utils/search";
 interface HomeFeedListProps {
   readonly items: HomeFeedItem[];
   readonly isLoading: boolean;
-  readonly errorText?: string | null;
   readonly onMatchPress?: (item: HomeFeedMatchItem) => void;
   readonly onPostPress?: (item: HomeFeedPostItem) => void;
 }
@@ -23,7 +22,6 @@ interface HomeFeedListProps {
 export function HomeFeedList({
   items,
   isLoading,
-  errorText,
   onMatchPress,
   onPostPress,
 }: Readonly<HomeFeedListProps>) {
@@ -79,10 +77,6 @@ export function HomeFeedList({
 
   if (isLoading) {
     return <Loading />;
-  }
-
-  if (errorText) {
-    return <Empty message="Failed to load feed" />;
   }
 
   if (items.length === 0) {

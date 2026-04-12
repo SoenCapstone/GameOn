@@ -134,25 +134,15 @@ describe("HomeFeedList", () => {
 
   it("renders loading state", () => {
     const { getByTestId } = render(
-      <HomeFeedList items={[]} isLoading={true} errorText={null} />,
+      <HomeFeedList items={[]} isLoading={true} />,
     );
 
     expect(getByTestId("loading")).toBeTruthy();
   });
 
-  it("renders error state", () => {
-    const { getByTestId, getByText, queryByTestId } = render(
-      <HomeFeedList items={[]} isLoading={false} errorText="boom" />,
-    );
-
-    expect(getByTestId("empty")).toBeTruthy();
-    expect(getByText("Failed to load feed")).toBeTruthy();
-    expect(queryByTestId("loading")).toBeNull();
-  });
-
   it("renders empty state", () => {
     const { getByTestId, getByText } = render(
-      <HomeFeedList items={[]} isLoading={false} errorText={null} />,
+      <HomeFeedList items={[]} isLoading={false} />,
     );
 
     expect(getByTestId("empty")).toBeTruthy();
@@ -165,7 +155,6 @@ describe("HomeFeedList", () => {
       <HomeFeedList
         items={[postItem, matchItem]}
         isLoading={false}
-        errorText={null}
         onMatchPress={onMatchPress}
       />,
     );
@@ -182,7 +171,7 @@ describe("HomeFeedList", () => {
 
   it("passes undefined onPress when onMatchPress is omitted", () => {
     render(
-      <HomeFeedList items={[matchItem]} isLoading={false} errorText={null} />,
+      <HomeFeedList items={[matchItem]} isLoading={false} />,
     );
 
     expect(mockMatchCard).toHaveBeenCalledWith(
@@ -199,7 +188,6 @@ describe("HomeFeedList", () => {
       <HomeFeedList
         items={[postItem]}
         isLoading={false}
-        errorText={null}
         onPostPress={onPostPress}
       />,
     );
