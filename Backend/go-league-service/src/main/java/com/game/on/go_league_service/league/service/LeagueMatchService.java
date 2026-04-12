@@ -14,7 +14,15 @@ import com.game.on.go_league_service.league.model.LeagueMatchScore;
 import com.game.on.go_league_service.league.model.LeagueMatchStatus;
 import com.game.on.go_league_service.league.model.RefereeProfile;
 import com.game.on.go_league_service.league.model.Venue;
-import com.game.on.go_league_service.league.repository.*;
+import com.game.on.go_league_service.league.model.LeagueMatchMember;
+import com.game.on.go_league_service.league.model.AttendanceStatus;
+import com.game.on.go_league_service.league.repository.LeagueMatchRepository;
+import com.game.on.go_league_service.league.repository.LeagueMatchScoreRepository;
+import com.game.on.go_league_service.league.repository.LeagueRepository;
+import com.game.on.go_league_service.league.repository.LeagueTeamRepository;
+import com.game.on.go_league_service.league.repository.RefereeProfileRepository;
+import com.game.on.go_league_service.league.repository.LeagueMatchMemberRepository;
+import com.game.on.go_league_service.league.repository.LeagueOrganizerRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -46,6 +54,7 @@ public class LeagueMatchService {
     private final VenueService venueService;
     private final TeamClient teamClient;
     private final CurrentUserProvider userProvider;
+    private final LeagueMatchMemberRepository leagueMatchMemberRepository;
 
     @Transactional(readOnly = true)
     public LeagueMatchScheduleValidationResponse validateMatch(UUID leagueId, LeagueMatchCreateRequest request) {
@@ -138,6 +147,34 @@ public class LeagueMatchService {
         }
 
         var saved = leagueMatchRepository.save(match);
+
+        var homePlayers = teamClient.getTeamMembers(request.homeTeamId());
+        var awayPlayers = teamClient.getTeamMembers(request.awayTeamId());
+
+        List<LeagueMatchMember> members = new ArrayList<>();
+
+        homePlayers.forEach(p -> members.add(
+                LeagueMatchMember.builder()
+                        .id(UUID.randomUUID())
+                        .match(saved)
+                        .userId(p.userId())
+                        .teamId(request.homeTeamId())
+                        .status(AttendanceStatus.CONFIRMED)
+                        .build()
+        ));
+
+        awayPlayers.forEach(p -> members.add(
+                LeagueMatchMember.builder()
+                        .id(UUID.randomUUID())
+                        .match(saved)
+                        .userId(p.userId())
+                        .teamId(request.awayTeamId())
+                        .status(AttendanceStatus.CONFIRMED)
+                        .build()
+        ));
+
+        leagueMatchMemberRepository.saveAll(members);
+
         log.info("league_match_created matchId={} leagueId={} byUser={}", saved.getId(), leagueId, userId);
         return toResponse(saved);
     }
@@ -559,5 +596,36 @@ public class LeagueMatchService {
         }
         long minutes = Duration.between(match.getStartTime(), match.getEndTime()).toMinutes();
         return Math.max(minutes, 0);
+    }
+
+    @Transactional
+    public void updateAttendance(UUID leagueId, UUID matchId, LeagueMatchAttendanceRequest request) {
+        String userId = userProvider.clerkUserId();
+
+        var match = leagueMatchRepository.findByIdAndLeague_Id(matchId, leagueId)
+                .orElseThrow(() -> new NotFoundException("Match not found"));
+
+        var member = leagueMatchMemberRepository
+                .findByMatch_IdAndUserId(matchId, userId)
+                .orElseThrow(() -> new NotFoundException("You are not part of this match"));
+
+        boolean attending = Boolean.TRUE.equals(request.attending());
+
+        member.setStatus(attending ? AttendanceStatus.CONFIRMED : AttendanceStatus.DECLINED);
+        leagueMatchMemberRepository.save(member);
+
+    }
+
+    @Transactional(readOnly = true)
+    public List<LeagueMatchMemberResponse> getMatchMembers(UUID matchId) {
+        return leagueMatchMemberRepository.findByMatchId(matchId)
+                .stream()
+                .map(member -> new LeagueMatchMemberResponse(
+                        member.getId(),
+                        member.getTeamId(),
+                        member.getUserId(),
+                        member.getStatus()
+                ))
+                .toList();
     }
 }
