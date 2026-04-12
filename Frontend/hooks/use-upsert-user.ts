@@ -22,7 +22,7 @@ export const useUpsertUser = (): UpsertUserMutation => {
     }) => {
       await api.post(GO_USER_SERVICE_ROUTES.CREATE, payload);
     },
-    onSuccess: () => toast(SIGN_UP_SUCCESS_MESSAGE),
+    onSuccess: () => toast.success(SIGN_UP_SUCCESS_MESSAGE),
   });
 
   return {
