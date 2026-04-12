@@ -4,38 +4,49 @@ appId: host.exp.Exponent
 
 - tapOn: GameOn
 
+- runFlow: "teams/create-team-flow.yaml"
+
 - tapOn: Messages
 
-- assertVisible: "Connection: Online"
-
 - assertVisible: Messages
+- assertVisible: All
+- assertVisible: Direct
+- assertVisible: Groups
+- assertVisible: add
 
-- tapOn: Start a new conversation
 
-- assertVisible: New conversation
+- tapOn: add
+- assertVisible: New Message
+- assertVisible: New Group
 
-- tapOn:
-    point: 8%,26%
+- tapOn: New Message
 
-- tapOn: Message
-
-- assertVisible: Direct message
-
-- tapOn: Message
+- tapOn: message
+- assertVisible: Message
+- doubleTapOn: Message
+- doubleTapOn: Message
 
 - inputText: Hello world!
+- tapOn: Up
 
-- tapOn: Send message
-
+- assertVisible: Today
 - assertVisible: Hello world!
-- tapOn: Back
 
-- assertVisible: T, Test, No I didn’t, Team, 1:02 AM, ›
+- tapOn: Messages
+
+- assertVisible: person.fill, hannah montana, now, Forward, Hello world!
 
 - tapOn: Direct
-
-- assertNotVisible: T, Test, No I didn’t, Team, 1:02 AM, ›
+- assertVisible: person.fill, hannah montana, now, Forward, Hello world!
 
 - tapOn: Groups
+- assertVisible: No messages available
 
-- assertVisible: T, Test, No I didn’t, Team, 1:02 AM, ›
+- tapOn: add
+- tapOn: New Group
+
+- tapOn: Enter group name
+- inputText: TestChat
+
+
+
