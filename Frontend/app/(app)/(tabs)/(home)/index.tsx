@@ -11,7 +11,6 @@ import { useNotificationsCount } from "@/hooks/use-notifications";
 import { useQueryClient } from "@tanstack/react-query";
 import { HomeFeedList } from "@/components/feed/home-feed-list";
 import { useHomeFeed } from "@/hooks/use-home-feed";
-import { errorToString } from "@/utils/error";
 import type { HomeFeedPostItem } from "@/types/feed";
 import { useRefereeMatches } from "@/hooks/use-referee-matches";
 import { useReferee } from "@/contexts/referee-context";
@@ -69,7 +68,6 @@ export default function Home() {
   const { isReferee } = useReferee();
   const {
     data: feedItems = [],
-    error: feedError,
     isLoading: feedLoading,
     isRefetching: feedRefetching,
     refetch: refetchFeed,
@@ -152,7 +150,6 @@ export default function Home() {
         <HomeFeedList
           items={feedItems}
           isLoading={feedLoading}
-          errorText={feedError ? errorToString(feedError) : null}
           onMatchPress={(item) =>
             handleMatchPress({
               ...item,
@@ -171,7 +168,7 @@ export default function Home() {
           onMatchPress={handleMatchPress}
         />
       ) : (
-        <Empty message="No updates available" />
+        <Empty message="Following feed coming soon" />
       )}
     </ContentArea>
   );

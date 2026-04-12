@@ -458,15 +458,15 @@ describe("play-maker utils", () => {
     });
 
     it("converts string coordinates to numbers", () => {
-      const payload: ApiPlayShape[] = [
+      const payload = [
         {
           type: "person",
           id: "p1",
-          x: "50" as any,
-          y: "75" as any,
-          size: "28" as any,
+          x: "50",
+          y: "75",
+          size: "28",
         },
-      ];
+      ] as unknown as ApiPlayShape[];
 
       const shapes = fromBackendPayload(payload);
 
@@ -480,14 +480,14 @@ describe("play-maker utils", () => {
     });
 
     it("uses fallback for NaN string values", () => {
-      const payload: ApiPlayShape[] = [
+      const payload = [
         {
           type: "person",
           id: "p1",
-          x: "invalid" as any,
-          y: "also-invalid" as any,
+          x: "invalid",
+          y: "also-invalid",
         },
-      ];
+      ] as unknown as ApiPlayShape[];
 
       const shapes = fromBackendPayload(payload);
 
