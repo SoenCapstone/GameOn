@@ -1,4 +1,4 @@
-import { useCallback, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useAuth } from "@clerk/clerk-expo";
 import {
@@ -6,6 +6,7 @@ import {
   useAxiosWithClerk,
 } from "@/hooks/use-axios-clerk";
 import { createScopedLog } from "@/utils/logger";
+import { useFollow } from "@/hooks/use-follow";
 
 
 const log = createScopedLog("League Detail");
@@ -91,6 +92,27 @@ export function useLeagueDetail(id: string) {
 
   const leagueTeams = Array.isArray(leagueTeamsData) ? leagueTeamsData : [];
 
+  const title = league?.name ?? (id ? `League ${id}` : "League");
+  const isOwner = Boolean(userId && league?.ownerUserId === userId);
+  const isOrganizer = Boolean(
+    userId && organizersData.some((o) => o.userId === userId),
+  );
+  const isMember = myLeagueTeams.length > 0;
+
+  const canFollow = useMemo(
+    () =>
+      Boolean(userId && league && !isMember && league.privacy === "PUBLIC"),
+    [userId, league, isMember],
+  );
+
+  const followLeagueId = canFollow ? id : "";
+  const followState = useFollow("league", followLeagueId);
+
+  const isFollowToolbarLoading =
+    followState.isStatusLoading ||
+    followState.isFollowPending ||
+    followState.isUnfollowPending;
+
   const onRefresh = useCallback(async () => {
     try {
       setRefreshing(true);
@@ -101,23 +123,16 @@ export function useLeagueDetail(id: string) {
     log.info("League page updated");
   }, [refetch, refetchLeagueTeams]);
 
-  const handleFollow = useCallback(() => {
-    log.info(`User with id ${userId} has followed league with id ${id}`);
-  }, [userId, id]);
-
-  const title = league?.name ?? (id ? `League ${id}` : "League");
-  const isOwner = Boolean(userId && league?.ownerUserId === userId);
-  const isOrganizer = Boolean(
-    userId && organizersData.some((o) => o.userId === userId),
-  );
-  const isMember = myLeagueTeams.length > 0;
-
   return {
     league,
     isLoading,
     refreshing,
     onRefresh,
-    handleFollow,
+    canFollow,
+    isFollowing: followState.following,
+    isFollowToolbarLoading,
+    onFollow: followState.follow,
+    onUnfollow: followState.unfollow,
     title,
     isOwner,
     myLeagueTeams,

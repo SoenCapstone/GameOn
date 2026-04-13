@@ -18,6 +18,9 @@ jest.mock("@/hooks/use-axios-clerk", () => ({
     ALL: "/api/v1/leagues",
     GET: (id: string) => `/api/v1/leagues/${id}`,
     TEAMS: (id: string) => `/api/v1/leagues/${id}/teams`,
+    ORGANIZERS: (id: string) => `/api/v1/leagues/${id}/organizers`,
+    LEAGUE_FOLLOW: (id: string) => `/api/v1/leagues/${id}/follow`,
+    LEAGUES_ME_FOLLOWING: "/api/v1/leagues/me/following",
   },
 }));
 
@@ -87,6 +90,15 @@ describe("useLeagueDetail", () => {
       if (url.includes("memberships/me")) {
         return Promise.resolve({ data: [] });
       }
+      if (url.includes("/organizers")) {
+        return Promise.resolve({ data: [] });
+      }
+      if (url.includes("/me/following")) {
+        return Promise.resolve({ data: { leagueIds: [] } });
+      }
+      if (url.includes("/follow")) {
+        return Promise.resolve({ data: { following: false } });
+      }
       return Promise.resolve({ data: null });
     });
   });
@@ -101,6 +113,7 @@ describe("useLeagueDetail", () => {
   function mockGetRequest(
     leagueData: Record<string, unknown>,
     teamsData: Record<string, unknown>[] = [],
+    followStatus: { following: boolean } = { following: false },
   ) {
     mockApi.get.mockImplementation((url: string) => {
       if (url.endsWith("/teams")) {
@@ -108,6 +121,15 @@ describe("useLeagueDetail", () => {
       }
       if (url.includes("memberships/me")) {
         return Promise.resolve({ data: teamsData });
+      }
+      if (url.includes("/organizers")) {
+        return Promise.resolve({ data: [] });
+      }
+      if (url.includes("/me/following")) {
+        return Promise.resolve({ data: { leagueIds: [] } });
+      }
+      if (url.includes("/follow")) {
+        return Promise.resolve({ data: followStatus });
       }
       return Promise.resolve({ data: leagueData });
     });
@@ -241,10 +263,14 @@ describe("useLeagueDetail", () => {
     expect(mockApi.get).not.toHaveBeenCalled();
   });
 
-  it("calls handleFollow with correct parameters", async () => {
-    mockApi.get.mockResolvedValue({
-      data: { id: "league-1", name: "Test League", ownerUserId: "user-123" },
+  it("calls onFollow which posts to the follow endpoint", async () => {
+    mockGetRequest({
+      id: "league-1",
+      name: "Test League",
+      ownerUserId: "user-456",
+      privacy: "PUBLIC",
     });
+    mockApi.post.mockResolvedValue({ status: 204 });
 
     const { result } = renderHook(() => useLeagueDetail("league-1"), {
       wrapper: createWrapper(),
@@ -254,8 +280,11 @@ describe("useLeagueDetail", () => {
       expect(result.current.isLoading).toBe(false);
     });
 
-    result.current.handleFollow();
-    expect(result.current.handleFollow).toBeDefined();
+    await act(async () => {
+      await result.current.onFollow();
+    });
+
+    expect(mockApi.post).toHaveBeenCalledWith("/api/v1/leagues/league-1/follow");
   });
 
   it("refreshes data when onRefresh is called", async () => {
@@ -390,11 +419,12 @@ describe("useLeagueDetail", () => {
     expect(result.current.isOwner).toBe(false);
   });
 
-  it("maintains stable handleFollow callback", async () => {
+  it("maintains stable onFollow callback", async () => {
     mockGetRequest({
       id: "league-1",
       name: "Test League",
-      ownerUserId: "user-123",
+      ownerUserId: "user-456",
+      privacy: "PUBLIC",
     });
 
     const { result, rerender } = renderHook(() => useLeagueDetail("league-1"), {
@@ -405,11 +435,11 @@ describe("useLeagueDetail", () => {
       expect(result.current.isLoading).toBe(false);
     });
 
-    const handleFollow1 = result.current.handleFollow;
+    const onFollow1 = result.current.onFollow;
     rerender(() => useLeagueDetail("league-1"));
-    const handleFollow2 = result.current.handleFollow;
+    const onFollow2 = result.current.onFollow;
 
-    expect(handleFollow1).toBe(handleFollow2);
+    expect(onFollow1).toBe(onFollow2);
   });
 
   it("maintains stable onRefresh callback", async () => {
@@ -457,11 +487,31 @@ describe("useLeagueDetail", () => {
       ownerUserId: "user-123",
     };
 
-    const delayedResponse = new Promise((resolve) => {
+    const delayedLeague = new Promise((resolve) => {
       setTimeout(() => resolve({ data: leagueData }), 100);
     });
 
-    mockApi.get.mockImplementation(() => delayedResponse);
+    mockApi.get.mockImplementation((url: string) => {
+      if (url === "/api/v1/leagues/league-1") {
+        return delayedLeague;
+      }
+      if (url.includes("memberships/me")) {
+        return Promise.resolve({ data: [] });
+      }
+      if (url.includes("/organizers")) {
+        return Promise.resolve({ data: [] });
+      }
+      if (url.includes("/me/following")) {
+        return Promise.resolve({ data: { leagueIds: [] } });
+      }
+      if (url.includes("/follow")) {
+        return Promise.resolve({ data: { following: false } });
+      }
+      if (url.endsWith("/teams")) {
+        return Promise.resolve({ data: [] });
+      }
+      return Promise.resolve({ data: null });
+    });
 
     const { result } = renderHook(() => useLeagueDetail("league-1"), {
       wrapper: createWrapper(),
@@ -569,7 +619,7 @@ describe("useLeagueDetail", () => {
       ownerUserId: "user-123",
     };
 
-    mockApi.get.mockResolvedValue({ data: leagueData });
+    mockGetRequest(leagueData);
 
     const { result } = renderHook(() => useLeagueDetail("league-1"), {
       wrapper: createWrapper(),
