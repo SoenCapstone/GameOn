@@ -1,6 +1,6 @@
 import { renderHook, act } from "@testing-library/react-native";
 import { useLeagueForm } from "@/hooks/use-league-form";
-import { SPORTS, LEVEL_OPTIONS } from "@/constants/form-constants";
+import { sports, levels } from "@/constants/form-constants";
 
 describe("useLeagueForm", () => {
   it("initializes with default values and all setters", () => {
@@ -25,8 +25,8 @@ describe("useLeagueForm", () => {
 
   it("updates all form fields", () => {
     const { result } = renderHook(() => useLeagueForm());
-    const sport = SPORTS[0];
-    const level = LEVEL_OPTIONS[0];
+    const sport = sports[0];
+    const level = levels[0];
 
     act(() => {
       result.current.setLeagueName("Test League");
@@ -117,8 +117,8 @@ describe("useLeagueForm", () => {
     expect(result.current.selectedSport?.label.toLowerCase()).toBe("soccer");
   });
 
-  it("initializes level from LEVEL_OPTIONS by ID", () => {
-    const levelOption = LEVEL_OPTIONS[0];
+  it("initializes level from levels by ID", () => {
+    const levelOption = levels[0];
     const initialData = {
       name: "My League",
       level: levelOption.id,
@@ -252,13 +252,13 @@ describe("useLeagueForm", () => {
     const { result } = renderHook(() => useLeagueForm());
 
     act(() => {
-      result.current.setSelectedSport(SPORTS[0]);
+      result.current.setSelectedSport(sports[0]);
     });
 
     expect(result.current.selectedSport).toBeDefined();
 
     act(() => {
-      result.current.setSelectedSport(SPORTS[1] || null);
+      result.current.setSelectedSport(sports[1] || null);
     });
 
     expect(result.current.selectedSport).toBeDefined();

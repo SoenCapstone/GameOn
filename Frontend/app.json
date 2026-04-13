@@ -58,7 +58,13 @@
       "@stripe/stripe-react-native",
       "@react-native-community/datetimepicker",
       "expo-font",
-      "expo-web-browser"
+      "expo-web-browser",
+      [
+        "expo-location",
+        {
+          "locationWhenInUsePermission": "GameOn uses location access to show nearby matches in Explore."
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": true,
