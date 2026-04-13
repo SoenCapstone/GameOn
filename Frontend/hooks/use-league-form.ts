@@ -2,8 +2,8 @@ import { useState, useEffect } from "react";
 import {
   Option,
   LeaguePickerType,
-  LEVEL_OPTIONS,
-  SPORTS,
+  levels,
+  sports,
 } from "@/constants/form-constants";
 
 interface UseLeagueFormProps {
@@ -38,14 +38,14 @@ export const useLeagueForm = (props?: UseLeagueFormProps) => {
       setLocation(data.location || "");
       setIsPublic(data.privacy === "PUBLIC");
 
-      const sportOption = SPORTS.find(
+      const sportOption = sports.find(
         (s) => s.label.toLowerCase() === data.sport?.toLowerCase(),
       );
       if (sportOption) {
         setSelectedSport(sportOption);
       }
 
-      const levelOption = LEVEL_OPTIONS.find(
+      const levelOption = levels.find(
         (level) => level.id === data.level,
       );
       if (levelOption) {

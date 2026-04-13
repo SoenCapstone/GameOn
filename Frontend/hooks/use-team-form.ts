@@ -1,10 +1,10 @@
 import { useEffect, useState } from "react";
 import {
-  CITIES,
+  cities,
   Option,
   PickerType,
-  SCOPE_OPTIONS,
-  SPORTS,
+  scopes,
+  sports,
 } from "@/constants/form-constants";
 import type { TeamDetailResponse } from "@/hooks/use-team-detail";
 
@@ -40,14 +40,14 @@ export const useTeamForm = (props?: UseTeamFormProps) => {
     setLogoUri(data.logoUrl || null);
     setIsPublic(data.privacy === "PUBLIC");
 
-    const sportOption = SPORTS.find(
+    const sportOption = sports.find(
       (s) => s.label.toLowerCase() === data.sport?.toLowerCase(),
     );
     if (sportOption) {
       setSelectedSport(sportOption);
     }
 
-    const scopeOption = SCOPE_OPTIONS.find(
+    const scopeOption = scopes.find(
       (s) => s.id === data.scope?.toLowerCase(),
     );
     if (scopeOption) {
@@ -55,7 +55,7 @@ export const useTeamForm = (props?: UseTeamFormProps) => {
     }
 
     if (data.location) {
-      const cityOption = CITIES.find(
+      const cityOption = cities.find(
         (c) => c.label.toLowerCase() === data.location?.toLowerCase(),
       );
       if (cityOption) {
