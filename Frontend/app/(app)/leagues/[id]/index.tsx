@@ -146,6 +146,8 @@ function LeagueContent() {
   } = useLeagueStandings(id);
 
   const { canCreatePost, canScheduleMatch } = usePostHogFlags();
+  const canOpenPost = isOwner && canCreatePost;
+  const canOpenSchedule = isOwner && canScheduleMatch;
 
   const openPost = useCallback(() => {
     router.push({
@@ -249,8 +251,8 @@ function LeagueContent() {
             isMember={isMember}
             isOwner={isOwner}
             onFollow={handleFollow}
-            openPost={isOwner && canCreatePost ? openPost : undefined}
-            openSchedule={isOwner && canScheduleMatch ? openSchedule : undefined}
+            openPost={canOpenPost ? openPost : undefined}
+            openSchedule={canOpenSchedule ? openSchedule : undefined}
           />
         }
         background={{ preset: "red" }}
