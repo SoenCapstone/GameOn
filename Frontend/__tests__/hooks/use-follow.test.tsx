@@ -11,6 +11,7 @@ import type { JwtPayload } from "@clerk/types";
 import { useFollow } from "@/hooks/use-follow";
 import { useAxiosWithClerk } from "@/hooks/use-axios-clerk";
 import { useAuth } from "@clerk/clerk-expo";
+import { toast } from "@/utils/toast";
 
 jest.mock("@/hooks/use-axios-clerk", () => ({
   ...jest.requireActual<typeof import("@/hooks/use-axios-clerk")>(
@@ -23,11 +24,18 @@ jest.mock("@clerk/clerk-expo", () => ({
   useAuth: jest.fn(),
 }));
 
-jest.mock("@/utils/logger", () => ({
-  createScopedLog: () => ({
+jest.mock("@/utils/toast", () => ({
+  toast: {
+    success: jest.fn(),
     error: jest.fn(),
+    warning: jest.fn(),
     info: jest.fn(),
-  }),
+    loading: jest.fn(),
+    promise: jest.fn(),
+    dismiss: jest.fn(),
+    wiggle: jest.fn(),
+    custom: jest.fn(),
+  },
 }));
 
 const mockedUseAxiosWithClerk = useAxiosWithClerk as jest.MockedFunction<
@@ -206,5 +214,54 @@ describe("useFollow", () => {
     const deleteUrl = firstCallUrl(mockApi.delete);
     expect(deleteUrl).toContain("team-9");
     expect(deleteUrl).toContain("follow");
+  });
+
+  it("shows error toast when follow fails", async () => {
+    mockApi.post.mockRejectedValue(new Error("Server error"));
+
+    const { result } = renderHook(() => useFollow("team", "team-1"), {
+      wrapper: createWrapper(),
+    });
+
+    await waitFor(() => {
+      expect(result.current.isStatusLoading).toBe(false);
+    });
+
+    await act(async () => {
+      try {
+        await result.current.follow();
+      } catch {
+        /* mutateAsync rejects */
+      }
+    });
+
+    expect(toast.error).toHaveBeenCalledWith("Follow Failed", {
+      description: "Server error",
+    });
+  });
+
+  it("shows error toast when unfollow fails", async () => {
+    mockApi.get.mockResolvedValue({ data: { following: true } });
+    mockApi.delete.mockRejectedValue(new Error("Not allowed"));
+
+    const { result } = renderHook(() => useFollow("team", "team-9"), {
+      wrapper: createWrapper(),
+    });
+
+    await waitFor(() => {
+      expect(result.current.following).toBe(true);
+    });
+
+    await act(async () => {
+      try {
+        await result.current.unfollow();
+      } catch {
+        /* mutateAsync rejects */
+      }
+    });
+
+    expect(toast.error).toHaveBeenCalledWith("Unfollow Failed", {
+      description: "Not allowed",
+    });
   });
 });

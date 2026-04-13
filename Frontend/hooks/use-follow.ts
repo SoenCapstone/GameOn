@@ -8,9 +8,8 @@ import {
   invalidateFollowQueries,
 } from "@/utils/follow";
 import type { FollowSpace } from "@/types/follow";
-import { createScopedLog } from "@/utils/logger";
-
-const log = createScopedLog("Follow");
+import { errorToString } from "@/utils/error";
+import { toast } from "@/utils/toast";
 
 export type { FollowSpace } from "@/types/follow";
 export {
@@ -55,7 +54,10 @@ export function useFollow(space: FollowSpace, id: string) {
       await api.post(url);
     },
     onSuccess: () => invalidateFollowQueries(queryClient, space, id),
-    onError: (err) => log.error("Follow failed", err),
+    onError: (err) =>
+      toast.error("Follow Failed", {
+        description: errorToString(err),
+      }),
   });
 
   const unfollowMutation = useMutation({
@@ -64,7 +66,10 @@ export function useFollow(space: FollowSpace, id: string) {
       await api.delete(url);
     },
     onSuccess: () => invalidateFollowQueries(queryClient, space, id),
-    onError: (err) => log.error("Unfollow failed", err),
+    onError: (err) =>
+      toast.error("Unfollow Failed", {
+        description: errorToString(err),
+      }),
   });
 
   return {
