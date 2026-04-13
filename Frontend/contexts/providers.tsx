@@ -10,6 +10,8 @@ import { RefereeProvider } from "@/contexts/referee-context";
 import { DarkTheme, ThemeProvider } from "@react-navigation/native";
 import { MessagingProvider } from "@/contexts/messaging";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
+import { PostHogProvider } from "posthog-react-native";
+import { posthog } from "@/config/posthog";
 
 interface ProvidersProps {
   readonly children: ReactNode;
@@ -43,7 +45,16 @@ export function Providers({ children }: Readonly<ProvidersProps>) {
                 <ActionSheetProvider>
                   <RefereeProvider>
                     <GestureHandlerRootView>
-                      <MessagingProvider>{children}</MessagingProvider>
+                      <PostHogProvider
+                        client={posthog}
+                        autocapture={{
+                          captureTouches: true,
+                          captureScreens: true,
+                          propsToCapture: ["testID"],
+                        }}
+                      >
+                        <MessagingProvider>{children}</MessagingProvider>
+                      </PostHogProvider>
                     </GestureHandlerRootView>
                   </RefereeProvider>
                 </ActionSheetProvider>
