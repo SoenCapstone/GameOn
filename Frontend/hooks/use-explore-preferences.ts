@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
+import { useAuth } from "@clerk/clerk-expo";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import type { ExplorePreferences } from "@/types/explore";
 import { cityCoordinates } from "@/constants/explore";
@@ -29,9 +30,20 @@ async function getCoordinates(
   return cityCoordinates[location] ?? null;
 }
 
-async function getPreferences(): Promise<ExplorePreferences> {
+function getStorageKey(userId: string | null | undefined) {
+  return userId ? `${storageKey}:${userId}` : null;
+}
+
+async function getPreferences(
+  userId: string | null | undefined,
+): Promise<ExplorePreferences> {
+  const userStorageKey = getStorageKey(userId);
+  if (!userStorageKey) {
+    return initialPreferences;
+  }
+
   try {
-    const json = await AsyncStorage.getItem(storageKey);
+    const json = await AsyncStorage.getItem(userStorageKey);
     if (json != null) {
       const preferences = JSON.parse(json) as Partial<ExplorePreferences>;
       return { ...initialPreferences, ...preferences };
@@ -43,6 +55,7 @@ async function getPreferences(): Promise<ExplorePreferences> {
 }
 
 export function useExplorePreferences() {
+  const { userId } = useAuth();
   const [preferences, setPreferences] =
     useState<ExplorePreferences>(initialPreferences);
   const [coordinates, setCoordinates] = useState<{
@@ -52,23 +65,33 @@ export function useExplorePreferences() {
   const [isLoaded, setIsLoaded] = useState(false);
 
   useEffect(() => {
-    getPreferences()
+    getPreferences(userId)
       .then(setPreferences)
       .finally(() => setIsLoaded(true));
-  }, []);
+  }, [userId]);
 
   const load = useCallback(async () => {
-    const prefs = await getPreferences();
+    const prefs = await getPreferences(userId);
     setPreferences(prefs);
     getCoordinates(prefs.location).then(setCoordinates);
     return prefs;
-  }, []);
+  }, [userId]);
 
-  const save = useCallback((prefs: ExplorePreferences) => {
-    AsyncStorage.setItem(storageKey, JSON.stringify(prefs)).catch((error) => {
-      log.warn("Failed to save explore preferences", error);
-    });
-  }, []);
+  const save = useCallback(
+    (prefs: ExplorePreferences) => {
+      const userStorageKey = getStorageKey(userId);
+      if (!userStorageKey) {
+        return;
+      }
+
+      AsyncStorage.setItem(userStorageKey, JSON.stringify(prefs)).catch(
+        (error) => {
+          log.warn("Failed to save explore preferences", error);
+        },
+      );
+    },
+    [userId],
+  );
 
   const setSport = useCallback(
     (value: string) => {
