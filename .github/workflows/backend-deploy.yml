@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - main
+      - feat/ec2-deployment-pipeline
     paths:
       - "Backend/**"
       - "docker-compose.yml"
@@ -22,6 +23,7 @@ jobs:
           host: ${{ secrets.EC2_HOST }}
           username: ec2-user
           key: ${{ secrets.EC2_SSH_KEY }}
+          command_timeout: 30m
           script: |
             cd /home/ec2-user/GameOn
             git pull origin main
