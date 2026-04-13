@@ -13,11 +13,16 @@ import {
   type Modes,
   type SearchValue,
 } from "@/constants/search";
+import { usePostHogFlags } from "@/hooks/use-posthog-flags";
+import { usePostHog } from "posthog-react-native";
 
 const pageLog = createScopedLog("Spaces Page");
 
 function SpacesToolbar({ search }: { readonly search: SearchValue }) {
   const { setQuery, setSearchActive } = search;
+  const { canCreateTeam, canCreateLeague } = usePostHogFlags();
+  const posthog = usePostHog();
+  const showMenu = canCreateTeam || canCreateLeague;
   return (
     <>
       <Stack.Toolbar placement="left">
@@ -26,22 +31,28 @@ function SpacesToolbar({ search }: { readonly search: SearchValue }) {
         </Stack.Toolbar.View>
       </Stack.Toolbar>
       <Stack.Screen.Title>Spaces</Stack.Screen.Title>
-      <Stack.Toolbar placement="right">
-        <Stack.Toolbar.Menu icon="plus">
-          <Stack.Toolbar.MenuAction
-            icon="person.2"
-            onPress={() => router.push("/teams/create")}
-          >
-            Create a Team
-          </Stack.Toolbar.MenuAction>
-          <Stack.Toolbar.MenuAction
-            icon="trophy"
-            onPress={() => router.push("/leagues/create")}
-          >
-            Create a League
-          </Stack.Toolbar.MenuAction>
-        </Stack.Toolbar.Menu>
-      </Stack.Toolbar>
+      {showMenu ? (
+        <Stack.Toolbar placement="right">
+          <Stack.Toolbar.Menu icon="plus">
+            {canCreateTeam ? (
+              <Stack.Toolbar.MenuAction
+                icon="person.2"
+                onPress={() => { posthog.capture("create_team_tapped"); router.push("/teams/create"); }}
+              >
+                Create a Team
+              </Stack.Toolbar.MenuAction>
+            ) : null}
+            {canCreateLeague ? (
+              <Stack.Toolbar.MenuAction
+                icon="trophy"
+                onPress={() => { posthog.capture("create_league_tapped"); router.push("/leagues/create"); }}
+              >
+                Create a League
+              </Stack.Toolbar.MenuAction>
+            ) : null}
+          </Stack.Toolbar.Menu>
+        </Stack.Toolbar>
+      ) : null}
       <Stack.SearchBar
         placement="integrated"
         onChangeText={(event) => {
@@ -56,6 +67,7 @@ function SpacesToolbar({ search }: { readonly search: SearchValue }) {
 }
 
 export default function Spaces() {
+  const posthog = usePostHog();
   const search = useSearch({ member: true, scope: "Spaces Page" });
   const { query, searchActive, refetch } = search;
   const [mode, setMode] = useState<Modes>(teamsTab.key);
@@ -86,7 +98,10 @@ export default function Spaces() {
               selectedIndex: Tabs.findIndex((m) => m.key === selectedMode.key),
               onValueChange: (value) => {
                 const next = Tabs.find((m) => m.label === value);
-                if (next) setMode(next.key);
+                if (next) {
+                  posthog.capture("spaces_tab_switched", { tab: next.key });
+                  setMode(next.key);
+                }
               },
             }
           : undefined

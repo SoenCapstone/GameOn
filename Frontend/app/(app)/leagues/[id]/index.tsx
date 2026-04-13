@@ -28,6 +28,7 @@ import { useLeagueStandings } from "@/hooks/use-league-standings";
 import { LeagueStandings } from "@/components/leagues/league-standings";
 import { Loading } from "@/components/ui/loading";
 import { Empty } from "@/components/ui/empty";
+import { usePostHogFlags } from "@/hooks/use-posthog-flags";
 
 type LeagueTab = "board" | "matches" | "standings" | "teams";
 
@@ -120,6 +121,10 @@ export default function LeagueScreen() {
   );
 }
 
+function resolveOwnerAction(isOwner: boolean, flag: boolean, handler: () => void) {
+  return isOwner && flag ? handler : undefined;
+}
+
 function LeagueContent() {
   const params = useLocalSearchParams<{
     tab?: string;
@@ -151,6 +156,8 @@ function LeagueContent() {
     error: standingsError,
     refetch: refetchStandings,
   } = useLeagueStandings(id);
+
+  const { canCreatePost, canScheduleMatch } = usePostHogFlags();
 
   const openPost = useCallback(() => {
     router.push({
@@ -255,8 +262,8 @@ function LeagueContent() {
             isOwner={isOwner}
             isOrganizer={isOrganizer}
             onFollow={handleFollow}
-            openPost={canManage ? openPost : undefined}
-            openSchedule={canManage ? openSchedule : undefined}
+            openPost={resolveOwnerAction(isOwner, canCreatePost, openPost)}
+            openSchedule={resolveOwnerAction(isOwner, canScheduleMatch, openSchedule)}
           />
         }
         background={{ preset: "red" }}
