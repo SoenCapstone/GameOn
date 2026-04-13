@@ -6,6 +6,7 @@ import { Empty } from "@/components/ui/empty";
 
 type MatchItem = {
   id: string;
+  leagueId?: string;
   homeTeamId?: string;
   awayTeamId?: string;
   homeName: string;

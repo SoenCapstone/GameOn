@@ -53,6 +53,9 @@ jest.mock("@/hooks/use-axios-clerk", () => ({
     MATCHES: (leagueId: string) => `/api/v1/leagues/${leagueId}/matches`,
     SCORE_MATCH: (leagueId: string, matchId: string) =>
       `/api/v1/leagues/${leagueId}/matches/${matchId}/score`,
+    MATCH_ATTENDANCE: (leagueId: string, matchId: string) =>
+      `/api/v1/leagues/${leagueId}/matches/${matchId}/attendance`,
+    MATCH_MEMBERS: (matchId: string) => `/api/v1/leagues/matches/${matchId}/members`,
     TEAMS: (leagueId: string) => `/api/v1/leagues/${leagueId}/teams`,
     VALIDATE_MATCH: (leagueId: string) =>
       `/api/v1/leagues/${leagueId}/matches/validate`,
@@ -876,6 +879,31 @@ describe("use-matches", () => {
     );
   });
 
+  it("uses league attendance endpoint for league matches", async () => {
+    useUpdateMatchAttendance();
+
+    const options = (useMutation as jest.Mock).mock.calls[0][0] as {
+      mutationFn: (payload: {
+        matchId: string;
+        leagueId?: string;
+        attending: "CONFIRMED" | "DECLINED";
+      }) => Promise<void>;
+    };
+
+    mockApi.post.mockResolvedValueOnce({});
+
+    await options.mutationFn({
+      matchId: "match-2",
+      leagueId: "league-9",
+      attending: "DECLINED",
+    });
+
+    expect(mockApi.post).toHaveBeenCalledWith(
+      "/api/v1/leagues/league-9/matches/match-2/attendance",
+      { attending: "DECLINED" },
+    );
+  });
+
   it("configures useMatchMembersByTeam query", async () => {
     useMatchMembersByTeam("match-1", "team-1");
 
@@ -888,6 +916,7 @@ describe("use-matches", () => {
       "match-members-by-team",
       "match-1",
       "team-1",
+      "",
     ]);
     expect(options.enabled).toBe(true);
   });
@@ -904,6 +933,23 @@ describe("use-matches", () => {
 
     options = (useQuery as jest.Mock).mock.calls[1][0] as { enabled: boolean };
     expect(options.enabled).toBe(false);
+  });
+
+  it("enables useMatchMembersByTeam in league mode without teamId", () => {
+    useMatchMembersByTeam("match-1", "", "league-1");
+
+    const options = (useQuery as jest.Mock).mock.calls[0][0] as {
+      enabled: boolean;
+      queryKey: unknown[];
+    };
+
+    expect(options.enabled).toBe(true);
+    expect(options.queryKey).toEqual([
+      "match-members-by-team",
+      "match-1",
+      "",
+      "league-1",
+    ]);
   });
 
   it("executes useLeagueVenues queryFn and returns venue data", async () => {
@@ -1032,6 +1078,30 @@ describe("use-matches", () => {
     const result = await options.queryFn();
 
     expect(result).toEqual([{ id: "member-1", role: "PLAYER" }]);
+  });
+
+  it("executes useMatchMembersByTeam queryFn via league endpoint and filters by team", async () => {
+    useMatchMembersByTeam("match-1", "team-1", "league-1");
+
+    const options = (useQuery as jest.Mock).mock.calls[0][0] as {
+      queryFn: () => Promise<unknown>;
+    };
+
+    mockApi.get.mockResolvedValueOnce({
+      data: [
+        { id: "member-1", teamId: "team-1", userId: "u1", status: "CONFIRMED" },
+        { id: "member-2", teamId: "team-2", userId: "u2", status: "PENDING" },
+      ],
+    });
+
+    const result = await options.queryFn();
+
+    expect(mockApi.get).toHaveBeenCalledWith(
+      "/api/v1/leagues/matches/match-1/members",
+    );
+    expect(result).toEqual([
+      { id: "member-1", teamId: "team-1", userId: "u1", status: "CONFIRMED" },
+    ]);
   });
 
   it("executes useMatchMembersByTeam queryFn with null data", async () => {
