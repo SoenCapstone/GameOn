@@ -17,7 +17,7 @@ export default function AppLayout() {
       $name: `${user.firstName} ${user.lastName}`,
     });
     posthog.capture("$set", { $unset: ["$email"] });
-  }, [user?.id]);
+  }, [user, posthog]);
 
   return (
     <Stack
