@@ -26,6 +26,8 @@ public class LeagueMatchMember {
 
     private String userId;
 
+    private String role;
+
     @Enumerated(EnumType.STRING)
     private AttendanceStatus status;
 }

@@ -136,4 +136,13 @@ public class LeaguePostService {
         return postRepository.findByIdAndLeagueId(postId, leagueId)
                 .orElseThrow(() -> new NotFoundException("Post not found"));
     }
+
+    public void createSystemPost(UUID leagueId, LeaguePostCreateRequest request) {
+        String userId = "SYSTEM";
+
+        LeaguePost post = mapper.toLeaguePost(leagueId, request, userId);
+
+        LeaguePost saved = postRepository.save(post);
+        mapper.toResponse(saved);
+    }
 }
