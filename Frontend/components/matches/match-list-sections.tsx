@@ -4,7 +4,7 @@ import { MatchCard } from "@/components/matches/match-card";
 import { Loading } from "@/components/ui/loading";
 import { Empty } from "@/components/ui/empty";
 
-type MatchItem = {
+export type MatchItem = {
   id: string;
   homeTeamId?: string;
   awayTeamId?: string;
@@ -19,6 +19,8 @@ type MatchItem = {
   isPast: boolean;
   homeScore?: number | null;
   awayScore?: number | null;
+  space?: string;
+  spaceId?: string;
 };
 
 interface MatchListSectionsProps {

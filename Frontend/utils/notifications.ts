@@ -4,10 +4,7 @@ import {
   notificationCopy,
   userNotificationsQueryKey,
 } from "@/constants/notifications";
-import {
-  GO_TEAM_SERVICE_ROUTES,
-  GO_USER_SERVICE_ROUTES,
-} from "@/hooks/use-axios-clerk";
+import { GO_TEAM_SERVICE_ROUTES } from "@/hooks/use-axios-clerk";
 import {
   fetchIncomingRefereeInvites,
   fetchIncomingTeamMatchInvites,
@@ -23,6 +20,7 @@ import {
   fetchLeagueInvitesWithDetails,
   fetchOrganizerInvitesWithDetails,
 } from "@/utils/leagues";
+import { fetchUserNameMap } from "@/utils/users";
 
 export function getNotificationsQueryKey(userId?: string | null) {
   return [userNotificationsQueryKey, userId] as const;
@@ -207,27 +205,6 @@ async function fetchTeamMetaMap(
             sport: null,
           },
         ] as const;
-      }
-    }),
-  );
-
-  return Object.fromEntries(entries);
-}
-
-export async function fetchUserNameMap(api: AxiosInstance, userIds: string[]) {
-  const entries = await Promise.all(
-    userIds.map(async (userId) => {
-      try {
-        const resp = await api.get(GO_USER_SERVICE_ROUTES.BY_ID(userId));
-        const first = resp.data?.firstname ?? "";
-        const last = resp.data?.lastname ?? "";
-        const full = `${first} ${last}`.trim();
-        return [
-          userId,
-          full || resp.data?.email || notificationCopy.missingInviterName,
-        ] as const;
-      } catch {
-        return [userId, notificationCopy.missingInviterName] as const;
       }
     }),
   );
