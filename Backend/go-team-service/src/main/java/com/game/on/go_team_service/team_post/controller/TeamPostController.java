@@ -28,6 +28,15 @@ public class TeamPostController {
         return ResponseEntity.status(HttpStatus.CREATED).body(postService.create(teamId, request));
     }
 
+    @PostMapping("/system")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void createSystem(
+            @PathVariable UUID teamId,
+            @Valid @RequestBody TeamPostCreateRequest request
+    ) {
+        postService.createSystem(teamId, request);
+    }
+
     @GetMapping
     public ResponseEntity<TeamPostListResponse> list(
             @PathVariable UUID teamId,

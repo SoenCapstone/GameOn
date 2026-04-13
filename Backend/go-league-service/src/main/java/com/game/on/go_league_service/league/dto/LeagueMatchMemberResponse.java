@@ -9,6 +9,7 @@ public record LeagueMatchMemberResponse(
         UUID id,
         UUID teamId,
         String userId,
+        String role,
         AttendanceStatus status
 ) {
 }

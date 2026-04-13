@@ -152,6 +152,12 @@ public class TeamPostService {
                 .orElseThrow(() -> new NotFoundException("Post not found"));
     }
 
+    public void createSystem(UUID teamId, TeamPostCreateRequest request) {
+        String userId = currentUserProvider.clerkUserId();
+        requireActiveMembership(teamId, userId);
+        createSystemPost(teamId, request);
+    }
+
     public void createSystemPost(UUID teamId, TeamPostCreateRequest request) {
 
         String userId = "SYSTEM";
