@@ -291,7 +291,9 @@ describe("completeVerificationAndUpsert", () => {
     );
 
     expect(mockDeleteUserOnError).toHaveBeenCalled();
-    expect(toast).toHaveBeenCalledWith("Error While Creating Profile! Please Try Again");
+    expect(toast.error).toHaveBeenCalledWith("Error While Creating Profile", {
+      description: "Please try again.",
+    });
   });
 
   it("alerts when Clerk rejects the verification code", async () => {

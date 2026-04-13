@@ -41,6 +41,11 @@ export type EndpointShape = Exclude<Shape, { type: "arrow" }>;
 export type ShapeTool = Shape["type"];
 
 export type PlaymakerToolbarProps = Readonly<{
+  title: string;
+  currentPlayId: string | null;
+  onPlaySelect: (playId: string) => void;
+  onNewPlay: () => void;
+  plays: string[];
   onSubmit: () => void;
   onUndo: () => void;
   loading: boolean;
@@ -66,3 +71,25 @@ export type PlaymakerPayloadItem =
       size: number;
       associatedPlayerId?: string;
     };
+
+export type ApiPersonShape = {
+  type: "person";
+  id: string;
+  x?: number;
+  y?: number;
+  size?: number;
+  associatedPlayerId?: string;
+};
+
+export type ApiArrowShape = {
+  type: "arrow";
+  id: string;
+  from?: {
+    id?: string;
+  };
+  to?: {
+    id?: string;
+  };
+};
+
+export type ApiPlayShape = ApiPersonShape | ApiArrowShape;

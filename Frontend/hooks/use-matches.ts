@@ -1,6 +1,7 @@
 import { useMemo } from "react";
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { AxiosInstance } from "axios";
+import { useAuth } from "@clerk/clerk-expo";
 import {
   GO_LEAGUE_SERVICE_ROUTES,
   GO_MATCH_ROUTES,
@@ -300,6 +301,8 @@ export function useValidateLeagueMatchSchedule(leagueId: string) {
 
 export function useCreateLeagueMatch(leagueId: string) {
   const api = useAxiosWithClerk();
+  const queryClient = useQueryClient();
+  const { userId } = useAuth();
 
   return useMutation({
     mutationFn: async (payload: {
@@ -328,6 +331,11 @@ export function useCreateLeagueMatch(leagueId: string) {
       );
 
       return createResp.data as LeagueMatch;
+    },
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({
+        queryKey: ["home-feed", userId],
+      });
     },
   });
 }
@@ -371,6 +379,8 @@ export function useValidateTeamMatchSchedule(teamId: string) {
 
 export function useCreateTeamMatch(teamId: string) {
   const api = useAxiosWithClerk();
+  const queryClient = useQueryClient();
+  const { userId } = useAuth();
 
   return useMutation({
     mutationFn: async (payload: {
@@ -412,12 +422,16 @@ export function useCreateTeamMatch(teamId: string) {
           });
           refereeInviteSent = true;
         } catch (err) {
-          // Keep match creation successful even if referee invite fails.
           log.warn("Referee invite failed after team match creation", err);
         }
       }
 
       return { match: created, refereeInviteSent };
+    },
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({
+        queryKey: ["home-feed", userId],
+      });
     },
   });
 }
@@ -550,6 +564,8 @@ export function useCreateLeagueVenue() {
 
 export function useCancelLeagueMatch(leagueId: string) {
   const api = useAxiosWithClerk();
+  const queryClient = useQueryClient();
+  const { userId } = useAuth();
 
   return useMutation({
     mutationFn: async ({
@@ -565,11 +581,18 @@ export function useCancelLeagueMatch(leagueId: string) {
       );
       return resp.data as LeagueMatch;
     },
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({
+        queryKey: ["home-feed", userId],
+      });
+    },
   });
 }
 
 export function useCancelTeamMatch() {
   const api = useAxiosWithClerk();
+  const queryClient = useQueryClient();
+  const { userId } = useAuth();
 
   return useMutation({
     mutationFn: async ({
@@ -584,6 +607,11 @@ export function useCancelTeamMatch() {
         reason ? { reason } : {},
       );
       return resp.data as TeamMatch;
+    },
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({
+        queryKey: ["home-feed", userId],
+      });
     },
   });
 }
@@ -622,6 +650,8 @@ export function useMatchMembersByTeam(matchId: string, teamId: string) {
 
 export function useSubmitLeagueScore(leagueId: string) {
   const api = useAxiosWithClerk();
+  const queryClient = useQueryClient();
+  const { userId } = useAuth();
 
   return useMutation({
     mutationFn: async ({
@@ -641,11 +671,18 @@ export function useSubmitLeagueScore(leagueId: string) {
         endTime,
       });
     },
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({
+        queryKey: ["home-feed", userId],
+      });
+    },
   });
 }
 
 export function useSubmitTeamScore() {
   const api = useAxiosWithClerk();
+  const queryClient = useQueryClient();
+  const { userId } = useAuth();
 
   return useMutation({
     mutationFn: async ({
@@ -653,16 +690,33 @@ export function useSubmitTeamScore() {
       homeScore,
       awayScore,
       endTime,
+      homeShotsOnTarget,
+      awayShotsOnTarget,
+      homeFouls,
+      awayFouls,
     }: {
       matchId: string;
       homeScore: number;
       awayScore: number;
       endTime: string;
+      homeShotsOnTarget?: number;
+      awayShotsOnTarget?: number;
+      homeFouls?: number;
+      awayFouls?: number;
     }) => {
       await api.post(GO_MATCH_ROUTES.SCORE(matchId), {
         homeScore,
         awayScore,
         endTime,
+        homeShotsOnTarget,
+        awayShotsOnTarget,
+        homeFouls,
+        awayFouls,
+      });
+    },
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({
+        queryKey: ["home-feed", userId],
       });
     },
   });
@@ -756,7 +810,6 @@ export async function fetchIncomingRefereeInvites(
     );
     invites = (resp.data ?? []).filter((invite) => invite.status === "PENDING");
   } catch (err) {
-    // Endpoint may be unavailable on older backend builds; don't fail Home updates.
     log.warn("Failed to fetch referee invites", err);
     return [];
   }

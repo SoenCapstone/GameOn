@@ -84,6 +84,14 @@ public class Team {
     @Column(name = "minutes_played", nullable = false)
     private Integer minutesPlayed = 0;
 
+    @Builder.Default
+    @Column(name = "total_shots_on_target", nullable = false)
+    private Integer totalShotsOnTarget = 0;
+
+    @Builder.Default
+    @Column(name = "total_fouls", nullable = false)
+    private Integer totalFouls = 0;
+
     @CreatedDate
     @Column(name = "created_at", nullable = false, updatable = false)
     private OffsetDateTime createdAt;

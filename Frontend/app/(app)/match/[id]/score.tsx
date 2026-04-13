@@ -21,6 +21,7 @@ import type { LeagueMatch, TeamMatch } from "@/types/matches";
 import { errorToString } from "@/utils/error";
 import { Empty } from "@/components/ui/empty";
 import { Loading } from "@/components/ui/loading";
+import { usePostHog } from "posthog-react-native";
 
 type MatchScoreRouteParams = {
   id?: string;
@@ -63,7 +64,10 @@ async function invalidateQueriesAfterScoreSubmit(args: {
   if (spaceId) {
     tasks.push(
       queryClient.invalidateQueries({
-        queryKey: [space === "league" ? "league-matches" : "team-matches", spaceId],
+        queryKey: [
+          space === "league" ? "league-matches" : "team-matches",
+          spaceId,
+        ],
       }),
     );
   }
@@ -82,6 +86,12 @@ async function invalidateQueriesAfterScoreSubmit(args: {
       queryClient.invalidateQueries({
         queryKey: ["team-match", matchId],
       }),
+      queryClient.invalidateQueries({
+        queryKey: ["team", spaceId],
+      }),
+      queryClient.invalidateQueries({
+        queryKey: ["team-overview", spaceId],
+      }),
     );
   }
 
@@ -98,25 +108,35 @@ export default function MatchScoreScreen() {
 
   const router = useRouter();
   const queryClient = useQueryClient();
+  const posthog = usePostHog();
   const submitLeagueScoreMutation = useSubmitLeagueScore(leagueId);
   const submitTeamScoreMutation = useSubmitTeamScore();
 
   const [homeScoreText, setHomeScoreText] = useState("");
   const [awayScoreText, setAwayScoreText] = useState("");
   const [endTimeValue, setEndTimeValue] = useState(new Date());
+  const [homeShotsText, setHomeShotsText] = useState("");
+  const [awayShotsText, setAwayShotsText] = useState("");
+  const [homeFoulsText, setHomeFoulsText] = useState("");
+  const [awayFoulsText, setAwayFoulsText] = useState("");
 
   const teamMatchQuery = useTeamMatch(matchId, !isLeagueMatch);
   const leagueMatchQuery = useLeagueMatch(leagueId, matchId, isLeagueMatch);
   const contextMatchesQueryKey = useMemo(
     () =>
       spaceId
-        ? ([space === "league" ? "league-matches" : "team-matches", spaceId] as const)
+        ? ([
+            space === "league" ? "league-matches" : "team-matches",
+            spaceId,
+          ] as const)
         : null,
     [space, spaceId],
   );
   const contextMatches =
     (contextMatchesQueryKey
-      ? queryClient.getQueryData<(TeamMatch | LeagueMatch)[]>(contextMatchesQueryKey)
+      ? queryClient.getQueryData<(TeamMatch | LeagueMatch)[]>(
+          contextMatchesQueryKey,
+        )
       : undefined) ?? [];
   const contextualMatch = contextMatches.find((existingMatch) => {
     if (existingMatch.id !== matchId) {
@@ -155,6 +175,10 @@ export default function MatchScoreScreen() {
 
     const homeScore = parseScore(homeScoreText);
     const awayScore = parseScore(awayScoreText);
+    const homeShotsOnTarget = parseScore(homeShotsText) ?? undefined;
+    const awayShotsOnTarget = parseScore(awayShotsText) ?? undefined;
+    const homeFouls = parseScore(homeFoulsText) ?? undefined;
+    const awayFouls = parseScore(awayFoulsText) ?? undefined;
 
     if (homeScore == null || awayScore == null) {
       toast.error("Score Submission Failed", {
@@ -186,8 +210,19 @@ export default function MatchScoreScreen() {
           homeScore,
           awayScore,
           endTime,
+          homeShotsOnTarget,
+          awayShotsOnTarget,
+          homeFouls,
+          awayFouls,
         });
       }
+
+      posthog.capture("match_score_submitted", {
+        match_id: matchId,
+        match_type: isLeagueMatch ? "league" : "team",
+        home_score: homeScore,
+        away_score: awayScore,
+      });
 
       await invalidateQueriesAfterScoreSubmit({
         isLeagueMatch,
@@ -206,12 +241,17 @@ export default function MatchScoreScreen() {
     }
   }, [
     awayScoreText,
+    awayShotsText,
+    awayFoulsText,
     endTimeValue,
     homeScoreText,
+    homeShotsText,
+    homeFoulsText,
     isLeagueMatch,
     leagueId,
     matchId,
     matchStartTime,
+    posthog,
     queryClient,
     router,
     space,
@@ -272,6 +312,42 @@ export default function MatchScoreScreen() {
               }
             }}
           />
+          {!isLeagueMatch && (
+            <>
+              <Form.Input
+                label={`${homeTeamName} Shots`}
+                value={homeShotsText}
+                onChangeText={setHomeShotsText}
+                keyboardType="number-pad"
+                placeholder="Optional"
+                editable={!isSubmitting}
+              />
+              <Form.Input
+                label={`${awayTeamName} Shots`}
+                value={awayShotsText}
+                onChangeText={setAwayShotsText}
+                keyboardType="number-pad"
+                placeholder="Optional"
+                editable={!isSubmitting}
+              />
+              <Form.Input
+                label={`${homeTeamName} Fouls`}
+                value={homeFoulsText}
+                onChangeText={setHomeFoulsText}
+                keyboardType="number-pad"
+                placeholder="Optional"
+                editable={!isSubmitting}
+              />
+              <Form.Input
+                label={`${awayTeamName} Fouls`}
+                value={awayFoulsText}
+                onChangeText={setAwayFoulsText}
+                keyboardType="number-pad"
+                placeholder="Optional"
+                editable={!isSubmitting}
+              />
+            </>
+          )}
         </Form.Section>
       </Form>
     </ContentArea>

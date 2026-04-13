@@ -6,6 +6,7 @@ import {
   GO_TEAM_SERVICE_ROUTES,
 } from "@/hooks/use-axios-clerk";
 import { createScopedLog } from "@/utils/logger";
+import { useFollow } from "@/hooks/use-follow";
 
 const log = createScopedLog("Team Detail");
 
@@ -19,6 +20,12 @@ export type TeamDetailResponse = Readonly<{
   scope: string | null;
   privacy: "PRIVATE" | "PUBLIC";
   ownerUserId: string | null;
+  totalMatches: number | null;
+  minutesPlayed: number | null;
+  totalPoints: number | null;
+  winStreak: number | null;
+  totalShotsOnTarget: number | null;
+  totalFouls: number | null;
 }>;
 
 export function teamDetailQueryOptions(
@@ -71,9 +78,23 @@ export function useTeamDetail(id: string) {
     refetchOnWindowFocus: false,
   });
 
-  const handleFollow = useCallback(() => {
-    log.info(`User with id ${userId} has followed team with id ${id}`);
-  }, [userId, id]);
+  const isMember = Boolean(membership);
+  const isActiveMember = membership?.status === "ACTIVE";
+  const role = membership?.role;
+  const memStatus = membership?.status;
+  const joinedAt = membership?.joinedAt;
+
+  const canFollow = Boolean(
+    userId && team && !isActiveMember && team.privacy === "PUBLIC",
+  );
+  const followTeamId = canFollow ? id : "";
+
+  const followState = useFollow("team", followTeamId);
+
+  const isFollowToolbarLoading =
+    followState.isStatusLoading ||
+    followState.isFollowPending ||
+    followState.isUnfollowPending;
 
   const onRefresh = useCallback(async () => {
     try {
@@ -88,18 +109,16 @@ export function useTeamDetail(id: string) {
   const title = team?.name ?? (id ? `Team ${id}` : "Team");
   const isOwner = Boolean(userId && team?.ownerUserId === userId);
 
-  const isMember = Boolean(membership);
-  const isActiveMember = membership?.status === "ACTIVE";
-  const role = membership?.role;
-  const memStatus = membership?.status;
-  const joinedAt = membership?.joinedAt;
-
   return {
     team,
     isLoading,
     refreshing,
     onRefresh,
-    handleFollow,
+    canFollow,
+    isFollowing: followState.following,
+    isFollowToolbarLoading,
+    onFollow: followState.follow,
+    onUnfollow: followState.unfollow,
     title,
     isOwner,
     isMember,

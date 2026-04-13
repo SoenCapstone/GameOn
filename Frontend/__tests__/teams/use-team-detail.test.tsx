@@ -16,6 +16,8 @@ jest.mock("@/hooks/use-axios-clerk", () => ({
   useAxiosWithClerk: jest.fn(),
   GO_TEAM_SERVICE_ROUTES: {
     ALL: "/api/teams",
+    TEAM_FOLLOW: (teamId: string) => `/api/teams/${teamId}/follow`,
+    TEAMS_ME_FOLLOWING: "/api/teams/me/following",
   },
 }));
 
@@ -79,6 +81,12 @@ describe("useTeamDetail", () => {
       if (url.includes("memberships/me")) {
         return Promise.resolve({ data: null });
       }
+      if (url.includes("/me/following")) {
+        return Promise.resolve({ data: { teamIds: [] } });
+      }
+      if (url.includes("/follow")) {
+        return Promise.resolve({ data: { following: false } });
+      }
       return Promise.resolve({ data: null });
     });
   });
@@ -93,10 +101,17 @@ describe("useTeamDetail", () => {
   function mockGetRequest(
     teamData: Record<string, unknown>,
     membershipData: Record<string, unknown> | null = null,
+    followStatus: { following: boolean } = { following: false },
   ) {
     mockApi.get.mockImplementation((url: string) => {
       if (url.includes("memberships/me")) {
         return Promise.resolve({ data: membershipData });
+      }
+      if (url.includes("/me/following")) {
+        return Promise.resolve({ data: { teamIds: [] } });
+      }
+      if (url.includes("/follow")) {
+        return Promise.resolve({ data: followStatus });
       }
       return Promise.resolve({ data: teamData });
     });
@@ -225,10 +240,17 @@ describe("useTeamDetail", () => {
     expect(mockApi.get).not.toHaveBeenCalled();
   });
 
-  it("calls handleFollow with correct parameters", async () => {
-    mockApi.get.mockResolvedValue({
-      data: { id: "team-1", name: "Test Team", ownerUserId: "user-123" },
-    });
+  it("calls onFollow which posts to the follow endpoint", async () => {
+    mockGetRequest(
+      {
+        id: "team-1",
+        name: "Test Team",
+        ownerUserId: "user-456",
+        privacy: "PUBLIC",
+      },
+      null,
+    );
+    mockApi.post.mockResolvedValue({ status: 204 });
 
     const { result } = renderHook(() => useTeamDetail("team-1"), {
       wrapper: createWrapper(),
@@ -238,8 +260,11 @@ describe("useTeamDetail", () => {
       expect(result.current.isLoading).toBe(false);
     });
 
-    result.current.handleFollow();
-    expect(result.current.handleFollow).toBeDefined();
+    await act(async () => {
+      await result.current.onFollow();
+    });
+
+    expect(mockApi.post).toHaveBeenCalledWith("/api/teams/team-1/follow");
   });
 
   it("refreshes data when onRefresh is called", async () => {
@@ -366,9 +391,12 @@ describe("useTeamDetail", () => {
     expect(result.current.isOwner).toBe(false);
   });
 
-  it("maintains stable handleFollow callback", async () => {
-    mockApi.get.mockResolvedValue({
-      data: { id: "team-1", name: "Test Team", ownerUserId: "user-123" },
+  it("maintains stable onFollow callback", async () => {
+    mockGetRequest({
+      id: "team-1",
+      name: "Test Team",
+      ownerUserId: "user-456",
+      privacy: "PUBLIC",
     });
 
     const { result, rerender } = renderHook(() => useTeamDetail("team-1"), {
@@ -379,11 +407,11 @@ describe("useTeamDetail", () => {
       expect(result.current.isLoading).toBe(false);
     });
 
-    const handleFollow1 = result.current.handleFollow;
+    const onFollow1 = result.current.onFollow;
     rerender(() => useTeamDetail("team-1"));
-    const handleFollow2 = result.current.handleFollow;
+    const onFollow2 = result.current.onFollow;
 
-    expect(handleFollow1).toBe(handleFollow2);
+    expect(onFollow1).toBe(onFollow2);
   });
 
   it("maintains stable onRefresh callback", async () => {

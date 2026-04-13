@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { View, RefreshControl } from "react-native";
+import { FollowToolbar } from "@/components/follow/follow-toolbar";
 import {
   RelativePathString,
   router,
@@ -29,6 +30,7 @@ import { LeagueStandings } from "@/components/leagues/league-standings";
 import { Loading } from "@/components/ui/loading";
 import { Empty } from "@/components/ui/empty";
 import { toast } from "@/utils/toast";
+import { usePostHogFlags } from "@/hooks/use-posthog-flags";
 
 type LeagueTab = "board" | "matches" | "standings" | "teams";
 
@@ -51,7 +53,12 @@ function LeagueToolbar({
   id,
   isMember,
   isOwner,
+  isOrganizer,
+  canFollow,
+  followLoading,
+  isFollowing,
   onFollow,
+  onUnfollow,
   openPost,
   openSchedule,
 }: Readonly<{
@@ -59,7 +66,12 @@ function LeagueToolbar({
   id: string;
   isMember: boolean;
   isOwner: boolean;
-  onFollow: () => void;
+  isOrganizer: boolean;
+  canFollow: boolean;
+  followLoading: boolean;
+  isFollowing: boolean;
+  onFollow: () => void | Promise<void>;
+  onUnfollow: () => void | Promise<void>;
   openPost?: () => void;
   openSchedule?: () => void;
 }>) {
@@ -68,18 +80,21 @@ function LeagueToolbar({
   return (
     <>
       <Stack.Screen.Title>{title}</Stack.Screen.Title>
-      {isMember || isOwner ? (
+      {isMember || isOwner || isOrganizer ? (
         <Stack.Toolbar placement="right">
           <Stack.Toolbar.Button
             icon="gear"
             onPress={() => router.push(`/leagues/${id}/settings`)}
           />
         </Stack.Toolbar>
-      ) : (
-        <Stack.Toolbar placement="right">
-          <Stack.Toolbar.Button onPress={onFollow}>Follow</Stack.Toolbar.Button>
-        </Stack.Toolbar>
-      )}
+      ) : canFollow ? (
+        <FollowToolbar
+          followLoading={followLoading}
+          isFollowing={isFollowing}
+          onFollow={onFollow}
+          onUnfollow={onUnfollow}
+        />
+      ) : null}
       {showBottomToolbar ? (
         <Stack.Toolbar placement="bottom">
           <Stack.Toolbar.Spacer />
@@ -119,8 +134,14 @@ export default function LeagueScreen() {
   );
 }
 
+function resolveOwnerAction(isOwner: boolean, flag: boolean, handler: () => void) {
+  return isOwner && flag ? handler : undefined;
+}
+
 function LeagueContent() {
-  const params = useLocalSearchParams<{ tab?: string }>();
+  const params = useLocalSearchParams<{
+    tab?: string;
+  }>();
   const initialTab: LeagueTab = resolveLeagueTab(params.tab);
   const [tab, setTab] = useState<LeagueTab>(initialTab);
   const router = useRouter();
@@ -129,21 +150,31 @@ function LeagueContent() {
     id,
     isLoading,
     onRefresh,
-    handleFollow,
+    canFollow,
+    isFollowing,
+    isFollowToolbarLoading,
+    onFollow,
+    onUnfollow,
     title,
     isMember,
     isOwner,
+    isOrganizer,
     league,
     leagueTeams,
     isLeagueTeamsLoading,
     leagueTeamsError,
   } = useLeagueDetailContext();
+
+  const canManage = isOwner || isOrganizer;
+
   const {
     data: standings = [],
     isLoading: standingsLoading,
     error: standingsError,
     refetch: refetchStandings,
   } = useLeagueStandings(id);
+
+  const { canCreatePost, canScheduleMatch } = usePostHogFlags();
 
   const openPost = useCallback(() => {
     router.push({
@@ -254,9 +285,14 @@ function LeagueContent() {
             id={id}
             isMember={isMember}
             isOwner={isOwner}
-            onFollow={handleFollow}
-            openPost={isOwner ? openPost : undefined}
-            openSchedule={isOwner ? openSchedule : undefined}
+            isOrganizer={isOrganizer}
+            canFollow={canFollow}
+            followLoading={isFollowToolbarLoading}
+            isFollowing={isFollowing}
+            onFollow={onFollow}
+            onUnfollow={onUnfollow}
+            openPost={resolveOwnerAction(isOwner, canCreatePost, openPost)}
+            openSchedule={resolveOwnerAction(isOwner, canScheduleMatch, openSchedule)}
           />
         }
         background={{ preset: "red" }}
@@ -281,7 +317,7 @@ function LeagueContent() {
                     : getSportLogo(league?.sport)
                 }
                 onDeletePost={handleDeletePost}
-                canDelete={isOwner}
+                canDelete={canManage}
               />
             )}
 

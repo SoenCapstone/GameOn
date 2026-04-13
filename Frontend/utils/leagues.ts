@@ -4,6 +4,7 @@ import { Alert } from "react-native";
 import { fetchTeamResults } from "@/utils/search";
 import {
   GO_LEAGUE_INVITE_ROUTES,
+  GO_LEAGUE_ORGANIZER_INVITE_ROUTES,
   GO_LEAGUE_SERVICE_ROUTES,
 } from "@/hooks/use-axios-clerk";
 import { isRunningInExpoGo } from "@/utils/runtime";
@@ -11,8 +12,10 @@ import { LeagueTeamMembership } from "@/types/matches";
 import {
   LeagueInviteCard,
   LeagueInviteResponse,
+  LeagueOrganizerInviteCard,
   LeaguePrivacy,
 } from "@/types/leagues";
+import { fetchUserNameMap } from "@/utils/notifications";
 
 type ShowActionSheet = ReturnType<
   typeof useActionSheet
@@ -271,6 +274,39 @@ export async function fetchLeagueInvitesWithDetails(
     teamId: invite.teamId,
     teamName: invite.teamName ?? "Team",
     leaguePrivacy: leagueMap[invite.leagueId]?.privacy ?? LeaguePrivacy.PRIVATE,
+    logoUrl: leagueMap[invite.leagueId]?.logoUrl,
+    sport: leagueMap[invite.leagueId]?.sport,
+  }));
+}
+
+export async function fetchOrganizerInvitesWithDetails(
+  api: AxiosInstance,
+): Promise<LeagueOrganizerInviteCard[]> {
+  const resp = await api.get<
+    { id: string; leagueId: string; invitedByUserId?: string; status?: string }[]
+  >(GO_LEAGUE_ORGANIZER_INVITE_ROUTES.MINE);
+
+  const invites = (resp.data ?? []).filter((i) => i.status === "PENDING");
+  if (invites.length === 0) return [];
+
+  const leagueIds = Array.from(new Set(invites.map((i) => i.leagueId)));
+  const inviterIds = Array.from(
+    new Set(invites.map((i) => i.invitedByUserId).filter(Boolean)),
+  ) as string[];
+
+  const [leagueMap, inviterMap] = await Promise.all([
+    fetchLeagueMetaMap(api, leagueIds),
+    fetchUserNameMap(api, inviterIds),
+  ]);
+
+  return invites.map((invite) => ({
+    kind: "league-organizer" as const,
+    id: invite.id,
+    leagueId: invite.leagueId,
+    leagueName: leagueMap[invite.leagueId]?.name ?? "League",
+    inviterName: invite.invitedByUserId
+      ? (inviterMap[invite.invitedByUserId] ?? undefined)
+      : undefined,
     logoUrl: leagueMap[invite.leagueId]?.logoUrl,
     sport: leagueMap[invite.leagueId]?.sport,
   }));

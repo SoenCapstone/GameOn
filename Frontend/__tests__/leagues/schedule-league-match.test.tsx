@@ -199,12 +199,12 @@ jest.mock("@/hooks/use-matches", () => ({
 }));
 
 jest.mock("@/hooks/use-axios-clerk", () => ({
+  ...jest.requireActual<typeof import("@/hooks/use-axios-clerk")>(
+    "@/hooks/use-axios-clerk",
+  ),
   useAxiosWithClerk: () => ({
     get: mockApiGet,
   }),
-  GO_USER_SERVICE_ROUTES: {
-    BY_ID: (id: string) => `/users/${id}`,
-  },
 }));
 
 jest.mock("@clerk/clerk-expo", () => ({
@@ -248,9 +248,31 @@ describe("ScheduleLeagueMatchScreen", () => {
     mockCreateLeagueMatch.mockResolvedValue({ id: "m1" });
     mockValidateLeagueMatchSchedule.mockResolvedValue({ allowed: true });
     mockApiGet.mockImplementation((url: string) => {
-      if (url === "/users/ref-1") {
+      if (url === "/users/ref-1" || url.includes("id/ref-1")) {
         return Promise.resolve({
           data: { firstname: "Jane", lastname: "Ref" },
+        });
+      }
+      if (url.includes("/organizers")) {
+        return Promise.resolve({ data: [] });
+      }
+      if (url.includes("memberships/me")) {
+        return Promise.resolve({ data: [] });
+      }
+      if (url.includes("/follow") && !url.includes("/me/following")) {
+        return Promise.resolve({ data: { following: false } });
+      }
+      if (url.includes("/leagues/league-1/teams")) {
+        return Promise.resolve({ data: [] });
+      }
+      if (url === "api/v1/leagues/league-1") {
+        return Promise.resolve({
+          data: {
+            id: "league-1",
+            name: "Test League",
+            privacy: "PUBLIC",
+            ownerUserId: "owner-other",
+          },
         });
       }
       return Promise.resolve({ data: {} });

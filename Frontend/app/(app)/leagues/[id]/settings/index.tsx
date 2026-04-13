@@ -1,8 +1,8 @@
 import { useState, useEffect, ReactNode } from "react";
-import { Pressable } from "react-native";
+import { Alert, Pressable } from "react-native";
 import { Stack, useLocalSearchParams, useRouter } from "expo-router";
 import { useNavigation, StackActions } from "@react-navigation/native";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useActionSheet } from "@expo/react-native-action-sheet";
 import ContextMenu from "react-native-context-menu-view";
 import { toast } from "@/utils/toast";
@@ -10,6 +10,7 @@ import { ContentArea } from "@/components/ui/content-area";
 import { Empty } from "@/components/ui/empty";
 import { Form } from "@/components/form/form";
 import { AccentColors } from "@/constants/colors";
+import { images } from "@/constants/images";
 import { createScopedLog } from "@/utils/logger";
 import { errorToString } from "@/utils/error";
 import { usePayment, type PaymentEntityType } from "@/hooks/use-payment";
@@ -38,6 +39,7 @@ import {
   useLeagueDetailContext,
 } from "@/contexts/league-detail-context";
 import { Loading } from "@/components/ui/loading";
+import { fetchUserDirectory } from "@/hooks/messages/api";
 
 const log = createScopedLog("League Settings");
 
@@ -67,8 +69,11 @@ function LeagueSettingsContent() {
     league,
     isLoading: leagueLoading,
     isOwner,
+    isOrganizer,
     leagueTeams,
   } = useLeagueDetailContext();
+
+  const canAccess = isOwner || isOrganizer;
 
   const [isPublic, setIsPublic] = useState(false);
   const leagueTeamsQuery = useTeamsByIds(
@@ -111,6 +116,7 @@ function LeagueSettingsContent() {
       });
     },
   });
+
   const removeTeamMutation = useMutation({
     mutationFn: async (teamId: string) => {
       await api.delete(GO_LEAGUE_SERVICE_ROUTES.REMOVE_TEAM(id, teamId));
@@ -128,7 +134,53 @@ function LeagueSettingsContent() {
     },
   });
 
-  if (!isOwner) {
+  // ── Organizers ──────────────────────────────────────────────
+  const organizersQuery = useQuery<
+    { id: string; userId: string; joinedAt: string }[]
+  >({
+    queryKey: ["league-organizers", id],
+    queryFn: async () => {
+      const resp = await api.get(GO_LEAGUE_SERVICE_ROUTES.ORGANIZERS(id));
+      return resp.data ?? [];
+    },
+    enabled: Boolean(id),
+  });
+
+  const { data: userDirectory = [] } = useQuery({
+    queryKey: ["user-directory"],
+    queryFn: async () => fetchUserDirectory(api),
+    enabled: Boolean(id && canAccess),
+    staleTime: 5 * 60 * 1000,
+  });
+
+  const removeOrganizerMutation = useMutation({
+    mutationFn: async (organizerUserId: string) => {
+      await api.delete(
+        GO_LEAGUE_SERVICE_ROUTES.REMOVE_ORGANIZER(id, organizerUserId),
+      );
+    },
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({
+        queryKey: ["league-organizers", id],
+      });
+    },
+    onError: (err) => {
+      toast.error("Remove Failed", { description: errorToString(err) });
+    },
+  });
+
+  const handleRemoveOrganizer = (organizerUserId: string, name: string) => {
+    Alert.alert("Remove Organizer", `Remove ${name} from league organizers?`, [
+      { text: "Cancel", style: "cancel" },
+      {
+        text: "Remove",
+        style: "destructive",
+        onPress: () => removeOrganizerMutation.mutate(organizerUserId),
+      },
+    ]);
+  };
+
+  if (!canAccess) {
     return (
       <ContentArea background={{ preset: "red" }}>
         <Empty message="You don't have permission to edit this league" />
@@ -165,7 +217,7 @@ function LeagueSettingsContent() {
                 ? { uri: league.logoUrl }
                 : getSportLogo(league.sport)
             }
-            onPress={() => router.push(`/leagues/${id}/settings/edit`)}
+            onPress={isOwner ? () => router.push(`/leagues/${id}/settings/edit`) : undefined}
             logo
           />
         </Form.Section>
@@ -177,7 +229,7 @@ function LeagueSettingsContent() {
             return (
               <LeagueTeamMenu
                 key={teamMembership.id}
-                canDelete={isOwner && !removeTeamMutation.isPending}
+                canDelete={canAccess && !removeTeamMutation.isPending}
                 onDelete={() =>
                   handleLeagueTeamRemove({
                     teamId: teamMembership.teamId,
@@ -208,66 +260,137 @@ function LeagueSettingsContent() {
           />
         </Form.Section>
 
-        <Form.Section
-          header="Visibility"
-          footer={
-            isPublic
-              ? "Private leagues are not discoverable, cannot be followed by other users, and only members can see posts."
-              : "Public leagues are discoverable, can be followed by other users, and can make public posts."
-          }
-        >
-          {isPublic ? (
+        <Form.Section header="Organizers">
+          {(organizersQuery.data ?? []).map((organizer) => {
+            const user = userDirectory.find((u) => u.id === organizer.userId);
+            const name = user
+              ? `${user.firstname ?? ""} ${user.lastname ?? ""}`.trim() ||
+                user.email
+              : organizer.userId;
+            return (
+              <OrganizerMenu
+                key={organizer.id}
+                canRemove={isOwner && !removeOrganizerMutation.isPending}
+                onRemove={() =>
+                  handleRemoveOrganizer(organizer.userId, name)
+                }
+              >
+                <MenuCardItem
+                  title={name}
+                  subtitle={formatMemberSince(organizer.joinedAt)}
+                  image={
+                    user?.imageUrl
+                      ? { uri: user.imageUrl }
+                      : images.defaultProfile
+                  }
+                />
+              </OrganizerMenu>
+            );
+          })}
+          {isOwner && (
             <Form.Button
-              button="Switch to a Private League"
-              color={AccentColors.red}
+              button="Invite Organizers"
               onPress={() =>
-                handleLeagueSetPrivate({
-                  league,
-                  onConfirm: (payload) => {
-                    updateLeagueMutation.mutate(payload);
-                    setIsPublic(false);
-                  },
-                })
+                router.push(`/leagues/${id}/settings/invite-organizers`)
               }
-              disabled={updateLeagueMutation.isPending}
-            />
-          ) : (
-            <Form.Button
-              button={isPaying ? "Processing…" : "Switch to a Public League"}
-              color={AccentColors.red}
-              onPress={() =>
-                handleLeagueRequestPurchase({
-                  league,
-                  amountCents: 1500,
-                  formatAmount,
-                  runPayment,
-                  onConfirm: (payload) => {
-                    updateLeagueMutation.mutate(payload);
-                    setIsPublic(true);
-                  },
-                })
-              }
-              disabled={isPaying}
             />
           )}
         </Form.Section>
 
-        <Form.Section>
-          <Form.Button
-            button={
-              deleteLeagueMutation.isPending ? "Deleting..." : "Delete League"
-            }
-            color={AccentColors.red}
-            onPress={() =>
-              handleLeagueDelete({
-                onConfirm: () => deleteLeagueMutation.mutate(),
-              })
-            }
-            disabled={deleteLeagueMutation.isPending}
+        {isOwner && (
+          <OwnerOnlySections
+            league={league}
+            isPublic={isPublic}
+            setIsPublic={setIsPublic}
+            isPaying={isPaying}
+            updateLeagueMutation={updateLeagueMutation}
+            deleteLeagueMutation={deleteLeagueMutation}
+            runPayment={runPayment}
           />
-        </Form.Section>
+        )}
       </Form>
     </ContentArea>
+  );
+}
+
+function OwnerOnlySections({
+  league,
+  isPublic,
+  setIsPublic,
+  isPaying,
+  updateLeagueMutation,
+  deleteLeagueMutation,
+  runPayment,
+}: Readonly<{
+  league: { name?: string | null; sport?: string | null; level?: string | null; region?: string | null; location?: string | null; logoUrl?: string | null; privacy?: string | null } | null;
+  isPublic: boolean;
+  setIsPublic: (value: boolean) => void;
+  isPaying: boolean;
+  updateLeagueMutation: ReturnType<typeof useUpdateLeague>;
+  deleteLeagueMutation: ReturnType<typeof useDeleteLeague>;
+  runPayment: (onPaid: () => Promise<void> | void) => void;
+}>) {
+  return (
+    <>
+      <Form.Section
+        header="Visibility"
+        footer={
+          isPublic
+            ? "Private leagues are not discoverable, cannot be followed by other users, and only members can see posts."
+            : "Public leagues are discoverable, can be followed by other users, and can make public posts."
+        }
+      >
+        {isPublic ? (
+          <Form.Button
+            button="Switch to a Private League"
+            color={AccentColors.red}
+            onPress={() =>
+              handleLeagueSetPrivate({
+                league,
+                onConfirm: (payload) => {
+                  updateLeagueMutation.mutate(payload);
+                  setIsPublic(false);
+                },
+              })
+            }
+            disabled={updateLeagueMutation.isPending}
+          />
+        ) : (
+          <Form.Button
+            button={isPaying ? "Processing…" : "Switch to a Public League"}
+            color={AccentColors.red}
+            onPress={() =>
+              handleLeagueRequestPurchase({
+                league,
+                amountCents: 1500,
+                formatAmount,
+                runPayment,
+                onConfirm: (payload) => {
+                  updateLeagueMutation.mutate(payload);
+                  setIsPublic(true);
+                },
+              })
+            }
+            disabled={isPaying}
+          />
+        )}
+      </Form.Section>
+
+      <Form.Section>
+        <Form.Button
+          button={
+            deleteLeagueMutation.isPending ? "Deleting..." : "Delete League"
+          }
+          color={AccentColors.red}
+          onPress={() =>
+            handleLeagueDelete({
+              onConfirm: () => deleteLeagueMutation.mutate(),
+            })
+          }
+          disabled={deleteLeagueMutation.isPending}
+        />
+      </Form.Section>
+    </>
   );
 }
 
@@ -301,6 +424,36 @@ function LeagueTeamMenu({
         if (event.nativeEvent.name === "Remove Team") {
           onDelete();
         }
+      }}
+      previewBackgroundColor="transparent"
+    >
+      {children}
+    </ContextMenu>
+  );
+}
+
+function OrganizerMenu({
+  onRemove,
+  canRemove,
+  children,
+}: Readonly<{
+  onRemove: () => void;
+  canRemove: boolean;
+  children: ReactNode;
+}>) {
+  if (!canRemove) return children;
+
+  if (isRunningInExpoGo) {
+    return <Pressable onLongPress={onRemove}>{children}</Pressable>;
+  }
+
+  return (
+    <ContextMenu
+      actions={[
+        { title: "Remove Organizer", systemIcon: "trash", destructive: true },
+      ]}
+      onPress={(event) => {
+        if (event.nativeEvent.name === "Remove Organizer") onRemove();
       }}
       previewBackgroundColor="transparent"
     >
