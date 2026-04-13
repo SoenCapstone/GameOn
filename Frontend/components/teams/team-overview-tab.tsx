@@ -30,102 +30,106 @@ export function TeamOverviewTab({
       ) : null}
 
       <Card>
-      <View style={styles.glassInner}>
+        <View style={styles.glassInner}>
           <View style={styles.seasonHeader}>
-              <Text style={styles.seasonTitle}>
-                {overview?.seasonLabel ?? `Season ${new Date().getFullYear()}`}
-              </Text>
+            <Text style={styles.seasonTitle}>
+              {overview?.seasonLabel ?? `Season ${new Date().getFullYear()}`}
+            </Text>
 
-              {overview?.record ? (
-                <Text style={styles.recordText}>{overview.record}</Text>
-              ) : (
-                <View style={styles.skelRecord} />
-              )}
-            </View>
+            {overview?.record ? (
+              <Text style={styles.recordText}>{overview.record}</Text>
+            ) : (
+              <View style={styles.skelRecord} />
+            )}
+          </View>
 
-            <View style={styles.tilesGrid}>
-              {tiles.map((tile) => (
-                <View key={tile.key} style={styles.statTile}>
-                  <View style={styles.statTileBox}>
-                    <Text style={styles.tileEmoji}>{tile.label.split(" ")[0]}</Text>
-                    <View>
-                      {tile.value === undefined ? (
-                        <View style={styles.skelNum} />
-                      ) : (
-                        <Text style={styles.statValue}>{String(tile.value)}</Text>
-                      )}
-                      <Text style={styles.statLabel}>{tile.label.split(" ")[1]}</Text>
-                    </View>
+          <View style={styles.tilesGrid}>
+            {tiles.map((tile) => (
+              <View key={tile.key} style={styles.statTile}>
+                <View style={styles.statTileBox}>
+                  <Text style={styles.tileEmoji}>
+                    {tile.label.split(" ")[0]}
+                  </Text>
+                  <View>
+                    {tile.value === undefined ? (
+                      <View style={styles.skelNum} />
+                    ) : (
+                      <Text style={styles.statValue}>{String(tile.value)}</Text>
+                    )}
+                    <Text style={styles.statLabel}>
+                      {tile.label.split(" ")[1]}
+                    </Text>
                   </View>
                 </View>
-              ))}
-            </View>
-      </View>
+              </View>
+            ))}
+          </View>
+        </View>
       </Card>
 
       <Card>
-      <View style={styles.rosterCard}>
-            <View style={styles.rosterHeader}>
-              <Text style={styles.rosterTitle}>Roster</Text>
-              <View style={styles.rosterTotalWrap}>
-                <Text style={styles.rosterTotalLabel}>Total</Text>
+        <View style={styles.rosterCard}>
+          <View style={styles.rosterHeader}>
+            <Text style={styles.rosterTitle}>Roster</Text>
+            <View style={styles.rosterTotalWrap}>
+              <Text style={styles.rosterTotalLabel}>Total</Text>
 
-                {overview?.rosterCounts?.total === undefined ? (
-                  <View style={styles.skelRosterTotal} />
-                ) : (
-                  <Text style={styles.rosterTotalValue}>
-                    {String(overview.rosterCounts.total)}
-                  </Text>
-                )}
+              {overview?.rosterCounts?.total === undefined ? (
+                <View style={styles.skelRosterTotal} />
+              ) : (
+                <Text style={styles.rosterTotalValue}>
+                  {String(overview.rosterCounts.total)}
+                </Text>
+              )}
+            </View>
+          </View>
+
+          <View style={styles.rosterDivider} />
+
+          <View style={styles.rosterList}>
+            <View style={styles.rosterItem}>
+              <View style={styles.rolePill}>
+                <Text style={styles.rolePillText}>Owner</Text>
               </View>
+
+              {overview?.rosterCounts?.owner === undefined ? (
+                <View style={styles.skelCount} />
+              ) : (
+                <Text style={styles.rosterCountValue}>
+                  {String(overview.rosterCounts.owner)}
+                </Text>
+              )}
             </View>
 
-            <View style={styles.rosterDivider} />
-
-            <View style={styles.rosterList}>
-              <View style={styles.rosterItem}>
-                <View style={styles.rolePill}>
-                  <Text style={styles.rolePillText}>Owner</Text>
-                </View>
-
-                {overview?.rosterCounts?.owner === undefined ? (
-                  <View style={styles.skelCount} />
-                ) : (
-                  <Text style={styles.rosterCountValue}>
-                    {String(overview.rosterCounts.owner)}
-                  </Text>
-                )}
+            <View style={styles.rosterItem}>
+              <View style={styles.rolePill}>
+                <Text style={styles.rolePillText}>Manager</Text>
               </View>
 
-              <View style={styles.rosterItem}>
-                <View style={styles.rolePill}>
-                  <Text style={styles.rolePillText}>Manager</Text>
-                </View>
-
-                {overview?.rosterCounts?.manager === undefined ? (
-                  <View style={styles.skelCount} />
-                ) : (
-                  <Text style={styles.rosterCountValue}>
-                    {String(overview.rosterCounts.manager)}
-                  </Text>
-                )}
-              </View>
-
-              <View style={styles.rosterItem}>
-                <View style={styles.rolePill}>
-                  <Text style={styles.rolePillText}>Players</Text>
-                </View>
-
-                {overview?.rosterCounts?.players === undefined ? (
-                  <View style={styles.skelCount} />
-                ) : (
-                  <Text style={styles.rosterCountValue}>
-                    {String(overview.rosterCounts.players)}
-                  </Text>
-                )}
-              </View>
+              {overview?.rosterCounts?.manager === undefined ? (
+                <View style={styles.skelCount} />
+              ) : (
+                <Text style={styles.rosterCountValue}>
+                  {String(overview.rosterCounts.manager)}
+                </Text>
+              )}
             </View>
-      </View>
+
+            <View style={styles.rosterItem}>
+              <View style={styles.rolePill}>
+                <Text style={styles.rolePillText}>Players</Text>
+              </View>
+
+              {overview?.rosterCounts?.players === undefined ? (
+                <View style={styles.skelCount} />
+              ) : (
+                <Text style={styles.rosterCountValue}>
+                  {String(overview.rosterCounts.players)}
+                </Text>
+              )}
+            </View>
+          </View>
+        </View>
       </Card>
 
       <TeamPerformanceCardPlaceholder performance={overview?.performance} />
@@ -135,7 +139,7 @@ export function TeamOverviewTab({
 
 const styles = StyleSheet.create({
   overviewWrap: {
-    gap: 12,
+    gap: 14,
   },
 
   errorText: {

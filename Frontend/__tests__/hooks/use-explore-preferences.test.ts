@@ -1,10 +1,15 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { useAuth } from "@clerk/clerk-expo";
 import { act, renderHook, waitFor } from "@testing-library/react-native";
 import { useExplorePreferences } from "@/hooks/use-explore-preferences";
 import {
   getCurrentLocation,
   requestLocationPermission,
 } from "@/utils/location";
+
+jest.mock("@clerk/clerk-expo", () => ({
+  useAuth: jest.fn(),
+}));
 
 jest.mock("@/utils/location", () => ({
   getCurrentLocation: jest.fn(),
@@ -20,17 +25,25 @@ jest.mock("@/utils/logger", () => ({
   })),
 }));
 
+const mockedUseAuth = useAuth as jest.MockedFunction<typeof useAuth>;
+let authState: ReturnType<typeof useAuth>;
+
 describe("useExplorePreferences", () => {
   beforeEach(() => {
     jest.clearAllMocks();
     AsyncStorage.clear();
     (getCurrentLocation as jest.Mock).mockResolvedValue(null);
     (requestLocationPermission as jest.Mock).mockResolvedValue(true);
+    authState = {
+      isLoaded: true,
+      userId: "user-1",
+    } as ReturnType<typeof useAuth>;
+    mockedUseAuth.mockImplementation(() => authState);
   });
 
   it("loads saved preferences on mount and marks the hook as loaded", async () => {
     await AsyncStorage.setItem(
-      "explore-preferences",
+      "explore-preferences:user-1",
       JSON.stringify({
         sport: "Basketball",
         location: "Toronto",
@@ -70,7 +83,7 @@ describe("useExplorePreferences", () => {
       rangeKm: 50,
     });
     expect(AsyncStorage.setItem).toHaveBeenLastCalledWith(
-      "explore-preferences",
+      "explore-preferences:user-1",
       JSON.stringify({
         sport: "Soccer",
         location: undefined,
@@ -111,7 +124,7 @@ describe("useExplorePreferences", () => {
 
   it("loads city coordinates for a saved city preference", async () => {
     await AsyncStorage.setItem(
-      "explore-preferences",
+      "explore-preferences:user-1",
       JSON.stringify({
         sport: "Soccer",
         location: "Toronto",
@@ -139,7 +152,7 @@ describe("useExplorePreferences", () => {
       longitude: -73.56,
     });
     await AsyncStorage.setItem(
-      "explore-preferences",
+      "explore-preferences:user-1",
       JSON.stringify({
         sport: "Soccer",
         location: "My Location",
@@ -174,7 +187,7 @@ describe("useExplorePreferences", () => {
 
   it("returns null coordinates for an unknown saved location", async () => {
     await AsyncStorage.setItem(
-      "explore-preferences",
+      "explore-preferences:user-1",
       JSON.stringify({
         sport: "Soccer",
         location: "Quebec City",
@@ -233,6 +246,109 @@ describe("useExplorePreferences", () => {
         "Failed to save explore preferences",
         expect.any(Error),
       );
+    });
+  });
+
+  it("keeps preferences isolated per signed-in user", async () => {
+    await AsyncStorage.setItem(
+      "explore-preferences:user-1",
+      JSON.stringify({
+        sport: "Basketball",
+        location: "Toronto",
+        rangeKm: 25,
+      }),
+    );
+    await AsyncStorage.setItem(
+      "explore-preferences:user-2",
+      JSON.stringify({
+        sport: "Soccer",
+        location: "Montreal",
+        rangeKm: 10,
+      }),
+    );
+
+    authState = {
+      isLoaded: true,
+      userId: "user-2",
+    } as ReturnType<typeof useAuth>;
+
+    const { result } = renderHook(() => useExplorePreferences());
+
+    await waitFor(() => {
+      expect(result.current.isLoaded).toBe(true);
+    });
+
+    expect(result.current.preferences).toEqual({
+      sport: "Soccer",
+      location: "Montreal",
+      rangeKm: 10,
+    });
+  });
+
+  it("reloads preferences when the signed-in user changes", async () => {
+    await AsyncStorage.setItem(
+      "explore-preferences:user-1",
+      JSON.stringify({
+        sport: "Basketball",
+        location: "Toronto",
+        rangeKm: 25,
+      }),
+    );
+    await AsyncStorage.setItem(
+      "explore-preferences:user-2",
+      JSON.stringify({
+        sport: "Soccer",
+        location: "Montreal",
+        rangeKm: 10,
+      }),
+    );
+
+    const { result, rerender } = renderHook(() => useExplorePreferences());
+
+    await waitFor(() => {
+      expect(result.current.preferences).toEqual({
+        sport: "Basketball",
+        location: "Toronto",
+        rangeKm: 25,
+      });
+    });
+
+    authState = {
+      isLoaded: true,
+      userId: "user-2",
+    } as ReturnType<typeof useAuth>;
+
+    rerender();
+
+    await waitFor(() => {
+      expect(result.current.preferences).toEqual({
+        sport: "Soccer",
+        location: "Montreal",
+        rangeKm: 10,
+      });
+    });
+  });
+
+  it("ignores legacy device-scoped preferences", async () => {
+    await AsyncStorage.setItem(
+      "explore-preferences",
+      JSON.stringify({
+        sport: "Basketball",
+        location: "Toronto",
+        rangeKm: 25,
+      }),
+    );
+
+    const { result } = renderHook(() => useExplorePreferences());
+
+    await waitFor(() => {
+      expect(result.current.isLoaded).toBe(true);
+    });
+
+    expect(result.current.preferences).toEqual({
+      sport: undefined,
+      location: undefined,
+      rangeKm: undefined,
     });
   });
 });
