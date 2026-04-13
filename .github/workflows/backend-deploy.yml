@@ -13,62 +13,9 @@ on:
 permissions: {}
 
 jobs:
-  build-and-push:
-    runs-on: ubuntu-latest
-    permissions:
-      contents: read
-      packages: write
-    strategy:
-      matrix:
-        service:
-          - go-config-server
-          - go-discovery-service
-          - go-api-gateway
-          - go-user-service
-          - go-team-service
-          - go-league-service
-          - go-messaging-service
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@e468171a9de216ec08956ac3ada2f0791b6bd435 # v3
-
-      - name: Set lowercase image tag
-        run: echo "IMAGE_TAG=ghcr.io/$(echo '${{ github.repository_owner }}' | tr '[:upper:]' '[:lower:]')/gameon/${{ matrix.service }}:latest" >> $GITHUB_ENV
-
-      - name: Log in to GHCR
-        uses: docker/login-action@5e57cd118135c172c3672efd75eb46360885c0ef # v3
-        with:
-          registry: ghcr.io
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Build and push ${{ matrix.service }}
-        uses: docker/build-push-action@v6
-        with:
-          context: ./Backend
-          file: ./Backend/${{ matrix.service }}/Dockerfile
-          push: true
-          tags: ${{ env.IMAGE_TAG }}
-          cache-from: type=gha,scope=${{ matrix.service }}
-          cache-to: type=gha,mode=max,scope=${{ matrix.service }}
-
   deploy:
-    needs: build-and-push
     runs-on: ubuntu-latest
     steps:
-      - name: Login to GHCR on EC2
-        uses: appleboy/ssh-action@7eaf76671a0d7eec5d98ee897acda4f968735a17 # v1.2.0
-        with:
-          host: ${{ secrets.EC2_HOST }}
-          username: ec2-user
-          key: ${{ secrets.EC2_SSH_KEY }}
-          command_timeout: 1m
-          script: |
-            echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u "${{ github.actor }}" --password-stdin
-
       - name: Pull latest code on EC2
         uses: appleboy/ssh-action@7eaf76671a0d7eec5d98ee897acda4f968735a17 # v1.2.0
         with:
@@ -80,25 +27,15 @@ jobs:
             cd /home/ec2-user/GameOn
             git pull origin main
 
-      - name: Pull Docker images from GHCR
+      - name: Build and start containers on EC2
         uses: appleboy/ssh-action@7eaf76671a0d7eec5d98ee897acda4f968735a17 # v1.2.0
         with:
           host: ${{ secrets.EC2_HOST }}
           username: ec2-user
           key: ${{ secrets.EC2_SSH_KEY }}
-          command_timeout: 10m
+          command_timeout: 60m
           script: |
             cd /home/ec2-user/GameOn
-            docker compose pull
-
-      - name: Start containers
-        uses: appleboy/ssh-action@7eaf76671a0d7eec5d98ee897acda4f968735a17 # v1.2.0
-        with:
-          host: ${{ secrets.EC2_HOST }}
-          username: ec2-user
-          key: ${{ secrets.EC2_SSH_KEY }}
-          command_timeout: 2m
-          script: |
-            cd /home/ec2-user/GameOn
+            DOCKER_BUILDKIT=1 docker compose build
             docker compose up -d
             docker compose ps

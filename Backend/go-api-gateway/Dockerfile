@@ -1,3 +1,4 @@
+# syntax=docker/dockerfile:1
 # Build Stage
 FROM maven:3.9.8-eclipse-temurin-17 AS build
 WORKDIR /app
@@ -11,7 +12,7 @@ COPY go-api-gateway/pom.xml ./
 COPY go-api-gateway/src ./src
 
 # Build the application
-RUN mvn clean package -DskipTests -q
+RUN --mount=type=cache,target=/root/.m2 mvn clean package -DskipTests -q
 
 
 # Runtime Stage

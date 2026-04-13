@@ -1,3 +1,4 @@
+# syntax=docker/dockerfile:1
 # Build Stage
 FROM maven:3.9.8-eclipse-temurin-21 AS build
 WORKDIR /app
@@ -10,7 +11,7 @@ COPY go-team-service ./go-team-service
 # 1) Build & install common into local Maven repo
 # 2) Build & install go-user-service (so team-service can depend on it)
 # 3) Build go-team-service
-RUN mvn -f common/pom.xml clean install -DskipTests -q \
+RUN --mount=type=cache,target=/root/.m2 mvn -f common/pom.xml clean install -DskipTests -q \
     && mvn -f go-user-service/pom.xml clean install -DskipTests -q \
     && mvn -f go-team-service/pom.xml clean package -DskipTests -q
 

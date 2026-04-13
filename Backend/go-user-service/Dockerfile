@@ -1,3 +1,4 @@
+# syntax=docker/dockerfile:1
 # Build Stage
 FROM maven:3.9.8-eclipse-temurin-21 AS build
 WORKDIR /app
@@ -10,7 +11,7 @@ COPY go-user-service ./go-user-service
 
 # 1) Build & install common into the local Maven repo
 # 2) Build the user service which now can resolve com.game.on:common
-RUN mvn -f common/pom.xml clean install -DskipTests -q \
+RUN --mount=type=cache,target=/root/.m2 mvn -f common/pom.xml clean install -DskipTests -q \
     && mvn -f go-user-service/pom.xml clean package -DskipTests -q
 
 # Runtime Stage

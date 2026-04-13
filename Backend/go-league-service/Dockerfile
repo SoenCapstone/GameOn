@@ -1,3 +1,4 @@
+# syntax=docker/dockerfile:1
 # ================================
 # Build Stage
 # ================================
@@ -13,7 +14,7 @@ COPY go-league-service ./go-league-service
 # Install shared module & build league service
 # -DskipTests skips test execution
 # -Dmaven.test.skip=true skips test compilation too
-RUN mvn -f common/pom.xml clean install -Dmaven.test.skip=true -q \
+RUN --mount=type=cache,target=/root/.m2 mvn -f common/pom.xml clean install -Dmaven.test.skip=true -q \
     && mvn -f go-league-service/pom.xml clean package -Dmaven.test.skip=true -q
 
 # ================================
