@@ -61,7 +61,7 @@ jobs:
     permissions:
       packages: read
     steps:
-      - name: Deploy to EC2
+      - name: Login to GHCR on EC2
         uses: appleboy/ssh-action@7eaf76671a0d7eec5d98ee897acda4f968735a17 # v1.2.0
         env:
           GHCR_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -70,24 +70,42 @@ jobs:
           host: ${{ secrets.EC2_HOST }}
           username: ec2-user
           key: ${{ secrets.EC2_SSH_KEY }}
-          command_timeout: 10m
+          command_timeout: 1m
           envs: GHCR_TOKEN,GHCR_USER
           script: |
-            echo ">>> [1/5] Logging in to GHCR..."
             echo "$GHCR_TOKEN" | docker login ghcr.io -u "$GHCR_USER" --password-stdin
 
-            echo ">>> [2/5] Pulling latest code from git..."
+      - name: Pull latest code on EC2
+        uses: appleboy/ssh-action@7eaf76671a0d7eec5d98ee897acda4f968735a17 # v1.2.0
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ec2-user
+          key: ${{ secrets.EC2_SSH_KEY }}
+          command_timeout: 2m
+          script: |
             cd /home/ec2-user/GameOn
             git pull origin main
 
-            echo ">>> [3/5] Pulling pre-built images from GHCR..."
+      - name: Pull Docker images from GHCR
+        uses: appleboy/ssh-action@7eaf76671a0d7eec5d98ee897acda4f968735a17 # v1.2.0
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ec2-user
+          key: ${{ secrets.EC2_SSH_KEY }}
+          command_timeout: 10m
+          script: |
+            cd /home/ec2-user/GameOn
             docker compose pull
 
-            echo ">>> [4/5] Starting containers..."
+      - name: Start containers
+        uses: appleboy/ssh-action@7eaf76671a0d7eec5d98ee897acda4f968735a17 # v1.2.0
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ec2-user
+          key: ${{ secrets.EC2_SSH_KEY }}
+          command_timeout: 2m
+          script: |
+            cd /home/ec2-user/GameOn
             docker compose up -d
-
-            echo ">>> [5/5] Logging out of GHCR..."
             docker logout ghcr.io
-
-            echo ">>> Deploy complete. Running containers:"
             docker compose ps
