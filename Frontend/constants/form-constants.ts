@@ -1,24 +1,24 @@
 export type Option = { id: string; label: string };
 
-export const SPORTS: Option[] = [
+export const sports: Option[] = [
   { id: "soccer", label: "Soccer" },
   { id: "basketball", label: "Basketball" },
   { id: "volleyball", label: "Volleyball" },
 ];
 
-export const SCOPE_OPTIONS: Option[] = [
+export const scopes: Option[] = [
   { id: "casual", label: "Casual" },
   { id: "managed", label: "Managed" },
   { id: "league_ready", label: "League Ready" },
 ];
 
-export const CITIES: Option[] = [
+export const cities: Option[] = [
   { id: "mtl", label: "Montreal" },
   { id: "tor", label: "Toronto" },
   { id: "van", label: "Vancouver" },
 ];
 
-export const LEVEL_OPTIONS: Option[] = [
+export const levels: Option[] = [
   { id: "RECREATIONAL", label: "Recreational" },
   { id: "COMPETITIVE", label: "Competitive" },
   { id: "YOUTH", label: "Youth" },
@@ -26,19 +26,19 @@ export const LEVEL_OPTIONS: Option[] = [
   { id: "PROFESSIONAL", label: "Professional" },
 ];
 
-export const sportOptions = SPORTS.map((o) => o.label);
-export const scopeOptions = SCOPE_OPTIONS.map((o) => o.label);
-export const cityOptions = CITIES.map((o) => o.label);
-export const levelOptions = LEVEL_OPTIONS.map((o) => o.label);
+export const sportOptions = sports.map((o) => o.label);
+export const scopeOptions = scopes.map((o) => o.label);
+export const cityOptions = cities.map((o) => o.label);
+export const levelOptions = levels.map((o) => o.label);
 
 export const getSportByLabel = (label: string) =>
-  SPORTS.find((x) => x.label === label);
+  sports.find((x) => x.label === label);
 export const getScopeByLabel = (label: string) =>
-  SCOPE_OPTIONS.find((x) => x.label === label);
+  scopes.find((x) => x.label === label);
 export const getCityByLabel = (label: string) =>
-  CITIES.find((x) => x.label === label);
+  cities.find((x) => x.label === label);
 export const getLevelByLabel = (label: string) =>
-  LEVEL_OPTIONS.find((x) => x.label === label);
+  levels.find((x) => x.label === label);
 
 export type PickerType = "sport" | "scope" | "city";
 
@@ -52,17 +52,17 @@ export const getPickerConfig = (
 > => ({
   sport: {
     title: "Select Sport",
-    options: SPORTS,
+    options: sports,
     setter: setSelectedSport,
   },
   scope: {
     title: "Select Scope",
-    options: SCOPE_OPTIONS,
+    options: scopes,
     setter: setSelectedScope,
   },
   city: {
     title: "Select City",
-    options: CITIES,
+    options: cities,
     setter: setSelectedCity,
   },
 });
@@ -78,12 +78,12 @@ export const getLeaguePickerConfig = (
 > => ({
   sport: {
     title: "Select Sport",
-    options: SPORTS,
+    options: sports,
     setter: setSelectedSport,
   },
   level: {
     title: "Select Level",
-    options: LEVEL_OPTIONS,
+    options: levels,
     setter: setSelectedLevel,
   },
 });

@@ -5,14 +5,19 @@ import { Image } from "expo-image";
 import { RelativePathString, router, Stack, useFocusEffect } from "expo-router";
 import { Logo } from "@/components/header/logo";
 import { ContentArea } from "@/components/ui/content-area";
-import { Empty } from "@/components/ui/empty";
 import { getNotificationsQueryKey } from "@/utils/notifications";
 import { useNotificationsCount } from "@/hooks/use-notifications";
 import { useQueryClient } from "@tanstack/react-query";
 import { HomeList } from "@/components/feed/home-list";
 import { useFollowingFeed } from "@/hooks/use-following-feed";
 import { useHomeFeed } from "@/hooks/use-home-feed";
-import type { HomeFeedMatchItem, HomeFeedPostItem } from "@/types/feed";
+import type { HomeFeedPostItem } from "@/types/feed";
+import { useRefereeMatches } from "@/hooks/use-referee-matches";
+import { useReferee } from "@/contexts/referee-context";
+import {
+  MatchListSections,
+  type MatchItem,
+} from "@/components/matches/match-list-sections";
 
 function HomeToolbar() {
   const { user } = useUser();
@@ -57,15 +62,24 @@ function HomeToolbar() {
 }
 
 export default function Home() {
-  const [tab, setTab] = useState<"feed" | "following">("feed");
+  const [tab, setTab] = useState<"feed" | "following" | "refereeing">("feed");
   const queryClient = useQueryClient();
   const { userId } = useAuth();
+  const { isReferee } = useReferee();
   const {
     data: feedItems = [],
     isLoading: feedLoading,
     isRefetching: feedRefetching,
     refetch: refetchFeed,
   } = useHomeFeed();
+  const {
+    today,
+    upcoming,
+    past,
+    isLoading: refereeLoading,
+    isRefetching: refereeRefetching,
+    refetch: refetchReferee,
+  } = useRefereeMatches();
 
   const {
     data: followingData,
@@ -76,16 +90,20 @@ export default function Home() {
 
   const followingItems = followingData?.items ?? [];
 
-  const handleMatchPress = useCallback((item: HomeFeedMatchItem) => {
+  const tabs = isReferee
+    ? ["Feed", "Following", "Refereeing"]
+    : ["Feed", "Following"];
+
+  const handleMatchPress = useCallback((item: MatchItem) => {
     router.push({
       pathname: `/match/${item.id}` as RelativePathString,
       params: {
-        space: item.space.kind,
-        spaceId: item.space.id,
+        space: item.space,
+        spaceId: item.spaceId,
         leagueId:
-          item.space.kind === "league"
-            ? item.space.id
-            : "leagueId" in item.match
+          item.space === "league"
+            ? item.spaceId
+            : "leagueId" in item.match!
               ? item.match.leagueId
               : "",
         homeName: item.homeName,
@@ -113,9 +131,10 @@ export default function Home() {
   const handleRefresh = useCallback(() => {
     void refetchFeed();
     void refetchFollowing();
-  }, [refetchFeed, refetchFollowing]);
+    void refetchReferee();
+  }, [refetchFeed, refetchFollowing, refetchReferee]);
 
-  const isRefreshing = feedRefetching || followingRefetching;
+  const isRefreshing = feedRefetching || followingRefetching || refereeRefetching;
 
   useFocusEffect(
     useCallback(() => {
@@ -129,11 +148,12 @@ export default function Home() {
   return (
     <ContentArea
       tabs={{
-        values: ["Feed", "Following"],
-        selectedIndex: tab === "feed" ? 0 : 1,
+        values: tabs,
+        selectedIndex: tab === "feed" ? 0 : tab === "following" ? 1 : 2,
         onValueChange: (value) => {
           if (value === "Feed") setTab("feed");
           if (value === "Following") setTab("following");
+          if (value === "Refereeing") setTab("refereeing");
         },
       }}
       toolbar={<HomeToolbar />}
@@ -146,19 +166,37 @@ export default function Home() {
         <HomeList
           items={feedItems}
           isLoading={feedLoading}
-          onMatchPress={handleMatchPress}
+          onMatchPress={(item) =>
+            handleMatchPress({
+              ...item,
+              space: item.space.kind,
+              spaceId: item.space.id,
+            })
+          }
           onPostPress={handlePostPress}
+        />
+      ) : tab === "refereeing" ? (
+        <MatchListSections
+          today={today}
+          upcoming={upcoming}
+          past={past}
+          isLoading={refereeLoading}
+          onMatchPress={handleMatchPress}
         />
       ) : tab === "following" ? (
         <HomeList
           items={followingItems}
           isLoading={followingLoading}
-          onMatchPress={handleMatchPress}
+          onMatchPress={(item) =>
+            handleMatchPress({
+              ...item,
+              space: item.space.kind,
+              spaceId: item.space.id,
+            })
+          }
           onPostPress={handlePostPress}
         />
-      ) : (
-        <Empty message="No updates available" />
-      )}
+      ) : null}
     </ContentArea>
   );
 }

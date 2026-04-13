@@ -182,11 +182,19 @@ export const GO_LEAGUE_SERVICE_ROUTES = {
   ORGANIZERS: (leagueId: string) =>
     buildRoute(VERSIONING.v1, SERVICE.LEAGUES, `${leagueId}/organizers`),
   REMOVE_ORGANIZER: (leagueId: string, organizerUserId: string) =>
-    buildRoute(VERSIONING.v1, SERVICE.LEAGUES, `${leagueId}/organizers/${organizerUserId}`),
+    buildRoute(
+      VERSIONING.v1,
+      SERVICE.LEAGUES,
+      `${leagueId}/organizers/${organizerUserId}`,
+    ),
   ORGANIZER_INVITES: (leagueId: string) =>
     buildRoute(VERSIONING.v1, SERVICE.LEAGUES, `${leagueId}/organizer-invites`),
   ORGANIZER_PENDING_IDS: (leagueId: string) =>
-    buildRoute(VERSIONING.v1, SERVICE.LEAGUES, `${leagueId}/organizer-invites/pending-ids`),
+    buildRoute(
+      VERSIONING.v1,
+      SERVICE.LEAGUES,
+      `${leagueId}/organizer-invites/pending-ids`,
+    ),
 };
 
 const leagueInvitesBase = buildRoute(VERSIONING.v1, "league-invites");
@@ -198,12 +206,17 @@ export const GO_LEAGUE_INVITE_ROUTES = {
   DECLINE: (inviteId: string) => `${leagueInvitesBase}/${inviteId}/decline`,
 };
 
-const leagueOrganizerInvitesBase = buildRoute(VERSIONING.v1, "league-organizer-invites");
+const leagueOrganizerInvitesBase = buildRoute(
+  VERSIONING.v1,
+  "league-organizer-invites",
+);
 
 export const GO_LEAGUE_ORGANIZER_INVITE_ROUTES = {
   MINE: `${leagueOrganizerInvitesBase}/mine`,
-  ACCEPT: (inviteId: string) => `${leagueOrganizerInvitesBase}/${inviteId}/accept`,
-  DECLINE: (inviteId: string) => `${leagueOrganizerInvitesBase}/${inviteId}/decline`,
+  ACCEPT: (inviteId: string) =>
+    `${leagueOrganizerInvitesBase}/${inviteId}/accept`,
+  DECLINE: (inviteId: string) =>
+    `${leagueOrganizerInvitesBase}/${inviteId}/decline`,
 };
 
 const messagingBase = buildRoute(VERSIONING.v1, SERVICE.MESSAGING);
@@ -221,6 +234,13 @@ const invitesBase = buildRoute(VERSIONING.v1, "invites");
 
 export const GO_INVITE_ROUTES = {
   RESPOND: `${invitesBase}/response`,
+};
+
+const exploreBase = `${API}/${VERSIONING.v1}/explore`;
+
+export const GO_EXPLORE_ROUTES = {
+  LEAGUE_MATCHES: `${exploreBase}/league-matches`,
+  TEAM_MATCHES: `${exploreBase}/team-matches`,
 };
 
 const matchesBase = buildRoute(VERSIONING.v1, "matches");
@@ -256,4 +276,14 @@ export const GO_REFEREE_SERVICE_ROUTES = {
   UPDATE_SPORTS: buildRoute(VERSIONING.v1, SERVICE.REFEREES, "sports"),
   UPDATE_REGIONS: buildRoute(VERSIONING.v1, SERVICE.REFEREES, "regions"),
   PROFILE: buildRoute(VERSIONING.v1, SERVICE.REFEREES, "profile"),
+  MY_LEAGUE_MATCHES: buildRoute(
+    VERSIONING.v1,
+    SERVICE.REFEREES,
+    "my-matches/league",
+  ),
+  MY_TEAM_MATCHES: buildRoute(
+    VERSIONING.v1,
+    SERVICE.REFEREES,
+    "my-matches/team",
+  ),
 };

@@ -1,0 +1,24 @@
+diff --git a/node_modules/react-native-maps/ios/AirMaps/AIRMapMarker.m b/node_modules/react-native-maps/ios/AirMaps/AIRMapMarker.m
+index 89dfd9a..674aa59 100644
+--- a/node_modules/react-native-maps/ios/AirMaps/AIRMapMarker.m
++++ b/node_modules/react-native-maps/ios/AirMaps/AIRMapMarker.m
+@@ -196,8 +196,8 @@ NSInteger const AIR_CALLOUT_OPEN_ZINDEX_BASELINE = 999;
+ 
+     MKAnnotationView *annotationView = [self getAnnotationView];
+ 
+-    [self setSelected:YES animated:NO];
+-    [self.map selectAnnotation:self animated:NO];
++    [self setSelected:YES animated:YES];
++    [self.map selectAnnotation:self animated:YES];
+ 
+     id event = @{
+         @"action": @"marker-select",
+@@ -306,7 +306,7 @@ NSInteger const AIR_CALLOUT_OPEN_ZINDEX_BASELINE = 999;
+     if (marker.onPress) marker.onPress(event);
+     if (marker.map.onMarkerPress) marker.map.onMarkerPress(event);
+ 
+-    [marker.map selectAnnotation:marker animated:NO];
++    [marker.map selectAnnotation:marker animated:YES];
+ }
+ 
+ - (void)hideCalloutView
