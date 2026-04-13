@@ -1,5 +1,6 @@
 import { useCallback, useMemo, useState } from "react";
 import { RefreshControl, StyleSheet, View } from "react-native";
+import { FollowToolbar } from "@/components/follow/follow-toolbar";
 import {
   RelativePathString,
   router,
@@ -44,7 +45,10 @@ function TeamToolbar({
   id,
   canManageSettings,
   canFollow,
+  followLoading,
+  isFollowing,
   onFollow,
+  onUnfollow,
   openPost,
   openSchedule,
   openPlaymaker,
@@ -53,7 +57,10 @@ function TeamToolbar({
   id: string;
   canManageSettings: boolean;
   canFollow: boolean;
-  onFollow: () => void;
+  followLoading: boolean;
+  isFollowing: boolean;
+  onFollow: () => void | Promise<void>;
+  onUnfollow: () => void | Promise<void>;
   openPost?: () => void;
   openSchedule?: () => void;
   openPlaymaker?: () => void;
@@ -71,9 +78,12 @@ function TeamToolbar({
           />
         </Stack.Toolbar>
       ) : canFollow ? (
-        <Stack.Toolbar placement="right">
-          <Stack.Toolbar.Button onPress={onFollow}>Follow</Stack.Toolbar.Button>
-        </Stack.Toolbar>
+        <FollowToolbar
+          followLoading={followLoading}
+          isFollowing={isFollowing}
+          onFollow={onFollow}
+          onUnfollow={onUnfollow}
+        />
       ) : null}
       {showBottomToolbar ? (
         <Stack.Toolbar placement="bottom">
@@ -130,7 +140,11 @@ function TeamContent() {
     id,
     isLoading,
     onRefresh,
-    handleFollow,
+    canFollow,
+    isFollowing,
+    isFollowToolbarLoading,
+    onFollow,
+    onUnfollow,
     title,
     isOwner,
     isActiveMember,
@@ -271,8 +285,11 @@ function TeamContent() {
             title={title}
             id={id}
             canManageSettings={isOwner || role === "MANAGER"}
-            canFollow={!isActiveMember}
-            onFollow={handleFollow}
+            canFollow={canFollow}
+            followLoading={isFollowToolbarLoading}
+            isFollowing={isFollowing}
+            onFollow={onFollow}
+            onUnfollow={onUnfollow}
             openPost={canManage ? openPost : undefined}
             openSchedule={isOwner ? openSchedule : undefined}
             openPlaymaker={canManage ? openPlaymaker : undefined}
