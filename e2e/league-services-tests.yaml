@@ -8,91 +8,81 @@ appId: host.exp.Exponent
 
 - runFlow: "leagues/create-league-flow.yaml"
 
-- tapOn: 🏐, End2EndLeague, Quebec, Forward
+- tapOn: End2EndLeague, Canada, Forward
 
-- tapOn: Games
-
-- assertVisible:
-    text: Games
-    index: 1
-- assertVisible: Coming soon
-
-- tapOn: Teams
-
-- assertVisible:
-    text: Teams
-    index: 1
-- assertVisible: Coming soon
-
-- tapOn: person.2.fill
-
-- assertVisible: Manage League
-- assertVisible: No teams in this league yet.
+- assertVisible: Board
+- assertVisible: Matches
+- assertVisible: Standings
+- assertVisible: Teams
+- assertVisible: add
+- assertVisible: settings
 
 - tapOn: add
+- assertVisible: Create a Post
+- assertVisible: Schedule a Match
 
-- assertVisible: End2EndRunners
+- tapOn: Create a Post
+- tapOn: Enter title
+- inputText: General Announcement
+- tapOn: What's new?
+- inputText: New teams joining soon
+- tapOn: Post
 
-- tapOn:
-    text: Invite
-    rightOf: End2EndRunners
-
-- assertVisible: Invite sent
-- assertVisible: The invitation was sent successfully.
-
-- tapOn: OK
-
-- tapOn: Back
-- tapOn: Back
-- tapOn: Back
-
-- tapOn: Home
-
-- swipe:
-    direction: DOWN
-
-- tapOn: Accept
-- assertVisible: Invite accepted
-- assertVisible: The team has joined the league.
-
-- tapOn: OK
-
-- tapOn: Spaces
-
-- tapOn: 🏐, End2EndLeague, Quebec, Forward
-
-- tapOn: person.2.fill
-
-- assertVisible: End2EndRunners
-- assertVisible: Remove
-
-- tapOn: Back
+- assertVisible: End2EndLeague, General Announcement, New teams joining soon, GAMEON ENDTOEND, 1s, •, person.2.fill
 
 - tapOn: settings
-
-- assertVisible: League Settings
+- assertVisible: End2EndLeague, Soccer League, Forward
+- tapOn: End2EndLeague, Soccer League, Forward
 - assertVisible: End2EndLeague
-- assertVisible: Sport, Volleyball ⌵
-- assertVisible: Level, Amateur ⌵
-- assertVisible: Quebec
-- assertVisible: Montreal
-- assertVisible: Buy Public League
+- assertVisible: Soccer, 
+- assertVisible: Amateur, 
+- assertVisible: Montreal, 
+- assertVisible: Save
+
+- tapOn: League Settings
+- assertVisible: Invite Teams
+- assertVisible: Invite Organizers
+- assertVisible: Switch to a Public League
 - assertVisible: Delete League
 
-- tapOn: Delete League
+- tapOn: Invite Teams
+- assertVisible: End2EndRunners
+- tapOn: Invite
+- assertVisible: Invite End2EndRunners?
+- assertVisible: Do you want to invite this team to join your league?
+- tapOn:
+    text: Invite
+    index: 1
 
+- assertVisible: Invite sent
+- tapOn: League Settings
+- tapOn: End2EndLeague
+- tapOn: Spaces
+
+- tapOn: Home
+- tapOn: notifications
+- assertVisible: End2EndLeague
+- assertVisible: You received an invite to join End2EndLeague with End2EndRunners.
+- tapOn: Accept
+
+- assertVisible: Invite Accepted
+- tapOn: Home
+- tapOn: Spaces
+- tapOn: Leagues
+- tapOn: End2EndLeague, Canada, Forward
+- tapOn: settings
+
+- tapOn: Delete League
 - assertVisible: Delete League
 - assertVisible: Are you sure you want to delete this league? This action cannot be undone.
 - tapOn: Delete
 
-- assertVisible: Spaces
+- assertNotVisible: End2EndLeague, Canada, Forward
 
 - tapOn: Teams
-
-- tapOn: 🏐, End2EndRunners, volleyball, Forward
-
+- tapOn: End2EndRunners, Soccer, Forward
 - tapOn: settings
-
-- tapOn: Delete team
-
+- tapOn: Delete Team
 - tapOn: Delete
+
+- assertNotVisible: End2EndRunners, Canada, Forward

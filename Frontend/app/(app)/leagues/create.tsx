@@ -15,6 +15,7 @@ import {
   GO_LEAGUE_SERVICE_ROUTES,
 } from "@/hooks/use-axios-clerk";
 import { FormToolbar } from "@/components/form/form-toolbar";
+import { usePostHog } from "posthog-react-native";
 
 const log = createScopedLog("Create League Page");
 
@@ -22,6 +23,7 @@ export default function CreateLeagueScreen() {
   const router = useRouter();
   const api = useAxiosWithClerk();
   const queryClient = useQueryClient();
+  const posthog = usePostHog();
 
   const [pickedLogo, setPickedLogo] = useState<PickedLogo | null>(null);
 
@@ -67,7 +69,14 @@ export default function CreateLeagueScreen() {
 
       return data;
     },
-    onSuccess: async () => {
+    onSuccess: async (data) => {
+      posthog.capture("league_created", {
+        sport: selectedSport?.id,
+        level: selectedLevel?.id,
+        region,
+        has_logo: Boolean(pickedLogo),
+        league_id: data.id,
+      });
       await queryClient.invalidateQueries({ queryKey: ["leagues"] });
       toast.success("League Created", {
         description: "Your league has been created successfully.",

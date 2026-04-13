@@ -1,5 +1,6 @@
 import { useCallback, useMemo, useState } from "react";
 import { RefreshControl, StyleSheet, View } from "react-native";
+import { FollowToolbar } from "@/components/follow/follow-toolbar";
 import {
   RelativePathString,
   router,
@@ -28,6 +29,7 @@ import { buildMatchCards, splitMatchSections } from "@/utils/matches";
 import { TeamOverviewTab } from "@/components/teams/team-overview-tab";
 import { Loading } from "@/components/ui/loading";
 import { Empty } from "@/components/ui/empty";
+import { usePostHogFlags } from "@/hooks/use-posthog-flags";
 
 type TeamTab = "board" | "matches" | "overview";
 
@@ -44,7 +46,10 @@ function TeamToolbar({
   id,
   canManageSettings,
   canFollow,
+  followLoading,
+  isFollowing,
   onFollow,
+  onUnfollow,
   openPost,
   openSchedule,
   openPlaymaker,
@@ -53,7 +58,10 @@ function TeamToolbar({
   id: string;
   canManageSettings: boolean;
   canFollow: boolean;
-  onFollow: () => void;
+  followLoading: boolean;
+  isFollowing: boolean;
+  onFollow: () => void | Promise<void>;
+  onUnfollow: () => void | Promise<void>;
   openPost?: () => void;
   openSchedule?: () => void;
   openPlaymaker?: () => void;
@@ -71,9 +79,12 @@ function TeamToolbar({
           />
         </Stack.Toolbar>
       ) : canFollow ? (
-        <Stack.Toolbar placement="right">
-          <Stack.Toolbar.Button onPress={onFollow}>Follow</Stack.Toolbar.Button>
-        </Stack.Toolbar>
+        <FollowToolbar
+          followLoading={followLoading}
+          isFollowing={isFollowing}
+          onFollow={onFollow}
+          onUnfollow={onUnfollow}
+        />
       ) : null}
       {showBottomToolbar ? (
         <Stack.Toolbar placement="bottom">
@@ -117,6 +128,10 @@ export default function Team() {
   );
 }
 
+function resolveOwnerAction(flag: boolean, isOwnerCheck: boolean, handler: () => void) {
+  return isOwnerCheck && flag ? handler : undefined;
+}
+
 function TeamContent() {
   const params = useLocalSearchParams<{
     tab?: string;
@@ -130,7 +145,11 @@ function TeamContent() {
     id,
     isLoading,
     onRefresh,
-    handleFollow,
+    canFollow,
+    isFollowing,
+    isFollowToolbarLoading,
+    onFollow,
+    onUnfollow,
     title,
     isOwner,
     isActiveMember,
@@ -140,6 +159,8 @@ function TeamContent() {
   const canManage =
     isActiveMember &&
     (role === "OWNER" || role === "COACH" || role === "MANAGER");
+
+  const { canCreatePost, canScheduleMatch } = usePostHogFlags();
 
   const openPost = useCallback(() => {
     router.push({
@@ -271,10 +292,13 @@ function TeamContent() {
             title={title}
             id={id}
             canManageSettings={isOwner || role === "MANAGER"}
-            canFollow={!isActiveMember}
-            onFollow={handleFollow}
-            openPost={canManage ? openPost : undefined}
-            openSchedule={isOwner ? openSchedule : undefined}
+            canFollow={canFollow}
+            followLoading={isFollowToolbarLoading}
+            isFollowing={isFollowing}
+            onFollow={onFollow}
+            onUnfollow={onUnfollow}
+            openPost={resolveOwnerAction(canCreatePost, canManage, openPost)}
+            openSchedule={resolveOwnerAction(canScheduleMatch, isOwner, openSchedule)}
             openPlaymaker={canManage ? openPlaymaker : undefined}
           />
         }

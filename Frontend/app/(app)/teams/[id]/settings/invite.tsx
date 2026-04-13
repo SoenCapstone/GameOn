@@ -19,6 +19,7 @@ import {
   useAxiosWithClerk,
 } from "@/hooks/use-axios-clerk";
 import { errorToString } from "@/utils/error";
+import { usePostHog } from "posthog-react-native";
 
 type TeamInviteResponse = {
   id: string;
@@ -43,6 +44,7 @@ export default function InvitePlayersScreen() {
   const api = useAxiosWithClerk();
   const queryClient = useQueryClient();
   const { userId } = useAuth();
+  const posthog = usePostHog();
 
   const { isOwner, role: myRole } = useTeamDetail(teamId);
   const canInvite = isOwner || myRole === "MANAGER" || myRole === "COACH";
@@ -79,7 +81,11 @@ export default function InvitePlayersScreen() {
       );
       return resp.data;
     },
-    onSuccess: async () => {
+    onSuccess: async (_data, payload) => {
+      posthog.capture("team_invite_sent", {
+        team_id: payload.teamId,
+        role: payload.role,
+      });
       await queryClient.invalidateQueries({
         queryKey: ["team-invites", teamId],
       });

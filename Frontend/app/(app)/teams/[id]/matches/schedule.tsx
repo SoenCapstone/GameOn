@@ -36,6 +36,7 @@ import { createScopedLog } from "@/utils/logger";
 import { showScheduleSubmitError } from "@/utils/schedule-errors";
 import { useRefereeOptions } from "@/hooks/use-referee-options";
 import { MatchDetailsSection } from "@/components/matches/match-details-section";
+import { usePostHog } from "posthog-react-native";
 
 const log = createScopedLog("Schedule Team Match");
 
@@ -150,6 +151,7 @@ export default function ScheduleTeamMatchScreen() {
     sport: team?.sport ?? undefined,
   });
 
+  const posthog = usePostHog();
   const createMutation = useCreateTeamMatch(teamId);
   const validateMutation = useValidateTeamMatchSchedule(teamId);
 
@@ -272,6 +274,13 @@ export default function ScheduleTeamMatchScreen() {
         refereeUserId: requiresReferee ? refereeUserId : undefined,
       });
 
+      posthog.capture("match_scheduled", {
+        team_id: teamId,
+        space: "team",
+        scheduled_date: scheduledDate,
+        sport: team?.sport,
+      });
+
       await queryClient.invalidateQueries({
         queryKey: ["team-matches", teamId],
       });
@@ -309,6 +318,7 @@ export default function ScheduleTeamMatchScreen() {
     teamId,
     team?.sport,
     scheduleTeamNamesById,
+    posthog,
     queryClient,
     router,
   ]);

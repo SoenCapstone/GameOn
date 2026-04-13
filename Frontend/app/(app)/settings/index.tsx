@@ -3,6 +3,7 @@ import { ContentArea } from "@/components/ui/content-area";
 import { AccentColors } from "@/constants/colors";
 import { Form } from "@/components/form/form";
 import { useAuth, useUser } from "@clerk/clerk-expo";
+import { usePostHog } from "posthog-react-native";
 import { router, Stack } from "expo-router";
 import { useFeatureFlags } from "@/components/feature-flags/feature-flags-context";
 import { confirmLogout } from "@/components/user-profile/profile-utils";
@@ -19,6 +20,7 @@ function SettingToolbar() {
 
 export default function Settings() {
   const { signOut } = useAuth();
+  const posthog = usePostHog();
   const { isLoaded, isSignedIn, user } = useUser();
   const { flags, toggleFlag } = useFeatureFlags();
   const {
@@ -33,7 +35,7 @@ export default function Settings() {
 
   const isDev = (user?.publicMetadata as { isDev?: boolean })?.isDev === true;
 
-  const logout = confirmLogout(signOut, log);
+  const logout = confirmLogout(() => { posthog.reset(); return signOut(); }, log);
 
   const refreshRef = useRef(refresh);
   refreshRef.current = refresh;

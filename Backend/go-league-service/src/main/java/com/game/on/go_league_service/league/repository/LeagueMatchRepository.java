@@ -13,7 +13,6 @@ public interface LeagueMatchRepository extends JpaRepository<LeagueMatch, UUID> 
     List<LeagueMatch> findByLeague_IdOrderByStartTimeDesc(UUID leagueId);
     Optional<LeagueMatch> findByIdAndLeague_Id(UUID matchId, UUID leagueId);
     List<LeagueMatch> findByHomeTeamIdOrAwayTeamId(UUID homeTeamId, UUID awayTeamId);
-
     List<LeagueMatch> findByRefereeUserIdOrderByStartTimeDesc(String refereeUserId);
 
     @Query(value = """

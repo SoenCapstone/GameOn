@@ -11,11 +11,13 @@ import { handleSaveProfile } from "@/components/user-profile/profile-utils";
 import { pickImage } from "@/utils/pick-image";
 import { useAxiosWithClerk } from "@/hooks/use-axios-clerk";
 import { FormToolbar } from "@/components/form/form-toolbar";
+import { usePostHog } from "posthog-react-native";
 
 export default function Edit() {
   const { isLoaded, isSignedIn, user } = useUser();
   const router = useRouter();
   const api = useAxiosWithClerk();
+  const posthog = usePostHog();
 
   const [firstName, setFirstName] = useState(user?.firstName ?? "");
   const [lastName, setLastName] = useState(user?.lastName ?? "");
@@ -36,6 +38,11 @@ export default function Edit() {
         email,
         image,
         router,
+      });
+    },
+    onSuccess: () => {
+      posthog.capture("profile_updated", {
+        has_image: image !== null,
       });
     },
   });
