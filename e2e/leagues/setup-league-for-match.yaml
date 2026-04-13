@@ -1,0 +1,30 @@
+appId: host.exp.Exponent
+---
+- runFlow: "../teams/create-team-flow.yaml"
+
+- runFlow: "../teams/create-team-flow-alt.yaml"
+
+- runFlow: "create-league-flow.yaml"
+
+- tapOn: Spaces
+
+- tapOn: End2EndLeague, Canada, Forward
+- tapOn: settings
+- tapOn: Invite Teams
+- tapOn: Invite
+- tapOn:
+    text: Invite
+    index: 2
+- tapOn: Invite
+- tapOn:
+    text: Invite
+    index: 1
+- doubleTapOn: League Settings
+- tapOn: End2EndLeague
+- tapOn: Spaces
+- tapOn: Home
+- tapOn: notifications
+- tapOn: Accept
+- tapOn: Accept
+- tapOn: Home
+

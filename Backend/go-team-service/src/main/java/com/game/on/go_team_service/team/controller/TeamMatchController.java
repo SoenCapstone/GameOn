@@ -107,4 +107,9 @@ public class TeamMatchController {
         List<TeamMatchMemberResponse> members = teamMatchService.getMatchMembersByTeam(matchId, teamId);
         return ResponseEntity.ok(members);
     }
+
+    @GetMapping("/matches/referee")
+    public ResponseEntity<List<TeamMatchResponse>> listMyRefereeMatches() {
+        return ResponseEntity.ok(teamMatchService.listMyRefereeMatches());
+    }
 }

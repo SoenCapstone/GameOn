@@ -70,6 +70,10 @@ export const GO_TEAM_SERVICE_ROUTES = {
   GET_TEAM_MEMBERS: (teamId: string) =>
     buildRoute(VERSIONING.v1, SERVICE.TEAMS, `${teamId}/members`),
 
+  TEAM_FOLLOW: (teamId: string) =>
+    buildRoute(VERSIONING.v1, SERVICE.TEAMS, `${teamId}/follow`),
+  TEAMS_ME_FOLLOWING: buildRoute(VERSIONING.v1, SERVICE.TEAMS, "me/following"),
+
   REMOVE_TEAM_MEMBER: (teamId: string, userId: string) =>
     buildRoute(VERSIONING.v1, SERVICE.TEAMS, `${teamId}/delete/${userId}`),
 
@@ -121,6 +125,11 @@ export const GO_LEAGUE_SERVICE_ROUTES = {
     buildRoute(VERSIONING.v1, SERVICE.LEAGUES, `${leagueId}/logo`),
   GET: (leagueId: string) =>
     buildRoute(VERSIONING.v1, SERVICE.LEAGUES, leagueId),
+
+  LEAGUE_FOLLOW: (leagueId: string) =>
+    buildRoute(VERSIONING.v1, SERVICE.LEAGUES, `${leagueId}/follow`),
+  LEAGUES_ME_FOLLOWING: buildRoute(VERSIONING.v1, SERVICE.LEAGUES, "me/following"),
+
   TEAMS: (leagueId: string) =>
     buildRoute(VERSIONING.v1, SERVICE.LEAGUES, `${leagueId}/teams`),
   REMOVE_TEAM: (leagueId: string, teamId: string) =>

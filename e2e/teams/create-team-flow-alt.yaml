@@ -1,0 +1,43 @@
+appId: host.exp.Exponent
+---
+- tapOn: Spaces
+
+- tapOn: Teams
+
+- tapOn: add
+
+- tapOn: Create a Team
+
+- tapOn: Enter team name
+
+- inputText: RunnersEndToEnd
+
+- assertVisible: RunnersEndToEnd
+
+- doubleTapOn: Select sport, 
+
+- tapOn: Soccer
+
+- assertVisible: Soccer, 
+
+- tapOn: Select scope, 
+
+- tapOn: Managed
+
+- assertVisible: Managed, 
+
+- tapOn: Select city, 
+
+- tapOn: Montreal
+
+- assertVisible: Montreal, 
+
+- tapOn: Create
+
+- assertVisible: Team Created
+
+- tapOn: Home
+
+- tapOn: Spaces
+
+- assertVisible: RunnersEndToEnd, Soccer, Forward

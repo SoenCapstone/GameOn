@@ -53,4 +53,6 @@ public interface TeamClient {
 
     @PostMapping("/api/v1/teams/{teamId}/posts/system")
     void createSystemPost(@PathVariable UUID teamId, @RequestBody TeamPostCreateRequest request);
+    @GetMapping("/api/v1/matches/referee")
+    List<TeamMatchDetailResponse> getMyRefereeMatches();
 }
