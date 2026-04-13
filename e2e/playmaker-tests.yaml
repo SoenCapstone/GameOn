@@ -4,38 +4,36 @@ appId: host.exp.Exponent
 
 - tapOn: GameOn
 
-- tapOn: Spaces
-
 - runFlow: "teams/create-team-flow.yaml"
 
-- tapOn: 🏐, End2EndRunners, volleyball, Forward
+- tapOn: End2EndRunners, Soccer, Forward
+
+- tapOn: sportscourt
+
+- tapOn: Person
+- assertVisible:
+    id: playmaker-board-pressable
 
 - tapOn:
-    id: shape-tool-person
+    point: 15%, 20%
 
 - tapOn:
-    point: 30%, 30%
+    point: 15%, 30%
+
+- tapOn: Arrow
 
 - tapOn:
-    point: 35%, 40%
+    point: 15%, 20%
+
+- tapOn: Select
 
 - tapOn:
-    id: shape-tool-select
+    point: 15%, 30%
 
-- tapOn:
-    point: 30%, 30%
+- doubleTapOn: Assign GameOn EndToEnd to player icon
 
-- tapOn:
-    id: shape-tool-arrow
+- tapOn: End2EndRunners
 
-- tapOn:
-    point: 35%, 40%
-
-- tapOn:
-    id: clear-shapes-Delete
-
-- tapOn:
-    id: clear-shapes-Reset
 
 - tapOn: settings
 - tapOn: Delete Team
