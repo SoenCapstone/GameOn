@@ -449,7 +449,7 @@ export default function MatchScreen() {
       match_id: displayMatch.id,
       space,
     });
-  }, [displayMatch?.id]);
+  }, [displayMatch?.id, posthog, space]);
 
   const onSubmitScore = useCallback(() => {
     posthog.capture("match_submit_score_tapped", {
@@ -472,6 +472,7 @@ export default function MatchScreen() {
     canSubmitScore,
     displayMatch,
     homeTeamName,
+    posthog,
     router,
     space,
     spaceId,
@@ -504,6 +505,7 @@ export default function MatchScreen() {
     cancelTeamMutation,
     displayMatch,
     leagueId,
+    posthog,
     queryClient,
     space,
     spaceId,
@@ -532,8 +534,10 @@ export default function MatchScreen() {
     attendanceAction,
     attendanceMutation,
     displayMatch,
+    posthog,
     queryClient,
     setHasSubmittedAttendance,
+    space,
     spaceId,
   ]);
 

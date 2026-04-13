@@ -217,6 +217,7 @@ export function AddVenueScreen({
     params.draftStartTime,
     params.draftVenueId,
     params.homeTeamId,
+    posthog,
     postalCode,
     province,
     queryClient,

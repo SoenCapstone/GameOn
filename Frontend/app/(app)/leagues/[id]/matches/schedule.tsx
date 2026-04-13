@@ -34,7 +34,6 @@ import { showScheduleSubmitError } from "@/utils/schedule-errors";
 import { useRefereeOptions } from "@/hooks/use-referee-options";
 import { MatchDetailsSection } from "@/components/matches/match-details-section";
 import { FormToolbar } from "@/components/form/form-toolbar";
-import { usePostHogFlags } from "@/hooks/use-posthog-flags";
 import { usePostHog } from "posthog-react-native";
 
 const log = createScopedLog("Schedule League Match");
@@ -136,7 +135,6 @@ export default function ScheduleLeagueMatchScreen() {
     active: true,
     sport: league?.sport ?? undefined,
   });
-  const { canAddVenue } = usePostHogFlags();
   const createMutation = useCreateLeagueMatch(leagueId);
   const validateMutation = useValidateLeagueMatchSchedule(leagueId);
 
@@ -302,6 +300,7 @@ export default function ScheduleLeagueMatchScreen() {
     date,
     homeTeamId,
     leagueId,
+    posthog,
     queryClient,
     refereeUserId,
     router,
