@@ -59,6 +59,20 @@ jobs:
     needs: build-and-push
     runs-on: ubuntu-latest
     steps:
+      - name: Login to GHCR on EC2
+        uses: appleboy/ssh-action@7eaf76671a0d7eec5d98ee897acda4f968735a17 # v1.2.0
+        env:
+          GHCR_PAT: ${{ secrets.GHCR_PAT }}
+          GHCR_USER: ${{ github.actor }}
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ec2-user
+          key: ${{ secrets.EC2_SSH_KEY }}
+          command_timeout: 1m
+          envs: GHCR_PAT,GHCR_USER
+          script: |
+            echo "$GHCR_PAT" | docker login ghcr.io -u "$GHCR_USER" --password-stdin
+
       - name: Pull latest code on EC2
         uses: appleboy/ssh-action@7eaf76671a0d7eec5d98ee897acda4f968735a17 # v1.2.0
         with:
