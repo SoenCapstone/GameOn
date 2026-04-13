@@ -48,6 +48,11 @@ jest.mock("expo-linear-gradient", () => {
 });
 
 jest.mock("posthog-react-native", () => ({
+  __esModule: true,
+  default: jest.fn().mockImplementation(() => ({
+    capture: jest.fn(),
+    identify: jest.fn(),
+  })),
   usePostHog: () => ({
     capture: jest.fn(),
     identify: jest.fn(),
