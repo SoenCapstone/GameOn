@@ -6,26 +6,58 @@ appId: host.exp.Exponent
 
 - runFlow: "teams/create-team-flow.yaml"
 
-- tapOn: 🏐, End2EndRunners, volleyball, Forward
+- tapOn: End2EndRunners, Soccer, Forward
 
-- tapOn: person.2.fill
+- assertVisible: Board
+- assertVisible: Matches
+- assertVisible: Overview
+- assertVisible: sportscourt
+- assertVisible: add
 
-- assertVisible: Luca Gir
-- assertVisible: Owner
-
-- tapOn: Back
+- tapOn: add
+- tapOn: Create a Post
+- tapOn: Enter title
+- inputText: General Announcement
+- tapOn: What's new?
+- inputText: New team joining soon
+- tapOn: Post
+- assertVisible: End2EndRunners, General Announcement, New team joining soon, GAMEON ENDTOEND, 0s, •, person.2.fill
 
 - tapOn: settings
 
+- assertVisible: End2EndRunners, Soccer Team, Forward
+- tapOn: End2EndRunners, Soccer Team, Forward
 - assertVisible: End2EndRunners
-- assertVisible: Sports, Volleyball ⌵
-- assertVisible: Scope, Managed ⌵
-- assertVisible: Location, Montreal ⌵
-- assertVisible: Buy Public Team
+- assertVisible: Soccer, 
+- assertVisible: Managed, 
+- assertVisible: Montreal, 
+- assertVisible: Montreal, selected
+- assertVisible: Toronto, circle
+- assertVisible: Vancouver, circle
+
+- tapOn: Toronto, circle
+- tapOn: Save
+
+- tapOn: End2EndRunners, Soccer Team, Forward
+- assertVisible: Toronto, selected
+
+- tapOn: Team Settings
+
+
+- assertVisible: Invite Members
+- tapOn: Invite Members
+- assertVisible: hannah montana
+- tapOn: Invite
+- assertVisible: Invite Sent
+- tapOn: Team Settings
+
+- assertVisible: Switch to a Public Team
+
+
 - tapOn: Delete Team
 
 - assertVisible: Are you sure you want to delete this team? This action cannot be undone.
 
 - tapOn: Delete
 
-- assertNotVisible: 🏐, End2EndRunners, volleyball, Forward
+- assertNotVisible: End2EndRunners, Soccer, Forward

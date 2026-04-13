@@ -1,0 +1,12 @@
+appId: host.exp.Exponent
+---
+
+- tapOn: Resume Refereeing
+- assertVisible:
+    text: Resume Refereeing?
+    index: 1
+
+- assertVisible: You will start receiving match assignments again.
+
+- tapOn: Continue
+
