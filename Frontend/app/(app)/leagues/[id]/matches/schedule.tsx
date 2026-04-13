@@ -373,7 +373,6 @@ export default function ScheduleLeagueMatchScreen() {
               pathname:
                 `/leagues/${leagueId}/matches/add-venue` as RelativePathString,
               params: {
-                id: leagueId,
                 homeTeamId,
                 awayTeamId,
                 draftHomeTeamId: homeTeamId,

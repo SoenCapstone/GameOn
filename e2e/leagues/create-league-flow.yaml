@@ -5,48 +5,31 @@ appId: host.exp.Exponent
 
 - tapOn: Leagues
 
-- tapOn: Add
+- tapOn: add
+- tapOn: Create a League
 
-- assertVisible: Create League
-
-- tapOn: League Name
+- tapOn: Enter league Name
 
 - inputText: End2EndLeague
 
-- doubleTapOn: Sport, None ⌵
+- doubleTapOn: Select sport, 
 
-- tapOn: Volleyball
+- tapOn: Soccer
 
-- assertVisible: Sport, Volleyball ⌵
+- assertVisible: Soccer, 
 
-- tapOn: Level, Optional ⌵
+- tapOn: Select level, 
 
 - tapOn: Amateur
 
-- assertVisible: Level, Amateur ⌵
+- assertVisible: Canada
 
-- tapOn: Optional
+- tapOn: Select city, 
 
-- inputText: Quebec
+- tapOn: Montreal
 
-- doubleTapOn:
-    text: Optional
-    index: 1
+- tapOn: Create
 
-- inputText: Montreal
+- assertVisible: League Created
 
-- doubleTapOn:
-    text: Create League
-    index: 1
-
-- assertVisible: League created
-
-- assertVisible: Your league has been created successfully.
-
-- tapOn: OK
-
-- tapOn: Home
-
-- tapOn: Spaces
-
-- assertVisible: 🏐, End2EndLeague, Quebec, Forward
+- assertVisible: End2EndLeague, Canada, Forward

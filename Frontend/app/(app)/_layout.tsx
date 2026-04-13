@@ -44,7 +44,6 @@ export default function AppLayout() {
         options={{
           title: "",
           presentation: "formSheet",
-          // sheetAllowedDetents: "fitToContents",
           sheetAllowedDetents: [0.4, 1],
           contentStyle: {
             backgroundColor: "transparent",

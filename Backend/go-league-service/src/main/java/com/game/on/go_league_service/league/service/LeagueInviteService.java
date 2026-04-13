@@ -16,6 +16,7 @@ import com.game.on.go_league_service.league.model.League;
 import com.game.on.go_league_service.league.model.LeagueTeam;
 import com.game.on.go_league_service.league.model.LeagueTeamInvite;
 import com.game.on.go_league_service.league.model.LeagueTeamInviteStatus;
+import com.game.on.go_league_service.league.repository.LeagueOrganizerRepository;
 import com.game.on.go_league_service.league.repository.LeagueRepository;
 import com.game.on.go_league_service.league.repository.LeagueTeamInviteRepository;
 import com.game.on.go_league_service.league.repository.LeagueTeamRepository;
@@ -37,6 +38,7 @@ public class LeagueInviteService {
 
     private static final Set<String> TEAM_ADMIN_ROLES = Set.of("OWNER", "MANAGER");
 
+    private final LeagueOrganizerRepository organizerRepository;
     private final LeagueRepository leagueRepository;
     private final LeagueTeamRepository leagueTeamRepository;
     private final LeagueTeamInviteRepository leagueTeamInviteRepository;
@@ -146,7 +148,8 @@ public class LeagueInviteService {
     }
 
     private void ensureLeagueOwner(League league, String userId) {
-        if (!league.getOwnerUserId().equals(userId)) {
+        if (!league.getOwnerUserId().equals(userId)
+                && !organizerRepository.existsByLeague_IdAndUserId(league.getId(), userId)) {
             throw new ForbiddenException("Only the league owner can invite teams");
         }
     }

@@ -19,7 +19,10 @@ import {
   TeamInviteCard,
   TeamInviteResponse,
 } from "@/types/notifications";
-import { fetchLeagueInvitesWithDetails } from "@/utils/leagues";
+import {
+  fetchLeagueInvitesWithDetails,
+  fetchOrganizerInvitesWithDetails,
+} from "@/utils/leagues";
 
 export function getNotificationsQueryKey(userId?: string | null) {
   return [userNotificationsQueryKey, userId] as const;
@@ -29,10 +32,11 @@ export async function fetchNotificationsWithDetails(
   api: AxiosInstance,
   userId: string,
 ): Promise<NotificationItem[]> {
-  const [teamInvites, leagueInvites, teamMatchInvites, refereeInvites] =
+  const [teamInvites, leagueInvites, organizerInvites, teamMatchInvites, refereeInvites] =
     await Promise.all([
       fetchTeamInvitesWithDetails(api).catch(() => []),
       fetchLeagueInvitesWithDetails(api).catch(() => []),
+      fetchOrganizerInvitesWithDetails(api).catch(() => []),
       (userId
         ? fetchIncomingTeamMatchInvites(api, userId)
         : Promise.resolve([])
@@ -43,6 +47,7 @@ export async function fetchNotificationsWithDetails(
   return [
     ...teamInvites,
     ...leagueInvites,
+    ...organizerInvites,
     ...teamMatchInvites,
     ...refereeInvites,
   ];
@@ -125,6 +130,17 @@ export function getInviteContent(
     };
   }
 
+  if (notification.kind === "league-organizer") {
+    return {
+      spaceName: notification.leagueName,
+      logoUrl: notification.logoUrl,
+      sport: notification.sport,
+      body: `You've been invited${
+        notification.inviterName ? ` by ${notification.inviterName}` : ""
+      } to be an organizer of ${notification.leagueName}.`,
+    };
+  }
+
   return {
     spaceName: notification.leagueName,
     logoUrl: notification.logoUrl,
@@ -198,7 +214,7 @@ async function fetchTeamMetaMap(
   return Object.fromEntries(entries);
 }
 
-async function fetchUserNameMap(api: AxiosInstance, userIds: string[]) {
+export async function fetchUserNameMap(api: AxiosInstance, userIds: string[]) {
   const entries = await Promise.all(
     userIds.map(async (userId) => {
       try {

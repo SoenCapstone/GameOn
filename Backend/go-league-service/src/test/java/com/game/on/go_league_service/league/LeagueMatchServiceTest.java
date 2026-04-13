@@ -185,6 +185,8 @@ class LeagueMatchServiceTest {
                         "CONFIRMED",
                         homeTeamId,
                         UUID.randomUUID(),
+                        null,
+                        null,
                         "soccer",
                         OffsetDateTime.parse("2026-03-20T09:00:00Z"),
                         OffsetDateTime.parse("2026-03-20T10:00:00Z"),
@@ -193,7 +195,13 @@ class LeagueMatchServiceTest {
                         null,
                         false,
                         null,
-                        "owner_1"
+                        null,
+                        "owner_1",
+                        null,
+                        null,
+                        null,
+                        null,
+                        null
                 )
         )));
         when(teamClient.getAllTeamMatch(awayTeamId)).thenReturn(new ArrayList<>());
@@ -234,6 +242,8 @@ class LeagueMatchServiceTest {
                         "CONFIRMED",
                         homeTeamId,
                         UUID.randomUUID(),
+                        null,
+                        null,
                         "soccer",
                         OffsetDateTime.parse("2026-03-20T01:00:00Z"),
                         OffsetDateTime.parse("2026-03-20T03:00:00Z"),
@@ -242,7 +252,13 @@ class LeagueMatchServiceTest {
                         null,
                         false,
                         null,
-                        "owner_1"
+                        null,
+                        "owner_1",
+                        null,
+                        null,
+                        null,
+                        null,
+                        null
                 )
         )));
         when(teamClient.getAllTeamMatch(awayTeamId)).thenReturn(new ArrayList<>());

@@ -1,5 +1,6 @@
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useAxiosWithClerk } from "@/hooks/use-axios-clerk";
+import { useAuth } from "@clerk/clerk-expo";
 import {
   fetchIncomingRefereeInvites,
   fetchIncomingTeamMatchInvites,
@@ -32,6 +33,11 @@ import {
 jest.mock("@tanstack/react-query", () => ({
   useQuery: jest.fn(),
   useMutation: jest.fn(),
+  useQueryClient: jest.fn(),
+}));
+
+jest.mock("@clerk/clerk-expo", () => ({
+  useAuth: jest.fn(),
 }));
 
 jest.mock("react", () => ({
@@ -99,6 +105,10 @@ describe("use-matches", () => {
   beforeEach(() => {
     jest.clearAllMocks();
     (useAxiosWithClerk as jest.Mock).mockReturnValue(mockApi);
+    (useAuth as jest.Mock).mockReturnValue({ userId: "user-123" });
+    (useQueryClient as jest.Mock).mockReturnValue({
+      invalidateQueries: jest.fn(),
+    });
     (useQuery as jest.Mock).mockReturnValue({
       data: undefined,
       isLoading: false,

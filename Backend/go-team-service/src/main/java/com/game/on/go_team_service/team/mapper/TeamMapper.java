@@ -35,6 +35,8 @@ public class TeamMapper {
                 .totalMatches(0)
                 .winStreak(0)
                 .minutesPlayed(0)
+                .totalShotsOnTarget(0)
+                .totalFouls(0)
                 .build();
     }
 
@@ -77,6 +79,8 @@ public class TeamMapper {
                 team.getTotalMatches(),
                 team.getWinStreak(),
                 team.getMinutesPlayed(),
+                team.getTotalShotsOnTarget(),
+                team.getTotalFouls(),
                 team.isArchived(),
                 team.getCreatedAt(),
                 team.getUpdatedAt()

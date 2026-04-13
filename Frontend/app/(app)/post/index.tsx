@@ -3,7 +3,7 @@ import { useLocalSearchParams, useRouter } from "expo-router";
 import { toast } from "@/utils/toast";
 import { ContentArea } from "@/components/ui/content-area";
 import { Form } from "@/components/form/form";
-import { BoardPostScope } from "@/components/board/board-types";
+import { BoardPostScope } from "@/types/board";
 import { AccentColors } from "@/constants/colors";
 import { useCreateBoardPost } from "@/hooks/use-team-board";
 import { useCreateLeagueBoardPost } from "@/hooks/use-league-board";

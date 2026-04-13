@@ -17,6 +17,7 @@ import {
 import {
   GO_INVITE_ROUTES,
   GO_LEAGUE_INVITE_ROUTES,
+  GO_LEAGUE_ORGANIZER_INVITE_ROUTES,
   GO_MATCH_ROUTES,
   useAxiosWithClerk,
 } from "@/hooks/use-axios-clerk";
@@ -178,6 +179,23 @@ export function useNotifications() {
     onError: handleInviteResponseError,
   });
 
+  const respondToOrganizerInvite = useMutation({
+    mutationFn: async (payload: InvitationResponsePayload) => {
+      const endpoint = payload.isAccepted
+        ? GO_LEAGUE_ORGANIZER_INVITE_ROUTES.ACCEPT(payload.invitationId)
+        : GO_LEAGUE_ORGANIZER_INVITE_ROUTES.DECLINE(payload.invitationId);
+      await api.post(endpoint);
+    },
+    onSuccess: async (_data, variables) => {
+      await handleInvitationSuccess(variables, {
+        acceptedMessage: "You are now a league organizer.",
+        declinedMessage: notificationCopy.invitationDeclinedMessage,
+        invalidateKeys: [["league-organizers"]],
+      });
+    },
+    onError: handleInviteResponseError,
+  });
+
   const respondToTeamMatchInvite = useMutation({
     mutationFn: async (payload: MatchInvitationResponsePayload) => {
       const endpoint = payload.isAccepted
@@ -235,6 +253,14 @@ export function useNotifications() {
         return;
       }
 
+      if (notification.kind === "league-organizer") {
+        respondToOrganizerInvite.mutate({
+          invitationId: notification.id,
+          isAccepted,
+        });
+        return;
+      }
+
       if (notification.kind === "team-match") {
         respondToTeamMatchInvite.mutate({
           matchId: notification.matchId,
@@ -250,6 +276,7 @@ export function useNotifications() {
     },
     [
       respondToLeagueInvite,
+      respondToOrganizerInvite,
       respondToRefereeInvite,
       respondToTeamInvite,
       respondToTeamMatchInvite,
