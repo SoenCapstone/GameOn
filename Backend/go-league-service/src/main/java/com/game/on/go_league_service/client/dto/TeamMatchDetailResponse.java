@@ -13,6 +13,8 @@ public record TeamMatchDetailResponse(
         String status,
         UUID homeTeamId,
         UUID awayTeamId,
+        Integer homeScore,
+        Integer awayScore,
         String sport,
         OffsetDateTime startTime,
         OffsetDateTime endTime,
@@ -21,6 +23,12 @@ public record TeamMatchDetailResponse(
         UUID venueId,
         Boolean requiresReferee,
         String refereeUserId,
-        String createdByUserId
+        String notes,
+        String createdByUserId,
+        String cancelledByUserId,
+        String cancelReason,
+        OffsetDateTime cancelledAt,
+        OffsetDateTime createdAt,
+        OffsetDateTime updatedAt
 ) {
 }

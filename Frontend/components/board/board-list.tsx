@@ -1,6 +1,6 @@
-import React from "react";
+import { useCallback } from "react";
 import { StyleSheet } from "react-native";
-import { BoardPost } from "@/components/board/board-types";
+import { BoardPost } from "@/types/board";
 import { Post } from "@/components/board/post";
 import { LegendList } from "@legendapp/list/react-native";
 import { ImageSource } from "expo-image";
@@ -24,7 +24,7 @@ export function BoardList({
   onDeletePost,
   canDelete = false,
 }: Readonly<BoardListProps>) {
-  const renderItem = React.useCallback(
+  const renderItem = useCallback(
     ({ item }: Readonly<{ item: BoardPost }>) => {
       return (
         <Post
@@ -60,6 +60,6 @@ export function BoardList({
 const styles = StyleSheet.create({
   legendList: { overflow: "visible" },
   list: {
-    gap: 12,
+    gap: 14,
   },
 });

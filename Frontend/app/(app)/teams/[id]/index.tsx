@@ -1,9 +1,5 @@
 import { useCallback, useMemo, useState } from "react";
-import {
-  RefreshControl,
-  StyleSheet,
-  View,
-} from "react-native";
+import { RefreshControl, StyleSheet, View } from "react-native";
 import {
   RelativePathString,
   router,
@@ -127,7 +123,9 @@ function resolveOwnerAction(flag: boolean, isOwnerCheck: boolean, handler: () =>
 }
 
 function TeamContent() {
-  const params = useLocalSearchParams<{ tab?: string }>();
+  const params = useLocalSearchParams<{
+    tab?: string;
+  }>();
   const initialTab: TeamTab = parseTeamTab(params.tab);
   const [tab, setTab] = useState<TeamTab>(initialTab);
   const router = useRouter();

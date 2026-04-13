@@ -22,7 +22,6 @@ export function IconItem() {
 
   const handleIconPress = (iconName: string) => {
     setSelected(iconName);
-    // Add logic for changing the app icon
   };
 
   return (
