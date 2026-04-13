@@ -93,6 +93,8 @@ export type TeamMatch = {
   updatedAt: string;
 };
 
+export type Match = LeagueMatch | TeamMatch;
+
 export type ScheduleConflictCode =
   | "LEAGUE_TEAM_SAME_DAY_CONFLICT"
   | "TEAM_DAILY_LIMIT_EXCEEDED"

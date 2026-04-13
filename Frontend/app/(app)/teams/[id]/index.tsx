@@ -1,5 +1,9 @@
-import { useCallback, useMemo, useState } from "react";
-import { RefreshControl, StyleSheet, View } from "react-native";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import {
+  RefreshControl,
+  StyleSheet,
+  View,
+} from "react-native";
 import { FollowToolbar } from "@/components/follow/follow-toolbar";
 import {
   RelativePathString,
@@ -29,6 +33,7 @@ import { buildMatchCards, splitMatchSections } from "@/utils/matches";
 import { TeamOverviewTab } from "@/components/teams/team-overview-tab";
 import { Loading } from "@/components/ui/loading";
 import { Empty } from "@/components/ui/empty";
+import { toast } from "@/utils/toast";
 import { usePostHogFlags } from "@/hooks/use-posthog-flags";
 
 type TeamTab = "board" | "matches" | "overview";
@@ -236,6 +241,14 @@ function TeamContent() {
     past: pastMatches,
   } = useMemo(() => splitMatchSections(matchItems), [matchItems]);
 
+  useEffect(() => {
+    if (!matchesError) return;
+    toast.error("Could Not Load Matches", {
+      id: `team-matches-error-${id}`,
+      description: "Could not load matches.",
+    });
+  }, [id, matchesError]);
+
   const handleMatchesRefresh = useMemo(
     () => async () => {
       await Promise.all([
@@ -337,8 +350,6 @@ function TeamContent() {
                   teamsQuery.isLoading ||
                   leaguesQuery.isLoading
                 }
-                errorText={matchesError ? "Could not load matches." : null}
-                onRetry={handleMatchesRefresh}
                 onMatchPress={(match) =>
                   router.push({
                     pathname: `/match/${match.id}` as RelativePathString,

@@ -20,6 +20,10 @@ interface ContentAreaProps {
   readonly background?: ComponentProps<typeof Background>;
   readonly tabs?: ComponentProps<typeof Tabs>;
   readonly toolbar?: ReactElement;
+  readonly sticky?: {
+    element: ReactElement;
+    height: number;
+  };
   readonly style?: StyleProp<ViewStyle>;
   readonly refreshControl?: ReactElement<RefreshControlProps>;
   readonly scrollRef?: RefObject<ComponentRef<typeof KeyboardAwareScrollView>>;
@@ -33,19 +37,32 @@ export function ContentArea({
   background,
   tabs,
   toolbar,
+  sticky,
   style,
   refreshControl,
   scrollRef,
   onContentSizeChange,
 }: Readonly<ContentAreaProps>) {
+  const contentInset = tabs
+    ? { top: 50 }
+    : sticky
+      ? { top: sticky.height + 14 }
+      : undefined;
+
+  const scrollIndicatorInset = tabs
+    ? { top: 52 }
+    : sticky
+      ? { top: sticky.height + 14 }
+      : undefined;
+
   return (
     <>
       {background && <Background {...background} />}
       <KeyboardAwareScrollView
         bottomOffset={30}
         contentInsetAdjustmentBehavior="always"
-        contentInset={tabs ? { top: 50 } : undefined}
-        scrollIndicatorInsets={tabs ? { top: 52 } : undefined}
+        contentInset={contentInset}
+        scrollIndicatorInsets={scrollIndicatorInset}
         contentContainerStyle={[styles.contentContainer, style]}
         onContentSizeChange={onContentSizeChange}
         ref={scrollRef}
@@ -55,6 +72,7 @@ export function ContentArea({
         {children}
       </KeyboardAwareScrollView>
       {tabs && <Tabs {...tabs} />}
+      {sticky?.element}
       {toolbar}
     </>
   );
