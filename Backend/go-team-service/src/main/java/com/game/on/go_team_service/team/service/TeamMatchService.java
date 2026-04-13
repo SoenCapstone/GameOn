@@ -605,6 +605,24 @@ public class TeamMatchService {
         );
     }
 
+    @Transactional(readOnly = true)
+    public List<TeamMatchResponse> listMyRefereeMatches() {
+        String userId = userProvider.clerkUserId();
+        List<TeamMatch> matches = teamMatchRepository.findByRefereeUserIdOrderByStartTimeDesc(userId);
+        if (matches.isEmpty()) {
+            return List.of();
+        }
+
+        Map<UUID, TeamMatchScore> scoresByMatchId = teamMatchScoreRepository
+                .findByMatch_IdIn(matches.stream().map(TeamMatch::getId).toList())
+                .stream()
+                .collect(Collectors.toMap(s -> s.getMatch().getId(), Function.identity()));
+
+        return matches.stream()
+                .map(m -> toResponse(m, scoresByMatchId.get(m.getId())))
+                .toList();
+    }
+
     private String trimToNull(String value) {
         return StringUtils.hasText(value) ? value.trim() : null;
     }

@@ -1,0 +1,33 @@
+appId: host.exp.Exponent
+---
+
+- launchApp: "host.exp.Exponent"
+
+- tapOn: GameOn
+
+- runFlow: "leagues/setup-league-for-match.yaml"
+
+- tapOn: Spaces
+- tapOn: Teams
+
+- tapOn: End2EndRunners, Soccer, Forward
+
+- tapOn: Matches
+- assertVisible: No matches available
+
+- tapOn: add
+- tapOn: Schedule a Match
+
+- assertVisible: End2EndRunners, 
+- tapOn: Select team, 
+- tapOn: RunnersEndToEnd
+- tapOn: Select venue, 
+- tapOn: Bell Center
+
+- tapOn: Save
+
+- assertVisible: Match Scheduled
+
+- tapOn: Matches
+
+- assertNotVisible: No matches available

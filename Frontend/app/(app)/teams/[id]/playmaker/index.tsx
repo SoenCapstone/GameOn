@@ -33,6 +33,7 @@ import {
   GO_TEAM_SERVICE_ROUTES,
 } from "@/hooks/use-axios-clerk";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { usePostHog } from "posthog-react-native";
 import { errorToString } from "@/utils/error";
 import { Background } from "@/components/ui/background";
 import { useGetTeamMembers } from "@/hooks/use-get-team-members";
@@ -172,6 +173,7 @@ function PlayMakerContent() {
   } = useTeamDetailContext();
   const api = useAxiosWithClerk();
   const queryClient = useQueryClient();
+  const posthog = usePostHog();
   const { bottom: bottomInset } = useSafeAreaInsets();
   const { data: teamMembers, isLoading: isTeamMembersLoading } =
     useGetTeamMembers(teamId);
@@ -217,6 +219,10 @@ function PlayMakerContent() {
           queryKey: ["play-details", teamId, currentPlayId],
         });
       }
+      posthog.capture("play_saved", {
+        team_id: teamId,
+        action: isEditing ? "updated" : "created",
+      });
       toast.success(isEditing ? "Updated" : "Saved", {
         description: isEditing
           ? "Your play was updated successfully."

@@ -133,8 +133,13 @@ describe("Route Builders", () => {
       [GO_TEAM_SERVICE_ROUTES.CREATE, "api/v1/teams/create"],
       [GO_TEAM_SERVICE_ROUTES.CREATE_INVITE, "api/v1/teams/create-invite"],
       [GO_TEAM_SERVICE_ROUTES.USER_INVITES, "api/v1/teams/invites"],
+      [GO_TEAM_SERVICE_ROUTES.TEAMS_ME_FOLLOWING, "api/v1/teams/me/following"],
       [GO_LEAGUE_SERVICE_ROUTES.ALL, "api/v1/leagues"],
       [GO_LEAGUE_SERVICE_ROUTES.CREATE, "api/v1/leagues/create"],
+      [
+        GO_LEAGUE_SERVICE_ROUTES.LEAGUES_ME_FOLLOWING,
+        "api/v1/leagues/me/following",
+      ],
       [GO_MESSAGING_ROUTES.CONVERSATIONS, "api/v1/messaging/conversations"],
       [
         GO_MESSAGING_ROUTES.DIRECT_CONVERSATION,
@@ -182,6 +187,9 @@ describe("Route Builders", () => {
     expect(GO_TEAM_SERVICE_ROUTES.TEAM_POST(teamId, "post-789")).toBe(
       `api/v1/teams/${teamId}/posts/post-789`,
     );
+    expect(GO_TEAM_SERVICE_ROUTES.TEAM_FOLLOW(teamId)).toBe(
+      `api/v1/teams/${teamId}/follow`,
+    );
 
     expect(GO_LEAGUE_SERVICE_ROUTES.GET(leagueId)).toBe(
       `api/v1/leagues/${leagueId}`,
@@ -200,6 +208,9 @@ describe("Route Builders", () => {
     );
     expect(GO_LEAGUE_SERVICE_ROUTES.LEAGUE_POST(leagueId, "post-456")).toBe(
       `api/v1/leagues/${leagueId}/posts/post-456`,
+    );
+    expect(GO_LEAGUE_SERVICE_ROUTES.LEAGUE_FOLLOW(leagueId)).toBe(
+      `api/v1/leagues/${leagueId}/follow`,
     );
 
     expect(GO_LEAGUE_INVITE_ROUTES.TEAM_INVITES(teamId)).toBe(
@@ -270,6 +281,12 @@ describe("GO_TEAM_SERVICE_ROUTES", () => {
       "string",
     );
   });
+  it("TEAM_FOLLOW returns route", () => {
+    expect(typeof GO_TEAM_SERVICE_ROUTES.TEAM_FOLLOW("team1")).toBe("string");
+  });
+  it("TEAMS_ME_FOLLOWING returns route", () => {
+    expect(typeof GO_TEAM_SERVICE_ROUTES.TEAMS_ME_FOLLOWING).toBe("string");
+  });
   it("MATCHES returns route", () => {
     expect(typeof GO_TEAM_SERVICE_ROUTES.MATCHES("team1")).toBe("string");
   });
@@ -302,6 +319,14 @@ describe("GO_LEAGUE_SERVICE_ROUTES", () => {
   });
   it("GET returns route", () => {
     expect(typeof GO_LEAGUE_SERVICE_ROUTES.GET("league1")).toBe("string");
+  });
+  it("LEAGUE_FOLLOW returns route", () => {
+    expect(typeof GO_LEAGUE_SERVICE_ROUTES.LEAGUE_FOLLOW("league1")).toBe(
+      "string",
+    );
+  });
+  it("LEAGUES_ME_FOLLOWING returns route", () => {
+    expect(typeof GO_LEAGUE_SERVICE_ROUTES.LEAGUES_ME_FOLLOWING).toBe("string");
   });
   it("TEAMS returns route", () => {
     expect(typeof GO_LEAGUE_SERVICE_ROUTES.TEAMS("league1")).toBe("string");

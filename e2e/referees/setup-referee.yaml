@@ -1,0 +1,19 @@
+appId: host.exp.Exponent
+---
+
+- tapOn: Home
+
+- tapOn: settings
+
+- runFlow:
+      when:
+        visible: "Become a Referee"
+      file: "first-time-referee.yaml"
+
+- runFlow:
+      when:
+        visible: "Resume Refereeing"
+      file: "resume-referee.yaml"
+
+- tapOn: Home
+

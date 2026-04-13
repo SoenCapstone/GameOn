@@ -34,6 +34,7 @@ import { showScheduleSubmitError } from "@/utils/schedule-errors";
 import { useRefereeOptions } from "@/hooks/use-referee-options";
 import { MatchDetailsSection } from "@/components/matches/match-details-section";
 import { FormToolbar } from "@/components/form/form-toolbar";
+import { usePostHog } from "posthog-react-native";
 
 const log = createScopedLog("Schedule League Match");
 
@@ -53,6 +54,7 @@ export default function ScheduleLeagueMatchScreen() {
   const router = useRouter();
   const queryClient = useQueryClient();
 
+  const posthog = usePostHog();
   const [homeTeamId, setHomeTeamId] = useState("");
   const [awayTeamId, setAwayTeamId] = useState("");
   const [refereeUserId, setRefereeUserId] = useState("");
@@ -269,6 +271,12 @@ export default function ScheduleLeagueMatchScreen() {
         refereeUserId,
       });
 
+      posthog.capture("match_scheduled", {
+        league_id: leagueId,
+        space: "league",
+        scheduled_date: scheduledDate,
+      });
+
       await queryClient.invalidateQueries({
         queryKey: ["league-matches", leagueId],
       });
@@ -292,6 +300,7 @@ export default function ScheduleLeagueMatchScreen() {
     date,
     homeTeamId,
     leagueId,
+    posthog,
     queryClient,
     refereeUserId,
     router,

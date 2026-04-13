@@ -1,8 +1,23 @@
+import { useEffect } from "react";
 import { Stack } from "expo-router";
+import { useUser } from "@clerk/clerk-expo";
+import { usePostHog } from "posthog-react-native";
 import { useTabsTitle } from "@/hooks/use-tabs-title";
 
 export default function AppLayout() {
   const title = useTabsTitle();
+  const { user } = useUser();
+  const posthog = usePostHog();
+
+  useEffect(() => {
+    if (!user) return;
+    posthog.identify(user.id, {
+      firstName: user.firstName,
+      lastName: user.lastName,
+      $name: `${user.firstName} ${user.lastName}`,
+    });
+    posthog.capture("$set", { $unset: ["$email"] });
+  }, [user, posthog]);
 
   return (
     <Stack
