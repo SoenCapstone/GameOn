@@ -22,11 +22,9 @@ import {
 import { toast } from "@/utils/toast";
 import { errorToString } from "@/utils/error";
 import {
-  buildMatchItem,
-  buildPostItem,
+  buildHomeItems,
   fetchLeagueSummaryMap,
   fetchTeamSummaryMap,
-  normalizeLeagueSpace,
   normalizeTeamSpace,
 } from "@/utils/home";
 import { getFollowingLeagues, getFollowingTeams } from "@/utils/follow";
@@ -238,42 +236,15 @@ export function useFollowingFeed() {
           log,
         );
 
-        const feedItems: HomeFeedItem[] = [
-          ...teamPostBuckets.flatMap((bucket) =>
-            bucket.posts.map((post) =>
-              buildPostItem(post, bucket.space, userNameMap),
-            ),
-          ),
-          ...leaguePostBuckets.flatMap((bucket) => {
-            const league = leagueSummaryMap[bucket.leagueId] ?? {
-              id: bucket.leagueId,
-              name: "League",
-              logoUrl: null,
-            };
-            const space = normalizeLeagueSpace(league);
-
-            return bucket.posts.map((post) =>
-              buildPostItem(post, space, userNameMap),
-            );
-          }),
-          ...teamMatchBuckets.flatMap((bucket) =>
-            bucket.matches.map((match) =>
-              buildMatchItem(match, bucket.space, teamSummaryMap),
-            ),
-          ),
-          ...leagueMatchBuckets.flatMap((bucket) => {
-            const league = leagueSummaryMap[bucket.leagueId] ?? {
-              id: bucket.leagueId,
-              name: "League",
-              logoUrl: null,
-            };
-            const space = normalizeLeagueSpace(league);
-
-            return bucket.matches.map((match) =>
-              buildMatchItem(match, space, teamSummaryMap),
-            );
-          }),
-        ];
+        const feedItems: HomeFeedItem[] = buildHomeItems({
+          teamPostBuckets,
+          leaguePostBuckets,
+          teamMatchBuckets,
+          leagueMatchBuckets,
+          userNameMap,
+          leagueSummaryMap,
+          teamSummaryMap,
+        });
 
         const feed = sortHomeFeedItems(dedupeHomeFeedItems(feedItems));
 
