@@ -103,7 +103,7 @@ export default function Home() {
         leagueId:
           item.space === "league"
             ? item.spaceId
-            : "leagueId" in item.match!
+            : item.match && "leagueId" in item.match
               ? item.match.leagueId
               : "",
         homeName: item.homeName,
