@@ -449,7 +449,7 @@ export default function MatchScreen() {
       match_id: displayMatch.id,
       space,
     });
-  }, [displayMatch?.id, posthog, space]);
+  }, [displayMatch, posthog, space]);
 
   const onSubmitScore = useCallback(() => {
     posthog.capture("match_submit_score_tapped", {
