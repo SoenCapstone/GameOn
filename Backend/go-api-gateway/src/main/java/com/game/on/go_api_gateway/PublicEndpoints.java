@@ -7,7 +7,6 @@ import lombok.NoArgsConstructor;
 public class PublicEndpoints {
 
     public static final String[] AUTH_WHITELIST = {
-            "/api/v1/user/create",
             "/api/v1/messaging/ws",
             "/api/v1/explore/league-matches",
             "/api/v1/explore/team-matches"
