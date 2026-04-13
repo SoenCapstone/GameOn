@@ -119,6 +119,10 @@ export default function LeagueScreen() {
   );
 }
 
+function resolveOwnerAction(isOwner: boolean, flag: boolean, handler: () => void) {
+  return isOwner && flag ? handler : undefined;
+}
+
 function LeagueContent() {
   const params = useLocalSearchParams<{ tab?: string }>();
   const initialTab: LeagueTab = resolveLeagueTab(params.tab);
@@ -146,8 +150,6 @@ function LeagueContent() {
   } = useLeagueStandings(id);
 
   const { canCreatePost, canScheduleMatch } = usePostHogFlags();
-  const canOpenPost = isOwner && canCreatePost;
-  const canOpenSchedule = isOwner && canScheduleMatch;
 
   const openPost = useCallback(() => {
     router.push({
@@ -251,8 +253,8 @@ function LeagueContent() {
             isMember={isMember}
             isOwner={isOwner}
             onFollow={handleFollow}
-            openPost={canOpenPost ? openPost : undefined}
-            openSchedule={canOpenSchedule ? openSchedule : undefined}
+            openPost={resolveOwnerAction(isOwner, canCreatePost, openPost)}
+            openSchedule={resolveOwnerAction(isOwner, canScheduleMatch, openSchedule)}
           />
         }
         background={{ preset: "red" }}

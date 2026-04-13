@@ -122,6 +122,10 @@ export default function Team() {
   );
 }
 
+function resolveOwnerAction(flag: boolean, isOwnerCheck: boolean, handler: () => void) {
+  return isOwnerCheck && flag ? handler : undefined;
+}
+
 function TeamContent() {
   const params = useLocalSearchParams<{ tab?: string }>();
   const initialTab: TeamTab = parseTeamTab(params.tab);
@@ -278,8 +282,8 @@ function TeamContent() {
             canManageSettings={isOwner || role === "MANAGER"}
             canFollow={!isActiveMember}
             onFollow={handleFollow}
-            openPost={canManage && canCreatePost ? openPost : undefined}
-            openSchedule={isOwner && canScheduleMatch ? openSchedule : undefined}
+            openPost={resolveOwnerAction(canCreatePost, canManage, openPost)}
+            openSchedule={resolveOwnerAction(canScheduleMatch, isOwner, openSchedule)}
             openPlaymaker={canManage ? openPlaymaker : undefined}
           />
         }
