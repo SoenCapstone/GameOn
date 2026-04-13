@@ -6,10 +6,7 @@ import type { MockedFunction } from "jest-mock";
 import { useFollowingFeed } from "@/hooks/use-following-feed";
 import { useAxiosWithClerk } from "@/hooks/use-axios-clerk";
 import { toast } from "@/utils/toast";
-import {
-  fetchUserNameMap,
-  mapToFrontendPost,
-} from "@/utils/board";
+import { fetchUserNameMap, mapToFrontendPost } from "@/utils/board";
 import { followingFeedQueryKey } from "@/constants/follow";
 import * as homeModule from "@/utils/home";
 
@@ -241,13 +238,19 @@ describe("useFollowingFeed", () => {
 
     expect(result.followedAny).toBe(true);
     expect(
-      result.items.some((item) => item.kind === "post" && item.id === "post-members"),
+      result.items.some(
+        (item) => item.kind === "post" && item.id === "post-members",
+      ),
     ).toBe(false);
     expect(
-      result.items.some((item) => item.kind === "post" && item.id === "post-everyone"),
+      result.items.some(
+        (item) => item.kind === "post" && item.id === "post-everyone",
+      ),
     ).toBe(true);
     expect(
-      result.items.some((item) => item.kind === "match" && item.id === "match-team-1"),
+      result.items.some(
+        (item) => item.kind === "match" && item.id === "match-team-1",
+      ),
     ).toBe(true);
     expect(mockGet).toHaveBeenCalledWith(
       "/api/v1/teams/team-1/posts",
@@ -314,15 +317,18 @@ describe("useFollowingFeed", () => {
     mockedFetchUserNameMap.mockResolvedValue({ u9: "Pat" });
 
     const options = useFollowingFeed() as unknown as {
-      queryFn: () => Promise<{ items: { kind: string; id: string }[]; followedAny: boolean }>;
+      queryFn: () => Promise<{
+        items: { kind: string; id: string }[];
+        followedAny: boolean;
+      }>;
     };
 
     const result = await options.queryFn();
 
     expect(result.followedAny).toBe(true);
-    expect(result.items.some((item) => item.kind === "post" && item.id === "lp-1")).toBe(
-      true,
-    );
+    expect(
+      result.items.some((item) => item.kind === "post" && item.id === "lp-1"),
+    ).toBe(true);
     expect(mockGet).toHaveBeenCalledWith(
       "/api/v1/leagues/league-x/posts",
       expect.objectContaining({ params: { page: 0, size: 50 } }),
@@ -471,7 +477,10 @@ describe("useFollowingFeed", () => {
     mockedFetchUserNameMap.mockResolvedValue({});
 
     const options = useFollowingFeed() as unknown as {
-      queryFn: () => Promise<{ items: { kind: string; id: string }[]; followedAny: boolean }>;
+      queryFn: () => Promise<{
+        items: { kind: string; id: string }[];
+        followedAny: boolean;
+      }>;
     };
 
     const result = await options.queryFn();
@@ -557,16 +566,23 @@ describe("useFollowingFeed", () => {
     mockedFetchUserNameMap.mockResolvedValue({});
 
     const options = useFollowingFeed() as unknown as {
-      queryFn: () => Promise<{ items: { kind: string; id: string }[]; followedAny: boolean }>;
+      queryFn: () => Promise<{
+        items: { kind: string; id: string }[];
+        followedAny: boolean;
+      }>;
     };
 
     const result = await options.queryFn();
 
     expect(
-      result.items.some((item) => item.kind === "match" && item.id === "match-future"),
+      result.items.some(
+        (item) => item.kind === "match" && item.id === "match-future",
+      ),
     ).toBe(true);
     expect(
-      result.items.some((item) => item.kind === "match" && item.id === "match-past"),
+      result.items.some(
+        (item) => item.kind === "match" && item.id === "match-past",
+      ),
     ).toBe(false);
   });
 
@@ -633,7 +649,10 @@ describe("useFollowingFeed", () => {
     mockedFetchUserNameMap.mockResolvedValue({});
 
     const options = useFollowingFeed() as unknown as {
-      queryFn: () => Promise<{ items: { kind: string; id: string }[]; followedAny: boolean }>;
+      queryFn: () => Promise<{
+        items: { kind: string; id: string }[];
+        followedAny: boolean;
+      }>;
     };
 
     const result = await options.queryFn();
@@ -643,13 +662,18 @@ describe("useFollowingFeed", () => {
   });
 
   it("uses fallback team space when fetchTeamSummaryMap returns no entry", async () => {
-    const realFetch = jest.requireActual<typeof import("@/utils/home")>(
-      "@/utils/home",
-    ).fetchTeamSummaryMap;
+    const realFetch =
+      jest.requireActual<typeof import("@/utils/home")>(
+        "@/utils/home",
+      ).fetchTeamSummaryMap;
     const spy = jest
       .spyOn(homeModule, "fetchTeamSummaryMap")
       .mockImplementation(async (api, teams, teamIds, log) => {
-        if (teams.length === 0 && teamIds.length === 1 && teamIds[0] === "solo") {
+        if (
+          teams.length === 0 &&
+          teamIds.length === 1 &&
+          teamIds[0] === "solo"
+        ) {
           return {};
         }
         return realFetch(api, teams, teamIds, log);
@@ -800,14 +824,21 @@ describe("useFollowingFeed", () => {
     mockedFetchUserNameMap.mockResolvedValue({ u1: "A", u2: "B" });
 
     const options = useFollowingFeed() as unknown as {
-      queryFn: () => Promise<{ items: { kind: string; id: string }[]; followedAny: boolean }>;
+      queryFn: () => Promise<{
+        items: { kind: string; id: string }[];
+        followedAny: boolean;
+      }>;
     };
 
     const result = await options.queryFn();
 
     expect(result.followedAny).toBe(true);
-    expect(result.items.some((i) => i.kind === "post" && i.id === "tp-1")).toBe(true);
-    expect(result.items.some((i) => i.kind === "post" && i.id === "lp-1")).toBe(true);
+    expect(result.items.some((i) => i.kind === "post" && i.id === "tp-1")).toBe(
+      true,
+    );
+    expect(result.items.some((i) => i.kind === "post" && i.id === "lp-1")).toBe(
+      true,
+    );
   });
 
   it("omits team matches when the team matches request fails", async () => {
@@ -858,7 +889,10 @@ describe("useFollowingFeed", () => {
     mockedFetchUserNameMap.mockResolvedValue({ u1: "Coach" });
 
     const options = useFollowingFeed() as unknown as {
-      queryFn: () => Promise<{ items: { kind: string }[]; followedAny: boolean }>;
+      queryFn: () => Promise<{
+        items: { kind: string }[];
+        followedAny: boolean;
+      }>;
     };
 
     const result = await options.queryFn();
@@ -900,7 +934,10 @@ describe("useFollowingFeed", () => {
     mockedFetchUserNameMap.mockResolvedValue({});
 
     const options = useFollowingFeed() as unknown as {
-      queryFn: () => Promise<{ items: { kind: string }[]; followedAny: boolean }>;
+      queryFn: () => Promise<{
+        items: { kind: string }[];
+        followedAny: boolean;
+      }>;
     };
 
     const result = await options.queryFn();
@@ -942,7 +979,10 @@ describe("useFollowingFeed", () => {
     mockedFetchUserNameMap.mockResolvedValue({});
 
     const options = useFollowingFeed() as unknown as {
-      queryFn: () => Promise<{ items: { kind: string }[]; followedAny: boolean }>;
+      queryFn: () => Promise<{
+        items: { kind: string }[];
+        followedAny: boolean;
+      }>;
     };
 
     const result = await options.queryFn();

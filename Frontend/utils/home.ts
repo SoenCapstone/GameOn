@@ -3,12 +3,16 @@ import {
   GO_LEAGUE_SERVICE_ROUTES,
   GO_TEAM_SERVICE_ROUTES,
 } from "@/hooks/use-axios-clerk";
-import type { LeaguePostResponse, TeamPostResponse } from "@/types/board";
+import type {
+  LeaguePostResponse,
+  TeamPostResponse,
+} from "@/types/board";
 import { mapToFrontendPost } from "@/utils/board";
 import type { TeamSummaryResponse } from "@/types/teams";
 import type { LeagueSummaryResponse } from "@/types/leagues";
 import type { LeagueMatch, TeamMatch } from "@/types/matches";
 import type {
+  HomeFeedItem,
   HomeFeedMatchItem,
   HomeFeedSpace,
   HomeFeedPostItem,
@@ -16,6 +20,36 @@ import type {
 
 export type HomeFeedAssemblyLog = {
   warn: (message: string, meta?: unknown) => void;
+};
+
+type TeamPostBucket = {
+  space: HomeFeedSpace;
+  posts: TeamPostResponse[];
+};
+
+type LeaguePostBucket = {
+  leagueId: string;
+  posts: LeaguePostResponse[];
+};
+
+type TeamMatchBucket = {
+  space: HomeFeedSpace;
+  matches: TeamMatch[];
+};
+
+type LeagueMatchBucket = {
+  leagueId: string;
+  matches: LeagueMatch[];
+};
+
+type BuildHomeItemsOptions = {
+  teamPostBuckets: TeamPostBucket[];
+  leaguePostBuckets: LeaguePostBucket[];
+  teamMatchBuckets: TeamMatchBucket[];
+  leagueMatchBuckets: LeagueMatchBucket[];
+  userNameMap: Record<string, string>;
+  leagueSummaryMap: Record<string, LeagueSummaryResponse>;
+  teamSummaryMap: Record<string, TeamSummaryResponse>;
 };
 
 export function normalizeTeamSpace(team: TeamSummaryResponse): HomeFeedSpace {
@@ -38,6 +72,24 @@ export function normalizeLeagueSpace(
     logoUrl: league.logoUrl ?? null,
     sport: league.sport ?? null,
   };
+}
+
+function getLeagueFeedSpace(
+  leagueId: string,
+  leagueSummaryMap: Record<string, LeagueSummaryResponse>,
+): HomeFeedSpace {
+  const league = leagueSummaryMap[leagueId];
+  if (!league) {
+    return {
+      kind: "league",
+      id: leagueId,
+      name: "League",
+      logoUrl: null,
+      sport: null,
+    };
+  }
+
+  return normalizeLeagueSpace(league);
 }
 
 export async function fetchTeamSummaryMap(
@@ -180,4 +232,35 @@ export function buildMatchItem(
     awayScore: match.awayScore ?? null,
     isPast: false,
   };
+}
+
+export function buildHomeItems({
+  teamPostBuckets,
+  leaguePostBuckets,
+  teamMatchBuckets,
+  leagueMatchBuckets,
+  userNameMap,
+  leagueSummaryMap,
+  teamSummaryMap,
+}: BuildHomeItemsOptions): HomeFeedItem[] {
+  return [
+    ...teamPostBuckets.flatMap((bucket) =>
+      bucket.posts.map((post) => buildPostItem(post, bucket.space, userNameMap)),
+    ),
+    ...leaguePostBuckets.flatMap((bucket) => {
+      const space = getLeagueFeedSpace(bucket.leagueId, leagueSummaryMap);
+      return bucket.posts.map((post) => buildPostItem(post, space, userNameMap));
+    }),
+    ...teamMatchBuckets.flatMap((bucket) =>
+      bucket.matches.map((match) =>
+        buildMatchItem(match, bucket.space, teamSummaryMap),
+      ),
+    ),
+    ...leagueMatchBuckets.flatMap((bucket) => {
+      const space = getLeagueFeedSpace(bucket.leagueId, leagueSummaryMap);
+      return bucket.matches.map((match) =>
+        buildMatchItem(match, space, teamSummaryMap),
+      );
+    }),
+  ];
 }

@@ -1,5 +1,6 @@
 import { beforeEach, describe, expect, it, jest } from "@jest/globals";
 import type { AxiosInstance } from "axios";
+import type { MockedFunction } from "jest-mock";
 import {
   GO_LEAGUE_SERVICE_ROUTES,
   GO_TEAM_SERVICE_ROUTES,
@@ -10,6 +11,7 @@ import type { TeamMatch } from "@/types/matches";
 import type { TeamSummaryResponse } from "@/types/teams";
 import {
   buildMatchItem,
+  buildHomeItems,
   buildPostItem,
   fetchLeagueSummaryMap,
   fetchTeamSummaryMap,
@@ -17,7 +19,9 @@ import {
   normalizeTeamSpace,
 } from "@/utils/home";
 
-const mockGet = jest.fn();
+type MockGet = MockedFunction<(url: string) => Promise<{ data: unknown }>>;
+
+const mockGet = jest.fn() as MockGet;
 const mockApi = { get: mockGet } as unknown as AxiosInstance;
 
 const log = {
@@ -199,12 +203,168 @@ describe("@/utils/home", () => {
     it("falls back to default team names when summaries are missing", () => {
       const space = normalizeTeamSpace(teamMap.home);
       const item = buildMatchItem(
-        { ...baseMatch, homeTeamId: "unknown-home", awayTeamId: "unknown-away" },
+        {
+          ...baseMatch,
+          homeTeamId: "unknown-home",
+          awayTeamId: "unknown-away",
+        },
         space,
         {},
       );
       expect(item.homeName).toBe("Home Team");
       expect(item.awayName).toBe("Away Team");
+    });
+  });
+
+  describe("buildHomeItems", () => {
+    it("assembles team and league feed buckets with league fallback space", () => {
+      const teamSpace = normalizeTeamSpace({
+        id: "team-1",
+        name: "Raptors",
+        sport: "basketball",
+        archived: false,
+        createdAt: "2026-01-01T00:00:00.000Z",
+        updatedAt: "2026-01-01T00:00:00.000Z",
+      });
+
+      const items = buildHomeItems({
+        teamPostBuckets: [
+          {
+            space: teamSpace,
+            posts: [
+              {
+                id: "team-post-1",
+                teamId: "team-1",
+                authorUserId: "user-a",
+                authorRole: "MANAGER",
+                title: "Team update",
+                body: "Body",
+                scope: "Everyone",
+                createdAt: "2026-04-01T12:00:00.000Z",
+              },
+            ],
+          },
+        ],
+        leaguePostBuckets: [
+          {
+            leagueId: "league-1",
+            posts: [
+              {
+                id: "league-post-1",
+                leagueId: "league-1",
+                authorUserId: "user-b",
+                title: "League update",
+                body: "Body",
+                scope: "Everyone",
+                createdAt: "2026-04-01T13:00:00.000Z",
+              },
+            ],
+          },
+        ],
+        teamMatchBuckets: [
+          {
+            space: teamSpace,
+            matches: [
+              {
+                id: "team-match-1",
+                matchType: "TEAM_MATCH",
+                status: "CONFIRMED",
+                homeTeamId: "team-1",
+                awayTeamId: "team-2",
+                sport: "basketball",
+                startTime: "2099-05-01T10:00:00.000Z",
+                endTime: "2099-05-01T11:00:00.000Z",
+                requiresReferee: false,
+                createdByUserId: "user-1",
+                createdAt: "2026-04-01T14:00:00.000Z",
+                updatedAt: "2026-04-01T14:00:00.000Z",
+              },
+            ],
+          },
+        ],
+        leagueMatchBuckets: [
+          {
+            leagueId: "league-missing",
+            matches: [
+              {
+                id: "league-match-1",
+                leagueId: "league-missing",
+                status: "CONFIRMED",
+                homeTeamId: "team-2",
+                awayTeamId: "team-1",
+                sport: "basketball",
+                startTime: "2099-05-02T10:00:00.000Z",
+                endTime: "2099-05-02T11:00:00.000Z",
+                requiresReferee: false,
+                createdByUserId: "user-1",
+                createdAt: "2026-04-01T15:00:00.000Z",
+                updatedAt: "2026-04-01T15:00:00.000Z",
+              },
+            ],
+          },
+        ],
+        userNameMap: {
+          "user-a": "Alex Coach",
+          "user-b": "Bailey Admin",
+        },
+        leagueSummaryMap: {
+          "league-1": {
+            id: "league-1",
+            name: "Metro League",
+            sport: "basketball",
+            slug: "metro-league",
+            logoUrl: null,
+            createdAt: "2026-01-01T00:00:00.000Z",
+            updatedAt: "2026-01-01T00:00:00.000Z",
+          },
+        },
+        teamSummaryMap: {
+          "team-1": {
+            id: "team-1",
+            name: "Raptors",
+            sport: "basketball",
+            archived: false,
+            createdAt: "2026-01-01T00:00:00.000Z",
+            updatedAt: "2026-01-01T00:00:00.000Z",
+          },
+          "team-2": {
+            id: "team-2",
+            name: "Wolves",
+            sport: "basketball",
+            archived: false,
+            createdAt: "2026-01-01T00:00:00.000Z",
+            updatedAt: "2026-01-01T00:00:00.000Z",
+          },
+        },
+      });
+
+      expect(items.map((item) => item.id)).toEqual([
+        "team-post-1",
+        "league-post-1",
+        "team-match-1",
+        "league-match-1",
+      ]);
+      expect(items[1]).toEqual(
+        expect.objectContaining({
+          kind: "post",
+          space: expect.objectContaining({
+            kind: "league",
+            id: "league-1",
+            name: "Metro League",
+          }),
+        }),
+      );
+      expect(items[3]).toEqual(
+        expect.objectContaining({
+          kind: "match",
+          contextLabel: "League",
+          space: expect.objectContaining({
+            kind: "league",
+            id: "league-missing",
+            name: "League",
+          }),
+        }),
+      );
     });
   });
 

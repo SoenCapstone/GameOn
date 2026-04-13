@@ -7,10 +7,7 @@ import { useHomeFeed } from "@/hooks/use-home-feed";
 import { useAxiosWithClerk } from "@/hooks/use-axios-clerk";
 import { fetchMyTeams } from "@/hooks/messages/api";
 import { toast } from "@/utils/toast";
-import {
-  fetchUserNameMap,
-  mapToFrontendPost,
-} from "@/utils/board";
+import { fetchUserNameMap, mapToFrontendPost } from "@/utils/board";
 import type { HomeFeedItem } from "@/types/feed";
 
 declare const jest: typeof import("@jest/globals").jest;
@@ -605,18 +602,18 @@ describe("useHomeFeed", () => {
           };
         }
         if (url === "/api/v1/teams/team-2") {
-        return {
-          data: {
-            id: "team-2",
-            name: "Wolves",
-            sport: "basketball",
-            logoUrl: null,
-            archived: false,
-            createdAt: "2026-04-01T00:00:00.000Z",
-            updatedAt: "2026-04-01T00:00:00.000Z",
-          },
-        };
-      }
+          return {
+            data: {
+              id: "team-2",
+              name: "Wolves",
+              sport: "basketball",
+              logoUrl: null,
+              archived: false,
+              createdAt: "2026-04-01T00:00:00.000Z",
+              updatedAt: "2026-04-01T00:00:00.000Z",
+            },
+          };
+        }
         throw new Error(`Unexpected GET ${url}`);
       },
     );
