@@ -15,6 +15,7 @@ import {
   GO_TEAM_SERVICE_ROUTES,
 } from "@/hooks/use-axios-clerk";
 import { FormToolbar } from "@/components/form/form-toolbar";
+import { usePostHog } from "posthog-react-native";
 
 const log = createScopedLog("Create Team Page");
 
@@ -22,6 +23,7 @@ export default function CreateTeamScreen() {
   const router = useRouter();
   const api = useAxiosWithClerk();
   const queryClient = useQueryClient();
+  const posthog = usePostHog();
 
   const [pickedLogo, setPickedLogo] = useState<PickedLogo | null>(null);
 
@@ -68,7 +70,14 @@ export default function CreateTeamScreen() {
 
       return data;
     },
-    onSuccess: async () => {
+    onSuccess: async (data) => {
+      posthog.capture("team_created", {
+        sport: selectedSport?.id,
+        scope: selectedScope?.id,
+        location: selectedCity?.label,
+        has_logo: Boolean(pickedLogo),
+        team_id: data.id,
+      });
       await queryClient.invalidateQueries({ queryKey: ["teams"] });
       toast.success("Team Created", {
         description: "Your team has been created.",

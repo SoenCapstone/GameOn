@@ -12,6 +12,7 @@ import { useSignIn } from "@clerk/clerk-expo";
 import { ContentArea } from "@/components/ui/content-area";
 import { runtime } from "@/utils/runtime";
 import { toast } from "@/utils/toast";
+import { usePostHog } from "posthog-react-native";
 import {
   ActivityIndicator,
   Pressable,
@@ -78,6 +79,7 @@ export default function SignInScreen() {
   const [showPassword, setShowPassword] = useState(false);
   const { signIn, setActive, isLoaded } = useSignIn();
   const showDevSignIn = runtime.isRunningInExpoGo || runtime.isDevelopment;
+  const posthog = usePostHog();
 
   const signInMutation = useMutation({
     mutationFn: async (values: typeof initialSignInValue) => {
@@ -85,6 +87,9 @@ export default function SignInScreen() {
         return;
       }
       await signin(values, signIn, setActive, isLoaded);
+    },
+    onSuccess: () => {
+      posthog.capture("user_signed_in", { method: "email" });
     },
   });
 
@@ -94,6 +99,9 @@ export default function SignInScreen() {
         return;
       }
       await signin(values, signIn, setActive, isLoaded);
+    },
+    onSuccess: () => {
+      posthog.capture("user_signed_in", { method: "dev_account" });
     },
   });
 
