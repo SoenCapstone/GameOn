@@ -12,19 +12,19 @@ import type {
 } from "@/types/feed";
 import { getSportLogo } from "@/utils/search";
 
-interface HomeFeedListProps {
+interface HomeListProps {
   readonly items: HomeFeedItem[];
   readonly isLoading: boolean;
   readonly onMatchPress?: (item: HomeFeedMatchItem) => void;
   readonly onPostPress?: (item: HomeFeedPostItem) => void;
 }
 
-export function HomeFeedList({
+export function HomeList({
   items,
   isLoading,
   onMatchPress,
   onPostPress,
-}: Readonly<HomeFeedListProps>) {
+}: Readonly<HomeListProps>) {
   const renderItem = useCallback(
     function renderFeedItem({ item }: Readonly<{ item: HomeFeedItem }>) {
       if (item.kind === "post") {

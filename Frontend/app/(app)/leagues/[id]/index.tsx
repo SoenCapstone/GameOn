@@ -1,5 +1,6 @@
 import { useCallback, useMemo, useState } from "react";
 import { View, RefreshControl } from "react-native";
+import { FollowToolbar } from "@/components/follow/follow-toolbar";
 import {
   RelativePathString,
   router,
@@ -52,7 +53,11 @@ function LeagueToolbar({
   isMember,
   isOwner,
   isOrganizer,
+  canFollow,
+  followLoading,
+  isFollowing,
   onFollow,
+  onUnfollow,
   openPost,
   openSchedule,
 }: Readonly<{
@@ -61,7 +66,11 @@ function LeagueToolbar({
   isMember: boolean;
   isOwner: boolean;
   isOrganizer: boolean;
-  onFollow: () => void;
+  canFollow: boolean;
+  followLoading: boolean;
+  isFollowing: boolean;
+  onFollow: () => void | Promise<void>;
+  onUnfollow: () => void | Promise<void>;
   openPost?: () => void;
   openSchedule?: () => void;
 }>) {
@@ -77,11 +86,14 @@ function LeagueToolbar({
             onPress={() => router.push(`/leagues/${id}/settings`)}
           />
         </Stack.Toolbar>
-      ) : (
-        <Stack.Toolbar placement="right">
-          <Stack.Toolbar.Button onPress={onFollow}>Follow</Stack.Toolbar.Button>
-        </Stack.Toolbar>
-      )}
+      ) : canFollow ? (
+        <FollowToolbar
+          followLoading={followLoading}
+          isFollowing={isFollowing}
+          onFollow={onFollow}
+          onUnfollow={onUnfollow}
+        />
+      ) : null}
       {showBottomToolbar ? (
         <Stack.Toolbar placement="bottom">
           <Stack.Toolbar.Spacer />
@@ -137,7 +149,11 @@ function LeagueContent() {
     id,
     isLoading,
     onRefresh,
-    handleFollow,
+    canFollow,
+    isFollowing,
+    isFollowToolbarLoading,
+    onFollow,
+    onUnfollow,
     title,
     isMember,
     isOwner,
@@ -261,7 +277,11 @@ function LeagueContent() {
             isMember={isMember}
             isOwner={isOwner}
             isOrganizer={isOrganizer}
-            onFollow={handleFollow}
+            canFollow={canFollow}
+            followLoading={isFollowToolbarLoading}
+            isFollowing={isFollowing}
+            onFollow={onFollow}
+            onUnfollow={onUnfollow}
             openPost={resolveOwnerAction(isOwner, canCreatePost, openPost)}
             openSchedule={resolveOwnerAction(isOwner, canScheduleMatch, openSchedule)}
           />
