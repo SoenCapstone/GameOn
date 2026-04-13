@@ -1,29 +1,19 @@
 import { useQuery } from "@tanstack/react-query";
 import { useAuth } from "@clerk/clerk-expo";
 import { createScopedLog } from "@/utils/logger";
-import {
-  GO_LEAGUE_SERVICE_ROUTES,
-  GO_TEAM_SERVICE_ROUTES,
-  useAxiosWithClerk,
-} from "@/hooks/use-axios-clerk";
-import type {
-  LeaguePostListResponse,
-  TeamPostListResponse,
-} from "@/types/board";
+import { useAxiosWithClerk } from "@/hooks/use-axios-clerk";
 import { fetchUserNameMap } from "@/utils/board";
 import type { HomeFeedItem } from "@/types/feed";
-import type { LeagueMatch, TeamMatch } from "@/types/matches";
 import type { TeamSummaryResponse } from "@/types/teams";
-import {
-  dedupeHomeFeedItems,
-  isUpcomingFeedMatch,
-  sortHomeFeedItems,
-} from "@/utils/feed";
+import { dedupeHomeFeedItems, sortHomeFeedItems } from "@/utils/feed";
 import { toast } from "@/utils/toast";
 import { errorToString } from "@/utils/error";
 import {
   buildHomeItems,
+  collectFeedMatchTeamIds,
+  collectFeedPostAuthorIds,
   fetchLeagueSummaryMap,
+  fetchFeedBuckets,
   fetchTeamSummaryMap,
   normalizeTeamSpace,
 } from "@/utils/home";
@@ -102,128 +92,31 @@ export function useFollowingFeed() {
           leagueCount: followedLeagueIds.length,
         });
 
-        const [
-          teamPostsResults,
-          teamMatchesResults,
-          leaguePostsResults,
-          leagueMatchesResults,
-        ] = await Promise.all([
-          Promise.allSettled(
-            teamSpaces.map(async (space) => {
-              const response = await api.get<TeamPostListResponse>(
-                GO_TEAM_SERVICE_ROUTES.TEAM_POSTS(space.id),
-                { params: { page: 0, size: 50 } },
-              );
-              return {
-                space,
-                posts: (response.data.posts ?? []).filter(
-                  (post) => post.scope === "Everyone",
-                ),
-              };
-            }),
-          ),
-          Promise.allSettled(
-            teamSpaces.map(async (space) => {
-              const response = await api.get<TeamMatch[]>(
-                GO_TEAM_SERVICE_ROUTES.MATCHES(space.id),
-              );
-              return {
-                space,
-                matches: (response.data ?? []).filter((match) =>
-                  isUpcomingFeedMatch(match),
-                ),
-              };
-            }),
-          ),
-          Promise.allSettled(
-            followedLeagueIds.map(async (leagueId) => {
-              const response = await api.get<LeaguePostListResponse>(
-                GO_LEAGUE_SERVICE_ROUTES.LEAGUE_POSTS(leagueId),
-                { params: { page: 0, size: 50 } },
-              );
-              return {
-                leagueId,
-                posts: (response.data.items ?? []).filter(
-                  (post) => post.scope === "Everyone",
-                ),
-              };
-            }),
-          ),
-          Promise.allSettled(
-            followedLeagueIds.map(async (leagueId) => {
-              const response = await api.get<LeagueMatch[]>(
-                GO_LEAGUE_SERVICE_ROUTES.MATCHES(leagueId),
-              );
-              return {
-                leagueId,
-                matches: (response.data ?? []).filter((match) =>
-                  isUpcomingFeedMatch(match),
-                ),
-              };
-            }),
-          ),
-        ]);
-
-        const teamPostBuckets = teamPostsResults.flatMap((result) => {
-          if (result.status === "fulfilled") {
-            return [result.value];
-          }
-          log.warn("Failed to fetch team posts for following feed", result.reason);
-          return [];
+        const {
+          teamPostBuckets,
+          teamMatchBuckets,
+          leaguePostBuckets,
+          leagueMatchBuckets,
+        } = await fetchFeedBuckets({
+          api,
+          teamSpaces,
+          leagueIds: followedLeagueIds,
+          onlyEveryonePosts: true,
+          label: "following feed",
+          log,
         });
 
-        const teamMatchBuckets = teamMatchesResults.flatMap((result) => {
-          if (result.status === "fulfilled") {
-            return [result.value];
-          }
-          log.warn(
-            "Failed to fetch team matches for following feed",
-            result.reason,
-          );
-          return [];
+        const postAuthorIds = collectFeedPostAuthorIds({
+          teamPostBuckets,
+          leaguePostBuckets,
         });
-
-        const leaguePostBuckets = leaguePostsResults.flatMap((result) => {
-          if (result.status === "fulfilled") {
-            return [result.value];
-          }
-          log.warn(
-            "Failed to fetch league posts for following feed",
-            result.reason,
-          );
-          return [];
-        });
-
-        const leagueMatchBuckets = leagueMatchesResults.flatMap((result) => {
-          if (result.status === "fulfilled") {
-            return [result.value];
-          }
-          log.warn(
-            "Failed to fetch league matches for following feed",
-            result.reason,
-          );
-          return [];
-        });
-
-        const postAuthorIds = [
-          ...new Set(
-            [
-              ...teamPostBuckets.flatMap((bucket) => bucket.posts),
-              ...leaguePostBuckets.flatMap((bucket) => bucket.posts),
-            ].map((post) => post.authorUserId),
-          ),
-        ];
 
         const userNameMap = await fetchUserNameMap(api, postAuthorIds, log);
 
-        const allMatchTeamIds = [
-          ...new Set(
-            [
-              ...teamMatchBuckets.flatMap((bucket) => bucket.matches),
-              ...leagueMatchBuckets.flatMap((bucket) => bucket.matches),
-            ].flatMap((match) => [match.homeTeamId, match.awayTeamId]),
-          ),
-        ];
+        const allMatchTeamIds = collectFeedMatchTeamIds({
+          teamMatchBuckets,
+          leagueMatchBuckets,
+        });
 
         const followedTeamsList = followedTeamIds.map(
           (id) => followedTeamSummaryMap[id] ?? fallbackTeamSummary(id),

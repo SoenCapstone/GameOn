@@ -4,7 +4,9 @@ import {
   GO_TEAM_SERVICE_ROUTES,
 } from "@/hooks/use-axios-clerk";
 import type {
+  LeaguePostListResponse,
   LeaguePostResponse,
+  TeamPostListResponse,
   TeamPostResponse,
 } from "@/types/board";
 import { mapToFrontendPost } from "@/utils/board";
@@ -17,6 +19,7 @@ import type {
   HomeFeedSpace,
   HomeFeedPostItem,
 } from "@/types/feed";
+import { isUpcomingFeedMatch } from "@/utils/feed";
 
 export type HomeFeedAssemblyLog = {
   warn: (message: string, meta?: unknown) => void;
@@ -50,6 +53,24 @@ type BuildHomeItemsOptions = {
   userNameMap: Record<string, string>;
   leagueSummaryMap: Record<string, LeagueSummaryResponse>;
   teamSummaryMap: Record<string, TeamSummaryResponse>;
+};
+
+type FeedBucketLabel = "feed" | "following feed";
+
+type FetchFeedBucketsOptions = {
+  api: AxiosInstance;
+  teamSpaces: HomeFeedSpace[];
+  leagueIds: string[];
+  onlyEveryonePosts: boolean;
+  label: FeedBucketLabel;
+  log: HomeFeedAssemblyLog;
+};
+
+export type FetchFeedBucketsResult = {
+  teamPostBuckets: TeamPostBucket[];
+  leaguePostBuckets: LeaguePostBucket[];
+  teamMatchBuckets: TeamMatchBucket[];
+  leagueMatchBuckets: LeagueMatchBucket[];
 };
 
 export function normalizeTeamSpace(team: TeamSummaryResponse): HomeFeedSpace {
@@ -90,6 +111,21 @@ function getLeagueFeedSpace(
   }
 
   return normalizeLeagueSpace(league);
+}
+
+function resolveFeedBuckets<T>(
+  results: PromiseSettledResult<T>[],
+  warnMessage: string,
+  log: HomeFeedAssemblyLog,
+): T[] {
+  return results.flatMap((result) => {
+    if (result.status === "fulfilled") {
+      return [result.value];
+    }
+
+    log.warn(warnMessage, result.reason);
+    return [];
+  });
 }
 
 export async function fetchTeamSummaryMap(
@@ -234,6 +270,132 @@ export function buildMatchItem(
   };
 }
 
+export async function fetchFeedBuckets({
+  api,
+  teamSpaces,
+  leagueIds,
+  onlyEveryonePosts,
+  label,
+  log,
+}: FetchFeedBucketsOptions): Promise<FetchFeedBucketsResult> {
+  const [
+    teamPostsResults,
+    teamMatchesResults,
+    leaguePostsResults,
+    leagueMatchesResults,
+  ] = await Promise.all([
+    Promise.allSettled(
+      teamSpaces.map(async (space) => {
+        const response = await api.get<TeamPostListResponse>(
+          GO_TEAM_SERVICE_ROUTES.TEAM_POSTS(space.id),
+          { params: { page: 0, size: 50 } },
+        );
+
+        const posts = response.data.posts ?? [];
+        return {
+          space,
+          posts: onlyEveryonePosts
+            ? posts.filter((post) => post.scope === "Everyone")
+            : posts,
+        };
+      }),
+    ),
+    Promise.allSettled(
+      teamSpaces.map(async (space) => {
+        const response = await api.get<TeamMatch[]>(
+          GO_TEAM_SERVICE_ROUTES.MATCHES(space.id),
+        );
+        return {
+          space,
+          matches: (response.data ?? []).filter((match) =>
+            isUpcomingFeedMatch(match),
+          ),
+        };
+      }),
+    ),
+    Promise.allSettled(
+      leagueIds.map(async (leagueId) => {
+        const response = await api.get<LeaguePostListResponse>(
+          GO_LEAGUE_SERVICE_ROUTES.LEAGUE_POSTS(leagueId),
+          { params: { page: 0, size: 50 } },
+        );
+
+        const posts = response.data.items ?? [];
+        return {
+          leagueId,
+          posts: onlyEveryonePosts
+            ? posts.filter((post) => post.scope === "Everyone")
+            : posts,
+        };
+      }),
+    ),
+    Promise.allSettled(
+      leagueIds.map(async (leagueId) => {
+        const response = await api.get<LeagueMatch[]>(
+          GO_LEAGUE_SERVICE_ROUTES.MATCHES(leagueId),
+        );
+        return {
+          leagueId,
+          matches: (response.data ?? []).filter((match) =>
+            isUpcomingFeedMatch(match),
+          ),
+        };
+      }),
+    ),
+  ]);
+
+  return {
+    teamPostBuckets: resolveFeedBuckets(
+      teamPostsResults,
+      `Failed to fetch team posts for ${label}`,
+      log,
+    ),
+    teamMatchBuckets: resolveFeedBuckets(
+      teamMatchesResults,
+      `Failed to fetch team matches for ${label}`,
+      log,
+    ),
+    leaguePostBuckets: resolveFeedBuckets(
+      leaguePostsResults,
+      `Failed to fetch league posts for ${label}`,
+      log,
+    ),
+    leagueMatchBuckets: resolveFeedBuckets(
+      leagueMatchesResults,
+      `Failed to fetch league matches for ${label}`,
+      log,
+    ),
+  };
+}
+
+export function collectFeedPostAuthorIds({
+  teamPostBuckets,
+  leaguePostBuckets,
+}: Pick<FetchFeedBucketsResult, "teamPostBuckets" | "leaguePostBuckets">) {
+  return [
+    ...new Set(
+      [
+        ...teamPostBuckets.flatMap((bucket) => bucket.posts),
+        ...leaguePostBuckets.flatMap((bucket) => bucket.posts),
+      ].map((post) => post.authorUserId),
+    ),
+  ];
+}
+
+export function collectFeedMatchTeamIds({
+  teamMatchBuckets,
+  leagueMatchBuckets,
+}: Pick<FetchFeedBucketsResult, "teamMatchBuckets" | "leagueMatchBuckets">) {
+  return [
+    ...new Set(
+      [
+        ...teamMatchBuckets.flatMap((bucket) => bucket.matches),
+        ...leagueMatchBuckets.flatMap((bucket) => bucket.matches),
+      ].flatMap((match) => [match.homeTeamId, match.awayTeamId]),
+    ),
+  ];
+}
+
 export function buildHomeItems({
   teamPostBuckets,
   leaguePostBuckets,
@@ -245,11 +407,15 @@ export function buildHomeItems({
 }: BuildHomeItemsOptions): HomeFeedItem[] {
   return [
     ...teamPostBuckets.flatMap((bucket) =>
-      bucket.posts.map((post) => buildPostItem(post, bucket.space, userNameMap)),
+      bucket.posts.map((post) =>
+        buildPostItem(post, bucket.space, userNameMap),
+      ),
     ),
     ...leaguePostBuckets.flatMap((bucket) => {
       const space = getLeagueFeedSpace(bucket.leagueId, leagueSummaryMap);
-      return bucket.posts.map((post) => buildPostItem(post, space, userNameMap));
+      return bucket.posts.map((post) =>
+        buildPostItem(post, space, userNameMap),
+      );
     }),
     ...teamMatchBuckets.flatMap((bucket) =>
       bucket.matches.map((match) =>

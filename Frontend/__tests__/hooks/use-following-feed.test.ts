@@ -10,8 +10,6 @@ import { fetchUserNameMap, mapToFrontendPost } from "@/utils/board";
 import { followingFeedQueryKey } from "@/constants/follow";
 import * as homeModule from "@/utils/home";
 
-declare const jest: typeof import("@jest/globals").jest;
-
 const mockedUseQuery = useQuery as MockedFunction<typeof useQuery>;
 const mockedUseAuth = useAuth as MockedFunction<typeof useAuth>;
 const mockedUseAxiosWithClerk = useAxiosWithClerk as MockedFunction<
@@ -25,28 +23,24 @@ const mockedMapToFrontendPost = mapToFrontendPost as MockedFunction<
 >;
 const mockedToastError = toast.error as MockedFunction<typeof toast.error>;
 
-type MockGet = MockedFunction<
-  (
-    url: string,
-    config?: { params?: Record<string, string | number | boolean> },
-  ) => Promise<{ data: unknown }>
->;
-
-const mockGet = jest.fn() as MockGet;
+const mockGet = jest.fn<
+  Promise<{ data: unknown }>,
+  [
+    string,
+    ({ params?: Record<string, string | number | boolean> } | undefined)?,
+  ]
+>();
 
 jest.mock("@tanstack/react-query", () => ({
-  // eslint-disable-next-line @typescript-eslint/no-require-imports
-  useQuery: require("@jest/globals").jest.fn(),
+  useQuery: jest.fn(),
 }));
 
 jest.mock("@clerk/clerk-expo", () => ({
-  // eslint-disable-next-line @typescript-eslint/no-require-imports
-  useAuth: require("@jest/globals").jest.fn(),
+  useAuth: jest.fn(),
 }));
 
 jest.mock("@/hooks/use-axios-clerk", () => ({
-  // eslint-disable-next-line @typescript-eslint/no-require-imports
-  useAxiosWithClerk: require("@jest/globals").jest.fn(),
+  useAxiosWithClerk: jest.fn(),
   GO_TEAM_SERVICE_ROUTES: {
     ALL: "/api/v1/teams",
     TEAMS_ME_FOLLOWING: "/api/v1/teams/me/following",
@@ -62,16 +56,13 @@ jest.mock("@/hooks/use-axios-clerk", () => ({
 }));
 
 jest.mock("@/utils/board", () => ({
-  // eslint-disable-next-line @typescript-eslint/no-require-imports
-  fetchUserNameMap: require("@jest/globals").jest.fn(),
-  // eslint-disable-next-line @typescript-eslint/no-require-imports
-  mapToFrontendPost: require("@jest/globals").jest.fn(),
+  fetchUserNameMap: jest.fn(),
+  mapToFrontendPost: jest.fn(),
 }));
 
 jest.mock("@/utils/toast", () => ({
   toast: {
-    // eslint-disable-next-line @typescript-eslint/no-require-imports
-    error: require("@jest/globals").jest.fn(),
+    error: jest.fn(),
   },
 }));
 

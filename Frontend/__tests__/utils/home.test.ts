@@ -13,13 +13,21 @@ import {
   buildMatchItem,
   buildHomeItems,
   buildPostItem,
+  collectFeedMatchTeamIds,
+  collectFeedPostAuthorIds,
   fetchLeagueSummaryMap,
+  fetchFeedBuckets,
   fetchTeamSummaryMap,
   normalizeLeagueSpace,
   normalizeTeamSpace,
 } from "@/utils/home";
 
-type MockGet = MockedFunction<(url: string) => Promise<{ data: unknown }>>;
+type MockGet = MockedFunction<
+  (
+    url: string,
+    config?: { params?: Record<string, string | number | boolean> },
+  ) => Promise<{ data: unknown }>
+>;
 
 const mockGet = jest.fn() as MockGet;
 const mockApi = { get: mockGet } as unknown as AxiosInstance;
@@ -365,6 +373,274 @@ describe("@/utils/home", () => {
           }),
         }),
       );
+    });
+  });
+
+  describe("fetchFeedBuckets", () => {
+    it("fetches and filters buckets for the following feed", async () => {
+      const teamSpace = normalizeTeamSpace({
+        id: "team-1",
+        name: "Raptors",
+        sport: "basketball",
+        archived: false,
+        createdAt: "2026-01-01T00:00:00.000Z",
+        updatedAt: "2026-01-01T00:00:00.000Z",
+      });
+
+      mockGet.mockImplementation(async (url: string) => {
+        if (url === GO_TEAM_SERVICE_ROUTES.TEAM_POSTS("team-1")) {
+          return {
+            data: {
+              posts: [
+                {
+                  id: "members-post",
+                  teamId: "team-1",
+                  authorUserId: "user-a",
+                  authorRole: "MANAGER",
+                  title: "Members",
+                  body: "Secret",
+                  scope: "Members",
+                  createdAt: "2026-04-01T10:00:00.000Z",
+                },
+                {
+                  id: "public-post",
+                  teamId: "team-1",
+                  authorUserId: "user-a",
+                  authorRole: "MANAGER",
+                  title: "Public",
+                  body: "Hello",
+                  scope: "Everyone",
+                  createdAt: "2026-04-01T11:00:00.000Z",
+                },
+              ],
+            },
+          };
+        }
+        if (url === GO_TEAM_SERVICE_ROUTES.MATCHES("team-1")) {
+          return {
+            data: [
+              {
+                id: "team-match",
+                matchType: "TEAM_MATCH",
+                status: "CONFIRMED",
+                homeTeamId: "team-1",
+                awayTeamId: "team-2",
+                sport: "basketball",
+                startTime: "2099-05-01T10:00:00.000Z",
+                endTime: "2099-05-01T11:00:00.000Z",
+                requiresReferee: false,
+                createdByUserId: "user-1",
+                createdAt: "2026-04-01T12:00:00.000Z",
+                updatedAt: "2026-04-01T12:00:00.000Z",
+              },
+            ],
+          };
+        }
+        if (url === GO_LEAGUE_SERVICE_ROUTES.LEAGUE_POSTS("league-1")) {
+          return {
+            data: {
+              items: [
+                {
+                  id: "league-post",
+                  leagueId: "league-1",
+                  authorUserId: "user-b",
+                  title: "League news",
+                  body: "Hi",
+                  scope: "Everyone",
+                  createdAt: "2026-04-01T13:00:00.000Z",
+                },
+              ],
+            },
+          };
+        }
+        if (url === GO_LEAGUE_SERVICE_ROUTES.MATCHES("league-1")) {
+          return {
+            data: [
+              {
+                id: "league-match",
+                leagueId: "league-1",
+                status: "CONFIRMED",
+                homeTeamId: "team-2",
+                awayTeamId: "team-3",
+                sport: "basketball",
+                startTime: "2099-05-02T10:00:00.000Z",
+                endTime: "2099-05-02T11:00:00.000Z",
+                requiresReferee: false,
+                createdByUserId: "user-1",
+                createdAt: "2026-04-01T14:00:00.000Z",
+                updatedAt: "2026-04-01T14:00:00.000Z",
+              },
+            ],
+          };
+        }
+
+        throw new Error(`Unexpected GET ${url}`);
+      });
+
+      const buckets = await fetchFeedBuckets({
+        api: mockApi,
+        teamSpaces: [teamSpace],
+        leagueIds: ["league-1"],
+        onlyEveryonePosts: true,
+        label: "following feed",
+        log,
+      });
+
+      expect(buckets.teamPostBuckets[0]?.posts.map((post) => post.id)).toEqual([
+        "public-post",
+      ]);
+      expect(
+        buckets.leaguePostBuckets[0]?.posts.map((post) => post.id),
+      ).toEqual(["league-post"]);
+      expect(buckets.teamMatchBuckets[0]?.matches).toHaveLength(1);
+      expect(buckets.leagueMatchBuckets[0]?.matches).toHaveLength(1);
+      expect(mockGet).toHaveBeenCalledWith(
+        GO_TEAM_SERVICE_ROUTES.TEAM_POSTS("team-1"),
+        { params: { page: 0, size: 50 } },
+      );
+    });
+
+    it("logs and drops rejected bucket requests", async () => {
+      const teamSpace = normalizeTeamSpace({
+        id: "team-1",
+        name: "Raptors",
+        sport: "basketball",
+        archived: false,
+        createdAt: "2026-01-01T00:00:00.000Z",
+        updatedAt: "2026-01-01T00:00:00.000Z",
+      });
+
+      mockGet.mockRejectedValue(new Error("down"));
+
+      const buckets = await fetchFeedBuckets({
+        api: mockApi,
+        teamSpaces: [teamSpace],
+        leagueIds: ["league-1"],
+        onlyEveryonePosts: false,
+        label: "feed",
+        log,
+      });
+
+      expect(buckets).toEqual({
+        teamPostBuckets: [],
+        leaguePostBuckets: [],
+        teamMatchBuckets: [],
+        leagueMatchBuckets: [],
+      });
+      expect(log.warn).toHaveBeenCalledWith(
+        "Failed to fetch team posts for feed",
+        expect.any(Error),
+      );
+      expect(log.warn).toHaveBeenCalledWith(
+        "Failed to fetch team matches for feed",
+        expect.any(Error),
+      );
+      expect(log.warn).toHaveBeenCalledWith(
+        "Failed to fetch league posts for feed",
+        expect.any(Error),
+      );
+      expect(log.warn).toHaveBeenCalledWith(
+        "Failed to fetch league matches for feed",
+        expect.any(Error),
+      );
+    });
+  });
+
+  describe("feed bucket collectors", () => {
+    it("collects unique post authors and match team ids", () => {
+      expect(
+        collectFeedPostAuthorIds({
+          teamPostBuckets: [
+            {
+              space: { kind: "team", id: "team-1", name: "Raptors" },
+              posts: [
+                {
+                  id: "tp-1",
+                  teamId: "team-1",
+                  authorUserId: "user-a",
+                  authorRole: "MANAGER",
+                  title: "Team",
+                  body: "Body",
+                  scope: "Everyone",
+                  createdAt: "2026-04-01T10:00:00.000Z",
+                },
+              ],
+            },
+          ],
+          leaguePostBuckets: [
+            {
+              leagueId: "league-1",
+              posts: [
+                {
+                  id: "lp-1",
+                  leagueId: "league-1",
+                  authorUserId: "user-a",
+                  title: "League",
+                  body: "Body",
+                  scope: "Everyone",
+                  createdAt: "2026-04-01T11:00:00.000Z",
+                },
+                {
+                  id: "lp-2",
+                  leagueId: "league-1",
+                  authorUserId: "user-b",
+                  title: "League 2",
+                  body: "Body",
+                  scope: "Everyone",
+                  createdAt: "2026-04-01T12:00:00.000Z",
+                },
+              ],
+            },
+          ],
+        }),
+      ).toEqual(["user-a", "user-b"]);
+
+      expect(
+        collectFeedMatchTeamIds({
+          teamMatchBuckets: [
+            {
+              space: { kind: "team", id: "team-1", name: "Raptors" },
+              matches: [
+                {
+                  id: "tm-1",
+                  matchType: "TEAM_MATCH",
+                  status: "CONFIRMED",
+                  homeTeamId: "team-1",
+                  awayTeamId: "team-2",
+                  sport: "basketball",
+                  startTime: "2099-05-01T10:00:00.000Z",
+                  endTime: "2099-05-01T11:00:00.000Z",
+                  requiresReferee: false,
+                  createdByUserId: "user-1",
+                  createdAt: "2026-04-01T13:00:00.000Z",
+                  updatedAt: "2026-04-01T13:00:00.000Z",
+                },
+              ],
+            },
+          ],
+          leagueMatchBuckets: [
+            {
+              leagueId: "league-1",
+              matches: [
+                {
+                  id: "lm-1",
+                  leagueId: "league-1",
+                  status: "CONFIRMED",
+                  homeTeamId: "team-2",
+                  awayTeamId: "team-3",
+                  sport: "basketball",
+                  startTime: "2099-05-02T10:00:00.000Z",
+                  endTime: "2099-05-02T11:00:00.000Z",
+                  requiresReferee: false,
+                  createdByUserId: "user-1",
+                  createdAt: "2026-04-01T14:00:00.000Z",
+                  updatedAt: "2026-04-01T14:00:00.000Z",
+                },
+              ],
+            },
+          ],
+        }),
+      ).toEqual(["team-1", "team-2", "team-3"]);
     });
   });
 

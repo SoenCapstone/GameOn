@@ -10,8 +10,6 @@ import { toast } from "@/utils/toast";
 import { fetchUserNameMap, mapToFrontendPost } from "@/utils/board";
 import type { HomeFeedItem } from "@/types/feed";
 
-declare const jest: typeof import("@jest/globals").jest;
-
 const mockedUseQuery = useQuery as MockedFunction<typeof useQuery>;
 const mockedUseAuth = useAuth as MockedFunction<typeof useAuth>;
 const mockedUseAxiosWithClerk = useAxiosWithClerk as MockedFunction<
@@ -26,33 +24,28 @@ const mockedMapToFrontendPost = mapToFrontendPost as MockedFunction<
 >;
 const mockedToastError = toast.error as MockedFunction<typeof toast.error>;
 
-type MockGet = MockedFunction<
-  (
-    url: string,
-    config?: { params?: Record<string, string | number | boolean> },
-  ) => Promise<{ data: unknown }>
->;
-
-const mockGet = jest.fn() as MockGet;
+const mockGet = jest.fn<
+  Promise<{ data: unknown }>,
+  [
+    string,
+    ({ params?: Record<string, string | number | boolean> } | undefined)?,
+  ]
+>();
 
 jest.mock("@tanstack/react-query", () => ({
-  // eslint-disable-next-line @typescript-eslint/no-require-imports
-  useQuery: require("@jest/globals").jest.fn(),
+  useQuery: jest.fn(),
 }));
 
 jest.mock("@clerk/clerk-expo", () => ({
-  // eslint-disable-next-line @typescript-eslint/no-require-imports
-  useAuth: require("@jest/globals").jest.fn(),
+  useAuth: jest.fn(),
 }));
 
 jest.mock("@/hooks/messages/api", () => ({
-  // eslint-disable-next-line @typescript-eslint/no-require-imports
-  fetchMyTeams: require("@jest/globals").jest.fn(),
+  fetchMyTeams: jest.fn(),
 }));
 
 jest.mock("@/hooks/use-axios-clerk", () => ({
-  // eslint-disable-next-line @typescript-eslint/no-require-imports
-  useAxiosWithClerk: require("@jest/globals").jest.fn(),
+  useAxiosWithClerk: jest.fn(),
   GO_TEAM_SERVICE_ROUTES: {
     ALL: "/api/v1/teams",
     TEAM_POSTS: (teamId: string) => `/api/v1/teams/${teamId}/posts`,
@@ -67,20 +60,16 @@ jest.mock("@/hooks/use-axios-clerk", () => ({
 }));
 
 jest.mock("@/utils/board", () => ({
-  // eslint-disable-next-line @typescript-eslint/no-require-imports
-  fetchUserNameMap: require("@jest/globals").jest.fn(),
-  // eslint-disable-next-line @typescript-eslint/no-require-imports
-  mapToFrontendPost: require("@jest/globals").jest.fn(),
+  fetchUserNameMap: jest.fn(),
+  mapToFrontendPost: jest.fn(),
 }));
 
 jest.mock("@/utils/toast", () => ({
   toast: {
-    // eslint-disable-next-line @typescript-eslint/no-require-imports
-    error: require("@jest/globals").jest.fn(),
+    error: jest.fn(),
   },
 }));
 
-/** Home feed query; shared post/match assembly is covered in `__tests__/utils/home.test.ts`. */
 describe("useHomeFeed", () => {
   const mockApi = {
     get: mockGet,
@@ -132,6 +121,66 @@ describe("useHomeFeed", () => {
     };
 
     await expect(options.queryFn()).resolves.toEqual([]);
+  });
+
+  it("keeps Members-only posts in the home feed", async () => {
+    mockedFetchMyTeams.mockResolvedValue([
+      {
+        id: "team-1",
+        name: "Raptors",
+        sport: "basketball",
+        logoUrl: null,
+        archived: false,
+        createdAt: "2026-04-01T00:00:00.000Z",
+        updatedAt: "2026-04-01T00:00:00.000Z",
+      },
+    ]);
+
+    mockGet.mockImplementation(async (url: string) => {
+      if (url === "/api/v1/leagues") {
+        return { data: { items: [] } };
+      }
+      if (url === "/api/v1/teams/team-1/posts") {
+        return {
+          data: {
+            posts: [
+              {
+                id: "members-post",
+                teamId: "team-1",
+                authorUserId: "user-a",
+                authorRole: "MANAGER",
+                title: "Members update",
+                body: "Private",
+                scope: "Members",
+                createdAt: "2026-04-02T10:00:00.000Z",
+              },
+            ],
+          },
+        };
+      }
+      if (url === "/api/v1/teams/team-1/matches") {
+        return { data: [] };
+      }
+      throw new Error(`Unexpected GET ${url}`);
+    });
+
+    mockedFetchUserNameMap.mockResolvedValue({ "user-a": "Coach A" });
+
+    const options = useHomeFeed() as unknown as {
+      queryFn: () => Promise<HomeFeedItem[]>;
+    };
+
+    const result = await options.queryFn();
+
+    expect(result).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          kind: "post",
+          id: "members-post",
+          post: expect.objectContaining({ scope: "Members" }),
+        }),
+      ]),
+    );
   });
 
   it("aggregates team and league feed items with team/league context labels", async () => {
