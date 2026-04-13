@@ -317,6 +317,7 @@ export default function MatchScreen() {
   const matchId = params.id ?? "";
   const space = params.space;
   const spaceId = params.spaceId ?? "";
+  const routeLeagueId = params.leagueId ?? "";
   const router = useRouter();
 
   const teamMatchQuery = useTeamMatch(space === "league" ? "" : matchId);
@@ -331,7 +332,10 @@ export default function MatchScreen() {
     teamMatch: teamMatchQuery.data,
     teamMatches: teamMatchesQuery.data,
   });
-  const directLeagueMatchId = getDirectLeagueMatchId({
+  const directLeagueMatchId = 
+    space === "league"
+      ? spaceId
+      : routeLeagueId || getDirectLeagueMatchId({
     fallbackDisplayMatch,
     space,
     spaceId,
@@ -356,11 +360,12 @@ export default function MatchScreen() {
   const posthog = usePostHog();
   const [hasSubmittedAttendance, setHasSubmittedAttendance] = useState(false);
   const teamSpaceId = getTeamSpaceId(space, spaceId);
-  const leagueId = getResolvedMatchLeagueId({
+  const resolvedLeagueId = getResolvedMatchLeagueId({
     displayMatch,
     space,
     spaceId,
   });
+  const leagueId = resolvedLeagueId || routeLeagueId;
   const { league, isOwner: isLeagueOwner } = useLeagueDetail(leagueId);
   const cancelLeagueMutation = useCancelLeagueMatch(leagueId);
   const cancelTeamMutation = useCancelTeamMatch();
@@ -369,7 +374,11 @@ export default function MatchScreen() {
   const teamIds = useMemo(() => getMatchTeamIds(displayMatch), [displayMatch]);
   const teamsQuery = useTeamsByIds(teamIds);
   const teamDetail = useTeamDetail(teamSpaceId);
-  const matchMembersQuery = useMatchMembersByTeam(matchId, teamSpaceId);
+  const matchMembersQuery = useMatchMembersByTeam(
+    matchId,
+    teamSpaceId,
+    leagueId || undefined,
+  );
   const matchLeagueQuery = useLeaguesByIds(
     space !== "league" && leagueId ? [leagueId] : [],
   );
@@ -396,17 +405,24 @@ export default function MatchScreen() {
       }),
     [canSubmitScoreFlag, displayMatch, teamsQuery.data, userId],
   );
-  const persistedAttendanceStatus = matchMembersQuery.data?.find(
+  const currentUserMatchMember = matchMembersQuery.data?.find(
     (member) => member.userId === userId,
-  )?.status;
+  );
+  const persistedAttendanceStatus = currentUserMatchMember?.status;
+  const role = 
+    space === "league"
+      ? (currentUserMatchMember?.role ?? null)
+      : teamDetail.role;
+  const isActiveMember =
+    space === "league" ? Boolean(currentUserMatchMember) : teamDetail.isActiveMember;
   const hasResponded = useMemo(
     () =>
       hasRespondedToAttendance({
         hasSubmittedAttendance,
         persistedAttendanceStatus,
-        role: teamDetail.role,
+        role: role,
       }),
-    [hasSubmittedAttendance, persistedAttendanceStatus, teamDetail.role],
+    [hasSubmittedAttendance, persistedAttendanceStatus, role],
   );
   const { homeTeamName, awayTeamName, homeTeamLogoUrl, awayTeamLogoUrl } =
     getTeamPresentation({
@@ -425,8 +441,8 @@ export default function MatchScreen() {
         displayMatch,
         hasResponded,
         homeTeamName,
-        isActiveMember: teamDetail.isActiveMember,
-        role: teamDetail.role,
+        isActiveMember: isActiveMember,
+        role: role,
         space,
         spaceId,
       }),
@@ -438,8 +454,8 @@ export default function MatchScreen() {
       persistedAttendanceStatus,
       space,
       spaceId,
-      teamDetail.isActiveMember,
-      teamDetail.role,
+      isActiveMember,
+      role,
     ],
   );
 
@@ -447,14 +463,14 @@ export default function MatchScreen() {
     if (!displayMatch) return;
     posthog.capture("match_viewed", {
       match_id: displayMatch.id,
-      space,
+      space: space ?? "",
     });
   }, [displayMatch, posthog, space]);
 
   const onSubmitScore = useCallback(() => {
     posthog.capture("match_submit_score_tapped", {
-      match_id: displayMatch?.id,
-      space,
+      match_id: displayMatch?.id ?? "",
+      space: space ?? "",
     });
     pushMatchScoreRoute({
       awayTeamName,
@@ -480,8 +496,8 @@ export default function MatchScreen() {
 
   const onConfirmCancelMatch = useCallback(async () => {
     posthog.capture("match_cancelled", {
-      match_id: displayMatch?.id,
-      space,
+      match_id: displayMatch?.id ?? "",
+      space: space ?? "",
     });
     try {
       await cancelMatch({
@@ -512,17 +528,19 @@ export default function MatchScreen() {
   ]);
   const onConfirmAttendanceAction = useCallback(async () => {
     posthog.capture("match_attendance_updated", {
-      match_id: displayMatch?.id,
-      action: attendanceAction?.label,
-      space,
+      match_id: displayMatch?.id ?? "",
+      action: attendanceAction?.label ?? "",
+      space: space ?? "",
     });
     try {
       await submitMatchAttendance({
         attendanceAction,
         displayMatch,
+        leagueId,
         queryClient,
         setHasSubmittedAttendance,
         spaceId,
+        teamBoardId: teamSpaceId || currentUserMatchMember?.teamId || "",
         updateAttendance: attendanceMutation.mutateAsync,
       });
     } catch (err) {
@@ -534,11 +552,14 @@ export default function MatchScreen() {
     attendanceAction,
     attendanceMutation,
     displayMatch,
+    leagueId,
     posthog,
     queryClient,
+    currentUserMatchMember?.teamId,
     setHasSubmittedAttendance,
     space,
     spaceId,
+    teamSpaceId,
   ]);
 
   const venueId = displayMatch?.venueId ?? "";

@@ -161,6 +161,14 @@ export const GO_LEAGUE_SERVICE_ROUTES = {
       SERVICE.LEAGUES,
       `${leagueId}/matches/${matchId}/score`,
     ),
+  MATCH_ATTENDANCE: (leagueId: string, matchId: string) =>
+    buildRoute(
+      VERSIONING.v1,
+      SERVICE.LEAGUES,
+      `${leagueId}/matches/${matchId}/attendance`,
+    ),
+  MATCH_MEMBERS: (matchId: string) =>
+    buildRoute(VERSIONING.v1, SERVICE.LEAGUES, `matches/${matchId}/members`),
   ASSIGN_REFEREE: (leagueId: string, matchId: string) =>
     buildRoute(
       VERSIONING.v1,

@@ -31,7 +31,7 @@ type TeamMatchMemberResponse = {
   id: string;
   teamId: string;
   userId: string;
-  role: "OWNER" | "MANAGER" | "PLAYER" | "COACH" | "REPLACEMENT";
+  role?: "OWNER" | "MANAGER" | "PLAYER" | "COACH" | "REPLACEMENT";
   status: "CONFIRMED" | "DECLINED" | "PENDING";
 };
 
@@ -622,28 +622,54 @@ export function useUpdateMatchAttendance() {
   return useMutation({
     mutationFn: async ({
       matchId,
+      leagueId,
       attending,
     }: {
       matchId: string;
+      leagueId?: string;
       attending: "CONFIRMED" | "DECLINED";
     }) => {
+      if (leagueId) {
+        await api.post(
+          GO_LEAGUE_SERVICE_ROUTES.MATCH_ATTENDANCE(leagueId, matchId),
+          { attending },
+        );
+        return;
+      }
+
       await api.post(GO_MATCH_ROUTES.ATTENDANCE(matchId), { attending });
     },
   });
 }
 
-export function useMatchMembersByTeam(matchId: string, teamId: string) {
+export function useMatchMembersByTeam(
+  matchId: string,
+  teamId?: string,
+  leagueId?: string,
+) {
   const api = useAxiosWithClerk();
+  const resolvedTeamId = teamId ?? "";
 
   return useQuery<TeamMatchMemberResponse[]>({
-    queryKey: ["match-members-by-team", matchId, teamId],
+    queryKey: ["match-members-by-team", matchId, resolvedTeamId, leagueId ?? ""],
     queryFn: async () => {
+      if (leagueId) {
+        const resp = await api.get<TeamMatchMemberResponse[]>(
+          GO_LEAGUE_SERVICE_ROUTES.MATCH_MEMBERS(matchId),
+        );
+        const members = resp.data ?? [];
+        if (!resolvedTeamId) {
+          return members;
+        }
+        return members.filter((member) => member.teamId === resolvedTeamId);
+      }
+
       const resp = await api.get<TeamMatchMemberResponse[]>(
-        GO_MATCH_ROUTES.MATCH_MEMBERS_BY_TEAM(matchId, teamId),
+        GO_MATCH_ROUTES.MATCH_MEMBERS_BY_TEAM(matchId, resolvedTeamId),
       );
       return resp.data ?? [];
     },
-    enabled: Boolean(matchId && teamId),
+    enabled: Boolean(matchId && (resolvedTeamId || leagueId)),
     retry: false,
   });
 }
