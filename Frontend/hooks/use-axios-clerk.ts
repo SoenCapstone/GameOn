@@ -228,6 +228,13 @@ export const GO_INVITE_ROUTES = {
   RESPOND: `${invitesBase}/response`,
 };
 
+const exploreBase = `${API}/${VERSIONING.v1}/explore`;
+
+export const GO_EXPLORE_ROUTES = {
+  LEAGUE_MATCHES: `${exploreBase}/league-matches`,
+  TEAM_MATCHES: `${exploreBase}/team-matches`,
+};
+
 const matchesBase = buildRoute(VERSIONING.v1, "matches");
 
 export const GO_MATCH_ROUTES = {

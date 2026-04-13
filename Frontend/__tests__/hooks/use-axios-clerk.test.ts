@@ -13,6 +13,7 @@ import {
   GO_INVITE_ROUTES,
   GO_MATCH_ROUTES,
   GO_REFEREE_SERVICE_ROUTES,
+  GO_EXPLORE_ROUTES,
 } from "@/hooks/use-axios-clerk";
 
 const mockUseAuth = jest.fn();
@@ -155,6 +156,8 @@ describe("Route Builders", () => {
         "api/v1/messaging/conversations/direct",
       ],
       [GO_INVITE_ROUTES.RESPOND, "api/v1/invites/response"],
+      [GO_EXPLORE_ROUTES.LEAGUE_MATCHES, "api/v1/explore/league-matches"],
+      [GO_EXPLORE_ROUTES.TEAM_MATCHES, "api/v1/explore/team-matches"],
     ];
 
     staticRoutes.forEach(([actual, expected]) => {
