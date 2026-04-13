@@ -89,7 +89,7 @@ jest.mock("@/components/form/form-toolbar", () => {
 
 jest.mock("@/hooks/use-team-form", () => {
   const actual = jest.requireActual("@/hooks/use-team-form");
-  const { SPORTS, CITIES } = jest.requireActual("@/constants/form-constants");
+  const { sports, cities } = jest.requireActual("@/constants/form-constants");
   return {
     ...actual,
     useTeamForm: (props?: Parameters<typeof actual.useTeamForm>[0]) => {
@@ -97,13 +97,13 @@ jest.mock("@/hooks/use-team-form", () => {
       return {
         ...result,
         // Pre-fill sport and city so tests don't need to open native pickers
-        selectedSport: result.selectedSport ?? SPORTS[0],
-        selectedCity: result.selectedCity ?? CITIES[1],
+        selectedSport: result.selectedSport ?? sports[0],
+        selectedCity: result.selectedCity ?? cities[1],
         // allowedRegions is now required by backend contract
         selectedAllowedRegions:
           result.selectedAllowedRegions.length > 0
             ? result.selectedAllowedRegions
-            : [CITIES[1].label],
+            : [cities[1].label],
       };
     },
   };
