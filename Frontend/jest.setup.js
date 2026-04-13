@@ -47,6 +47,15 @@ jest.mock("expo-linear-gradient", () => {
   return { LinearGradient };
 });
 
+jest.mock("posthog-react-native", () => ({
+  usePostHog: () => ({
+    capture: jest.fn(),
+    identify: jest.fn(),
+  }),
+  PostHogProvider: ({ children }) => children,
+  useFeatureFlag: () => undefined,
+}));
+
 jest.mock("sonner-native", () => {
   const React = require("react");
   const { View } = require("react-native");
