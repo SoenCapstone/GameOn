@@ -29,6 +29,7 @@ import { buildMatchCards, splitMatchSections } from "@/utils/matches";
 import { TeamOverviewTab } from "@/components/teams/team-overview-tab";
 import { Loading } from "@/components/ui/loading";
 import { Empty } from "@/components/ui/empty";
+import { usePostHogFlags } from "@/hooks/use-posthog-flags";
 
 type TeamTab = "board" | "matches" | "overview";
 
@@ -127,6 +128,10 @@ export default function Team() {
   );
 }
 
+function resolveOwnerAction(flag: boolean, isOwnerCheck: boolean, handler: () => void) {
+  return isOwnerCheck && flag ? handler : undefined;
+}
+
 function TeamContent() {
   const params = useLocalSearchParams<{
     tab?: string;
@@ -154,6 +159,8 @@ function TeamContent() {
   const canManage =
     isActiveMember &&
     (role === "OWNER" || role === "COACH" || role === "MANAGER");
+
+  const { canCreatePost, canScheduleMatch } = usePostHogFlags();
 
   const openPost = useCallback(() => {
     router.push({
@@ -290,8 +297,8 @@ function TeamContent() {
             isFollowing={isFollowing}
             onFollow={onFollow}
             onUnfollow={onUnfollow}
-            openPost={canManage ? openPost : undefined}
-            openSchedule={isOwner ? openSchedule : undefined}
+            openPost={resolveOwnerAction(canCreatePost, canManage, openPost)}
+            openSchedule={resolveOwnerAction(canScheduleMatch, isOwner, openSchedule)}
             openPlaymaker={canManage ? openPlaymaker : undefined}
           />
         }

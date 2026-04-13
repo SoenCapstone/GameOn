@@ -10,9 +10,9 @@ appId: host.exp.Exponent
 
 - tapOn: Enter team name
 
-- inputText: End2EndRunners
+- inputText: RunnersEndToEnd
 
-- assertVisible: End2EndRunners
+- assertVisible: RunnersEndToEnd
 
 - doubleTapOn: Select sport, 
 
@@ -40,4 +40,4 @@ appId: host.exp.Exponent
 
 - tapOn: Spaces
 
-- assertVisible: End2EndRunners, Soccer, Forward
+- assertVisible: RunnersEndToEnd, Soccer, Forward
