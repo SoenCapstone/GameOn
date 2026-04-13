@@ -5,6 +5,7 @@ import { ActivityIndicator } from "react-native";
 import { useMutation } from "@tanstack/react-query";
 import { LabeledInput } from "@/components/auth/labeled-input";
 import { useClerk, useSignUp } from "@clerk/clerk-expo";
+import { usePostHog } from "posthog-react-native";
 import { SignUpDatePicker } from "@/components/auth/sign-up-date-picker";
 import { PasswordVisibilityToggle } from "@/components/auth/password-visibility-toggle";
 import { ContentArea } from "@/components/ui/content-area";
@@ -65,6 +66,7 @@ export default function SignUpScreen() {
   const { isLoaded, signUp, setActive } = useSignUp();
   const clerk = useClerk();
   const upsertUser = useUpsertUser();
+  const posthog = usePostHog();
   const [pendingVerification, setPendingVerification] = useState(false);
   const [verificationValues, setVerificationValues] = useState<User | null>(
     null,
@@ -106,6 +108,21 @@ export default function SignUpScreen() {
         upsertUser,
         deleteUserOnError,
       );
+    },
+    onSuccess: () => {
+      if (!verificationValues) return;
+      posthog.identify(signUp?.createdUserId ?? undefined, {
+        $set: {
+          firstName: verificationValues.firstname,
+          lastName: verificationValues.lastname,
+        },
+        $set_once: {
+          first_signup_date: new Date().toISOString(),
+        },
+      });
+      posthog.capture("user_signed_up", {
+        method: "email",
+      });
     },
   });
 

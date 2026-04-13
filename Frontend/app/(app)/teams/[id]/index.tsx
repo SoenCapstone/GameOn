@@ -32,6 +32,7 @@ import { buildMatchCards, splitMatchSections } from "@/utils/matches";
 import { TeamOverviewTab } from "@/components/teams/team-overview-tab";
 import { Loading } from "@/components/ui/loading";
 import { Empty } from "@/components/ui/empty";
+import { usePostHogFlags } from "@/hooks/use-posthog-flags";
 
 type TeamTab = "board" | "matches" | "overview";
 
@@ -142,6 +143,8 @@ function TeamContent() {
   const canManage =
     isActiveMember &&
     (role === "OWNER" || role === "COACH" || role === "MANAGER");
+
+  const { canCreatePost, canScheduleMatch } = usePostHogFlags();
 
   const openPost = useCallback(() => {
     router.push({
@@ -275,8 +278,8 @@ function TeamContent() {
             canManageSettings={isOwner || role === "MANAGER"}
             canFollow={!isActiveMember}
             onFollow={handleFollow}
-            openPost={canManage ? openPost : undefined}
-            openSchedule={isOwner ? openSchedule : undefined}
+            openPost={canManage && canCreatePost ? openPost : undefined}
+            openSchedule={isOwner && canScheduleMatch ? openSchedule : undefined}
             openPlaymaker={canManage ? openPlaymaker : undefined}
           />
         }

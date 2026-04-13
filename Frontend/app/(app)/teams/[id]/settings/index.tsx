@@ -30,6 +30,7 @@ import { MenuCardItem } from "@/components/form/menu-card-item";
 import { formatMemberSince } from "@/utils/date";
 import { TeamMember } from "@/types/team-member";
 import { isRunningInExpoGo } from "@/utils/runtime";
+import { usePostHog } from "posthog-react-native";
 
 type TeamRole = NonNullable<TeamMember["role"]>;
 const TEAM_ROLE_OPTIONS: readonly TeamRole[] = [
@@ -92,6 +93,7 @@ function TeamSettingsContent() {
   const api = useAxiosWithClerk();
   const queryClient = useQueryClient();
   const { userId } = useAuth();
+  const posthog = usePostHog();
   const { id, team, isLoading, isOwner, role } = useTeamDetailContext();
   const teamMembersQuery = useGetTeamMembers(id);
   const canAccessSettings = isOwner || role === "MANAGER";
@@ -168,6 +170,10 @@ function TeamSettingsContent() {
 
   const deleteTeamMutation = useDeleteTeam(id, {
     onSuccess: () => {
+      posthog.capture("team_deleted", {
+        team_id: id,
+        sport: team?.sport,
+      });
       log.info("Team deleted successfully");
       navigation.dispatch(StackActions.pop(1));
       router.back();
