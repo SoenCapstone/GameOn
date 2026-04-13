@@ -1,0 +1,23 @@
+appId: host.exp.Exponent
+---
+
+- tapOn: Become a Referee
+- assertVisible:
+    text: Become a Referee?
+    index: 1
+- assertVisible: Referees help keep games fair and running smoothly.
+- tapOn: Continue
+
+- assertVisible: Sports, Forward
+- assertVisible: Regions, Forward
+- assertVisible: Pause Refereeing
+
+- tapOn: Sports, Forward
+- tapOn: Soccer, circle
+- assertVisible: Soccer, selected
+- tapOn: Save
+
+- tapOn: Regions, Forward
+- tapOn: Montreal, circle
+- assertVisible: Montreal, selected
+- tapOn: Save

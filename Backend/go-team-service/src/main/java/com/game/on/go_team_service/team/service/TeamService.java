@@ -558,6 +558,38 @@ public class TeamService {
         return playId;
     }
 
+    @Transactional
+    public UUID updatePlay(List<PlayItemDTO> items, UUID teamId, UUID playId) {
+
+        List<PlayItemDTO> safeItems = (items == null) ? List.of() : items;
+
+        List<PersonNodeDTO> nodeDtos = extractNodes(safeItems);
+        List<ArrowDTO> arrowDtos = extractArrows(safeItems);
+
+        validateNodeIdsUnique(nodeDtos);
+        validateArrowsReferenceExistingNodes(arrowDtos, nodeDtos);
+
+        requireActiveTeam(teamId);
+        ensurePlayBelongsToTeam(playId, teamId);
+
+        Play play = playRepository.findById(playId)
+                .orElseThrow(() -> new NotFoundException("Play not found"));
+
+        playEdgeRepository.deleteByPlayId(playId);
+        playNodeRepository.deleteByPlayId(playId);
+
+        List<PlayNode> nodes = mapNodes(play, nodeDtos);
+        playNodeRepository.saveAll(nodes);
+
+        Map<UUID, PlayNode> nodeById = nodes.stream()
+                .collect(Collectors.toMap(PlayNode::getId, Function.identity()));
+
+        List<PlayEdge> edges = mapEdges(play, arrowDtos, nodeById);
+        playEdgeRepository.saveAll(edges);
+
+        return playId;
+    }
+
     @Transactional(readOnly = true)
     public List<UUID> getAllPlayIds(UUID teamId){
         String userId = userProvider.clerkUserId();

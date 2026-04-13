@@ -6,13 +6,14 @@ import {
   useCreateLeagueBoardPost,
   useDeleteLeagueBoardPost,
 } from "@/hooks/use-league-board";
-import { CreateBoardPostRequest } from "@/components/board/board-types";
+import { CreateBoardPostRequest } from "@/types/board";
 import { useAxiosWithClerk } from "@/hooks/use-axios-clerk";
 import {
   fetchUserNameMap,
   mapToFrontendPost,
-} from "@/components/board/board-utils";
+} from "@/utils/board";
 import { AxiosInstance } from "axios";
+import { useAuth } from "@clerk/clerk-expo";
 
 jest.mock("@/hooks/use-axios-clerk", () => ({
   useAxiosWithClerk: jest.fn(),
@@ -23,7 +24,7 @@ jest.mock("@/hooks/use-axios-clerk", () => ({
   },
 }));
 
-jest.mock("@/components/board/board-utils", () => ({
+jest.mock("@/utils/board", () => ({
   fetchUserNameMap: jest.fn(),
   mapToFrontendPost: jest.fn(),
 }));
@@ -33,6 +34,10 @@ jest.mock("@/utils/logger", () => ({
     info: jest.fn(),
     error: jest.fn(),
   })),
+}));
+
+jest.mock("@clerk/clerk-expo", () => ({
+  useAuth: jest.fn(),
 }));
 
 const mockedUseAxiosWithClerk = useAxiosWithClerk as jest.MockedFunction<
@@ -83,6 +88,7 @@ describe("use-league-board", () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    (useAuth as jest.Mock).mockReturnValue({ userId: "user-123" });
     mockedUseAxiosWithClerk.mockReturnValue(
       mockApi as unknown as AxiosInstance,
     );

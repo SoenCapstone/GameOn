@@ -26,8 +26,7 @@ export function TeamPerformanceCardPlaceholder({ performance }: Props) {
 
   return (
     <Card>
-      <View style={styles.cardFill}>
-        <View style={styles.performanceCard}>
+    <View style={styles.performanceCard}>
           <Text style={styles.performanceTitle}>Team Performance</Text>
 
           <View style={styles.performanceList}>
@@ -67,23 +66,15 @@ export function TeamPerformanceCardPlaceholder({ performance }: Props) {
               </Text>
             )}
           </View>
-        </View>
-      </View>
+    </View>
     </Card>
   );
 }
 
 const styles = StyleSheet.create({
-  cardFill: {
-    margin: -24,
-  },
-
   performanceCard: {
-    borderRadius: 26,
+    margin: -24,
     padding: 14,
-    backgroundColor: "rgba(255,255,255,0.06)",
-    borderWidth: 1,
-    borderColor: "rgba(255,255,255,0.14)",
   },
 
   performanceTitle: {
@@ -161,7 +152,7 @@ const styles = StyleSheet.create({
     width: "55%",
     height: "100%",
     borderRadius: 999,
-    backgroundColor: "rgba(255,255,255,0.18)",
+    backgroundColor: "rgba(134, 0, 0, 0.5)",
   },
 
   skelPerfValue: {

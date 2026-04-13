@@ -399,8 +399,10 @@ class TeamServiceTest {
         List<PlayItemDTO> items = List.of(node1, node2, arrow);
 
         ArgumentCaptor<Play> playCaptor = ArgumentCaptor.forClass(Play.class);
-        ArgumentCaptor<List<PlayNode>> nodeListCaptor = ArgumentCaptor.forClass(List.class);
-        ArgumentCaptor<List<PlayEdge>> edgeListCaptor = ArgumentCaptor.forClass(List.class);
+        @SuppressWarnings("unchecked")
+        ArgumentCaptor<List<PlayNode>> nodeListCaptor = (ArgumentCaptor<List<PlayNode>>) (ArgumentCaptor<?>) ArgumentCaptor.forClass(List.class);
+        @SuppressWarnings("unchecked")
+        ArgumentCaptor<List<PlayEdge>> edgeListCaptor = (ArgumentCaptor<List<PlayEdge>>) (ArgumentCaptor<?>) ArgumentCaptor.forClass(List.class);
 
         when(playNodeRepository.saveAll(anyList())).thenAnswer(inv -> inv.getArgument(0));
         when(playEdgeRepository.saveAll(anyList())).thenAnswer(inv -> inv.getArgument(0));
@@ -457,6 +459,103 @@ class TeamServiceTest {
         assertSame(savedN1, e.getFrom());
         assertSame(savedN2, e.getTo());
     }
+
+        @Test
+        void updatePlay_happyPath_replacesPlayNodesAndEdges_andReturnsSamePlayId() {
+                UUID playId = UUID.randomUUID();
+                UUID n1 = UUID.randomUUID();
+                UUID n2 = UUID.randomUUID();
+                UUID edgeId = UUID.randomUUID();
+
+                Team team = new Team();
+                team.setId(teamId);
+
+                when(teamRepository.findByIdAndDeletedAtIsNull(eq(teamId))).thenReturn(Optional.of(team));
+                when(playRepository.existsByIdAndTeam_Id(playId, teamId)).thenReturn(true);
+
+                Play play = Play.builder().id(playId).team(team).build();
+                when(playRepository.findById(playId)).thenReturn(Optional.of(play));
+
+                PersonNodeDTO node1 = new PersonNodeDTO(n1, 10.0, 20.0, 32.0, "user_aaa");
+                PersonNodeDTO node2 = new PersonNodeDTO(n2, 30.0, 40.0, 28.0, null);
+                ArrowDTO arrow = new ArrowDTO(edgeId, new NodeRefDTO(n1), new NodeRefDTO(n2));
+
+                List<PlayItemDTO> items = List.of(node1, node2, arrow);
+
+                when(playNodeRepository.saveAll(anyList())).thenAnswer(inv -> inv.getArgument(0));
+                when(playEdgeRepository.saveAll(anyList())).thenAnswer(inv -> inv.getArgument(0));
+
+                UUID updatedPlayId = teamService.updatePlay(items, teamId, playId);
+
+                assertEquals(playId, updatedPlayId);
+
+                @SuppressWarnings("unchecked")
+                ArgumentCaptor<List<PlayNode>> nodeListCaptor = (ArgumentCaptor<List<PlayNode>>) (ArgumentCaptor<?>) ArgumentCaptor.forClass(List.class);
+                @SuppressWarnings("unchecked")
+                ArgumentCaptor<List<PlayEdge>> edgeListCaptor = (ArgumentCaptor<List<PlayEdge>>) (ArgumentCaptor<?>) ArgumentCaptor.forClass(List.class);
+
+                verify(playEdgeRepository).deleteByPlayId(playId);
+                verify(playNodeRepository).deleteByPlayId(playId);
+                verify(playNodeRepository).saveAll(nodeListCaptor.capture());
+                verify(playEdgeRepository).saveAll(edgeListCaptor.capture());
+
+                List<PlayNode> savedNodes = nodeListCaptor.getValue();
+                assertEquals(2, savedNodes.size());
+
+                Map<UUID, PlayNode> nodeById = new HashMap<>();
+                for (PlayNode pn : savedNodes) nodeById.put(pn.getId(), pn);
+
+                PlayNode savedN1 = nodeById.get(n1);
+                PlayNode savedN2 = nodeById.get(n2);
+
+                assertNotNull(savedN1);
+                assertNotNull(savedN2);
+                assertSame(play, savedN1.getPlay());
+                assertSame(play, savedN2.getPlay());
+                assertEquals(PlayMakerShapeType.PERSON, savedN1.getType());
+                assertEquals(PlayMakerShapeType.PERSON, savedN2.getType());
+                assertEquals(10.0, savedN1.getX());
+                assertEquals(20.0, savedN1.getY());
+                assertEquals(32.0, savedN1.getSize());
+                assertEquals("user_aaa", savedN1.getAssociatedPlayerId());
+
+                assertEquals(30.0, savedN2.getX());
+                assertEquals(40.0, savedN2.getY());
+                assertEquals(28.0, savedN2.getSize());
+                assertNull(savedN2.getAssociatedPlayerId());
+
+                List<PlayEdge> savedEdges = edgeListCaptor.getValue();
+                assertEquals(1, savedEdges.size());
+
+                PlayEdge e = savedEdges.get(0);
+                assertEquals(edgeId, e.getId());
+                assertSame(play, e.getPlay());
+                assertSame(savedN1, e.getFrom());
+                assertSame(savedN2, e.getTo());
+
+                verify(teamRepository).findByIdAndDeletedAtIsNull(teamId);
+                verify(playRepository).existsByIdAndTeam_Id(playId, teamId);
+                verify(playRepository).findById(playId);
+                verifyNoMoreInteractions(playRepository, playNodeRepository, playEdgeRepository);
+        }
+
+        @Test
+        void updatePlay_whenPlayDoesNotBelongToTeam_throwsForbidden() {
+                UUID playId = UUID.randomUUID();
+
+                Team team = new Team();
+                team.setId(teamId);
+
+                when(teamRepository.findByIdAndDeletedAtIsNull(eq(teamId))).thenReturn(Optional.of(team));
+                when(playRepository.existsByIdAndTeam_Id(playId, teamId)).thenReturn(false);
+
+                assertThrows(ForbiddenException.class, () -> teamService.updatePlay(List.of(), teamId, playId));
+
+                verify(teamRepository).findByIdAndDeletedAtIsNull(teamId);
+                verify(playRepository).existsByIdAndTeam_Id(playId, teamId);
+                verify(playRepository, never()).findById(any());
+                verifyNoInteractions(playNodeRepository, playEdgeRepository);
+        }
 
     @Test
     void getPlayItems_whenMemberAndPlayBelongsToTeam_returnsMappedItems() {

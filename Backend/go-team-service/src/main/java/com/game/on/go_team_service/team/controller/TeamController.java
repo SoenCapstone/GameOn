@@ -1,5 +1,6 @@
 package com.game.on.go_team_service.team.controller;
 
+import com.game.on.go_team_service.config.CurrentUserProvider;
 import com.game.on.go_team_service.team.dto.*;
 import com.game.on.go_team_service.team.service.TeamService;
 import jakarta.validation.Valid;
@@ -17,6 +18,7 @@ import java.util.UUID;
 public class TeamController {
 
     private final TeamService teamService;
+    private final CurrentUserProvider currentUserProvider;
 
     @PostMapping("/create")
     public ResponseEntity<TeamDetailResponse> createTeam(@Valid @RequestBody TeamCreateRequest request) {
@@ -99,9 +101,9 @@ public class TeamController {
         return ResponseEntity.ok(teamService.transferOwnership(request));
     }
 
-    @PostMapping("/{teamId}/members/self-demote/{userId}")
-    public ResponseEntity<TeamMemberResponse> demoteSelf(@PathVariable String userId, @PathVariable UUID teamId) {
-        return ResponseEntity.ok(teamService.demoteSelfToPlayer(teamId, userId));
+    @PostMapping("/{teamId}/members/self-demote")
+    public ResponseEntity<TeamMemberResponse> demoteSelf(@PathVariable UUID teamId) {
+        return ResponseEntity.ok(teamService.demoteSelfToPlayer(teamId, currentUserProvider.clerkUserId()));
     }
 
     @PatchMapping("/{teamId}/members/{userId}/role")
@@ -128,5 +130,14 @@ public class TeamController {
     @GetMapping("/{teamId}/plays/{playId}")
     public List<PlayItemDTO> getPlay(@PathVariable UUID teamId, @PathVariable UUID playId) {
         return teamService.getPlayItems(teamId, playId);
+    }
+
+    @PutMapping("/{teamId}/plays/{playId}")
+    public ResponseEntity<UUID> updatePlay(
+            @PathVariable UUID teamId,
+            @PathVariable UUID playId,
+            @RequestBody List<PlayItemDTO> items
+    ) {
+        return ResponseEntity.ok(teamService.updatePlay(items, teamId, playId));
     }
 }

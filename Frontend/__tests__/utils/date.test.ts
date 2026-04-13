@@ -4,6 +4,7 @@ import {
   isToday,
   isValidTimeRange,
   parseDraftDate,
+  startOfLocalDay,
   toOffsetIsoString,
 } from "@/utils/date";
 
@@ -47,6 +48,34 @@ describe("date utilities", () => {
       const value = new Date(2026, 2, 5, 13, 45, 12);
 
       expect(formatLocalDateString(value)).toBe("2026-03-05");
+    });
+  });
+
+  describe("startOfLocalDay", () => {
+    it("resets a date to local midnight while keeping the same calendar day", () => {
+      const value = new Date(2026, 2, 18, 14, 37, 22, 123);
+
+      const startOfDay = startOfLocalDay(value);
+
+      expect(startOfDay.getFullYear()).toBe(2026);
+      expect(startOfDay.getMonth()).toBe(2);
+      expect(startOfDay.getDate()).toBe(18);
+      expect(startOfDay.getHours()).toBe(0);
+      expect(startOfDay.getMinutes()).toBe(0);
+      expect(startOfDay.getSeconds()).toBe(0);
+      expect(startOfDay.getMilliseconds()).toBe(0);
+    });
+
+    it("creates a new Date instance instead of mutating the original", () => {
+      const value = new Date(2026, 2, 18, 14, 37, 22, 123);
+
+      const startOfDay = startOfLocalDay(value);
+
+      expect(startOfDay).not.toBe(value);
+      expect(value.getHours()).toBe(14);
+      expect(value.getMinutes()).toBe(37);
+      expect(value.getSeconds()).toBe(22);
+      expect(value.getMilliseconds()).toBe(123);
     });
   });
 

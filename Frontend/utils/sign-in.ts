@@ -44,7 +44,12 @@ export const signin = async (
   setActive: SetActive,
   isLoaded: boolean,
 ): Promise<void> => {
-  if (!isLoaded) return;
+  if (!isLoaded) {
+    toast.error("Sign In Unavailable", {
+      description: "Please wait a moment and try again.",
+    });
+    return;
+  }
 
   try {
     const result = await signIn.create({

@@ -358,7 +358,11 @@ public class TeamMatchService {
                 request.homeScore(),
                 request.awayScore(),
                 match.getStartTime(),
-                request.endTime()
+                request.endTime(),
+                request.homeShotsOnTarget(),
+                request.awayShotsOnTarget(),
+                request.homeFouls(),
+                request.awayFouls()
         );
 
         log.info("team_match_score_submitted matchId={} submittedBy={} homeScore={} awayScore={}",
@@ -601,6 +605,24 @@ public class TeamMatchService {
         );
     }
 
+    @Transactional(readOnly = true)
+    public List<TeamMatchResponse> listMyRefereeMatches() {
+        String userId = userProvider.clerkUserId();
+        List<TeamMatch> matches = teamMatchRepository.findByRefereeUserIdOrderByStartTimeDesc(userId);
+        if (matches.isEmpty()) {
+            return List.of();
+        }
+
+        Map<UUID, TeamMatchScore> scoresByMatchId = teamMatchScoreRepository
+                .findByMatch_IdIn(matches.stream().map(TeamMatch::getId).toList())
+                .stream()
+                .collect(Collectors.toMap(s -> s.getMatch().getId(), Function.identity()));
+
+        return matches.stream()
+                .map(m -> toResponse(m, scoresByMatchId.get(m.getId())))
+                .toList();
+    }
+
     private String trimToNull(String value) {
         return StringUtils.hasText(value) ? value.trim() : null;
     }
@@ -661,12 +683,21 @@ public class TeamMatchService {
             int homeScore,
             int awayScore,
             OffsetDateTime startTime,
-            OffsetDateTime endTime
+            OffsetDateTime endTime,
+            Integer homeShotsOnTarget,
+            Integer awayShotsOnTarget,
+            Integer homeFouls,
+            Integer awayFouls
     ) {
         int playedMinutes = (int) Math.max(0, Duration.between(startTime, endTime).toMinutes());
 
         incrementCommonStats(homeTeam, playedMinutes);
         incrementCommonStats(awayTeam, playedMinutes);
+
+        homeTeam.setTotalShotsOnTarget(safeInt(homeTeam.getTotalShotsOnTarget()) + safeInt(homeShotsOnTarget));
+        awayTeam.setTotalShotsOnTarget(safeInt(awayTeam.getTotalShotsOnTarget()) + safeInt(awayShotsOnTarget));
+        homeTeam.setTotalFouls(safeInt(homeTeam.getTotalFouls()) + safeInt(homeFouls));
+        awayTeam.setTotalFouls(safeInt(awayTeam.getTotalFouls()) + safeInt(awayFouls));
 
         if (homeScore > awayScore) {
             homeTeam.setTotalPoints(safeInt(homeTeam.getTotalPoints()) + 3);

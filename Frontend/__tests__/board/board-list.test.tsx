@@ -1,11 +1,20 @@
 import React from "react";
+import {
+  beforeEach,
+  describe,
+  expect,
+  it,
+  jest,
+} from "@jest/globals";
 import { render } from "@testing-library/react-native";
 import { BoardList } from "@/components/board/board-list";
-import { BoardPost } from "@/components/board/board-types";
+import { BoardPost } from "@/types/board";
 
 jest.mock("react-native-context-menu-view", () => {
-  const mockReact = jest.requireActual("react");
-  const { View: MockView } = jest.requireActual("react-native");
+  const mockReact = jest.requireActual("react") as typeof import("react");
+  const { View: MockView } = jest.requireActual(
+    "react-native",
+  ) as typeof import("react-native");
   return {
     __esModule: true,
     default: ({
@@ -36,32 +45,27 @@ jest.mock("@/components/board/post", () => ({
 }));
 
 jest.mock("@legendapp/list/react-native", () => {
-  const mockReact = jest.requireActual("react");
+  const mockReact = jest.requireActual("react") as typeof import("react");
   return {
     LegendList: ({
       data,
       renderItem,
       keyExtractor,
       ListEmptyComponent,
-      onContentSizeChange,
     }: {
       data: unknown[];
-      renderItem: (args: {
-        item: unknown;
-        index: number;
-      }) => React.ReactElement;
+      renderItem: (args: { item: unknown; index: number }) => React.ReactElement;
       keyExtractor?: (item: unknown, index: number) => string | number;
       ListEmptyComponent?: React.ReactElement;
-      onContentSizeChange?: () => void;
     }) => {
       const items = data?.length
         ? data.map((item, index) => {
             const key = keyExtractor ? keyExtractor(item, index) : index;
-            return mockReact.cloneElement(renderItem({ item, index }), { key });
+            return mockReact.cloneElement(renderItem({ item, index }), {
+              key,
+            });
           })
         : null;
-
-      onContentSizeChange?.();
 
       return mockReact.createElement(
         mockReact.Fragment,
@@ -74,7 +78,7 @@ jest.mock("@legendapp/list/react-native", () => {
 });
 
 jest.mock("expo-glass-effect", () => {
-  const mockReact = jest.requireActual("react");
+  const mockReact = jest.requireActual("react") as typeof import("react");
   return {
     GlassView: ({ children }: { children?: React.ReactNode }) => {
       return mockReact.createElement("View", null, children);

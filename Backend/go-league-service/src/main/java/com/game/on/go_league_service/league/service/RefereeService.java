@@ -7,13 +7,17 @@ import com.game.on.go_league_service.exception.BadRequestException;
 import com.game.on.go_league_service.exception.ConflictException;
 import com.game.on.go_league_service.exception.ForbiddenException;
 import com.game.on.go_league_service.exception.NotFoundException;
+import com.game.on.go_league_service.league.dto.LeagueMatchResponse;
 import com.game.on.go_league_service.league.dto.RefInviteRequest;
 import com.game.on.go_league_service.league.dto.RefInviteResponse;
 import com.game.on.go_league_service.league.dto.RefereeProfileResponse;
 import com.game.on.go_league_service.league.dto.RefereeRegisterRequest;
+import com.game.on.go_league_service.league.model.LeagueMatch;
+import com.game.on.go_league_service.league.model.LeagueMatchScore;
 import com.game.on.go_league_service.league.model.RefInvite;
 import com.game.on.go_league_service.league.model.RefInviteStatus;
 import com.game.on.go_league_service.league.model.RefereeProfile;
+import com.game.on.go_league_service.league.repository.LeagueMatchScoreRepository;
 import com.game.on.go_league_service.league.repository.VenueRepository;
 import com.game.on.go_league_service.league.repository.LeagueMatchRepository;
 import com.game.on.go_league_service.league.repository.RefInviteRepository;
@@ -29,8 +33,11 @@ import org.springframework.util.StringUtils;
 import java.time.OffsetDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -40,6 +47,7 @@ public class RefereeService {
     private final RefereeProfileRepository refereeProfileRepository;
     private final RefInviteRepository refInviteRepository;
     private final LeagueMatchRepository leagueMatchRepository;
+    private final LeagueMatchScoreRepository leagueMatchScoreRepository;
     private final VenueRepository venueRepository;
     private final TeamClient teamClient;
     private final CurrentUserProvider userProvider;
@@ -405,5 +413,54 @@ public class RefereeService {
         referee.setActive(isActive);
 
         refereeProfileRepository.save(referee);
+    }
+
+    @Transactional(readOnly = true)
+    public List<LeagueMatchResponse> listMyLeagueMatches() {
+        String userId = userProvider.clerkUserId();
+        List<LeagueMatch> matches = leagueMatchRepository.findByRefereeUserIdOrderByStartTimeDesc(userId);
+        if (matches.isEmpty()) {
+            return List.of();
+        }
+
+        Map<UUID, LeagueMatchScore> scoresByMatchId = leagueMatchScoreRepository
+                .findByMatch_IdIn(matches.stream().map(LeagueMatch::getId).toList())
+                .stream()
+                .collect(Collectors.toMap(s -> s.getMatch().getId(), Function.identity()));
+
+        return matches.stream()
+                .map(m -> toMatchResponse(m, scoresByMatchId.get(m.getId())))
+                .toList();
+    }
+
+    @Transactional(readOnly = true)
+    public List<TeamMatchDetailResponse> listMyTeamMatches() {
+        return teamClient.getMyRefereeMatches();
+    }
+
+    private LeagueMatchResponse toMatchResponse(LeagueMatch match, LeagueMatchScore score) {
+        return new LeagueMatchResponse(
+                match.getId(),
+                match.getLeague().getId(),
+                match.getStatus(),
+                match.getHomeTeamId(),
+                match.getAwayTeamId(),
+                score == null ? null : score.getHomeScore(),
+                score == null ? null : score.getAwayScore(),
+                match.getSport(),
+                match.getStartTime(),
+                match.getEndTime(),
+                match.getScheduledDate(),
+                match.getMatchLocation(),
+                match.getVenueId(),
+                match.isRequiresReferee(),
+                match.getRefereeUserId(),
+                match.getCreatedByUserId(),
+                match.getCancelledByUserId(),
+                match.getCancelReason(),
+                match.getCancelledAt(),
+                match.getCreatedAt(),
+                match.getUpdatedAt()
+        );
     }
 }
