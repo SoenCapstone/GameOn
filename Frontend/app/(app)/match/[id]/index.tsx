@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { StyleSheet, Text, View } from "react-native";
 import {
   RelativePathString,
@@ -63,6 +63,8 @@ import {
 import { getSportLogo } from "@/utils/search";
 import { Loading } from "@/components/ui/loading";
 import { Empty } from "@/components/ui/empty";
+import { usePostHogFlags } from "@/hooks/use-posthog-flags";
+import { usePostHog } from "posthog-react-native";
 import {
   formatMatchDate,
   formatMatchDateTime,
@@ -351,6 +353,7 @@ export default function MatchScreen() {
 
   const { userId } = useAuth();
   const queryClient = useQueryClient();
+  const posthog = usePostHog();
   const [hasSubmittedAttendance, setHasSubmittedAttendance] = useState(false);
   const teamSpaceId = getTeamSpaceId(space, spaceId);
   const leagueId = getResolvedMatchLeagueId({
@@ -382,14 +385,16 @@ export default function MatchScreen() {
       }),
     [displayMatch, isLeagueOwner, teamsQuery.data, userId],
   );
+  const { canSubmitScore: canSubmitScoreFlag } = usePostHogFlags();
   const canSubmitScore = useMemo(
     () =>
+      canSubmitScoreFlag &&
       canUserSubmitMatchScore({
         match: displayMatch,
         teamSummaryMap: teamsQuery.data,
         userId,
       }),
-    [displayMatch, teamsQuery.data, userId],
+    [canSubmitScoreFlag, displayMatch, teamsQuery.data, userId],
   );
   const persistedAttendanceStatus = matchMembersQuery.data?.find(
     (member) => member.userId === userId,
@@ -438,7 +443,19 @@ export default function MatchScreen() {
     ],
   );
 
+  useEffect(() => {
+    if (!displayMatch) return;
+    posthog.capture("match_viewed", {
+      match_id: displayMatch.id,
+      space,
+    });
+  }, [displayMatch?.id]);
+
   const onSubmitScore = useCallback(() => {
+    posthog.capture("match_submit_score_tapped", {
+      match_id: displayMatch?.id,
+      space,
+    });
     pushMatchScoreRoute({
       awayTeamName,
       canSubmitScore,
@@ -461,6 +478,10 @@ export default function MatchScreen() {
   ]);
 
   const onConfirmCancelMatch = useCallback(async () => {
+    posthog.capture("match_cancelled", {
+      match_id: displayMatch?.id,
+      space,
+    });
     try {
       await cancelMatch({
         canCancel,
@@ -488,6 +509,11 @@ export default function MatchScreen() {
     spaceId,
   ]);
   const onConfirmAttendanceAction = useCallback(async () => {
+    posthog.capture("match_attendance_updated", {
+      match_id: displayMatch?.id,
+      action: attendanceAction?.label,
+      space,
+    });
     try {
       await submitMatchAttendance({
         attendanceAction,

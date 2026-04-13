@@ -9,6 +9,7 @@ import { useCreateBoardPost } from "@/hooks/use-team-board";
 import { useCreateLeagueBoardPost } from "@/hooks/use-league-board";
 import { errorToString } from "@/utils/error";
 import { FormToolbar } from "@/components/form/form-toolbar";
+import { usePostHog } from "posthog-react-native";
 
 const PostScope: BoardPostScope[] = ["Members", "Everyone"];
 
@@ -23,6 +24,7 @@ export default function Post() {
   const isPrivate = params.privacy === "PRIVATE";
   const router = useRouter();
 
+  const posthog = usePostHog();
   const [title, setTitle] = useState("");
   const [scope, setScope] = useState<BoardPostScope | undefined>(
     isPrivate ? "Members" : undefined,
@@ -52,13 +54,28 @@ export default function Post() {
         scope,
         body: body.trim(),
       });
+      posthog.capture("post_created", {
+        space_type: params.spaceType ?? "team",
+        scope,
+        is_private: isPrivate,
+      });
       router.back();
     } catch (err) {
       toast.error("Failed To Post", {
         description: errorToString(err),
       });
     }
-  }, [body, createPostMutation, id, router, scope, title]);
+  }, [
+    body,
+    createPostMutation,
+    id,
+    isPrivate,
+    params.spaceType,
+    posthog,
+    router,
+    scope,
+    title,
+  ]);
 
   return (
     <ContentArea

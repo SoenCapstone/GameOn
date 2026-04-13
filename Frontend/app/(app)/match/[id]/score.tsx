@@ -21,6 +21,7 @@ import type { LeagueMatch, TeamMatch } from "@/types/matches";
 import { errorToString } from "@/utils/error";
 import { Empty } from "@/components/ui/empty";
 import { Loading } from "@/components/ui/loading";
+import { usePostHog } from "posthog-react-native";
 
 type MatchScoreRouteParams = {
   id?: string;
@@ -63,7 +64,10 @@ async function invalidateQueriesAfterScoreSubmit(args: {
   if (spaceId) {
     tasks.push(
       queryClient.invalidateQueries({
-        queryKey: [space === "league" ? "league-matches" : "team-matches", spaceId],
+        queryKey: [
+          space === "league" ? "league-matches" : "team-matches",
+          spaceId,
+        ],
       }),
     );
   }
@@ -98,6 +102,7 @@ export default function MatchScoreScreen() {
 
   const router = useRouter();
   const queryClient = useQueryClient();
+  const posthog = usePostHog();
   const submitLeagueScoreMutation = useSubmitLeagueScore(leagueId);
   const submitTeamScoreMutation = useSubmitTeamScore();
 
@@ -110,13 +115,18 @@ export default function MatchScoreScreen() {
   const contextMatchesQueryKey = useMemo(
     () =>
       spaceId
-        ? ([space === "league" ? "league-matches" : "team-matches", spaceId] as const)
+        ? ([
+            space === "league" ? "league-matches" : "team-matches",
+            spaceId,
+          ] as const)
         : null,
     [space, spaceId],
   );
   const contextMatches =
     (contextMatchesQueryKey
-      ? queryClient.getQueryData<(TeamMatch | LeagueMatch)[]>(contextMatchesQueryKey)
+      ? queryClient.getQueryData<(TeamMatch | LeagueMatch)[]>(
+          contextMatchesQueryKey,
+        )
       : undefined) ?? [];
   const contextualMatch = contextMatches.find((existingMatch) => {
     if (existingMatch.id !== matchId) {
@@ -189,6 +199,13 @@ export default function MatchScoreScreen() {
         });
       }
 
+      posthog.capture("match_score_submitted", {
+        match_id: matchId,
+        match_type: isLeagueMatch ? "league" : "team",
+        home_score: homeScore,
+        away_score: awayScore,
+      });
+
       await invalidateQueriesAfterScoreSubmit({
         isLeagueMatch,
         leagueId,
@@ -212,6 +229,7 @@ export default function MatchScoreScreen() {
     leagueId,
     matchId,
     matchStartTime,
+    posthog,
     queryClient,
     router,
     space,

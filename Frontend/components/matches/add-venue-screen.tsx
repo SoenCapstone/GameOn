@@ -1,5 +1,6 @@
 import { useCallback, useState } from "react";
 import * as Location from "expo-location";
+import { usePostHog } from "posthog-react-native";
 import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "@/utils/toast";
 import { ContentArea } from "@/components/ui/content-area";
@@ -52,6 +53,7 @@ export function AddVenueScreen({
   const router = useRouter();
   const queryClient = useQueryClient();
 
+  const posthog = usePostHog();
   const createTeamVenue = useCreateTeamVenue();
   const createLeagueVenue = useCreateLeagueVenue();
   const isSaving = createTeamVenue.isPending || createLeagueVenue.isPending;
@@ -162,6 +164,12 @@ export function AddVenueScreen({
 
       await queryClient.invalidateQueries({ queryKey: ["team-venues"] });
       await queryClient.invalidateQueries({ queryKey: ["league-venues"] });
+
+      posthog.capture("venue_added", {
+        venue_id: venue.id,
+        context_type: contextType,
+        entity_id: entityId,
+      });
 
       router.dismissTo({
         pathname: schedulePathname,
