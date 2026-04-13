@@ -27,3 +27,11 @@ export const followingLeaguesKey: QueryKey = [
   followQuery.leagues,
   followQuery.me,
 ];
+
+export const followingFeedQueryRoot = "following-feed" as const;
+
+export function followingFeedQueryKey(
+  userId: string | null | undefined,
+): QueryKey {
+  return [followingFeedQueryRoot, userId];
+}

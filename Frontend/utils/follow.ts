@@ -12,6 +12,7 @@ import type {
   TeamFollowStatusResponse,
 } from "@/types/follow";
 import {
+  followingFeedQueryRoot,
   followKey,
   followingLeaguesKey,
   followingTeamsKey,
@@ -77,5 +78,8 @@ export function invalidateFollowQueries(
   void queryClient.invalidateQueries({ queryKey: followKey(space, id) });
   void queryClient.invalidateQueries({
     queryKey: space === "team" ? followingTeamsKey : followingLeaguesKey,
+  });
+  void queryClient.invalidateQueries({
+    queryKey: [followingFeedQueryRoot],
   });
 }

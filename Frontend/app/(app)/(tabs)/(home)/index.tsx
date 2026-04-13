@@ -9,7 +9,8 @@ import { Empty } from "@/components/ui/empty";
 import { getNotificationsQueryKey } from "@/utils/notifications";
 import { useNotificationsCount } from "@/hooks/use-notifications";
 import { useQueryClient } from "@tanstack/react-query";
-import { HomeFeedList } from "@/components/feed/home-feed-list";
+import { HomeList } from "@/components/feed/home-list";
+import { useFollowingFeed } from "@/hooks/use-following-feed";
 import { useHomeFeed } from "@/hooks/use-home-feed";
 import type { HomeFeedMatchItem, HomeFeedPostItem } from "@/types/feed";
 
@@ -66,6 +67,15 @@ export default function Home() {
     refetch: refetchFeed,
   } = useHomeFeed();
 
+  const {
+    data: followingData,
+    isLoading: followingLoading,
+    isRefetching: followingRefetching,
+    refetch: refetchFollowing,
+  } = useFollowingFeed();
+
+  const followingItems = followingData?.items ?? [];
+
   const handleMatchPress = useCallback((item: HomeFeedMatchItem) => {
     router.push({
       pathname: `/match/${item.id}` as RelativePathString,
@@ -95,10 +105,11 @@ export default function Home() {
   }, []);
 
   const handleRefresh = useCallback(() => {
-    if (tab === "feed") {
-      void refetchFeed();
-    }
-  }, [refetchFeed, tab]);
+    void refetchFeed();
+    void refetchFollowing();
+  }, [refetchFeed, refetchFollowing]);
+
+  const isRefreshing = feedRefetching || followingRefetching;
 
   useFocusEffect(
     useCallback(() => {
@@ -122,18 +133,25 @@ export default function Home() {
       toolbar={<HomeToolbar />}
       background={{ preset: "blue" }}
       refreshControl={
-        <RefreshControl refreshing={feedRefetching} onRefresh={handleRefresh} />
+        <RefreshControl refreshing={isRefreshing} onRefresh={handleRefresh} />
       }
     >
       {tab === "feed" ? (
-        <HomeFeedList
+        <HomeList
           items={feedItems}
           isLoading={feedLoading}
           onMatchPress={handleMatchPress}
           onPostPress={handlePostPress}
         />
+      ) : tab === "following" ? (
+        <HomeList
+          items={followingItems}
+          isLoading={followingLoading}
+          onMatchPress={handleMatchPress}
+          onPostPress={handlePostPress}
+        />
       ) : (
-        <Empty message="Following feed coming soon" />
+        <Empty message="No updates available" />
       )}
     </ContentArea>
   );

@@ -1,7 +1,7 @@
 import React from "react";
 import { beforeEach, describe, expect, it, jest } from "@jest/globals";
 import { fireEvent, render } from "@testing-library/react-native";
-import { HomeFeedList } from "@/components/feed/home-feed-list";
+import { HomeList } from "@/components/feed/home-list";
 import type { HomeFeedItem, HomeFeedMatchItem } from "@/types/feed";
 
 const mockReact = jest.requireActual("react") as typeof import("react");
@@ -72,7 +72,7 @@ jest.mock("@legendapp/list/react-native", () => {
   };
 });
 
-describe("HomeFeedList", () => {
+describe("HomeList", () => {
   const postItem: HomeFeedItem = {
     kind: "post",
     id: "post-1",
@@ -134,7 +134,7 @@ describe("HomeFeedList", () => {
 
   it("renders loading state", () => {
     const { getByTestId } = render(
-      <HomeFeedList items={[]} isLoading={true} />,
+      <HomeList items={[]} isLoading={true} />,
     );
 
     expect(getByTestId("loading")).toBeTruthy();
@@ -142,7 +142,7 @@ describe("HomeFeedList", () => {
 
   it("renders empty state", () => {
     const { getByTestId, getByText } = render(
-      <HomeFeedList items={[]} isLoading={false} />,
+      <HomeList items={[]} isLoading={false} />,
     );
 
     expect(getByTestId("empty")).toBeTruthy();
@@ -152,7 +152,7 @@ describe("HomeFeedList", () => {
   it("renders post and match rows and handles match press", () => {
     const onMatchPress = jest.fn();
     const { getByTestId } = render(
-      <HomeFeedList
+      <HomeList
         items={[postItem, matchItem]}
         isLoading={false}
         onMatchPress={onMatchPress}
@@ -171,7 +171,7 @@ describe("HomeFeedList", () => {
 
   it("passes undefined onPress when onMatchPress is omitted", () => {
     render(
-      <HomeFeedList items={[matchItem]} isLoading={false} />,
+      <HomeList items={[matchItem]} isLoading={false} />,
     );
 
     expect(mockMatchCard).toHaveBeenCalledWith(
@@ -185,7 +185,7 @@ describe("HomeFeedList", () => {
     const onPostPress = jest.fn();
 
     render(
-      <HomeFeedList
+      <HomeList
         items={[postItem]}
         isLoading={false}
         onPostPress={onPostPress}

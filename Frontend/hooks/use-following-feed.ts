@@ -1,8 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { useAuth } from "@clerk/clerk-expo";
-import type { AxiosInstance } from "axios";
 import { createScopedLog } from "@/utils/logger";
-import { fetchMyTeams } from "@/hooks/messages/api";
 import {
   GO_LEAGUE_SERVICE_ROUTES,
   GO_TEAM_SERVICE_ROUTES,
@@ -13,9 +11,9 @@ import type {
   TeamPostListResponse,
 } from "@/types/board";
 import { fetchUserNameMap } from "@/utils/board";
-import type { LeagueListResponse } from "@/types/leagues";
-import type { LeagueMatch, TeamMatch } from "@/types/matches";
 import type { HomeFeedItem } from "@/types/feed";
+import type { LeagueMatch, TeamMatch } from "@/types/matches";
+import type { TeamSummaryResponse } from "@/types/teams";
 import {
   dedupeHomeFeedItems,
   isUpcomingFeedMatch,
@@ -31,65 +29,79 @@ import {
   normalizeLeagueSpace,
   normalizeTeamSpace,
 } from "@/utils/home";
+import { getFollowingLeagues, getFollowingTeams } from "@/utils/follow";
+import { followingFeedQueryKey } from "@/constants/follow";
 
-const log = createScopedLog("HomeFeed");
+const log = createScopedLog("FollowingFeed");
 
-async function fetchMyLeagueIds(api: AxiosInstance) {
-  try {
-    const response = await api.get<LeagueListResponse>(
-      GO_LEAGUE_SERVICE_ROUTES.ALL,
-      {
-        params: { my: true },
-      },
-    );
+export type FollowingFeedData = {
+  items: HomeFeedItem[];
+  /** True when the user follows at least one team or league (feed may still be empty). */
+  followedAny: boolean;
+};
 
-    return (response.data.items ?? []).map((league) => league.id);
-  } catch (error) {
-    log.warn("Failed to fetch user league memberships for home feed", error);
-    return [];
-  }
+function fallbackTeamSummary(teamId: string): TeamSummaryResponse {
+  return {
+    id: teamId,
+    name: "Team",
+    archived: false,
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+  };
 }
 
-export function useHomeFeed() {
+export function useFollowingFeed() {
   const api = useAxiosWithClerk();
   const { userId } = useAuth();
 
-  return useQuery<HomeFeedItem[]>({
-    queryKey: ["home-feed", userId],
+  return useQuery<FollowingFeedData>({
+    queryKey: followingFeedQueryKey(userId),
     enabled: Boolean(userId),
     refetchOnMount: false,
     refetchOnWindowFocus: false,
     retry: false,
     queryFn: async () => {
       try {
-        log.info("Fetching home feed", { userId });
+        log.info("Fetching following feed", { userId });
 
-        const teams = await fetchMyTeams(api);
-        const myLeagueIds = await fetchMyLeagueIds(api);
+        const [followedTeamIds, followedLeagueIds] = await Promise.all([
+          getFollowingTeams(api),
+          getFollowingLeagues(api),
+        ]);
 
-        const teamSpaces = teams.map(normalizeTeamSpace);
-        const leagueIdsFromTeams = [
-          ...new Set(
-            teams
-              .map((team) => team.leagueId)
-              .filter((leagueId): leagueId is string => Boolean(leagueId)),
-          ),
-        ];
-        const leagueIds = [...new Set([...leagueIdsFromTeams, ...myLeagueIds])];
+        const followedAny =
+          followedTeamIds.length > 0 || followedLeagueIds.length > 0;
 
-        if (teamSpaces.length === 0 && leagueIds.length === 0) {
-          log.info("Home feed empty because user has no teams or leagues", {
+        if (!followedAny) {
+          log.info("Following feed empty because user follows nothing", {
             userId,
           });
-          return [];
+          return { items: [], followedAny: false };
         }
 
-        log.info("Resolved home feed scope", {
+        const followedTeamSummaryMap = await fetchTeamSummaryMap(
+          api,
+          [],
+          followedTeamIds,
+          log,
+        );
+
+        const leagueSummaryMap = await fetchLeagueSummaryMap(
+          api,
+          followedLeagueIds,
+          log,
+        );
+
+        const teamSpaces = followedTeamIds.map((teamId) =>
+          normalizeTeamSpace(
+            followedTeamSummaryMap[teamId] ?? fallbackTeamSummary(teamId),
+          ),
+        );
+
+        log.info("Resolved following feed scope", {
           userId,
-          teamCount: teamSpaces.length,
-          teamLeagueCount: leagueIdsFromTeams.length,
-          memberLeagueCount: myLeagueIds.length,
-          leagueCount: leagueIds.length,
+          teamCount: followedTeamIds.length,
+          leagueCount: followedLeagueIds.length,
         });
 
         const [
@@ -106,7 +118,9 @@ export function useHomeFeed() {
               );
               return {
                 space,
-                posts: response.data.posts ?? [],
+                posts: (response.data.posts ?? []).filter(
+                  (post) => post.scope === "Everyone",
+                ),
               };
             }),
           ),
@@ -124,19 +138,21 @@ export function useHomeFeed() {
             }),
           ),
           Promise.allSettled(
-            leagueIds.map(async (leagueId) => {
+            followedLeagueIds.map(async (leagueId) => {
               const response = await api.get<LeaguePostListResponse>(
                 GO_LEAGUE_SERVICE_ROUTES.LEAGUE_POSTS(leagueId),
                 { params: { page: 0, size: 50 } },
               );
               return {
                 leagueId,
-                posts: response.data.items ?? [],
+                posts: (response.data.items ?? []).filter(
+                  (post) => post.scope === "Everyone",
+                ),
               };
             }),
           ),
           Promise.allSettled(
-            leagueIds.map(async (leagueId) => {
+            followedLeagueIds.map(async (leagueId) => {
               const response = await api.get<LeagueMatch[]>(
                 GO_LEAGUE_SERVICE_ROUTES.MATCHES(leagueId),
               );
@@ -154,7 +170,7 @@ export function useHomeFeed() {
           if (result.status === "fulfilled") {
             return [result.value];
           }
-          log.warn("Failed to fetch team posts for feed", result.reason);
+          log.warn("Failed to fetch team posts for following feed", result.reason);
           return [];
         });
 
@@ -162,7 +178,10 @@ export function useHomeFeed() {
           if (result.status === "fulfilled") {
             return [result.value];
           }
-          log.warn("Failed to fetch team matches for feed", result.reason);
+          log.warn(
+            "Failed to fetch team matches for following feed",
+            result.reason,
+          );
           return [];
         });
 
@@ -170,7 +189,10 @@ export function useHomeFeed() {
           if (result.status === "fulfilled") {
             return [result.value];
           }
-          log.warn("Failed to fetch league posts for feed", result.reason);
+          log.warn(
+            "Failed to fetch league posts for following feed",
+            result.reason,
+          );
           return [];
         });
 
@@ -178,7 +200,10 @@ export function useHomeFeed() {
           if (result.status === "fulfilled") {
             return [result.value];
           }
-          log.warn("Failed to fetch league matches for feed", result.reason);
+          log.warn(
+            "Failed to fetch league matches for following feed",
+            result.reason,
+          );
           return [];
         });
 
@@ -193,12 +218,6 @@ export function useHomeFeed() {
 
         const userNameMap = await fetchUserNameMap(api, postAuthorIds, log);
 
-        const leagueSummaryMap = await fetchLeagueSummaryMap(
-          api,
-          leagueIds,
-          log,
-        );
-
         const allMatchTeamIds = [
           ...new Set(
             [
@@ -208,9 +227,13 @@ export function useHomeFeed() {
           ),
         ];
 
+        const followedTeamsList = followedTeamIds.map(
+          (id) => followedTeamSummaryMap[id] ?? fallbackTeamSummary(id),
+        );
+
         const teamSummaryMap = await fetchTeamSummaryMap(
           api,
-          teams,
+          followedTeamsList,
           allMatchTeamIds,
           log,
         );
@@ -254,17 +277,17 @@ export function useHomeFeed() {
 
         const feed = sortHomeFeedItems(dedupeHomeFeedItems(feedItems));
 
-        log.info("Home feed assembled", {
+        log.info("Following feed assembled", {
           userId,
           itemCount: feed.length,
           postCount: feed.filter((item) => item.kind === "post").length,
           matchCount: feed.filter((item) => item.kind === "match").length,
         });
 
-        return feed;
+        return { items: feed, followedAny: true };
       } catch (error) {
-        log.error("Failed to fetch home feed", { userId, error });
-        toast.error("Failed to Load Feed", {
+        log.error("Failed to fetch following feed", { userId, error });
+        toast.error("Failed to Load Following", {
           description: errorToString(error),
         });
         throw error;
