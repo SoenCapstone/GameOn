@@ -15,6 +15,7 @@ services:
       - backend
 
   go-config-server:
+    image: ghcr.io/soencapstone/gameon/go-config-server:latest
     build:
       context: ./Backend
       dockerfile: go-config-server/Dockerfile
@@ -35,6 +36,7 @@ services:
       start_period: 20s   # grace period for startup
 
   go-discovery-service:
+    image: ghcr.io/soencapstone/gameon/go-discovery-service:latest
     build:
       context: ./Backend
       dockerfile: go-discovery-service/Dockerfile
@@ -54,6 +56,7 @@ services:
       - backend
 
   go-api-gateway:
+    image: ghcr.io/soencapstone/gameon/go-api-gateway:latest
     build:
       context: ./Backend
       dockerfile: go-api-gateway/Dockerfile
@@ -76,6 +79,7 @@ services:
       - backend
 
   go-user-service:
+    image: ghcr.io/soencapstone/gameon/go-user-service:latest
     build:
       context: ./Backend
       dockerfile: go-user-service/Dockerfile
@@ -105,6 +109,7 @@ services:
       - backend
 
   go-team-service:
+    image: ghcr.io/soencapstone/gameon/go-team-service:latest
     build:
       context: ./Backend
       dockerfile: go-team-service/Dockerfile
@@ -142,6 +147,7 @@ services:
       start_period: 20s   # grace period for startup
 
   go-league-service:
+    image: ghcr.io/soencapstone/gameon/go-league-service:latest
     build:
       context: ./Backend
       dockerfile: go-league-service/Dockerfile
@@ -176,6 +182,7 @@ services:
       - backend
 
   go-messaging-service:
+    image: ghcr.io/soencapstone/gameon/go-messaging-service:latest
     build:
       context: ./Backend
       dockerfile: go-messaging-service/Dockerfile

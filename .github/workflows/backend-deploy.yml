@@ -13,18 +13,76 @@ on:
 permissions: {}
 
 jobs:
-  deploy:
+  build-and-push:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    strategy:
+      matrix:
+        service:
+          - go-config-server
+          - go-discovery-service
+          - go-api-gateway
+          - go-user-service
+          - go-team-service
+          - go-league-service
+          - go-messaging-service
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
 
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@e468171a9de216ec08956ac3ada2f0791b6bd435 # v3
+
+      - name: Log in to GHCR
+        uses: docker/login-action@5e57cd118135c172c3672efd75eb46360885c0ef # v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and push ${{ matrix.service }}
+        uses: docker/build-push-action@v6
+        with:
+          context: ./Backend
+          file: ./Backend/${{ matrix.service }}/Dockerfile
+          push: true
+          tags: ghcr.io/${{ github.repository_owner }}/gameon/${{ matrix.service }}:latest
+          cache-from: type=gha,scope=${{ matrix.service }}
+          cache-to: type=gha,mode=max,scope=${{ matrix.service }}
+
+  deploy:
+    needs: build-and-push
+    runs-on: ubuntu-latest
     steps:
       - name: Deploy to EC2
         uses: appleboy/ssh-action@7eaf76671a0d7eec5d98ee897acda4f968735a17 # v1.2.0
+        env:
+          GHCR_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GHCR_USER: ${{ github.actor }}
         with:
           host: ${{ secrets.EC2_HOST }}
           username: ec2-user
           key: ${{ secrets.EC2_SSH_KEY }}
-          command_timeout: 30m
+          command_timeout: 10m
+          envs: GHCR_TOKEN,GHCR_USER
           script: |
+            echo ">>> [1/5] Logging in to GHCR..."
+            echo "$GHCR_TOKEN" | docker login ghcr.io -u "$GHCR_USER" --password-stdin
+
+            echo ">>> [2/5] Pulling latest code from git..."
             cd /home/ec2-user/GameOn
             git pull origin main
-            docker compose up -d --build
+
+            echo ">>> [3/5] Pulling pre-built images from GHCR..."
+            docker compose pull
+
+            echo ">>> [4/5] Starting containers..."
+            docker compose up -d
+
+            echo ">>> [5/5] Logging out of GHCR..."
+            docker logout ghcr.io
+
+            echo ">>> Deploy complete. Running containers:"
+            docker compose ps
