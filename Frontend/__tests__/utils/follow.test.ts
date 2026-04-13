@@ -14,6 +14,7 @@ import {
   invalidateFollowQueries,
 } from "@/utils/follow";
 import {
+  followingFeedQueryRoot,
   followKey,
   followingLeaguesKey,
   followingTeamsKey,
@@ -131,12 +132,15 @@ describe("invalidateFollowQueries", () => {
 
     invalidateFollowQueries(queryClient, "team", "tid");
 
-    expect(invalidateSpy).toHaveBeenCalledTimes(2);
+    expect(invalidateSpy).toHaveBeenCalledTimes(3);
     expect(invalidateSpy).toHaveBeenCalledWith({
       queryKey: followKey("team", "tid"),
     });
     expect(invalidateSpy).toHaveBeenCalledWith({
       queryKey: followingTeamsKey,
+    });
+    expect(invalidateSpy).toHaveBeenCalledWith({
+      queryKey: [followingFeedQueryRoot],
     });
 
     invalidateSpy.mockRestore();
@@ -148,12 +152,15 @@ describe("invalidateFollowQueries", () => {
 
     invalidateFollowQueries(queryClient, "league", "lid");
 
-    expect(invalidateSpy).toHaveBeenCalledTimes(2);
+    expect(invalidateSpy).toHaveBeenCalledTimes(3);
     expect(invalidateSpy).toHaveBeenCalledWith({
       queryKey: followKey("league", "lid"),
     });
     expect(invalidateSpy).toHaveBeenCalledWith({
       queryKey: followingLeaguesKey,
+    });
+    expect(invalidateSpy).toHaveBeenCalledWith({
+      queryKey: [followingFeedQueryRoot],
     });
 
     invalidateSpy.mockRestore();

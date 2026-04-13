@@ -83,6 +83,7 @@ jest.mock("@/utils/toast", () => ({
   },
 }));
 
+/** Home feed query; shared post/match assembly is covered in `__tests__/utils/home.test.ts`. */
 describe("useHomeFeed", () => {
   const mockApi = {
     get: mockGet,
@@ -570,36 +571,40 @@ describe("useHomeFeed", () => {
       },
     ]);
 
-    mockGet.mockImplementation(async (url: string) => {
-      if (url === "/api/v1/leagues") {
-        return { data: { items: [] } };
-      }
-      if (url === "/api/v1/teams/team-1/posts") {
-        return { data: { posts: [] } };
-      }
-      if (url === "/api/v1/teams/team-1/matches") {
-        return {
-          data: [
-            {
-              id: "match-1",
-              matchType: "TEAM_MATCH",
-              status: "CONFIRMED",
-              homeTeamId: "team-1",
-              awayTeamId: "team-2",
-              sport: "basketball",
-              startTime: "2099-05-03T10:00:00.000Z",
-              endTime: "2099-05-03T11:00:00.000Z",
-              requiresReferee: false,
-              createdByUserId: "user-a",
-              createdAt: "2026-04-01T09:00:00.000Z",
-              updatedAt: "2026-04-01T09:00:00.000Z",
-              homeScore: 88,
-              awayScore: 81,
-            },
-          ],
-        };
-      }
-      if (url === "/api/v1/teams/team-2") {
+    mockGet.mockImplementation(
+      async (
+        url: string,
+        config?: { params?: Record<string, string | number | boolean> },
+      ) => {
+        if (url === "/api/v1/leagues" && config?.params?.my === true) {
+          return { data: { items: [] } };
+        }
+        if (url === "/api/v1/teams/team-1/posts") {
+          return { data: { posts: [] } };
+        }
+        if (url === "/api/v1/teams/team-1/matches") {
+          return {
+            data: [
+              {
+                id: "match-1",
+                matchType: "TEAM_MATCH",
+                status: "CONFIRMED",
+                homeTeamId: "team-1",
+                awayTeamId: "team-2",
+                sport: "basketball",
+                startTime: "2099-05-03T10:00:00.000Z",
+                endTime: "2099-05-03T11:00:00.000Z",
+                requiresReferee: false,
+                createdByUserId: "user-a",
+                createdAt: "2026-04-01T09:00:00.000Z",
+                updatedAt: "2026-04-01T09:00:00.000Z",
+                homeScore: 88,
+                awayScore: 81,
+              },
+            ],
+          };
+        }
+        if (url === "/api/v1/teams/team-2") {
         return {
           data: {
             id: "team-2",
@@ -612,8 +617,9 @@ describe("useHomeFeed", () => {
           },
         };
       }
-      throw new Error(`Unexpected GET ${url}`);
-    });
+        throw new Error(`Unexpected GET ${url}`);
+      },
+    );
 
     mockedFetchUserNameMap.mockResolvedValue({});
 
@@ -664,18 +670,23 @@ describe("useHomeFeed", () => {
       },
     ]);
 
-    mockGet.mockImplementation(async (url: string) => {
-      if (url === "/api/v1/leagues") {
-        throw new Error("leagues failed");
-      }
-      if (url === "/api/v1/teams/team-1/posts") {
-        return { data: { posts: [] } };
-      }
-      if (url === "/api/v1/teams/team-1/matches") {
-        return { data: [] };
-      }
-      throw new Error(`Unexpected GET ${url}`);
-    });
+    mockGet.mockImplementation(
+      async (
+        url: string,
+        config?: { params?: Record<string, string | number | boolean> },
+      ) => {
+        if (url === "/api/v1/leagues" && config?.params?.my === true) {
+          throw new Error("leagues failed");
+        }
+        if (url === "/api/v1/teams/team-1/posts") {
+          return { data: { posts: [] } };
+        }
+        if (url === "/api/v1/teams/team-1/matches") {
+          return { data: [] };
+        }
+        throw new Error(`Unexpected GET ${url}`);
+      },
+    );
 
     const options = useHomeFeed() as unknown as {
       queryFn: () => Promise<HomeFeedItem[]>;
