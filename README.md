@@ -49,7 +49,7 @@ GameOn targets last-minute player absences, complex scheduling, messy payments, 
 |-----------|--------------|-------------|------------------|
 | Release 1 | [Demo 1](https://drive.google.com/file/d/1EH74M7fyrOtF4cqQyQ78-SJTe6lQ6VJN/view?usp=sharing) | | |
 | Release 2 | [Demo 2](https://drive.google.com/file/d/1dzTUCtvsP7LVbuaq4ib6seauiT9_x8m3/view?usp=sharing) | <a href="https://expo.dev/projects/bc7d1a0a-aeeb-448f-ad90-be62fe6633bf/updates/637628de-1d86-4e83-9959-41fbdf953471"><img src="https://qr.expo.dev/eas-update?projectId=bc7d1a0a-aeeb-448f-ad90-be62fe6633bf&groupId=637628de-1d86-4e83-9959-41fbdf953471" width="250px" /></a> | |
-| Release 3 | | <a href="https://expo.dev/projects/bc7d1a0a-aeeb-448f-ad90-be62fe6633bf/updates/02d2634b-8fa8-4fc9-97f6-8e513980b76c"><img src="https://qr.expo.dev/eas-update?projectId=bc7d1a0a-aeeb-448f-ad90-be62fe6633bf&groupId=02d2634b-8fa8-4fc9-97f6-8e513980b76c" width="250px" /></a> | [Join TestFlight](https://testflight.apple.com/join/GZJxxfUU) |
+| Release 3 | [Demo 3](https://drive.google.com/file/d/1t2Cd0Hrs29hAXUwXJiBIwidTJ_4aDbw1/view?usp=sharing) | <a href="https://expo.dev/projects/bc7d1a0a-aeeb-448f-ad90-be62fe6633bf/updates/02d2634b-8fa8-4fc9-97f6-8e513980b76c"><img src="https://qr.expo.dev/eas-update?projectId=bc7d1a0a-aeeb-448f-ad90-be62fe6633bf&groupId=02d2634b-8fa8-4fc9-97f6-8e513980b76c" width="250px" /></a> | [Join TestFlight](https://testflight.apple.com/join/GZJxxfUU) |
 
 <a id="team-members"></a>
 # 👥 Team Members
