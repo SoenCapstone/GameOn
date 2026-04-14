@@ -1,9 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
-import {
-  RefreshControl,
-  StyleSheet,
-  View,
-} from "react-native";
+import { RefreshControl, View } from "react-native";
 import { FollowToolbar } from "@/components/follow/follow-toolbar";
 import {
   RelativePathString,
@@ -133,7 +129,11 @@ export default function Team() {
   );
 }
 
-function resolveOwnerAction(flag: boolean, isOwnerCheck: boolean, handler: () => void) {
+function resolveOwnerAction(
+  flag: boolean,
+  isOwnerCheck: boolean,
+  handler: () => void,
+) {
   return isOwnerCheck && flag ? handler : undefined;
 }
 
@@ -311,7 +311,11 @@ function TeamContent() {
             onFollow={onFollow}
             onUnfollow={onUnfollow}
             openPost={resolveOwnerAction(canCreatePost, canManage, openPost)}
-            openSchedule={resolveOwnerAction(canScheduleMatch, isOwner, openSchedule)}
+            openSchedule={resolveOwnerAction(
+              canScheduleMatch,
+              isOwner,
+              openSchedule,
+            )}
             openPlaymaker={canManage ? openPlaymaker : undefined}
           />
         }
@@ -366,14 +370,12 @@ function TeamContent() {
               />
             )}
             {tab === "overview" && (
-              <View style={styles.overviewSection}>
-                <TeamOverviewTab
-                  overviewLoading={overviewLoading}
-                  overviewError={overviewError}
-                  overview={overview}
-                  tiles={tiles}
-                />
-              </View>
+              <TeamOverviewTab
+                overviewLoading={overviewLoading}
+                overviewError={overviewError}
+                overview={overview}
+                tiles={tiles}
+              />
             )}
           </>
         )}
@@ -390,10 +392,3 @@ function parseTeamTab(value?: string): TeamTab {
 function getTeamTabIndex(tab: TeamTab): number {
   return TeamTabs.indexOf(tab);
 }
-
-const styles = StyleSheet.create({
-  overviewSection: {
-    marginTop: 12,
-    gap: 12,
-  },
-});
