@@ -360,6 +360,7 @@ function TeamContent() {
                     params: {
                       space: "team",
                       spaceId: id,
+                      leagueId: match.leagueId,
                       homeName: match.homeName,
                       awayName: match.awayName,
                       homeLogoUrl: match.homeLogoUrl ?? "",

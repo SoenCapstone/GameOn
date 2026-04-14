@@ -7,6 +7,8 @@ import com.game.on.go_league_service.league.dto.LeagueMatchResponse;
 import com.game.on.go_league_service.league.dto.LeagueMatchScheduleValidationResponse;
 import com.game.on.go_league_service.league.dto.LeagueMatchScoreRequest;
 import com.game.on.go_league_service.league.dto.LeagueTeamStatsResponse;
+import com.game.on.go_league_service.league.dto.LeagueMatchMemberResponse;
+import com.game.on.go_league_service.league.dto.LeagueMatchAttendanceRequest;
 import com.game.on.go_league_service.league.service.LeagueMatchService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -81,4 +83,24 @@ public class LeagueMatchController {
     public ResponseEntity<List<LeagueMatchResponse>> listTeamMatches(@PathVariable UUID teamId) {
         return ResponseEntity.ok(leagueMatchService.listTeamMatches(teamId));
     }
+
+    @GetMapping("/matches/{matchId}/members")
+    public ResponseEntity<List<LeagueMatchMemberResponse>> getMatchMembers(
+            @PathVariable UUID matchId
+    ) {
+        return ResponseEntity.ok(
+                leagueMatchService.getMatchMembers(matchId)
+        );
+    }
+
+    @PostMapping("/{leagueId}/matches/{matchId}/attendance")
+    public ResponseEntity<Void> updateAttendance(
+            @PathVariable UUID leagueId,
+            @PathVariable UUID matchId,
+            @Valid @RequestBody LeagueMatchAttendanceRequest request
+    ) {
+        leagueMatchService.updateAttendance(leagueId, matchId, request);
+        return ResponseEntity.noContent().build();
+    }
+
 }
