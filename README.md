@@ -16,6 +16,7 @@ GameOn is a mobile platform that keeps amateur sports leagues organized by combi
   - [🐘 Start Postgres](#start-postgres)
   - [☕ Backend Services](#backend-services)
   - [📱 Frontend (Expo)](#frontend-expo)
+  - [🖥️ Dashboard (Next.js)](#dashboard-nextjs)
 - [🧪 Testing and Quality](#testing-and-quality)
 
 
@@ -34,6 +35,7 @@ GameOn targets last-minute player absences, complex scheduling, messy payments, 
 - **Frontend**
   - Deployed using Expo Application Services (EAS).
   - A QR code is provided in the [Release Demos](#release-demos) table to preview the app using Expo Go.
+  - Available on TestFlight for iOS: [Join via TestFlight](https://testflight.apple.com/join/GZJxxfUU)
 
 <a id="release-demos"></a>
 ## 🎬 Release Demos
@@ -42,7 +44,7 @@ GameOn targets last-minute player absences, complex scheduling, messy payments, 
 |-----------|--------------|---------------------|
 | Release 1 | [Demo 1](https://drive.google.com/file/d/1EH74M7fyrOtF4cqQyQ78-SJTe6lQ6VJN/view?usp=sharing) |                     |
 | Release 2 | [Demo 2](https://drive.google.com/file/d/1dzTUCtvsP7LVbuaq4ib6seauiT9_x8m3/view?usp=sharing) | <a href="https://expo.dev/projects/bc7d1a0a-aeeb-448f-ad90-be62fe6633bf/updates/637628de-1d86-4e83-9959-41fbdf953471"><img src="https://qr.expo.dev/eas-update?projectId=bc7d1a0a-aeeb-448f-ad90-be62fe6633bf&groupId=637628de-1d86-4e83-9959-41fbdf953471" width="250px" /></a>                    |
-| Release 3 |              |                     |
+| Release 3 |              | <a href="https://expo.dev/projects/bc7d1a0a-aeeb-448f-ad90-be62fe6633bf/updates/02d2634b-8fa8-4fc9-97f6-8e513980b76c"><img src="https://qr.expo.dev/eas-update?projectId=bc7d1a0a-aeeb-448f-ad90-be62fe6633bf&groupId=02d2634b-8fa8-4fc9-97f6-8e513980b76c" width="250px" /></a> |
 
 <a id="team-members"></a>
 # 👥 Team Members
@@ -65,14 +67,15 @@ GameOn targets last-minute player absences, complex scheduling, messy payments, 
 <a id="architecture-overview"></a>
 ## 🏗️ Architecture Overview
 
-- **Frontend** – `Frontend`: Expo Router, React Native, Clerk auth, Jest for tests.
+- **Frontend** – `Frontend`: Expo Router, React Native, Clerk auth, Stripe payments, Jest for tests.
+- **Dashboard** – `Dashboard`: Next.js web app for admin/analytics views.
 - **Backend** – `Backend`: Spring Boot microservices
   - `go-config-server` centralizes YAML configs.
   - `go-discovery-service` (Eureka).
   - `go-api-gateway` (Spring Cloud Gateway).
-  - Domain services such as `go-user-service` and `go-team-service`.
+  - Domain services: `go-user-service`, `go-team-service`, `go-league-service`, `go-messaging-service`.
 - **Database** – Local Postgres via `docker-compose.yml`.
-- **Shared library** – `GameOn-Backend/common` Maven module.
+- **Shared library** – `Backend/common` Maven module.
   
 <a id="prerequisites"></a>
 ## ⚙️ Prerequisites
@@ -92,7 +95,18 @@ GameOn targets last-minute player absences, complex scheduling, messy payments, 
 2. Export/copy the Expo variables into `Frontend/.env` as well (Expo only loads variables from within the app directory).
 3. Keep the database credentials consistent with `docker-compose.yml`.
 
-`EXPO_PUBLIC_API_BASE_URL` must point to the API Gateway (`http://localhost:8222` when running locally). Clerk publishable keys can be obtained from the team’s Clerk dashboard.
+Key variables and where they are used:
+
+| Variable | Where | Description |
+|---|---|---|
+| `EXPO_PUBLIC_API_BASE_URL` | Frontend | Points to the API Gateway (`http://localhost:8222` locally) |
+| `EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY` | Frontend | Clerk publishable key from the Clerk dashboard |
+| `EXPO_PUBLIC_STRIPE_PUBLISHABLE_KEY` | Frontend | Stripe publishable key for in-app payments |
+| `EXPO_PUBLIC_LOG_LEVEL` | Frontend | Log verbosity (`info`, `debug`, `error`) |
+| `EXPO_PUBLIC_DEV_LOGIN_EMAIL` / `_PASSWORD` | Frontend | Dev shortcut credentials for quick login during development |
+| `CLERK_URL` | Backend (gateway, user, team, league, messaging) | Clerk JWKS endpoint for JWT verification |
+| `AWS_ACCESS_KEY_ID` / `AWS_SECRET_ACCESS_KEY` / `AWS_REGION` / `AWS_S3_BUCKET` | Backend (team, league) | S3 credentials for logo/image uploads |
+| `STRIPE_SECRET_KEY` / `STRIPE_WEBHOOK_SECRET` | Backend (league) | Stripe keys for payment processing and webhook validation |
 
 <a id="setup"></a>
 ## 🪄 Setup
@@ -103,10 +117,17 @@ GameOn targets last-minute player absences, complex scheduling, messy payments, 
    # repeat per microservice when needed
    cd ../go-user-service && mvn clean package
    cd ../go-team-service && mvn clean package
+   cd ../go-league-service && mvn clean package
+   cd ../go-messaging-service && mvn clean package
    ```
 2. **Install frontend dependencies**
    ```bash
    cd Frontend
+   npm install
+   ```
+3. **Install dashboard dependencies**
+   ```bash
+   cd Dashboard
    npm install
    ```
 
@@ -125,7 +146,13 @@ Verify the container is healthy (`docker ps`) before starting the services.
 <a id="backend-services"></a>
 ### 2. ☕ Backend services
 
-Run each service in its own terminal from the repo root:
+**Option A – Docker Compose (recommended):** builds and starts all backend services in one command:
+
+```bash
+docker compose up --build
+```
+
+**Option B – manual (one terminal per service):**
 
 ```bash
 # Config Server (reads ./Backend/go-config-server/src/main/resources/configurations)
@@ -137,6 +164,8 @@ cd Backend/go-discovery-service && mvn spring-boot:run
 # Domain services
 cd Backend/go-user-service && mvn spring-boot:run
 cd Backend/go-team-service && mvn spring-boot:run
+cd Backend/go-league-service && mvn spring-boot:run
+cd Backend/go-messaging-service && mvn spring-boot:run
 
 # API Gateway
 cd Backend/go-api-gateway && mvn spring-boot:run
@@ -147,12 +176,26 @@ Service order matters: config server ➜ discovery ➜ domain services ➜ gatew
 <a id="frontend-expo"></a>
 ### 3. 📱 Frontend (Expo)
 
+**Option A – TestFlight (iOS, no setup required):** install the latest build directly on your iPhone via the [TestFlight invitation](https://testflight.apple.com/join/GZJxxfUU).
+
+**Option B – run locally:**
+
 ```bash
 cd Frontend
 npm run start
 ```
 
 Choose an iOS/Android simulator or run the web target. Ensure the Expo env variables resolve to the running backend.
+
+<a id="dashboard-nextjs"></a>
+### 4. 🖥️ Dashboard (Next.js)
+
+```bash
+cd Dashboard
+npm run dev
+```
+
+Opens at `http://localhost:3000`. The dashboard proxies API calls to the backend gateway — ensure the backend is running and `EXPO_PUBLIC_API_BASE_URL` (or the equivalent proxy config) points to it.
 
 <a id="testing-and-quality"></a>
 ## 🧪 Testing and Quality
@@ -167,5 +210,18 @@ Choose an iOS/Android simulator or run the web target. Ensure the Expo env varia
 - **Backend** – From each service:
   ```bash
   mvnw test                
+  ```
+
+- **E2E (Maestro)** – Requires the [Maestro CLI](https://maestro.mobile.dev/) and a running simulator/device with the app installed. From the repo root:
+  ```bash
+  # Run all flows
+  maestro test e2e/run-all-tests.yaml
+
+  # Run individual suites
+  maestro test e2e/league-services-tests.yaml
+  maestro test e2e/matches-tests.yaml
+  maestro test e2e/messaging-services-tests.yaml
+  maestro test e2e/payments-tests.yaml
+  maestro test e2e/teams-tests.yaml
   ```
 
