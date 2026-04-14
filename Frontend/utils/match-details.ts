@@ -215,7 +215,11 @@ export function getMatchAttendanceAction(args: {
     attendanceStatus,
   } = args;
 
-  if (!match || space !== "team" || !spaceId || !isActiveMember || hasResponded) {
+  if (!match || !space || !isActiveMember || hasResponded) {
+    return null;
+  }
+
+  if (space === "team" && !spaceId) {
     return null;
   }
 
@@ -454,20 +458,25 @@ export async function cancelMatch(args: {
 export async function submitMatchAttendance(args: {
   attendanceAction?: MatchAttendanceAction | null;
   displayMatch?: MatchDetailsDisplayMatch;
+  leagueId?: string;
   queryClient: QueryClient;
   setHasSubmittedAttendance: (value: boolean) => void;
   spaceId: string;
+  teamBoardId?: string;
   updateAttendance: (args: {
     matchId: string;
+    leagueId?: string;
     attending: MatchAttendanceAction["attending"];
   }) => Promise<unknown>;
 }) {
   const {
     attendanceAction,
     displayMatch,
+    leagueId,
     queryClient,
     setHasSubmittedAttendance,
     spaceId,
+    teamBoardId,
     updateAttendance,
   } = args;
 
@@ -477,12 +486,20 @@ export async function submitMatchAttendance(args: {
 
   await updateAttendance({
     matchId: displayMatch.id,
+    leagueId,
     attending: attendanceAction.attending,
   });
   setHasSubmittedAttendance(true);
-  await queryClient.invalidateQueries({
-    queryKey: ["match-members-by-team", displayMatch.id, spaceId],
-  });
+  await Promise.all([
+    queryClient.invalidateQueries({
+      queryKey: ["match-members-by-team", displayMatch.id, spaceId, leagueId ?? ""],
+    }),
+    attendanceAction.attending === "DECLINED" && teamBoardId
+      ? queryClient.invalidateQueries({
+          queryKey: ["team-board", teamBoardId],
+        })
+      : Promise.resolve(),
+  ]);
 }
 
 export async function openMatchVenueDirections(args: {

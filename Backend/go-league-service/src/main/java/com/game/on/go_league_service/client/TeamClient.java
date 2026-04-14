@@ -3,13 +3,16 @@ package com.game.on.go_league_service.client;
 import com.game.on.go_league_service.client.dto.TeamListResponse;
 import com.game.on.go_league_service.client.dto.TeamMatchDetailResponse;
 import com.game.on.go_league_service.client.dto.TeamMembershipResponse;
+import com.game.on.go_league_service.client.dto.TeamPostCreateRequest;
 import com.game.on.go_league_service.client.dto.TeamSummaryResponse;
+import com.game.on.go_league_service.client.dto.TeamMemberProfileResponse;
 import com.game.on.go_league_service.client.dto.VenueResponse;
 import com.game.on.go_league_service.config.FeignAuthForwardingConfig;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
 
 import java.util.List;
@@ -45,6 +48,11 @@ public interface TeamClient {
     @GetMapping("/api/v1/teams/{teamId}/matches")
     List<TeamMatchDetailResponse> getAllTeamMatch(@PathVariable UUID teamId);
 
+    @GetMapping("/api/v1/teams/{teamId}/members")
+    List<TeamMemberProfileResponse> getTeamMembers(@PathVariable UUID teamId);
+
+    @PostMapping("/api/v1/teams/{teamId}/posts/system")
+    void createSystemPost(@PathVariable UUID teamId, @RequestBody TeamPostCreateRequest request);
     @GetMapping("/api/v1/matches/referee")
     List<TeamMatchDetailResponse> getMyRefereeMatches();
 }

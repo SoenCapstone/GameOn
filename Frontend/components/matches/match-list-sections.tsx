@@ -3,9 +3,11 @@ import { Text, View, StyleSheet } from "react-native";
 import { MatchCard } from "@/components/matches/match-card";
 import { Loading } from "@/components/ui/loading";
 import { Empty } from "@/components/ui/empty";
+import { LeagueMatch, TeamMatch } from "@/types/matches";
 
 export type MatchItem = {
   id: string;
+  leagueId?: string;
   homeTeamId?: string;
   awayTeamId?: string;
   homeName: string;
@@ -21,6 +23,7 @@ export type MatchItem = {
   awayScore?: number | null;
   space?: string;
   spaceId?: string;
+  match?: TeamMatch | LeagueMatch;
 };
 
 interface MatchListSectionsProps {

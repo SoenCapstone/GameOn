@@ -100,6 +100,12 @@ export default function Home() {
       params: {
         space: item.space,
         spaceId: item.spaceId,
+        leagueId:
+          item.space === "league"
+            ? item.spaceId
+            : item.match && "leagueId" in item.match
+              ? item.match.leagueId
+              : "",
         homeName: item.homeName,
         awayName: item.awayName,
         homeLogoUrl: item.homeLogoUrl ?? undefined,

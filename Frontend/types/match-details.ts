@@ -8,6 +8,7 @@ export type MatchDetailsRouteParams = {
   id?: string;
   space?: MatchSpace;
   spaceId?: string;
+  leagueId?: string;
   homeName?: string;
   awayName?: string;
   homeLogoUrl?: string;

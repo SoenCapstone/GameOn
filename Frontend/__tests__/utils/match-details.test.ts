@@ -544,21 +544,11 @@ describe("match-details utils", () => {
       ).toBeNull();
     });
 
-    it("returns null for missing inputs or invalid spaces", () => {
+    it("returns null for missing inputs or inactive/responded users", () => {
       expect(
         getMatchAttendanceAction({
           match: null,
           space: "team",
-          spaceId: "team-1",
-          role: "PLAYER",
-          isActiveMember: true,
-          hasResponded: false,
-        }),
-      ).toBeNull();
-      expect(
-        getMatchAttendanceAction({
-          match: baseMatch,
-          space: "league",
           spaceId: "team-1",
           role: "PLAYER",
           isActiveMember: true,
@@ -595,6 +585,37 @@ describe("match-details utils", () => {
           hasResponded: true,
         }),
       ).toBeNull();
+    });
+
+    it("returns attendance actions in league space when role and membership are known", () => {
+      expect(
+        getMatchAttendanceAction({
+          match: leagueMatch,
+          space: "league",
+          spaceId: "league-1",
+          role: "PLAYER",
+          isActiveMember: true,
+          hasResponded: false,
+        }),
+      ).toMatchObject({
+        attending: "DECLINED",
+        label: "Not Attending",
+      });
+
+      expect(
+        getMatchAttendanceAction({
+          match: leagueMatch,
+          space: "league",
+          spaceId: "league-1",
+          role: "REPLACEMENT",
+          isActiveMember: true,
+          hasResponded: false,
+          attendanceStatus: "PENDING",
+        }),
+      ).toMatchObject({
+        attending: "CONFIRMED",
+        label: "Attending",
+      });
     });
 
     it("returns null if match is cancelled or in the past", () => {
@@ -788,6 +809,7 @@ describe("match-details utils", () => {
         queryClient: queryClient as never,
         setHasSubmittedAttendance,
         spaceId: "team-1",
+        teamBoardId: "team-1",
         updateAttendance,
       });
 
@@ -797,7 +819,42 @@ describe("match-details utils", () => {
       });
       expect(setHasSubmittedAttendance).toHaveBeenCalledWith(true);
       expect(invalidateQueries).toHaveBeenCalledWith({
-        queryKey: ["match-members-by-team", "match-1", "team-1"],
+        queryKey: ["match-members-by-team", "match-1", "team-1", ""],
+      });
+      expect(invalidateQueries).toHaveBeenCalledWith({
+        queryKey: ["team-board", "team-1"],
+      });
+    });
+
+    it("submits league attendance and invalidates league-scoped member query", async () => {
+      const updateAttendance = jest.fn().mockResolvedValue(undefined);
+      const setHasSubmittedAttendance = jest.fn();
+      const invalidateQueries = jest.fn().mockResolvedValue(undefined);
+      const queryClient = { invalidateQueries } as unknown as {
+        invalidateQueries: (args: unknown) => Promise<unknown>;
+      };
+
+      await submitMatchAttendance({
+        attendanceAction: MATCH_ATTENDANCE_ACTIONS.PLAYER,
+        displayMatch: leagueMatch,
+        leagueId: "league-1",
+        queryClient: queryClient as never,
+        setHasSubmittedAttendance,
+        spaceId: "team-1",
+        teamBoardId: "team-1",
+        updateAttendance,
+      });
+
+      expect(updateAttendance).toHaveBeenCalledWith({
+        matchId: "match-1",
+        leagueId: "league-1",
+        attending: "DECLINED",
+      });
+      expect(invalidateQueries).toHaveBeenCalledWith({
+        queryKey: ["match-members-by-team", "match-1", "team-1", "league-1"],
+      });
+      expect(invalidateQueries).toHaveBeenCalledWith({
+        queryKey: ["team-board", "team-1"],
       });
     });
 

@@ -1,6 +1,7 @@
 package com.game.on.go_league_service.league.service;
 
 import com.game.on.go_league_service.client.TeamClient;
+import com.game.on.go_league_service.client.dto.TeamPostCreateRequest;
 import com.game.on.go_league_service.client.dto.TeamSummaryResponse;
 import com.game.on.go_league_service.config.CurrentUserProvider;
 import com.game.on.go_league_service.exception.BadRequestException;
@@ -14,7 +15,15 @@ import com.game.on.go_league_service.league.model.LeagueMatchScore;
 import com.game.on.go_league_service.league.model.LeagueMatchStatus;
 import com.game.on.go_league_service.league.model.RefereeProfile;
 import com.game.on.go_league_service.league.model.Venue;
-import com.game.on.go_league_service.league.repository.*;
+import com.game.on.go_league_service.league.model.LeagueMatchMember;
+import com.game.on.go_league_service.league.model.AttendanceStatus;
+import com.game.on.go_league_service.league.repository.LeagueMatchRepository;
+import com.game.on.go_league_service.league.repository.LeagueMatchScoreRepository;
+import com.game.on.go_league_service.league.repository.LeagueRepository;
+import com.game.on.go_league_service.league.repository.LeagueTeamRepository;
+import com.game.on.go_league_service.league.repository.RefereeProfileRepository;
+import com.game.on.go_league_service.league.repository.LeagueMatchMemberRepository;
+import com.game.on.go_league_service.league.repository.LeagueOrganizerRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -24,6 +33,8 @@ import org.springframework.util.StringUtils;
 import java.time.Duration;
 import java.time.LocalDate;
 import java.time.OffsetDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.Locale;
 import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -35,6 +46,10 @@ public class LeagueMatchService {
     private static final String LEAGUE_TEAM_SAME_DAY_CONFLICT_CODE = "LEAGUE_TEAM_SAME_DAY_CONFLICT";
     private static final String LEAGUE_TEAM_SAME_DAY_CONFLICT_MESSAGE =
             "One of these teams already has a confirmed match on this day. League teams are limited to one match per day.";
+    private static final DateTimeFormatter REPLACEMENT_MATCH_DATE_FORMATTER =
+            DateTimeFormatter.ofPattern("EEEE, MMMM d", Locale.ENGLISH);
+    private static final DateTimeFormatter REPLACEMENT_MATCH_TIME_FORMATTER =
+            DateTimeFormatter.ofPattern("h:mm a", Locale.ENGLISH);
 
     private final LeagueOrganizerRepository organizerRepository;
 
@@ -46,6 +61,7 @@ public class LeagueMatchService {
     private final VenueService venueService;
     private final TeamClient teamClient;
     private final CurrentUserProvider userProvider;
+    private final LeagueMatchMemberRepository leagueMatchMemberRepository;
 
     @Transactional(readOnly = true)
     public LeagueMatchScheduleValidationResponse validateMatch(UUID leagueId, LeagueMatchCreateRequest request) {
@@ -138,6 +154,55 @@ public class LeagueMatchService {
         }
 
         var saved = leagueMatchRepository.save(match);
+
+        var homePlayers = teamClient.getTeamMembers(request.homeTeamId())
+            .stream()
+            .filter(member -> "PLAYER".equalsIgnoreCase(member.role()))
+            .toList();
+        var awayPlayers = teamClient.getTeamMembers(request.awayTeamId())
+            .stream()
+            .filter(member -> "PLAYER".equalsIgnoreCase(member.role()))
+            .toList();
+
+        Set<String> homePlayerUserIds = homePlayers.stream()
+            .map(member -> member.userId())
+            .filter(StringUtils::hasText)
+            .collect(Collectors.toSet());
+        Set<String> awayPlayerUserIds = awayPlayers.stream()
+            .map(member -> member.userId())
+            .filter(StringUtils::hasText)
+            .collect(Collectors.toSet());
+        homePlayerUserIds.retainAll(awayPlayerUserIds);
+        if (!homePlayerUserIds.isEmpty()) {
+            throw new BadRequestException("A player cannot be on both teams for the same league match");
+        }
+
+        List<LeagueMatchMember> members = new ArrayList<>();
+
+        homePlayers.forEach(p -> members.add(
+                LeagueMatchMember.builder()
+                        .id(UUID.randomUUID())
+                        .match(saved)
+                        .userId(p.userId())
+                        .teamId(request.homeTeamId())
+                        .role(p.role())
+                        .status(AttendanceStatus.CONFIRMED)
+                        .build()
+        ));
+
+        awayPlayers.forEach(p -> members.add(
+                LeagueMatchMember.builder()
+                        .id(UUID.randomUUID())
+                        .match(saved)
+                        .userId(p.userId())
+                        .teamId(request.awayTeamId())
+                        .role(p.role())
+                        .status(AttendanceStatus.CONFIRMED)
+                        .build()
+        ));
+
+        leagueMatchMemberRepository.saveAll(members);
+
         log.info("league_match_created matchId={} leagueId={} byUser={}", saved.getId(), leagueId, userId);
         return toResponse(saved);
     }
@@ -190,7 +255,7 @@ public class LeagueMatchService {
         ensureLeagueOwner(league, userId);
 
         var match = leagueMatchRepository.findByIdAndLeague_Id(matchId, leagueId)
-                .orElseThrow(() -> new NotFoundException("Match not found"));
+            .orElseThrow(() -> new NotFoundException("Match not found"));
 
         match.setStatus(LeagueMatchStatus.CANCELLED);
         match.setCancelledAt(OffsetDateTime.now());
@@ -559,5 +624,109 @@ public class LeagueMatchService {
         }
         long minutes = Duration.between(match.getStartTime(), match.getEndTime()).toMinutes();
         return Math.max(minutes, 0);
+    }
+
+    @Transactional
+    public void updateAttendance(UUID leagueId, UUID matchId, LeagueMatchAttendanceRequest request) {
+        String userId = userProvider.clerkUserId();
+
+        leagueMatchRepository.findByIdAndLeague_Id(matchId, leagueId)
+                .orElseThrow(() -> new NotFoundException("Match not found"));
+
+        var member = leagueMatchMemberRepository
+                .findByMatch_IdAndUserId(matchId, userId)
+                .orElseThrow(() -> new NotFoundException("You are not part of this match"));
+
+        if (request.attending() == null) {
+            throw new BadRequestException("attending is required");
+        }
+
+        if (request.attending() == AttendanceStatus.PENDING) {
+            throw new BadRequestException("Cannot set status to PENDING");
+        }
+
+        if (request.attending() == AttendanceStatus.DECLINED
+                && "PLAYER".equalsIgnoreCase(member.getRole())) {
+            List<LeagueMatchMember> existingMembers = leagueMatchMemberRepository.findByMatchId(matchId);
+            Map<String, LeagueMatchMember> existingByUserId = existingMembers.stream()
+                    .collect(Collectors.toMap(LeagueMatchMember::getUserId, Function.identity(), (left, right) -> left));
+
+            List<LeagueMatchMember> replacementMembers = teamClient.getTeamMembers(member.getTeamId())
+                    .stream()
+                    .filter(teamMember -> "REPLACEMENT".equalsIgnoreCase(teamMember.role()))
+                    .filter(teamMember -> !Objects.equals(teamMember.userId(), member.getUserId()))
+                    .map(teamMember -> {
+                        LeagueMatchMember existing = existingByUserId.get(teamMember.userId());
+                        if (existing != null) {
+                            if (Objects.equals(existing.getTeamId(), member.getTeamId())) {
+                                existing.setRole(teamMember.role());
+                                existing.setStatus(AttendanceStatus.PENDING);
+                                return existing;
+                            }
+                            return null;
+                        }
+
+                        return LeagueMatchMember.builder()
+                                .id(UUID.randomUUID())
+                                .match(member.getMatch())
+                                .teamId(member.getTeamId())
+                                .userId(teamMember.userId())
+                                .role(teamMember.role())
+                                .status(AttendanceStatus.PENDING)
+                                .build();
+                    })
+                    .filter(Objects::nonNull)
+                    .toList();
+
+            if (!replacementMembers.isEmpty()) {
+                leagueMatchMemberRepository.saveAll(replacementMembers);
+
+                UUID matchTeamId = member.getTeamId();
+                UUID otherTeamId = Objects.equals(matchTeamId, member.getMatch().getHomeTeamId())
+                    ? member.getMatch().getAwayTeamId()
+                    : member.getMatch().getHomeTeamId();
+                String leagueName = Optional.ofNullable(member.getMatch().getLeague().getName())
+                    .filter(StringUtils::hasText)
+                    .orElse("the league");
+                String otherTeamName = Optional.ofNullable(teamClient.getTeam(otherTeamId).name())
+                    .filter(StringUtils::hasText)
+                    .orElse("the opposing team");
+                String matchDate = member.getMatch().getStartTime().format(REPLACEMENT_MATCH_DATE_FORMATTER);
+                String matchTime = member.getMatch().getStartTime().format(REPLACEMENT_MATCH_TIME_FORMATTER);
+
+                TeamPostCreateRequest postRequest = new TeamPostCreateRequest(
+                        "Replacement Needed",
+                        member.getTeamId(),
+                        "A replacement is needed for our "
+                            + leagueName
+                            + " match against "
+                                + otherTeamName
+                                + " on "
+                                + matchDate
+                                + " at "
+                                + matchTime,
+                        "Members"
+                );
+                teamClient.createSystemPost(member.getTeamId(), postRequest);
+            }
+        }
+
+        member.setStatus(request.attending());
+        leagueMatchMemberRepository.save(member);
+
+    }
+
+    @Transactional(readOnly = true)
+    public List<LeagueMatchMemberResponse> getMatchMembers(UUID matchId) {
+        return leagueMatchMemberRepository.findByMatchId(matchId)
+                .stream()
+                .map(member -> new LeagueMatchMemberResponse(
+                        member.getId(),
+                        member.getTeamId(),
+                        member.getUserId(),
+                        member.getRole(),
+                        member.getStatus()
+                ))
+                .toList();
     }
 }
